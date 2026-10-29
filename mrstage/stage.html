@@ -5387,6 +5387,8 @@ html.mr-uikit body #app#app#app::before,html.mr-uikit body #app#app#app::after{d
 </style>
 <style id="lm-cut-hidefx">/* (DHL 10-29) 컷인이 떠 있는 동안 이미 재생 중이던 이펙트(마법진 등)도 가림 — 컷인이 끝나면 다시 보임 */
 body:has(#battle-stage[data-team-skill="on"]) .lmflip,body:has(#skill-cinematic .mrfc) .lmflip{opacity:0!important}
+/* (DHL 10-30 '컷신 때 방패가 보임') 컷인 · 처치 컷신 동안 적 앞 보석 방패 · 체력 바 관통 선도 숨김 */
+body:has(#battle-stage[data-team-skill="on"]) :is(#lm-gshield,#lm-cap-line),body:has(#battle-stage.skill-cutscene) :is(#lm-gshield,#lm-cap-line),body:has(#skill-cinematic.on) :is(#lm-gshield,#lm-cap-line),body:has(#skill-cinematic .mrfc) :is(#lm-gshield,#lm-cap-line){visibility:hidden!important;opacity:0!important}
 </style>
 <style id="lm-capline">/* (DHL 10-29) 관통 — 체력 바 위 🛡 선(이번 런 최대 피해 지점) · 예상 피해 미리보기 */
 #lm-capwrap{position:relative}
