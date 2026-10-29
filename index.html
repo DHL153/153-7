@@ -5862,6 +5862,11 @@ html.lmB body .card.dz .dzi[data-w] .dza::before{content:"";position:absolute;le
 .rb .cd.card.dz .mk{z-index:9}
 .rb .hand{gap:16px 6px;padding-top:14px}
 .rb .row{flex-wrap:nowrap}.rb .row .cd.card.dz{width:calc((100% - 20px) / 3);max-width:104px;flex:0 1 auto}
+/* PC 낮은 창(높이 ~730px 이하)에서 '뒤로'가 눌려 글자가 잘리던 것 (DHL 10-29): 창은 고정, 목록만 안에서 스크롤 · 아래 버튼은 줄어들지 않게 */
+html.lmB #lm-title .lt-card.wide{overflow:hidden!important}
+html.lmB #lm-title .lt-card.wide>*{flex-shrink:0}
+html.lmB #lm-title .lt-card.wide>.ls-body{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain}
+html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
 </style>
 <script id="lm-brand-js">
 /* 브랜드 레이어 켜고 끄기 (비교용) — 기본은 새 UI. 선택은 이 브라우저에만 기억 */
