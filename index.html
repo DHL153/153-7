@@ -7085,4 +7085,39 @@ body.lmFxDemo.lmFxOut #lm-title{z-index:902}
 body.lm-noMergeBtn #app.bl #btns>#bMerge{display:none!important}
 html body.lm-noMergeBtn #app.bl #btns{grid-template-areas:'play sort sort dis' 'play clear clear dis'!important}
 </style>
+<style id="lm-htname-chips">
+/* (DHL 10-29 'PC 족보 이름이 글자만 쌓인 느낌') 족보 이름 → 위 작은 금빛 제목(삼중 결속!) + 족보 알약들 + 보너스 알약 */
+#htName.hnC{display:flex!important;flex-direction:column;align-items:center;gap:4px;line-height:1!important;text-shadow:none!important}
+#htName .hnT{font:900 11px/1 "Noto Sans KR",sans-serif;letter-spacing:.08em;color:#ffd66a;text-shadow:0 1px 0 #000,0 0 8px #ffb43a88}
+#htName .hnR{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px}
+#htName .hnP{display:inline-flex;align-items:center;font:900 clamp(13px,2.2vh,16px)/1 "Noto Sans KR",sans-serif;color:#fff6dc;padding:4px 9px;border-radius:999px;background:linear-gradient(#2a3b66,#1a2546);border:1px solid #c9a24a99;box-shadow:0 2px 0 #050a14;white-space:nowrap}
+#htName .hnP.main{background:linear-gradient(#3b5596,#24346a);border-color:#ffe08a}
+#htName .hnX{font:900 11px/1 "Noto Sans KR",sans-serif;color:#9ca9c8}
+#htName .hnB{display:inline-flex;align-items:center;gap:3px;font:900 11.5px/1 "Noto Sans KR",sans-serif;padding:3px 8px;border-radius:999px;white-space:nowrap;color:#d9ffe4;background:#14532dcc;border:1px solid #4ade8088}
+#htName .hnB.mg{color:#fff0c2;background:#5b3a0acc;border-color:#f0c24b88}
+#htName .hnB.bad{color:#ffd6d0;background:#5a1414cc;border-color:#f8717188}
+body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
+@media (orientation:landscape) and (max-height:500px){#htName .hnP{font-size:11px;padding:2px 7px}#htName .hnT,#htName .hnB{font-size:9.5px}#htName.hnC{gap:2px}}
+</style>
+<script id="lm-htname-chips-js">
+(function(){
+  const hn=document.getElementById('htName');if(!hn)return;
+  const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  let busy=false;
+  function fmt(){if(busy)return;const t=(hn.textContent||'').trim();
+    if(hn.dataset.hnSrc===t&&hn.classList.contains('hnC'))return;
+    // 고르기 전 · 가려진 카드 · 런 중 단계 글 등 '족보'가 아닌 문장은 그대로
+    if(!t||/^(카드를 고르세요|\? )/.test(t)||t.startsWith('⛔')||!/[+·]|!/.test(t)){hn.classList.remove('hnC');hn.dataset.hnSrc='';return;}
+    const parts=t.split(' · ');let main=parts.shift();let title='';
+    const m=main.match(/^(\S[^!]*!)\s+(.+)$/);if(m){title=m[1];main=m[2];}
+    const names=main.split(' + ').map(x=>x.trim()).filter(Boolean);
+    if(!names.length){return;}
+    const extras=parts.map(x=>{x=x.trim();const cls=/머지/.test(x)?'mg':/[-−]\d|막힘/.test(x)?'bad':'';return `<span class="hnB ${cls}">${esc(x)}</span>`;}).join('');
+    busy=true;
+    hn.innerHTML=(title?`<span class="hnT">${esc(title)}</span>`:'')+`<span class="hnR">`+names.map((n,i)=>(i?'<span class="hnX">+</span>':'')+`<span class="hnP${i===0?' main':''}">${esc(n)}</span>`).join('')+`</span>`+(extras?`<span class="hnR">${extras}</span>`:'');
+    hn.classList.add('hnC');hn.dataset.hnSrc=(hn.textContent||'').trim();busy=false;}
+  new MutationObserver(()=>{if(!busy)fmt();}).observe(hn,{childList:true,characterData:true,subtree:true});
+  fmt();
+})();
+</script>
 </body></html>
