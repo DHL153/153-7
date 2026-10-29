@@ -6925,3 +6925,29 @@ body.lmFxDemo #lmStage{position:relative;z-index:901}
 #lm-title .lc-fx .lc-txt b{white-space:nowrap}
 @media (max-width:520px){#lm-title .lc-fx .lc-txt b{font-size:clamp(18px,5vw,22px)!important}}
 </style></body></html>
+
+<script id="lm-hud-match">
+/* (DHL 10-29) 왼쪽 위 열쇠 칸과 오른쪽 위 적 이름표 크기를 맞춤 — 둘의 중간 높이로 (모바일·PC 모두) */
+(function(){
+  const kb=document.getElementById('keyBar');if(!kb)return;
+  let busy=false;
+  function match(){
+    if(busy)return;const f=document.getElementById('lmFoeTag'),pl=f&&f.querySelector('.fpl');
+    busy=true;try{
+      if(f)f.style.removeProperty('transform');
+      if(kb.classList.contains('open')||!pl||!pl.offsetHeight||!kb.offsetHeight){if(!kb.classList.contains('open'))kb.style.removeProperty('transform');return;}
+      kb.style.removeProperty('transform');
+      const hk=kb.getBoundingClientRect().height,hf=pl.getBoundingClientRect().height,T=(hk+hf)/2;
+      kb.style.setProperty('transform','scale('+(T/kb.offsetHeight).toFixed(3)+')','important');kb.style.setProperty('transform-origin','0 0','important');
+      f.style.setProperty('transform','scale('+(T/hf).toFixed(3)+')');f.style.setProperty('transform-origin','100% 0');
+    }finally{busy=false;}
+  }
+  const go=()=>requestAnimationFrame(match);
+  new MutationObserver(go).observe(kb,{attributes:true,attributeFilter:['class']});
+  const hook=()=>{const f=document.getElementById('lmFoeTag');if(f&&!f._lmM){f._lmM=1;new MutationObserver(go).observe(f,{childList:true,subtree:true});}};
+  addEventListener('resize',()=>{hook();go();});
+  setInterval(()=>{hook();},1000);
+  new MutationObserver(()=>{hook();go();}).observe(document.body,{childList:true});
+})();
+</script>
+</body></html>

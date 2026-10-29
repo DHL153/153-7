@@ -7808,7 +7808,7 @@ let isGameOver = false;
     const el=[...stage.querySelectorAll('.battle-team-hero')].find(e=>!e.hidden&&e.style.getPropertyValue('--team-height'));
     if(!el)return;
     const imgH=parseFloat(el.style.getPropertyValue('--team-height'))/100*H,body=imgH*290/512;
-    const S=body*(kind==='boss'?1.15:1.0)/0.75;
+    const S=body*(kind==='boss'?1.15:1.0)/0.75*lmPortraitK();   // (DHL 10-29) 휴대폰 세로는 빌런도 70%
     stage.style.setProperty('--lm-enemy-size',S.toFixed(1)+'px');
     stage.style.setProperty('--lm-enemy-bottom',Math.max(0,H*BATTLE_GROUND_LINE-S*0.1).toFixed(1)+'px');   // 그림 아래 여백(약 10%)만큼 내려 발을 땅 선에
     stage.style.setProperty('--lm-hud-w',Math.max(40,S*.62).toFixed(1)+'px');stage.style.setProperty('--lm-hud-bottom',Math.max(18,H*BATTLE_GROUND_LINE-S*0.1+6).toFixed(1)+'px');   // (DHL 10-29) 체력 줄이 아래 구분선과 겹치지 않게 살짝 위로
