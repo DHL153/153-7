@@ -6219,7 +6219,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
 (function(){
   if(typeof askFuse!=='function')return;
   const WIC={rust:'w_rust',neon:'w_neon',sky:'w_sky'};
-  const prev=(a,b,w,e,mixed)=>{const src=cardW(a)===w?a:b;const c=Object.assign({},src,{w,el:e,star:a.star+1,mixed:!!mixed});delete c.st;delete c.out;
+  const prev=(a,b,w,e,mixed)=>{const src=cardW(a)===w?a:b;const c=Object.assign({},src,{w,el:e,no:Math.max(cardNo(a),cardNo(b)),star:a.star+1,mixed:!!mixed});delete c.st;delete c.out;
     return `<div class="mgCard card dz s${c.star}">${cardFace(c)}</div>`;};
   const opt=(on,img,lab,click)=>`<button class="mgOpt${on?' on':''}" onclick="${click}"><img src="assets/ui/card/${img}.webp" alt=""><span>${lab}</span></button>`;
   const foot=ok=>`<div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();S._chain=null;render()" aria-label="취소"><img src="assets/ui/icon/back.webp" alt=""></button><button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
