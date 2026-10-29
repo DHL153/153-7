@@ -5987,14 +5987,29 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   const stg=()=>{try{return document.querySelector('#lmStage iframe')?.contentWindow?.MRStage||null;}catch(e){return null;}};
   let last='';
   function run(o,key){
-    if(key)last=key;const st=stg();ltHide();document.body.classList.add('lmFxDemo');
+    if(key)last=key;const st=stg();ltHide();const B=document.body;B.classList.remove('lmFxOut','lmFxLive');B.classList.add('lmFxDemo');
     if(!st){return;}
     if(st.busy&&st.busy()){setTimeout(()=>run(o),400);return;}
     // 실제 전투와 같게: 연출하는 동안 오른쪽 위 적 정보 숨김
-    const ov=document.getElementById('ov'),peek=ov&&!ov.hidden;if(peek)document.body.classList.add('lmFxPeek');   // (DHL 10-29) 보상 · 캠프 창이 무대를 가리면 연출 동안만 숨김
-    const box=document.getElementById('lmStage');if(box){box.classList.add('lmHit');const t0=performance.now(),tk=setInterval(()=>{if(performance.now()-t0<700)return;if(!(st.busy&&st.busy())){box.classList.remove('lmHit');document.body.classList.remove('lmFxPeek');clearInterval(tk);
-      /* (DHL 10-29) 연출이 끝나면 '전투 연출 보기' 화면으로 다시 */ setTimeout(()=>{try{document.body.classList.remove('lmFxDemo');ltShow();ltPop('fxdemo');}catch(e){}},350);}},400);}
-    st.demo(o);
+    const ov=document.getElementById('ov'),peek=ov&&!ov.hidden;if(peek)B.classList.add('lmFxPeek');   // (DHL 10-29) 보상 · 캠프 창이 무대를 가리면 연출 동안만 숨김
+    const box=document.getElementById('lmStage');
+    /* (DHL 10-29 '전투 후 다른 캐릭터 잔상') 무대는 연출이 시작된 뒤에만 보이고, 끝나면 먼저 감춘 다음 목록을 띄움
+       → 연출 앞뒤로 게임 속 원래 캐릭터가 비치지 않음. 무대는 화면 가운데 혼자 (나머지 화면은 가림) */
+    if(box)box.classList.add('lmHit');
+    setTimeout(()=>{
+      st.demo(o);
+      const t0=performance.now();let seen=false;
+      const ph=()=>{try{return st.demoPhase?st.demoPhase():'';}catch(e){return '';}};let hid=false;
+      const tk=setInterval(()=>{const b=!!(st.busy&&st.busy()),p=ph();
+        if(!seen&&(p==='live'||(!st.demoPhase&&b))){seen=true;B.classList.add('lmFxLive');}
+        if(p==='end'&&!hid){hid=true;B.classList.remove('lmFxLive');}   // 원래 캐릭터로 되돌리기 전에 감춤
+        if(performance.now()-t0<700||b)return;
+        clearInterval(tk);B.classList.remove('lmFxLive');
+        setTimeout(()=>{box&&box.classList.remove('lmHit');B.classList.remove('lmFxPeek');B.classList.add('lmFxOut');
+          try{ltShow();ltPop('fxdemo');}catch(e){}
+          setTimeout(()=>B.classList.remove('lmFxDemo','lmFxOut'),600);},260);
+      },80);
+    },180);   // 무대가 가운데 크기로 바뀐 뒤 시작
   }
   window.lmFxDemo={
     one(p){const n=world+p;run({hero:n,nums:[n],stars:{[n]:star}},'one'+p);},
@@ -6857,8 +6872,11 @@ html,html *{scrollbar-width:thin;scrollbar-color:#c9a24a88 transparent}
 #lm-title .lm-fxbar:focus-visible{outline:3px solid #f6cf63;outline-offset:2px}
 #lm-title .fx2 .fxIcs .fxW img{width:70%!important;height:70%!important}
 /* 연출 보는 동안: 무대만 보이게 나머지 화면은 어둡게 */
-body.lmFxDemo::after{content:'';position:fixed;inset:0;background:#05080fcc;z-index:900;pointer-events:none}
-body.lmFxDemo #lmStage{position:relative;z-index:901}
+body.lmFxDemo::after{content:'';position:fixed;inset:0;background:#05080f;z-index:900;pointer-events:none}
+body.lmFxDemo #lmStage{position:fixed!important;left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;margin:0!important;transform:translate(-50%,-50%)!important;width:min(96vw,calc(88vh * 16 / 9))!important;height:auto!important;aspect-ratio:16/9;max-height:none!important;z-index:901;opacity:0;transition:none}
+body.lmFxDemo.lmFxLive #lmStage{opacity:1;transition:opacity .2s}
+body.lmFxDemo #keyBar,body.lmFxDemo #lmToast,body.lmFxDemo #lmFoeTag{visibility:hidden!important}
+body.lmFxDemo.lmFxOut #lm-title{z-index:902}
 </style>
 <script id="lm-keybar-fit">
 /* (DHL 10-29 '모바일에서 깨져 보임') 열쇠(맞춤) 칸을 눌러 펼치면 무대보다 키가 커서 아래가 잘리던 것
@@ -6987,6 +7005,17 @@ body.lmFxDemo #lmStage{position:relative;z-index:901}
     return r;};
   sync();place();addEventListener('resize',place);setTimeout(place,300);setTimeout(place,1500);
   new MutationObserver(place).observe(t,{attributes:true,attributeFilter:['hidden','class']});
+})();
+</script>
+
+<script id="lm-fxmenu-solid">
+/* (DHL 10-29 '전투 연출 보기 — 다른 캐릭터 잔상') 연출 목록이 떠 있는 동안 뒤의 게임 화면(무대 · 손패)이 비치지 않게 가림 */
+(function(){
+  if(typeof ltPop!=='function')return;
+  const st=document.createElement('style');st.textContent='body.lmFxMenu #app,body.lmFxMenu #lm-title .ltv-sc{visibility:hidden!important}body.lmFxMenu{background:#05080f!important}';document.head.appendChild(st);
+  const _p=ltPop;
+  ltPop=function(kind){const r=_p.apply(this,arguments);document.body.classList.toggle('lmFxMenu',kind==='fxdemo');return r;};
+  window.ltPop=ltPop;
 })();
 </script>
 </body></html>

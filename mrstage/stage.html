@@ -8218,15 +8218,17 @@ let isGameOver = false;
     await Promise.all(outs);if(guests.length&&!(o.killed&&!o.demo))applyTeam([hero,null,null]);   // 동료 자리 비움 (다음 카드 빛 구슬이 숨은 동료에게 가지 않게)
   }
   // 미리보기(게임 상태를 바꾸지 않음): 처치해도 퇴장·보상 없이 제자리로
+  let demoPh='';   // (DHL 10-29 '연출 앞뒤 다른 캐릭터 잔상') 바깥 화면이 무대를 보여줄 때만 알 수 있게: live = 연출 캐릭터 준비됨 · end = 연출 끝(원래 캐릭터로 되돌리기 전)
   async function demo(o){
-    const before=[...activeBattleTeam];
+    demoPh='prep';const before=[...activeBattleTeam];
     // (DHL 10-29 '전투 연출 보기가 안 됨') 적을 쓰러뜨린 뒤(밤 · 적 치워짐)에 열면 빈 무대에서 허공을 침 → 연출 동안만 적 · 낮 하늘을 되살렸다가 끝나면 원래대로
     const cleared=stage.classList.contains('lm-cleared'),sky0=skyN,en0=$('enemy');
     if(cleared){stage.classList.remove('lm-cleared','lm-still','lm-foe-dead');if(en0)en0.className='character enemy'+(kind==='boss'?' boss-enemy':'');skyN=1;window.MRBattleSky?.setStage(1,true);}
     if(o.hero){const h=o.hero;await loadRigDef(h);show(ALL,false);applyTeam([h-1,null,null]);await waitRig([0],4000);offsetTeam(0);show([0],true);}
     if(o.stars)stars={...stars,...o.stars};
-    const keep={hp,maxHp};
-    await finale({final:true,nums:o.nums||[],stars:o.stars,dmg:o.dmg||1234,mult:o.mult||3,hp:null,killed:!!o.killed,demo:true});
+    const keep={hp,maxHp};demoPh='live';
+    try{await finale({final:true,nums:o.nums||[],stars:o.stars,dmg:o.dmg||1234,mult:o.mult||3,hp:null,killed:!!o.killed,demo:true});}finally{demoPh='end';}
+    await new Promise(r=>setTimeout(r,280));   // 바깥 화면이 무대를 감출 시간
     hp=keep.hp;maxHp=keep.maxHp;setHud();stage.classList.remove('lm-foe-dead');
     const en=$('enemy');if(en&&/explode/.test(en.className))en.className='character enemy'+(kind==='boss'?' boss-enemy':'');
     if(o.hero||before.some((v,i)=>v!==activeBattleTeam[i])){show(ALL,false);applyTeam(before);await waitRig(ALL,4000);clearOffset();for(const sl of ALL){actors[sl].oy=0;actors[sl].rot=0;}show(ALL.filter(i=>before[i]!=null),true);}
@@ -8371,7 +8373,8 @@ let isGameOver = false;
     //   final = 합동 일격(팀 전원, 총 피해·배수), killed = 쓰러짐(슬로모션 → 처치 컷신 → 하늘)
     joinRun(){return Promise.resolve();},   // ★11 동료는 마지막에 치고 빠지기만
     hit(o={}){if(o.final){finPend++;return seq(async()=>{try{await finale(o);}finally{finPend--;if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}}});}quick(o);return Promise.resolve();},
-    demo(o={}){return ready.then(()=>seq(()=>demo(o)));},   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
+    demo(o={}){return ready.then(()=>seq(()=>demo(o)));},
+    demoPhase(){return demoPh;},   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
     routes(){return {ROUTE,ROUTE_KO};},
     busy(){return pending>0||!idle()||!!document.querySelector('.mrfc');},
     queued(){return pending;},
