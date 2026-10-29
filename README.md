@@ -9,7 +9,7 @@
 ## 폴더
 | 경로 | 내용 |
 |---|---|
-| `index.html` | 라만차 v3 손패 (메인 게임) |
+| `index.html` | Merge & Run La Mancha — 메인 게임 (손패) |
 | `mrstage/stage.html` | 전투 무대 (index.html이 iframe으로 불러옴) |
 | `mrstage/assets/`, `mrstage/fx/` | 전투 무대 전용 리소스 (가벼운 webp 사본) |
 | `assets/` | 공용 리소스 — 153-6 원본 + v3 UI(카드·구슬·아이콘·버튼 등) |

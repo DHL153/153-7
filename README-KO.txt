@@ -1,4 +1,4 @@
-Merge & Run 전체 게임 파일 (v9)
+Merge & Run La Mancha 전체 게임 파일 (v9)
 
 index.html: 게임 본체
 assets/art/: 전체 아트 및 캐릭터 달리기 프레임

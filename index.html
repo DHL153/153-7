@@ -1313,7 +1313,7 @@ html:not(.lmB) .otx .oef{display:block;font-size:9px;opacity:.75}
 .rb .capRow.brk img{filter:drop-shadow(0 0 10px #fde047) brightness(1.25);animation:lmShBrk 1s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){#keyBar .kbShield.brk,.rb .capRow.brk img{animation:none}}</style></head><body>
 <!-- ▶ 시작 흐름 (153-6 index.html의 #game-startup-screen 그대로 · 언어 선택은 다국어 단계에서 켬) -->
-<div id="game-startup-screen" role="status" aria-live="polite"><div class="mr-portal-bg"></div><div class="mr-bead-layer"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run: La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><i class="mr-portal-flash"></i><div class="mr-loading-track"></div><select class="mr-startup-language" hidden disabled aria-label="언어"><option value="ko">한국어</option></select><button id="game-startup-next" type="button" hidden disabled>다음</button><span id="game-startup-message">게임을 준비하고 있어요…</span><button id="game-startup-retry" type="button" hidden>다시 불러오기</button></div>
+<div id="game-startup-screen" role="status" aria-live="polite"><div class="mr-portal-bg"></div><div class="mr-bead-layer"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><i class="mr-portal-flash"></i><div class="mr-loading-track"></div><select class="mr-startup-language" hidden disabled aria-label="언어"><option value="ko">한국어</option></select><button id="game-startup-next" type="button" hidden disabled>다음</button><span id="game-startup-message">게임을 준비하고 있어요…</span><button id="game-startup-retry" type="button" hidden>다시 불러오기</button></div>
 <script id="mr-boot-screen">
 
 // Runs as soon as the loading screen is parsed (before the large game code):
@@ -1489,8 +1489,8 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 <!-- ▶ 타이틀 (발라트로 2번 화면 배치) -->
 <section id="lm-title" hidden aria-label="타이틀">
  <div class="mr-portal-bg"></div>
- <span class="lt-ver">v3 손패 · 2026-10-27</span>
- <div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run: La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div>
+ <span class="lt-ver">Merge &amp; Run La Mancha · v3 · 2026-10-29</span>
+ <div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div>
  <div class="lt-bar">
   <button type="button" class="lt-side lt-prof" onclick="ltPop('prof')"><small>프로필</small><b>P1</b></button>
   <div class="lt-main">
@@ -3763,7 +3763,7 @@ function ltPop(kind){
   if(kind==='hands')card.innerHTML=ltHandsHTML()+B('뒤로',"ltPop('stat')",'back');
   if(kind==='play')card.innerHTML=ltPlayHTML()+close;
   if(kind==='deck')card.innerHTML=`<h3>덱 사용자 지정</h3><p class="lt-note">카드 뒷면 · 덱 꾸미기 자리입니다. 카드 뒷면 그림이 확정되면 여기서 고르게 합니다. (준비 중)</p>`+back;
-  if(kind==='credit')card.innerHTML=`<h3>크레딧</h3><p class="lt-note" style="text-align:center;font-size:14px;line-height:1.8">Merge &amp; Run: La Mancha<br>음악 · Starlight Atelier<br>(이름 · 역할은 정해 주시면 넣습니다)</p>`+back;
+  if(kind==='credit')card.innerHTML=`<h3>크레딧</h3><p class="lt-note" style="text-align:center;font-size:14px;line-height:1.8">Merge &amp; Run La Mancha<br>음악 · Starlight Atelier<br>(이름 · 역할은 정해 주시면 넣습니다)</p>`+back;
   if(kind==='prof')card.innerHTML=`<h3>프로필</h3><div class="lt-row"><span>P1</span><b>사용 중</b></div>`+
     `<p class="lt-note">프로필 여러 개 · 기록 보기는 스팀 연결 단계에서 붙입니다.</p>`+close;
   if(kind==='lang')card.innerHTML=`<h3>언어</h3><div class="lt-row"><span>한국어</span><b>사용 중</b></div>`+
