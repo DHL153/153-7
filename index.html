@@ -4211,7 +4211,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       }
       if(A.fin&&!A._st.fin){   // ③ 족보 배수가 터지는 순간 = 합동 일격
         A._st.fin=1;
-        const after=A.before+A.r.total,killed=!A.r.block&&after>=maxHp,last=A.r.steps[n-1]||{};
+        const after=A.before+A.r.total,killed=!A.r.block&&(after>=maxHp||(!S.practice&&!S.sandbox&&S.tgt>0&&S.score>=S.tgt)),last=A.r.steps[n-1]||{};
         if(killed)document.body.classList.add('lmFoeDown');   // (DHL 10-29) 적이 쓰러지면 열쇠 칸 숨김 — 다음 라운드 시작 때 다시
         if(killed)killAt=performance.now();
         // 공격하는 캐릭터 (DHL 10-28): 족보 안 카드를 낸 순서대로 · 같은 캐릭터(같은 번호) 여러 장이면 1명 — ★가 높은 쪽, 같으면 이번에 더 센(버프된) 쪽

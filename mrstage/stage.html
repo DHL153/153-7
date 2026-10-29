@@ -5385,6 +5385,9 @@ html.mr-uikit body #app#app#app #battle-stage[data-team-size] .character.enemy{w
 html.mr-uikit body #app#app#app{position:absolute!important;left:0!important;top:0!important;min-width:0!important;margin:0!important;padding:0!important;max-width:none!important;max-height:none!important;min-height:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow:hidden!important;transform-origin:0 0!important}
 html.mr-uikit body #app#app#app::before,html.mr-uikit body #app#app#app::after{display:none!important}
 </style>
+<style id="lm-cut-hidefx">/* (DHL 10-29) 컷인이 떠 있는 동안 이미 재생 중이던 이펙트(마법진 등)도 가림 — 컷인이 끝나면 다시 보임 */
+body:has(#battle-stage[data-team-skill="on"]) .lmflip,body:has(#skill-cinematic .mrfc) .lmflip{opacity:0!important}
+</style>
 <style id="lm-capline">/* (DHL 10-29) 관통 — 체력 바 위 🛡 선(이번 런 최대 피해 지점) · 예상 피해 미리보기 */
 #lm-capwrap{position:relative}
 #lm-cap-line{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:#93c5fd;box-shadow:0 0 4px #3b82f6;z-index:4;display:none;pointer-events:none;transition:left .25s ease}
@@ -8205,7 +8208,17 @@ let isGameOver = false;
     setMul(ALL,0);await walk(0,-W*.9,700,'in',ALL);setMul(ALL,null);show(ALL,false);
     applyTeam([hero,null,null]);await waitRig([0],3000);show([0],true);await dash(-W*.9,0,560,'out',[0],2.4);clearOffset();
   }
+  /* (DHL 10-29 '컷인 때 이펙트가 보임') 컷인(.mrfc)이 화면에 있는 동안 나오는 타격 이펙트 · 총 · 마법진 · 합동기 폭발은
+     컷인이 끝나고 전투 화면으로 돌아온 뒤에 재생 (위치는 그때의 적 · 캐릭터 기준으로 다시 계산) */
+  const cutOn=()=>{const b=document.getElementById('battle-stage');return (b&&b.dataset.teamSkill==='on')||!!document.querySelector('#skill-cinematic .mrfc');};
+  function afterCut(fn){const t0=performance.now();const tick=()=>{if(cutOn()&&performance.now()-t0<4000)return requestAnimationFrame(tick);setTimeout(fn,60);};requestAnimationFrame(tick);}
+  {const _imp=impactFx;impactFx=function(n){if(cutOn())return afterCut(()=>_imp(n));return _imp(n);};
+   const _shot=shot;shot=function(sl,num){if(cutOn())return afterCut(()=>_shot(sl,num));return _shot(sl,num);};
+   const _circle=circle;circle=function(num,ms){if(cutOn())return afterCut(()=>_circle(num,ms));return _circle(num,ms);};
+   const _flipT=flipTint;flipTint=function(...a){if(cutOn()){afterCut(()=>_flipT(...a));return null;}return _flipT(...a);};
+   const _flip=flip;flip=function(...a){if(cutOn()){afterCut(()=>_flip(...a));return null;}return _flip(...a);};}
   async function finale(o){
+    if(!o.killed&&!o.demo&&o.hp!=null&&o.hp<=0)o={...o,killed:true};   // (DHL 10-29) 라운드가 끝나는 한 방은 반드시 주인공 막타 + 처치 컷신
     gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;if(o.cap&&o.cap.brk)await gsShatter();   // (DHL 10-29) 방패 보석: 관통 = 시작에 깨짐 · 막힘 = 마지막 일격 때 튕김
     placeCharge();if(auraEl)auraEl.classList.add('full');
     stars={...stars,...(o.stars||{})};
