@@ -5404,6 +5404,34 @@ html.mr-uikit body #app#app#app::before,html.mr-uikit body #app#app#app::after{d
 #lm-cap-line.brk img{filter:drop-shadow(0 0 1px #3a2a00) drop-shadow(0 0 4px #fde047) brightness(1.15)!important}
 @media (prefers-reduced-motion:reduce){#lm-cap-line img,#lm-hp-prev{animation:none}}
 </style>
+<style id="lm-gshield-css">/* (DHL 10-29) 적 앞 방패 + 보석 3개(세계 · 약점 속성 · 번호) = 맞춤. 막힘이면 튕기고, 3개면 금 가고 관통에 깨짐 */
+#lm-gshield{position:absolute;z-index:35;pointer-events:none;translate:-50% -50%;display:none;transition:opacity .25s,left .2s,top .2s}
+#lm-gshield .sh{position:absolute;inset:0;background:url(../assets/ui/lamancha/gem_shield.webp) center/contain no-repeat;opacity:.96;filter:drop-shadow(0 0 1px #0b1220) drop-shadow(0 2px 3px #000a)}
+#lm-gshield .gems{position:absolute;inset:0}   /* 보석 자리: 방패 그림(gem_shield)의 구멍 3개 — 가로 30 · 50.6 · 71.1%, 세로 56.1% */
+#lm-gshield .gm{position:absolute;top:56.1%;translate:-50% -50%;width:var(--g,13px);height:var(--g,13px);border-radius:50%;display:grid;place-items:center;background:#1b2233;border:1.5px solid #0b1220;box-shadow:inset 0 1px 2px #0008;filter:grayscale(1) brightness(.55);transition:filter .2s,transform .2s,box-shadow .2s;font:900 calc(var(--g,13px)*.62)/1 Georgia,serif;font-style:italic;color:#fff;overflow:hidden}
+#lm-gshield .gm img{width:78%;height:78%;object-fit:contain}
+#lm-gshield .gm.g1{filter:none;border-color:#fde047;box-shadow:0 0 0 1px #3a2a00,0 0 7px #fde047;transform:scale(1.12)}
+#lm-gshield .gm.g2{filter:grayscale(1) brightness(.8);border:1.5px dashed #cbd5e1;animation:lmGemOut 1s ease-in-out infinite}
+#lm-gshield.n2 .sh{animation:lmGsWob 1.6s ease-in-out infinite}
+#lm-gshield.n3 .sh{filter:drop-shadow(0 0 2px #3a2a00) drop-shadow(0 0 8px #fde047) brightness(1.15);animation:lmGsShake .45s linear infinite}
+#lm-gshield.n3::after{content:'';position:absolute;inset:8% 22%;background:linear-gradient(115deg,transparent 46%,#fff8 47%,#fde047 49%,transparent 51%),linear-gradient(60deg,transparent 52%,#fff6 53%,#fde047cc 54%,transparent 56%);pointer-events:none}
+#lm-gshield.flash .sh{animation:lmGsClank .5s ease-out}
+#lm-gshield.gone{opacity:0}
+#battle-stage.lm-foe-dead #lm-gshield{opacity:0}
+.lm-gsbrk{position:absolute;z-index:36;pointer-events:none;translate:-50% -50%;background:url(../assets/ui/lamancha/cap_break.webp) 0 0/600% 100% no-repeat;animation:lmGsBrk .6s step-end forwards}
+.lm-gsbrk-t{position:absolute;z-index:41;pointer-events:none;translate:-50% -100%;font:900 20px/1 'Noto Sans KR',system-ui,sans-serif;color:#fde047;-webkit-text-stroke:3px #3a1a00;paint-order:stroke fill;animation:lmDmgFin 1.3s cubic-bezier(.2,1.5,.4,1) forwards;white-space:nowrap}
+.lm-dmg.blk{color:#e2e8f0;font-size:18px;-webkit-text-stroke:4px #0b1220;animation:lmBlk 1.6s cubic-bezier(.2,1,.4,1) forwards}
+.lm-dmg.blk small{display:block;color:#cbd5e1;font-size:10px;margin-top:2px}
+.lm-gsspark{position:absolute;z-index:36;pointer-events:none;width:var(--s,60px);aspect-ratio:766/829;translate:-91% -55%;transform-origin:91% 55%;background:url(../assets/ui/lamancha/clank_spark.webp) center/contain no-repeat;animation:lmSpark .5s ease-out forwards}   /* 튕김 불꽃: 그림의 충돌점(오른쪽 91% · 55%)을 방패 왼쪽 가장자리에 맞춤 */
+@keyframes lmGemOut{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes lmGsWob{0%,100%{rotate:0deg}50%{rotate:-3deg}}
+@keyframes lmGsShake{0%,100%{rotate:0deg}25%{rotate:-5deg}75%{rotate:5deg}}
+@keyframes lmGsClank{0%{filter:brightness(2.4) drop-shadow(0 0 10px #93c5fd);scale:1.18}100%{filter:none;scale:1}}
+@keyframes lmGsBrk{0%{background-position:0 0}16%{background-position:20% 0}33%{background-position:40% 0}50%{background-position:60% 0}66%{background-position:80% 0}83%,100%{background-position:100% 0;opacity:1}}
+@keyframes lmBlk{0%{opacity:0;transform:translate(0,0) scale(.6)}12%{opacity:1;transform:translate(-4px,-6px) scale(1.2)}70%{opacity:1;transform:translate(-18px,-14px) scale(1) rotate(-6deg)}100%{opacity:0;transform:translate(-30px,-24px) scale(.95) rotate(-10deg)}}
+@keyframes lmSpark{0%{scale:.35;opacity:1}55%{scale:1.05;opacity:1}100%{scale:1.2;opacity:0}}
+@media (prefers-reduced-motion:reduce){#lm-gshield .sh,#lm-gshield .gm,.lm-gsbrk{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="app"><div id="main-content"><div class="view-container active" id="view-battle"><div id="board-section">
@@ -7830,7 +7858,7 @@ let isGameOver = false;
   function land(){
     const o=impact;impact=null;clearTimeout(impactT);if(!o)return;
     if(o.hp!=null){hp=o.hp;setHud();}
-    if(o.dmg!=null&&o.final)popNum(o);
+    if(o.dmg!=null&&o.final){popNum(o);if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}}
     if(o.heavy){resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.55)');}catch(e){}}
     if(o.killed){slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}else if(o.heavy)hitStop(170);   // 쓰러지면 체력바도 적과 함께 사라짐
   }
@@ -7854,8 +7882,27 @@ let isGameOver = false;
     setTimeout(()=>{globalPause=false;stage.classList.remove('lm-slowmo');(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},450);
   }
   let finPend=0,finHp=null;
-  let capO=null;
+  let capO=null,gsBroken=false,gsBlock=null,gsT=0;
+  function gsEl(){let g=$('lm-gshield');if(!g){g=document.createElement('div');g.id='lm-gshield';g.innerHTML='<i class="sh"></i><span class="gems"></span>';stage.appendChild(g);}return g;}
+  function gsPlace(){const g=$('lm-gshield'),en=$('enemy');if(!g||!en)return null;const eh=en.offsetHeight||60,sz=Math.max(38,Math.min(80,eh*.56));
+    g.style.width=g.style.height=sz+'px';g.style.setProperty('--g',Math.round(sz*.14)+'px');g.style.left=(en.offsetLeft-sz*.2)+'px';g.style.top=(en.offsetTop+eh*.55)+'px';return {x:en.offsetLeft-sz*.2,y:en.offsetTop+eh*.55,sz};}
+  function drawGems(){const o=capO,g=gsEl();
+    const show=!!(o&&o.gems)&&!gsBroken&&(finPend>0||hp>o.cap);   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
+    g.style.display=show?'block':'none';if(!show){clearInterval(gsT);gsT=0;return;}
+    if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 이번 런에 맞춘 보석 그대로 (손패를 비워도 바뀌지 않게)
+    g.querySelector('.gems').innerHTML=o.gems.map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');
+    g.classList.toggle('n2',o.n===2);g.classList.toggle('n3',o.n>=3);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
+  async function gsShatter(){const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
+    g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
+    const t=document.createElement('div');t.className='lm-gsbrk-t';t.textContent='관통!';t.style.left=p.x+'px';t.style.top=(p.y-p.sz*.4)+'px';stage.appendChild(t);
+    try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(253,224,71,.45)');}catch(e){}
+    setTimeout(()=>b.remove(),700);setTimeout(()=>t.remove(),1300);gsBroken=true;await sleep(420);g.style.display='none';g.classList.remove('gone');}
+  function gsClank(blocked){const g=$('lm-gshield');if(!g||g.style.display==='none')return;const sz=parseFloat(g.style.width)||46,p={x:parseFloat(g.style.left)||0,y:parseFloat(g.style.top)||0,sz};
+    g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
+    const sp=document.createElement('div');sp.className='lm-gsspark';sp.style.left=(p.x-p.sz*.42)+'px';sp.style.top=p.y+'px';sp.style.setProperty('--s',Math.round(p.sz*1.3)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),500);
+    const d=document.createElement('div');d.className='lm-dmg blk';d.style.left=(p.x-p.sz*.75)+'px';d.style.top=(p.y+p.sz*.15)+'px';d.innerHTML=`<b>${fmt(blocked)}</b><small>막힘</small>`;stage.appendChild(d);setTimeout(()=>d.remove(),1650);}
   function drawCap(){const L=$('lm-cap-line'),P=$('lm-hp-prev'),Z=$('lm-cap-zone');if(!L||!P)return;const o=capO,M=Math.max(1,maxHp);
+    drawGems();
     if(!o||finPend>0){L.style.display='none';P.style.display='none';if(Z)Z.style.display='none';return;}
     const lineHp=hp-o.cap;   // 이번 런 최대로 쳐도 남는 체력 → 🛡 선 (남은 체력이 한 번 최대 피해 이하면 선 없음)
     if(lineHp>0){L.style.display='block';L.style.left=(lineHp/M*100)+'%';L.classList.toggle('brk',!!o.brk);L.classList.toggle('hit',!o.brk&&o.dmg>o.cap);}else L.style.display='none';
@@ -8159,6 +8206,7 @@ let isGameOver = false;
     applyTeam([hero,null,null]);await waitRig([0],3000);show([0],true);await dash(-W*.9,0,560,'out',[0],2.4);clearOffset();
   }
   async function finale(o){
+    gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;if(o.cap&&o.cap.brk)await gsShatter();   // (DHL 10-29) 방패 보석: 관통 = 시작에 깨짐 · 막힘 = 마지막 일격 때 튕김
     placeCharge();if(auraEl)auraEl.classList.add('full');
     stars={...stars,...(o.stars||{})};
     const W=stage.clientWidth||400,hero=activeBattleTeam[0];
@@ -8372,7 +8420,7 @@ let isGameOver = false;
     // 타격 한 번: num = 카드 캐릭터(무대에 없으면 동료로 나왔다 들어감), skill = 컷인, level = 세기(0~11), dmg·crit = 피해 숫자, combo = 연타 수
     //   final = 합동 일격(팀 전원, 총 피해·배수), killed = 쓰러짐(슬로모션 → 처치 컷신 → 하늘)
     joinRun(){return Promise.resolve();},   // ★11 동료는 마지막에 치고 빠지기만
-    hit(o={}){if(o.final){finPend++;return seq(async()=>{try{await finale(o);}finally{finPend--;if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}}});}quick(o);return Promise.resolve();},
+    hit(o={}){if(o.final){finPend++;return seq(async()=>{try{await finale(o);}finally{finPend--;gsBroken=false;gsBlock=null;try{drawGems();}catch(e){}if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}}});}quick(o);return Promise.resolve();},
     demo(o={}){return ready.then(()=>seq(()=>demo(o)));},
     demoPhase(){return demoPh;},   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
     routes(){return {ROUTE,ROUTE_KO};},
