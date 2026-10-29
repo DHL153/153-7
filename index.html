@@ -6685,4 +6685,9 @@ html .ib .lBot button:disabled,html.lmB .ib .lBot button:disabled{filter:graysca
 html .ib .lBot .try:not(.on){font-size:13px!important;color:#cbd5e1!important}
 html .ib .lBot button:not(.go):not(.try),html.lmB .ib .lBot button:not(.go):not(.try){--tb:url(assets/ui/kit/title/tb_navy.webp);--tbp:url(assets/ui/kit/title/tb_navy_pressed.webp)}
 .ib .lBot .lbDone{display:block;margin-top:3px;font:800 10.5px/1 'Noto Sans KR',sans-serif;color:#d9f99d;letter-spacing:1px}
-</style></body></html>
+</style><script id="lm-info-solo">/* (DHL 10-29) 타이틀(메인 메뉴)에서 연 배우기 = 위 탭(이번 판 · 도감 · 배우기) 없이 배우기만 */
+(function(){const _oi=openInfo;openInfo=function(){const r=_oi.apply(this,arguments);try{const t=document.getElementById('lm-title'),ib=document.querySelector('.ib');
+  const solo=!!(window._lmSolo||typeof S==='undefined'||!S);if(ib)ib.classList.toggle('solo',solo);}catch(e){}return r;};
+  const _ll=ltLearn;ltLearn=function(){window._lmSolo=true;return _ll.apply(this,arguments);};
+  const _ho=hideOv;hideOv=function(){window._lmSolo=false;return _ho.apply(this,arguments);};})();</script>
+<style id="lm-info-solo-css">.ib.solo .ibTabs{display:none!important}</style></body></html>
