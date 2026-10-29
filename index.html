@@ -7120,4 +7120,142 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
   fmt();
 })();
 </script>
+<style id="lm-ctrl">
+/* (DHL 10-29) 설정 › 조작: 키보드 키 바꾸기 · 조이패드 — 방향키 · 십자키로 화면의 버튼 · 카드 사이를 옮겨 다님 */
+.lmFocus{outline:3px solid #ffe08a!important;outline-offset:3px!important;box-shadow:0 0 0 6px #ffb43a55!important;border-radius:10px;z-index:30}
+#hand .card.lmFocus{outline-offset:2px!important}
+.ls-keys{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}
+.ls-krow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;border-radius:10px;background:#0b1428;border:1px solid #c9a24a44}
+.ls-krow span{font:800 14px/1.2 "Noto Sans KR",sans-serif;color:#f3e6c8}
+.ls-krow small{display:block;font-size:11px;color:#9ca9c8;font-weight:600}
+.ls-kbtn{min-width:86px;height:34px;padding:0 12px;border-radius:8px;border:1px solid #c9a24a;background:linear-gradient(#2a3b66,#1a2546);color:#fff6dc;font:900 14px/1 "Noto Sans KR",sans-serif;cursor:pointer}
+.ls-kbtn.wait{background:#7a4a1e;animation:lsBlink .8s ease-in-out infinite}
+@keyframes lsBlink{50%{filter:brightness(1.35)}}
+.ls-kfix{color:#c8d1e6;font:700 12.5px/1.6 "Noto Sans KR",sans-serif;margin:2px 0 8px;padding:6px 10px;border-radius:10px;background:#0b142888}
+.ls-kfix b{display:inline-block;min-width:22px;padding:0 6px;margin-right:4px;border-radius:5px;background:#24345e;border:1px solid #c9a24a66;color:#fff6dc;text-align:center}
+.ls-pad{padding:8px 10px;border-radius:10px;background:#0b1428;border:1px solid #c9a24a44;margin:4px 0 8px}
+.ls-pad .st{font:800 13px/1.3 "Noto Sans KR",sans-serif;color:#9cf5b4;margin-bottom:6px}
+.ls-pad .st.off{color:#f8b4a4}
+.ls-pad ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.ls-pad li{font:700 12.5px/1.5 "Noto Sans KR",sans-serif;color:#e8eefc;white-space:nowrap}
+.ls-pad li b{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 5px;margin-right:6px;border-radius:999px;background:#24345e;border:1px solid #c9a24a88;color:#ffe08a;font-size:11.5px}
+.ls-pad li b.a{background:#166534}.ls-pad li b.b{background:#991b1b}.ls-pad li b.x{background:#1d4ed8}.ls-pad li b.y{background:#a16207}
+</style>
+<script id="lm-ctrl-js">
+(function(){
+  if(typeof LM_SET==='undefined')return;
+  /* ── 키보드 기본 키 (바꿀 수 있는 것) ── */
+  const ACT=[['run','런!','고른 카드로 공격'],['dis','버리기','고른 카드 버리고 새로 뽑기'],['sort','정렬','손패 정렬 방법 바꾸기'],['merge','머지','견습 기사만'],['clear','해제','고른 카드 모두 풀기']];
+  const DEF={run:'Enter',dis:'d',sort:'s',merge:'m',clear:'c'};
+  LM_SET.keys=Object.assign({},DEF,LM_SET.keys||{});
+  if(LM_SET.pad==null)LM_SET.pad=true;if(LM_SET.padSwap==null)LM_SET.padSwap=false;
+  const kName=k=>({' ':'Space',Enter:'Enter',Escape:'Esc',ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',Backspace:'⌫',Tab:'Tab',Shift:'Shift',Control:'Ctrl',Alt:'Alt'}[k]||(k.length===1?k.toUpperCase():k));
+  const norm=k=>k&&k.length===1?k.toLowerCase():k;
+  const RESERVED=['Escape','ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Tab','1','2','3','4','5','6','7','8'];
+  let waitKey=null;
+
+  /* ── 화면 상태 ── */
+  const $i=id=>document.getElementById(id);
+  const blocked=()=>!!($i('mr-story')||$i('game-startup-screen'));
+  const typing=e=>{const t=e.target;return t&&(t.tagName==='INPUT'&&t.type!=='range'&&t.type!=='checkbox'||t.tagName==='TEXTAREA'||t.isContentEditable);};
+  const inBattle=()=>{const t=$i('lm-title'),ov=$i('ov');if(t&&!t.hidden)return false;if(ov&&!ov.hidden)return false;if(document.querySelector('.ib:not([hidden]), #info:not([hidden])'))return false;return !!document.querySelector('#hand .card')&&typeof S!=='undefined'&&S&&!S.selecting;};
+  const press=id=>{const b=$i(id);if(b&&!b.disabled&&b.offsetParent!==null&&getComputedStyle(b).display!=='none'){b.click();return true;}return false;};
+  function doAct(a){if(!inBattle())return false;
+    if(a==='run')return press('bPlay');if(a==='dis')return press('bDis');if(a==='sort')return press('bSort');
+    if(a==='merge')return document.body.classList.contains('lm-noMergeBtn')?false:press('bMerge');
+    if(a==='clear')return press('bClear');return false;}
+
+  /* ── 화면 위 버튼 · 카드 사이 이동 (방향키 · 십자키) ── */
+  const SEL='button, [onclick], [role=button], #hand .card, a[href], input[type=range], input[type=checkbox], label.ls-chk, .lRow, .tile, .sorb.on, .card.dz';
+  let cur=null;
+  function cands(){const out=[];const W=innerWidth,H=innerHeight;
+    document.querySelectorAll(SEL).forEach(el=>{if(el.disabled||el.closest('[hidden]'))return;const r=el.getBoundingClientRect();if(r.width>W*.6&&r.height>H*.35)return;   /* 창 전체(바깥 눌러 닫기 등)는 제외 */
+      if(r.width<14||r.height<14||r.bottom<0||r.top>H||r.right<0||r.left>W)return;
+      {const pa=el.parentElement&&el.parentElement.closest(SEL);if(pa&&!el.matches('#hand .card')){const q=pa.getBoundingClientRect();if(q.width*q.height<W*H*.12)return;}}   // 카드 안 작은 부품 등 겹친 것은 바깥 것만
+      const cx=Math.min(W-2,Math.max(1,r.left+r.width/2)),cy=Math.min(H-2,Math.max(1,r.top+r.height/2));const top=document.elementFromPoint(cx,cy);
+      if(!top||!(top===el||el.contains(top)||top.contains(el)))return;
+      out.push({el,r,cx:r.left+r.width/2,cy:r.top+r.height/2});});return out;}
+  let curUid=null;
+  function setCur(el){document.querySelectorAll('.lmFocus').forEach(x=>x.classList.remove('lmFocus'));cur=el;curUid=el&&el.matches('#hand .card')?el.dataset.uid:null;if(!el)return;el.classList.add('lmFocus');try{if(el.matches('button,a,input'))el.focus({preventScroll:true});}catch(e){}
+    const r=el.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  /* 손패는 고를 때마다 새로 그려짐 → 같은 카드(uid)에 초점을 다시 붙임 */
+  function heal(){if(curUid&&(!cur||!cur.isConnected)){const n=document.querySelector(`#hand .card[data-uid="${curUid}"]`);if(n){cur=n;n.classList.add('lmFocus');}}}
+  {const h=document.getElementById('hand');if(h)new MutationObserver(()=>{if(curUid)heal();}).observe(h,{childList:true});}
+  function valid(el){heal();el=cur&&el&&!el.isConnected?cur:el;return el&&el.isConnected&&!el.disabled&&el.offsetParent!==null&&cands().some(c=>c.el===el);}
+  function start(){const cs=cands();if(!cs.length)return null;
+    const pick=cs.find(c=>c.el.matches('#hand .card'))||cs.find(c=>c.el.matches('.go,.pl-go,.rbGo,.mgGo,.lt-mb.go,.campOk'))||cs.slice().sort((a,b)=>(Math.hypot(a.cx-innerWidth/2,a.cy-innerHeight/2))-(Math.hypot(b.cx-innerWidth/2,b.cy-innerHeight/2)))[0];
+    return pick.el;}
+  function move(dx,dy){heal();if(!valid(cur)){setCur(start());return;}
+    const r0=cur.getBoundingClientRect(),x0=r0.left+r0.width/2,y0=r0.top+r0.height/2;let best=null,bs=1e9;
+    for(const c of cands()){if(c.el===cur)continue;const vx=c.cx-x0,vy=c.cy-y0,along=dx?vx*dx:vy*dy,side=dx?Math.abs(vy):Math.abs(vx);
+      if(along<=4)continue;const sc=along+side*2.2;if(sc<bs){bs=sc;best=c.el;}}
+    if(best)setCur(best);}
+  function activate(){heal();if(!valid(cur)){setCur(start());return;}const el=cur;
+    if(el.matches('input[type=checkbox]')){el.click();return;}if(el.matches('label.ls-chk')){const i=el.querySelector('input');if(i)i.click();return;}
+    el.click();setTimeout(()=>{heal();if(cur&&!valid(cur))setCur(null);},60);}
+  function back(){window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));setTimeout(()=>{if(cur&&!valid(cur))setCur(null);},60);}
+  function slide(dir){if(cur&&cur.matches('input[type=range]')){cur.value=Math.max(0,Math.min(100,+cur.value+dir*5));cur.dispatchEvent(new Event('input',{bubbles:true}));return true;}return false;}
+  addEventListener('pointerdown',()=>setCur(null),true);
+
+  /* ── 키보드 ── */
+  window.addEventListener('keydown',e=>{
+    if(waitKey){e.preventDefault();e.stopImmediatePropagation();if(e.key==='Escape'){waitKey=null;ltPop('set');return;}
+      const k=norm(e.key);if(RESERVED.includes(k)){return;}
+      for(const a in LM_SET.keys)if(LM_SET.keys[a]===k)LM_SET.keys[a]=LM_SET.keys[waitKey];   // 이미 쓰는 키면 서로 맞바꿈
+      LM_SET.keys[waitKey]=k;waitKey=null;lmSetSave();ltPop('set');return;}
+    if(blocked()||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;
+    const k=norm(e.key);
+    if(inBattle()){
+      const act=Object.keys(LM_SET.keys).find(a=>LM_SET.keys[a]===k);
+      if(act||k==='Enter'||k==='m'){e.stopImmediatePropagation();e.preventDefault();if(act&&!e.repeat)doAct(act);return;}
+      if(/^[1-8]$/.test(k)&&!e.repeat){const c=document.querySelectorAll('#hand .card')[+k-1];if(c){e.preventDefault();const u=c.dataset.uid;c.click();setCur(document.querySelector(`#hand .card[data-uid="${u}"]`)||c);}return;}
+    }
+    if(k==='ArrowLeft'||k==='ArrowRight'||k==='ArrowUp'||k==='ArrowDown'){
+      if(cur&&cur.matches('input[type=range]')&&(k==='ArrowLeft'||k==='ArrowRight')){e.preventDefault();slide(k==='ArrowLeft'?-1:1);return;}
+      e.preventDefault();move(k==='ArrowLeft'?-1:k==='ArrowRight'?1:0,k==='ArrowUp'?-1:k==='ArrowDown'?1:0);return;}
+    if(k===' '&&cur&&valid(cur)){e.preventDefault();activate();return;}
+  },true);
+
+  /* ── 조이패드 (표준 배치: Xbox · PlayStation · 스위치 Pro) ── */
+  let prev=[],held={},padId='';
+  const REP0=320,REP=110;
+  function poll(){requestAnimationFrame(poll);if(!LM_SET.pad||!navigator.getGamepads)return;
+    const gp=[...navigator.getGamepads()].find(g=>g&&g.connected);if(!gp){if(padId){padId='';refresh();}return;}
+    if(gp.id!==padId){padId=gp.id;refresh();}
+    if(blocked()){prev=gp.buttons.map(b=>b.pressed);return;}
+    const now=performance.now(),btn=i=>!!(gp.buttons[i]&&gp.buttons[i].pressed),ax=gp.axes||[];
+    const dir={L:btn(14)||ax[0]<-.6,R:btn(15)||ax[0]>.6,U:btn(12)||ax[1]<-.6,D:btn(13)||ax[1]>.6};
+    for(const d in dir){if(dir[d]){if(!held[d]){held[d]=now+REP0;fire(d);}else if(now>=held[d]){held[d]=now+REP;fire(d);}}else held[d]=0;}
+    const down=i=>btn(i)&&!prev[i];
+    const A=LM_SET.padSwap?1:0,B=LM_SET.padSwap?0:1;
+    if(down(A))activate();
+    if(down(B)){if(inBattle()&&typeof S!=='undefined'&&S&&S.sel&&S.sel.length)doAct('clear');else back();}
+    if(down(2))doAct('run');if(down(3))doAct('dis');if(down(4))doAct('sort');if(down(5))doAct('merge');
+    if(down(9)){if(inBattle()&&typeof gameOpt==='function')gameOpt();else back();}
+    prev=gp.buttons.map(b=>b.pressed);}
+  function fire(d){if(d==='L'&&slide(-1))return;if(d==='R'&&slide(1))return;move(d==='L'?-1:d==='R'?1:0,d==='U'?-1:d==='D'?1:0);}
+  addEventListener('gamepadconnected',()=>{refresh();});addEventListener('gamepaddisconnected',()=>{padId='';refresh();});
+  requestAnimationFrame(poll);
+  function refresh(){try{if(typeof ltSetTab!=='undefined'&&ltSetTab==='ctrl'&&document.querySelector('#lm-title .ls-pad'))ltPop('set');}catch(e){}}
+
+  /* ── 설정 › 조작 탭 ── */
+  window.lmKeyWait=a=>{waitKey=a;const b=document.querySelector(`.ls-kbtn[data-a="${a}"]`);if(b){b.classList.add('wait');b.textContent='키를 누르세요';}};
+  window.lmKeyReset=()=>{LM_SET.keys=Object.assign({},DEF);lmSetSave();ltPop('set');};
+  window.lmPadOpt=(k,v)=>{LM_SET[k]=v;lmSetSave();ltPop('set');};
+  const _set=ltSetHTML;
+  ltSetHTML=function(){let h=_set.apply(this,arguments);
+    h=h.replace(/(<button type="button" class="ls-tab[^"]*"[^>]*>오디오<\/button>)/,`$1<button type="button" class="ls-tab ${ltSetTab==='ctrl'?'on':''}" onclick="ltSetTab='ctrl';ltPop('set')">조작</button>`);
+    if(ltSetTab!=='ctrl')return h;
+    const gp=navigator.getGamepads?[...navigator.getGamepads()].find(g=>g&&g.connected):null;
+    const A=LM_SET.padSwap?'B':'A',B=LM_SET.padSwap?'A':'B';
+    const body=`<div class="ls-lbl big">키보드</div><div class="ls-keys">`+ACT.map(([a,n,d])=>`<div class="ls-krow"><span>${n}<small>${d}</small></span><button type="button" class="ls-kbtn" data-a="${a}" onclick="lmKeyWait('${a}')">${kName(LM_SET.keys[a])}</button></div>`).join('')+`</div>`+
+      `<div class="ls-kfix"><b>1</b>~<b>8</b> 카드 고르기 · <b>←</b><b>→</b><b>↑</b><b>↓</b> 버튼 · 카드 옮겨 다니기 · <b>Space</b> 누르기 · <b>Esc</b> 뒤로 · 메뉴</div>`+
+      `<div class="ls-pair"><button type="button" class="ls-small" onclick="lmKeyReset()">키 기본값으로</button></div>`+
+      `<div class="ls-lbl big">조이패드</div><div class="ls-pad"><div class="st${gp?'':' off'}">${gp?'🎮 연결됨 · '+String(gp.id).replace(/\s*\(.*$/,'').slice(0,40):'연결 안 됨 — 조이패드를 연결하고 아무 버튼이나 누르세요'}</div>`+
+      `<ul><li><b>✚</b>버튼 · 카드 옮겨 다니기</li><li><b class="a">${A}</b>고르기 · 누르기</li><li><b class="b">${B}</b>뒤로 · 해제</li><li><b class="x">X</b>런!</li><li><b class="y">Y</b>버리기</li><li><b>LB</b>정렬</li><li><b>RB</b>머지 (견습)</li><li><b>☰</b>게임 메뉴</li></ul></div>`+
+      `<label class="ls-chk"><span>조이패드 사용</span><input type="checkbox" ${LM_SET.pad?'checked':''} onchange="lmPadOpt('pad',this.checked)"><i></i></label>`+
+      `<label class="ls-chk"><span>A · B 바꾸기 (스위치 배치)</span><input type="checkbox" ${LM_SET.padSwap?'checked':''} onchange="lmPadOpt('padSwap',this.checked)"><i></i></label>`;
+    return h.replace(/<div class="ls-body">[\s\S]*<\/div>$/,`<div class="ls-body">${body}</div>`);};
+})();
+</script>
 </body></html>
