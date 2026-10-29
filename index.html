@@ -2564,6 +2564,17 @@ function foeLine(f){
     ` · 약점 ${ic(weakTo(f.el))}<b class="up">▲×2</b> · 내성 ${ic(resist(f.el))}<b class="down">▼×½</b>`+
     ` · <span class="fel" style="background:${WORLD_C[f.home]}">${WORLD_KO[f.home]}</span>×1.5 `+((f.ints||[f.atype]).filter(Boolean).length?` · 의도 ${(f.ints||[f.atype]).filter(Boolean).map(k=>ATK[k].ic+' '+ATK[k].ko).join(' / ')} (${f.atk}장)`:'')+(f.rule?` · <b class="frule">${f.rule.ic} ${f.rule.ko}: ${f.rule.d}</b>`:'');
 }
+/* (DHL 10-30) 다음 빌런 미리보기 — 글 대신 전투 화면과 같은 기호로: 적 이름판 · 맞춤 원 3개 · 보석 방패 · 맞춤 단계 */
+function nextFoeHTML(f){
+  if(!f)return '';const wk=weakTo(f.el);
+  const fc=(bg,ic)=>`<i class="nfc" style="background:${bg}">${ic}</i>`;
+  const key=(inner,lab)=>`<span class="nfK"><i class="nfKi">${inner}</i><small>${lab}</small></span>`;
+  const seg=[['0','×1'],['1','×1.25'],['2','×1.5'],['3','관통']].map(([n,v],i)=>`<span class="nfS${i===3?' p':''}"><b>${n}</b>${i===3?'<i class="nfBrk"></i>':''}<em>${v}</em></span>`).join('');
+  return `<div class="nfRow"><div class="nfPl">${fc(WORLD_C[f.home],ICO(f.home))}<b>${f.name}</b>${fc(EL_C[f.el],ICO(EL_KEY[f.el]))}</div>`+
+    `<div class="nfKeys">${key(`<em style="background:${WORLD_C[f.home]}">${ICO(f.home)}</em>`,WORLD_KO[f.home])}${key(`<em style="background:${EL_C[wk]}">${ICO(EL_KEY[wk])}</em>`,'약점 '+wk)}${key(`<em class="kNoE">${f.no||'?'}</em>`,'번호')}</div></div>`+
+    `<div class="nfBot"><span class="nfGs" title="한 번에 최대 ${Math.round(ARMOR_HIT*100)}%"><b>${Math.round(ARMOR_HIT*100)}%</b></span><div class="nfSeg">${seg}</div></div>`+
+    (f.rule?`<div class="nfRule">${f.rule.ic} <b>${f.rule.ko}</b> <span>${f.rule.d}</span></div>`:'');
+}
 function ruleState(){const R=S.foe&&S.foe.rule;if(!R)return '';if(R.k==='eye'&&S.usedHT.length)return ` · <span class="dim">낸 족보: ${S.usedHT.map(k=>HT[k][0]).join(', ')}</span>`;if(R.k==='mouth'&&S.lockHT)return ` · <span class="dim">고정: ${HT[S.lockHT][0]}</span>`;return '';}
 function renderFoe(){$('foe').innerHTML=foeLine(S.foe)+ruleState()+(()=>{const h=hurtCount();return h.w||h.s?` · <span class="dim">🩹 부상 ${h.w} · 🗡 상처 ${h.s}</span>`:'';})();}
 /* 카드를 누르면: 힘 = 기본 × ★ × 상성 × 고향 − 상처 */
@@ -3083,7 +3094,7 @@ function openShop(){
   if(S.packView)return openPack();
   let h='<div class="shop">'+(S.campMsg?`<div class="skipGot">🏕 야영 — ${S.campMsg}</div>`:'');
   { const nf=S.rd<2?S.foes[S.rd+1]:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff))[0];
-    h+=`<div class="nextFoe"><small>다음 빌런 · ${S.rd<2?S.jang+'장 '+RD_KO[S.rd+1]:(S.jang+1)+'장 졸개'}</small><br>${foeLine(nf)}</div>`; }
+    h+=`<div class="nextFoe${armorOn()?' nf2':''}"><small>다음 빌런 · ${S.rd<2?S.jang+'장 '+RD_KO[S.rd+1]:(S.jang+1)+'장 졸개'}</small>${armorOn()?nextFoeHTML(nf):'<br>'+foeLine(nf)}</div>`; }
   // 구슬칸 (발라트로의 조커 줄)
   h+=`<div class="sOrbs">`;for(let i=0;i<S.maxOrb;i++){const k=S.orbs[i];h+=k?`<div class="sorb on${S.pick==='own'+i?' up':''}" data-slot="${i}" onclick="pickItem('own${i}')">${orbLabel(k)}</div>`:`<div class="sorb" data-slot="${i}"></div>`;}
   h+=`</div><div class="sRow1"><span>${S.orbs.length}/${S.maxOrb}</span><span class="gold">💰 ${S.gold}</span></div>`;
@@ -7258,4 +7269,31 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     return h.replace(/<div class="ls-body">[\s\S]*<\/div>$/,`<div class="ls-body">${body}</div>`);};
 })();
 </script>
+<style id="lm-nextfoe2">
+/* (DHL 10-30) 다음 빌런 미리보기: 전투 화면 기호 그대로 */
+.nextFoe.nf2{padding:8px 10px;line-height:1.3;display:flex;flex-direction:column;gap:7px;background:#0b1222e6;border:1.5px solid #c9a24a66}
+.nextFoe.nf2>small{color:#cbd5e1;font-weight:700;letter-spacing:.02em}
+.nf2 .nfRow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.nf2 .nfPl{display:flex;align-items:center;gap:7px;padding:4px 12px 4px 5px;border-radius:999px;background:#120e20;border:1.5px solid #c9a24a99;box-shadow:0 2px 6px #0008}
+.nf2 .nfPl b{font:900 15px/1 "Noto Sans KR",sans-serif;color:#fff1cf;white-space:nowrap}
+.nf2 .nfc{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;box-shadow:inset 0 0 0 2px #0004;flex:none}
+.nf2 .nfc img,.nf2 .nfc svg{width:66%;height:66%;object-fit:contain}
+.nf2 .nfKeys{display:flex;gap:8px;padding:4px 10px;border-radius:999px;background:#120e20;border:1.5px solid #c9a24a99}
+.nf2 .nfK{display:flex;flex-direction:column;align-items:center;gap:2px}
+.nf2 .nfKi{display:inline-flex;width:30px;height:30px;border-radius:50%;box-shadow:0 0 0 2px #f0c24b,0 0 8px #f0c24b88}
+.nf2 .nfKi em{display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center}
+.nf2 .nfKi em img,.nf2 .nfKi em svg{width:66%;height:66%;object-fit:contain}
+.nf2 .nfKi em.kNoE{background:radial-gradient(circle at 35% 30%,#fff6d8,#e8c56a 55%,#9a6b16);color:#2a1a00;font:900 16px/1 Georgia,serif;font-style:italic}
+.nf2 .nfK small{font-size:10px;color:#cbd5e1;white-space:nowrap}
+.nf2 .nfBot{display:flex;align-items:center;gap:8px}
+.nf2 .nfGs{position:relative;flex:none;width:44px;height:44px;background:url(assets/ui/lamancha/gem_shield.webp) center/contain no-repeat;filter:drop-shadow(0 2px 3px #000a)}
+.nf2 .nfGs b{position:absolute;left:50%;bottom:-3px;translate:-50% 0;font:900 11px/1 "Noto Sans KR",sans-serif;color:#dbeafe;background:#0f1f3d;border:1px solid #3b82f6;border-radius:6px;padding:1px 4px}
+.nf2 .nfSeg{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.nf2 .nfS{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 2px;border-radius:9px;background:#ffffff0f;border:1px solid #ffffff1f;position:relative}
+.nf2 .nfS b{font:900 15px/1 "Noto Sans KR",sans-serif;color:#fff}
+.nf2 .nfS em{font-style:normal;font-weight:800;font-size:11.5px;color:#93c5fd}
+.nf2 .nfS.p{background:#3a2a00;border-color:#f0c24b;box-shadow:0 0 8px #f0c24b55}.nf2 .nfS.p b,.nf2 .nfS.p em{color:#fde047}
+.nf2 .nfBrk{position:absolute;right:2px;top:2px;width:16px;height:16px;background:url(assets/ui/lamancha/cap_break.webp) 100% 0/600% 100% no-repeat}
+.nf2 .nfRule{font-size:12px;color:#e9d5ff;background:#3b0764b3;border:1px solid #c4b5fd88;border-radius:9px;padding:4px 8px}.nf2 .nfRule span{color:#ddd6fe;font-weight:600}
+</style>
 </body></html>
