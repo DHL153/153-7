@@ -24,6 +24,16 @@ const KEYS='live';
           BRK=now(깨는 런부터 전부)|next(다음 런부터) · GROG(그로기 배율) · GN(그로기 런 수) · REG(재브레이크마다 강인도 +) · KV(봇이 맞춤 1개에 주는 가치, 목표 대비) */
 const GATE=process.env.GATE||'cap', TGH=(process.env.TGH||'3,4,5').split(',').map(Number), PRE=process.env.PRE||'0.5', BRK=process.env.BRK||'next', GROG=+(process.env.GROG||1.5), GN=+(process.env.GN||1), REG=+(process.env.REG||1), KV=+(process.env.KV||0.08), HITF=+(process.env.HITF||0.55);
 const nKeys=r=>r&&r.keys?r.keys.n:0;
+/* ---- 2단 게이지(방패 바 + HP 바) 실험 (2026-10-29 '전투 시스템 밸런스 및 UI 개편 기획') ----
+   GATE=bar · BF(방패 = 적 체력 × BF) · PIER(맞춤 0~3개 관통률) · BMODE=ratio(관통률만큼 HP로 바로) | prob(관통률 = 확률, 실패하면 방패만)
+   방패가 깨지면: 피해 증가(1 + 관통률) · BV(봇이 방패 피해 1에 주는 가치) */
+const BF=+(process.env.BF||0.1), PIER=(process.env.PIER||'0,0.25,0.5,0.75').split(',').map(Number), BMODE=process.env.BMODE||'ratio', BV=+(process.env.BV||0.6);
+const unbon=(raw,n)=>Math.round(raw/(1+ARMOR_BON[n]));
+function barHit(raw,n,bar,rnd){const D=unbon(raw,n),p=PIER[n];
+  if(bar<=0)return {hp:Math.floor(D*(1+p)),bar:0,brk:false,post:true,ehp:Math.floor(D*(1+p)),ebar:0};
+  if(BMODE==='prob'){const b=Math.min(D,bar),hpOk=D-b;const ok=rnd!=null&&rnd<p;return {hp:ok?hpOk:0,bar:b,brk:bar-b<=0,ehp:p*hpOk,ebar:b,ok};}
+  const h=Math.floor(D*p),b=Math.min(D-h,bar);return {hp:h,bar:b,brk:bar-b<=0,ehp:h,ebar:b};}
+
 const capOf=()=>Math.max(10,Math.floor(S.tgt*HITF/10)*10);
 function effDmg(raw,n,st){ // 상태 st={tgh,grog}에서 이 런 피해
   if(GATE==='none')return {d:raw,brk:false};
@@ -118,7 +128,7 @@ function bestPlay(){
     const sel=idx.map(i=>H[i]);if(forced!=null&&!sel.some(c=>c.uid===forced)&&H.some(c=>c.uid===forced))continue;
     if(psy&&wsum(sel)<5)continue;
     const rest=H.filter(c=>!sel.includes(c));const pm=previewMerge(sel);
-    const r=score(pm.cards,ctxFor(rest,pm.m));r.raw2=r.total;const n=nKeys(r),e=effDmg(r.total,n,S.gs);r.total=e.d;r.util=e.d+(GATE==='tough'&&S.gs.grog<=0&&BOT==='smart'?Math.min(n,S.gs.tgh)*KV*S.tgt:0)+(GATE==='cap'&&BOT==='smart'?0:0);
+    const r=score(pm.cards,ctxFor(rest,pm.m));r.raw2=r.total;const n=nKeys(r);if(GATE==='bar'){const h=barHit(r.total,n,S.gs.bar,null);r.total=Math.floor(h.ehp);r.util=h.ehp+(BOT==='smart'?BV:1)*h.ebar;}else{const e=effDmg(r.total,n,S.gs);r.total=e.d;r.util=e.d+(GATE==='tough'&&S.gs.grog<=0&&BOT==='smart'?Math.min(n,S.gs.tgh)*KV*S.tgt:0)+(GATE==='cap'&&BOT==='smart'?0:0);}
     const h=BOT==='smart'?harm(sel,rest):0;
     const v={sel,total:r.total,r,h,m:pm.m};
     if(!best||(v.r.util)>(best.r.util))best=v;
@@ -142,7 +152,7 @@ function playRound(){
   if(K==='leaf'){R.on=S.orbs.length>0;if(R.on&&BOT==='smart'){const i=S.orbs.map((k,i)=>[sellPrice(k),i]).sort((a,b)=>a[0]-b[0])[0][1];S.gold+=sellPrice(S.orbs[i]);delete S.ost[S.orbs[i]];S.orbs.splice(i,1);R.on=false;}}
   S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;S.marks=[];
   fill(true);if(K==='house')S.hand.forEach(c=>c.fog=true);rollIntent();bossTick();
-  let roundBest=0,runs0=S.runs,dis0=S.dis,nRun=0;S.gs={tgh:TGH[S.rd],grog:0,brks:0};S.rawBest=0;S.firstRaw=null;S.brkDmg=0;S.allDmg=0;
+  let roundBest=0,runs0=S.runs,dis0=S.dis,nRun=0;S.gs={tgh:TGH[S.rd],grog:0,brks:0,bar:Math.round(BF*S.tgt)};S.rawBest=0;S.firstRaw=null;S.brkDmg=0;S.allDmg=0;
   for(let guard=0;guard<60;guard++){
     appMerges();
     if(!S.hand.length){break;}
@@ -198,7 +208,7 @@ function doRun(pick){
   if(RK==='arm'){const h=handInfo(cards).ht;if((S.lv[h]||1)>1)S.lv[h]--;}
   const rest=S.hand.filter(c=>!cards.includes(c));
   const r=score(cards,ctxFor(rest,0));const raw=r.total,n=nKeys(r);S.lastN=n;if(S.firstRaw==null)S.firstRaw=raw;S.rawBest=Math.max(S.rawBest,raw);
-  const g=S.gs,e=effDmg(raw,n,g);r.total=e.d;S.allDmg+=e.d;
+  const g=S.gs;let e;if(GATE==='bar'){const h=barHit(raw,n,g.bar,Math.random());e={d:h.hp};if(h.post)S.brkDmg+=h.hp;g.bar-=h.bar;if(h.brk&&g.bar<=0){g.brks++;}ST.barRuns=(ST.barRuns||0)+(h.post?0:1);ST.barBlockedRuns=(ST.barBlockedRuns||0)+(!h.post&&h.hp===0&&unbon(raw,n)>0?1:0);if(BMODE==='prob'&&!h.post&&PIER[n]>0){ST.rolls=(ST.rolls||0)+1;ST.rollFail=(ST.rollFail||0)+(h.ok?0:1);}}else e=effDmg(raw,n,g);r.total=e.d;S.allDmg+=e.d;
   if(GATE==='tough'){if(g.grog>0){S.brkDmg+=e.d;g.grog--;if(g.grog<=0){g.tgh=TGH[S.rd]+REG*g.brks;}}
     else{g.tgh-=n;if(g.tgh<=0){g.brks++;g.grog=GN;g.skipRule=true;if(BRK==='now')S.brkDmg+=e.d;}}}
   if(GATE==='cap'&&n>=3)S.brkDmg+=e.d;
@@ -314,7 +324,7 @@ const bs=T.map(t=>t.b),p25=pct(bs,0.25),p40=pct(bs,0.4),p60=pct(bs,0.6),p90=pct(
 const tierStat=f=>{const a=T.filter(f);const rs=a.map(t=>t.runs).sort((x,y)=>x-y);return {n:a.length,kill:+(a.filter(t=>t.won).length/Math.max(1,a.length)).toFixed(3),medRuns:rs[rs.length>>1],avgRuns:+(a.filter(t=>t.won).reduce((s,t)=>s+t.runs,0)/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),otk:+(a.filter(t=>t.won&&t.runs===1).length/Math.max(1,a.length)).toFixed(3),brkShare:+(a.reduce((s,t)=>s+t.bshare,0)/Math.max(1,a.length)).toFixed(2),zeroBrkWin:+(a.filter(t=>t.won&&t.brks===0).length/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),brks:+(a.reduce((s,t)=>s+t.brks,0)/Math.max(1,a.length)).toFixed(2)};};
 const tiers={top10:tierStat(t=>t.b>=p90),mid:tierStat(t=>t.b>=p40&&t.b<=p60),bot25:tierStat(t=>t.b<=p25),all:tierStat(()=>true),cut:[p25,p40,p60,p90].map(x=>+x.toFixed(2))};
 tiers.byRd=[0,1,2].map(rd=>{const a=T.filter(t=>t.rd===rd),b=a.map(t=>t.b).sort((x,y)=>x-y),q=p=>b[Math.min(b.length-1,Math.floor(b.length*p))];const P90=q(0.9),P40=q(0.4),P60=q(0.6),P25=q(0.25);const ts=f=>tierStat(t=>t.rd===rd&&f(t));return {top10:ts(t=>t.b>=P90),mid:ts(t=>t.b>=P40&&t.b<=P60),bot25:ts(t=>t.b<=P25),all:ts(()=>true)};});
-const out={gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
+const out={bar:GATE==='bar'?{BF,PIER,BMODE,blockedRunShare:+((ST.barBlockedRuns||0)/Math.max(1,ST.barRuns||0)).toFixed(3),rollFail:ST.rolls?+(ST.rollFail/ST.rolls).toFixed(3):null}:null,gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
   runsPerRound:ST.runsUsed/ST.rounds,disPerRound:ST.disUsed/ST.rounds,firstRunWinShare:ST.firstRunWin/ST.rounds,bigHitShare:ST.bigHit/ST.rounds,
   medOver:med(ST.overRatio),q90Over:q(ST.overRatio,0.9),runsLeftAtWin:med(ST.runsLeftAtWin),
   medLoss:med(ST.lossRatio),campPerGame:ST.camp/ST.games,mergesPerGame:ST.merges/ST.games,
