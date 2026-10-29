@@ -3293,13 +3293,24 @@ function learnHTML(){
     `<div class="lBot two"><button onclick="openInfo('learn','dict')">기호 사전</button><button class="go" onclick="openInfo('learn','page',${next<0?0:next})">${next<0?'처음부터 다시':'이어서 보기 · '+(next+1)}</button></div>`;
 }
 /* 기호 사전 (예전 '카드' 탭) */
-function dictHTML(){const I=(k,bg)=>`<span class="ic" style="background:${bg}">${ICO(k)}</span>`,C=(cl,k,t,bg)=>`<span class="chip ${cl}"><i${bg?` style="background:${bg}"`:''}>${ICO(k)}</i>${t}</span>`;
-  const row=([a,b])=>`<span>${a}</span><span>${b}</span>`;
-  return `<p class="iLead">카드의 글자는 이름 하나뿐입니다.<br>나머지는 기호와 숫자로 읽습니다.</p><div class="lgd">`+
-  [[`<b style="font:900 15px Georgia;font-style:italic">10</b>`,'왼쪽 위 원 · 기본 힘 (원 색 = 속성)'],['<b style="color:#f59e0b">⬢</b> <b style="color:#22c55e">▲</b> <b style="color:#ef4444">▼</b>','오른쪽 위 · 지금 힘 (그대로 · 세짐 · 약해짐)'],
-   [ELS.map(e=>I(EL_KEY[e],EL_C[e])).join(''),'속성 · '+ELS.join(' · ')],[WORLDS.map(w=>I(w,WORLD_C[w])).join(''),'세계 · '+WORLDS.map(w=>WORLD_KO[w]).join(' · ')],
-   [C('g','star3','×2.5'),'★ 배율'],[C('g','fire','×2','#dc2626'),'약점 · 적이 이 속성에 약함'],[C('r','fire','×½','#dc2626'),'내성 · 적이 이 속성에 강함'],
-   [C('g','neon','×1.5','#c026d3'),'고향 · 적과 같은 세계']].map(row).join('')+'</div>';}
+function dictHTML(){   /* (DHL 10-29) 가독성 + 지금 규칙(번호 · 맞춤 · 방패)으로 다시 씀 — 예전 약점 ×2 · 내성 · 고향 줄은 규칙에서 빠져 삭제 */
+  const I=(k,bg)=>`<span class="ic" style="background:${bg}">${ICO(k)}</span>`;
+  const no=n=>`<span class="dNo">${n}</span>`,hx=(f,n,c)=>`<span class="dHx" style="background-image:url(assets/ui/card/${f}.webp)"><b${c?` style="color:${c}"`:''}>${n}</b></span>`;
+  const st=n=>Array.from({length:3},(_,k)=>`<img class="dSt${k<n?'':' off'}" src="assets/ui/card/star_g.webp" alt="">`).join('');
+  const row=(a,t,d)=>`<div class="dRow"><div class="dIc">${a}</div><div class="dTx"><b>${t}</b>${d?`<small>${d}</small>`:''}</div></div>`;
+  const sec=(t,rows)=>`<section class="dSec"><h3>${t}</h3>${rows.join('')}</section>`;
+  return `<div class="dct"><p class="dLead">카드에 적힌 글자는 <b>이름</b> 하나뿐입니다. 나머지는 기호와 숫자로 읽습니다.</p>`+
+  sec('카드 읽기',[
+    row(no(10),'왼쪽 위 원 · 번호','판마다 1~10 중에서 새로 정해집니다. 같은 번호끼리 모으면 족보가 됩니다.'),
+    row(hx('hex',10)+hx('hex_up',25)+hx('hex_down',7),'오른쪽 위 · 지금 힘','별이 늘면 세지고(초록), 상처를 입으면 약해집니다(빨강).'),
+    row(st(1)+'<br>'+st(3),'별 · 머지 단계','같은 동료 둘을 합치면 별이 늘어요. 별 2개는 힘 ×2.5, 별 3개는 ×6 (다른 세계끼리 합치면 ×2 · ×4.5).'),
+    row(WORLDS.map(w=>I(w,WORLD_C[w])).join(''),'왼쪽 아래 · 세계',WORLDS.map(w=>WORLD_KO[w]).join(' · ')),
+    row(ELS.map(e=>I(EL_KEY[e],EL_C[e])).join(''),'오른쪽 아래 · 속성',ELS.join(' · '))])+
+  sec('맞춤과 방패',[
+    row(`<span class="dPill">세계</span><span class="dPill">속성</span><span class="dPill">번호</span>`,'적의 세계 · 약점 속성 · 번호 맞추기','족보에 들어간 카드로 맞춘 개수만큼 힘이 올라가요 — 1개 +25% · 2개 +50% · 3개 +75%.'),
+    row(ELS.map(e=>I(EL_KEY[e],EL_C[e])).join('<i class="dAr">›</i>'),'약점 속성','화살표 방향으로 이깁니다 — 물 › 불 › 바람 › 흙 › 전기 › 물. 적 속성을 이기는 색이 약점입니다.'),
+    row(`<img class="dShield" src="assets/ui/lamancha/cap_shield.webp" alt="">`,'방패 · 한 번에 최대 55%','적은 한 번 공격에 체력의 55%까지만 깎입니다. 세 가지를 모두 맞추면 방패가 깨져요 — 한계 돌파!')])+
+  `</div>`;}
 /* 🔎 이번 판 */
 function runInfoHTML(){
   if(!S)return '';ensureFoes();
@@ -3745,7 +3756,7 @@ function ltCollection(){ltPop('col');}
 function ltColHTML(){
   const orbKeys=Object.keys(ORBS).filter(k=>k!=='advice'),G=GIANT_LIST();
   const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length;
-  const C=(k,n,c,cls)=>`<button type="button" class="lt-cb ${cls||''}" onclick="ltPop();codexSub='${k}';codexSel=null;openInfo('codex')"><b>${n}</b><small>${c}</small></button>`;
+  const C=(k,n,c,cls)=>`<button type="button" class="lt-cb ${cls||''}" onclick="ltPop();window._lmBack=()=>ltPop('col');codexSub='${k}';codexSel=null;openInfo('codex')"><b>${n}</b><small>${c}</small></button>`;
   return `<div class="lt-cgrid"><div>${C('mate','동료','30 / 30','tall')}</div><div>${C('orb','구슬',nOrb+' / '+orbKeys.length)}${C('giant','거인 규칙',nG+' / '+G.length)}</div></div>`;
 }
 function ltPop(kind){
@@ -3756,7 +3767,7 @@ function ltPop(kind){
   const on=gameSettings.masterVolume>0;
   // 발라트로 옵션 창 배치: 가운데 판 · 빨간 버튼 세로 · 맨 아래 넓은 주황 '뒤로'
   if(kind==='opt')card.innerHTML=`<div class="lt-mlist">${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('덱 사용자 지정',"ltPop('deck')")}${B('크레딧',"ltPop('credit')")}</div>${close}`;
-  if(kind==='gopt')card.innerHTML=`<div class="lt-mlist">${B('계속하기','ltPop()','go')}${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('배우기',"ltPop();openInfo('learn')")}${B('메인 메뉴로',"ltPop();ltShow()",'exit')}</div><p class="lt-note" style="text-align:center;margin:-6px 0 0">진행 중인 판은 그대로 남아요 · 타이틀의 플레이 → 계속하기</p>`;   /* 나가기(2026-10-28 DHL): 판을 끝내지 않고 타이틀로 — goMenu는 판을 끝냄(_statEnded)이라 쓰지 않음 */
+  if(kind==='gopt')card.innerHTML=`<div class="lt-mlist">${B('계속하기','ltPop()','go')}${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('배우기',"ltPop();window._lmBack=()=>gameOpt();openInfo('learn')")}${B('메인 메뉴로',"ltPop();ltShow()",'exit')}</div><p class="lt-note" style="text-align:center;margin:-6px 0 0">진행 중인 판은 그대로 남아요 · 타이틀의 플레이 → 계속하기</p>`;   /* 나가기(2026-10-28 DHL): 판을 끝내지 않고 타이틀로 — goMenu는 판을 끝냄(_statEnded)이라 쓰지 않음 */
   if(kind==='set')card.innerHTML=ltSetHTML()+back;
   if(kind==='col')card.innerHTML=ltColHTML()+close;
   if(kind==='stat')card.innerHTML=ltStatHTML()+back;
@@ -6336,7 +6347,7 @@ html.lmB #lm-title .lt-cb.lc-t,#lm-title .lt-cb.lc-t{position:relative;flex:1;mi
     const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length,nM=30,tM=30;
     const all=nOrb+nG,tot=orbKeys.length+G.length,pc=Math.round(all/tot*100);   /* 동료는 처음부터 모두 주므로 수집률에서 뺌 (DHL 10-29) */
     const T=(k,cls,name,sub,n,t,art)=>{const p=t?Math.round(n/t*100):0,done=n>=t&&k!=='mate';
-      return `<button type="button" class="lt-cb lc-t ${cls}${done?' done':''}" onclick="ltPop();codexSub='${k}';codexSel=null;openInfo('codex')"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${k==='mate'?`<em>${t}<u>명</u></em>`:`<span class="lc-bar"><i style="--p:${p}%"></i></span><em>${n} <u>/ ${t}</u></em>`}</span>${done?'<span class="lc-badge">★ 완성</span>':''}</button>`;};
+      return `<button type="button" class="lt-cb lc-t ${cls}${done?' done':''}" onclick="ltPop();window._lmBack=()=>ltPop('col');codexSub='${k}';codexSel=null;openInfo('codex')"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${k==='mate'?`<em>${t}<u>명</u></em>`:`<span class="lc-bar"><i style="--p:${p}%"></i></span><em>${n} <u>/ ${t}</u></em>`}</span>${done?'<span class="lc-badge">★ 완성</span>':''}</button>`;};
     const emb=['mill','crown','bell'].map(e=>`<span><img src="assets/ui/orb/emb_${e}.webp" alt=""></span>`).join('');
     return `<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">컬렉션</div><div class="lc-sum"><span>전체 수집</span><span class="lc-bar"><i style="--p:${pc}%"></i></span><b>${pc}%</b></div></div><div class="lc-list">`+
       T('mate','lc-mate','동료','처음부터 모두 함께 달려요 · 눌러서 보기',nM,tM,`<img src="${A}characters/char_0004.png" alt=""><img src="${A}characters/char_0009.png" alt=""><img src="${A}characters/char_0001.png" alt="">`)+
@@ -6694,5 +6705,38 @@ html .ib .lBot button:not(.go):not(.try),html.lmB .ib .lBot button:not(.go):not(
 (function(){const _oi=openInfo;openInfo=function(){const r=_oi.apply(this,arguments);try{const t=document.getElementById('lm-title'),ib=document.querySelector('.ib');
   const solo=!!(window._lmSolo||typeof S==='undefined'||!S);if(ib)ib.classList.toggle('solo',solo);}catch(e){}return r;};
   const _ll=ltLearn;ltLearn=function(){window._lmSolo=true;return _ll.apply(this,arguments);};
+  /* (DHL 10-29) '뒤로' = 바로 앞 화면: 메인 메뉴 배우기 목록 · 게임 중 옵션 · 컬렉션으로 / 게임 중 배우기 장 · 기호 사전 → 배우기 목록 */
+  const _ll2=ltLearn;ltLearn=function(){window._lmBack=()=>{ltPlayTab='try';ltPop('play');};return _ll2.apply(this,arguments);};
+  document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.ib .ibBack');if(!b)return;
+    const fn=window._lmBack,inLearnSub=typeof infoTab!=='undefined'&&infoTab==='learn'&&(learnView==='page'||learnView==='dict');
+    if(fn){e.stopImmediatePropagation();e.preventDefault();window._lmBack=null;hideOv();try{fn();}catch(err){}return;}
+    if(inLearnSub){e.stopImmediatePropagation();e.preventDefault();openInfo('learn','list');}
+  },true);
   const _ho=hideOv;hideOv=function(){window._lmSolo=false;return _ho.apply(this,arguments);};})();</script>
-<style id="lm-info-solo-css">.ib.solo .ibTabs{display:none!important}</style></body></html>
+<style id="lm-info-solo-css">.ib.solo .ibTabs{display:none!important}</style><style id="lm-read">/* (DHL 10-29) 배우기 · 기호 사전 가독성 + 메인 메뉴에서 열면 화면 가운데 */
+html.lmB body.lm-titleOn .ov,html.lmB .ov:has(.ib.solo){left:0!important}
+html.lmB #ov:has(.ib) > .panel{width:min(880px,100%)!important;height:min(780px,100%)!important}
+.ib .rb .pg h2{font-size:clamp(21px,2.9vh,27px)!important;font-weight:900!important;color:#fff}
+.ib .rb .say{font-size:clamp(16px,2.2vh,19px)!important;color:#fff!important;font-weight:700;line-height:1.6!important}
+.ib .rb .tip{font-size:clamp(14.5px,1.95vh,16.5px)!important;color:#ddd6ea!important;line-height:1.65!important;font-weight:500}
+.ib .rb b.k{color:#f6cf63!important;font-weight:900!important}
+.ib .rb .pg{padding:20px 20px 22px!important}
+.ib .lNav b{font-size:18px;font-weight:900;color:#f6cf63}
+.dct{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:8px}
+.dct .dLead{margin:0;font-size:clamp(15px,2vh,17px);line-height:1.6;color:#ddd6ea}.dct .dLead b{color:#f6cf63}
+.dct .dSec h3{margin:0 0 8px;font:900 clamp(15px,2vh,17px)/1 'Noto Sans KR',sans-serif;color:#f6cf63;letter-spacing:1px;padding-left:10px;border-left:4px solid #f6cf63}
+.dct .dRow{display:grid;grid-template-columns:minmax(124px,30%) 1fr;gap:14px;align-items:center;padding:12px 14px;border-radius:12px;background:#ffffff0b;box-shadow:inset 0 0 0 1px #ffffff12}
+.dct .dRow+.dRow{margin-top:6px}
+.dct .dIc{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;line-height:1}
+.dct .dTx b{display:block;font-size:clamp(15.5px,2.1vh,18px);font-weight:900;color:#fff;margin-bottom:3px}
+.dct .dTx small{display:block;font-size:clamp(13.5px,1.85vh,15.5px);line-height:1.55;color:#cfc8dc!important}
+.dct .ic{display:inline-flex;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}.dct .ic img{width:70%;height:70%}
+.dct .dNo{display:inline-flex;width:42px;height:42px;border-radius:50%;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff6d8,#e8c56a 55%,#9a6b16);color:#2a1a00;font:italic 900 22px/1 Georgia,serif;box-shadow:0 0 0 2px #fff,0 2px 4px #000a}
+.dct .dHx{display:inline-flex;width:34px;height:38px;align-items:center;justify-content:center;background:center/contain no-repeat}.dct .dHx b{font:italic 900 15px/1 Georgia,serif;color:#fff;text-shadow:0 1px 2px #000}
+.dct .dSt{width:22px;height:22px;margin:0 -1px}.dct .dSt.off{filter:grayscale(1) brightness(.45)}
+.dct .dPill{display:inline-block;padding:4px 8px;border-radius:99px;background:#f6cf63;color:#2a1f00;font:900 13px/1 'Noto Sans KR',sans-serif}
+.dct .dAr{font-style:normal;color:#f6cf63;font-weight:900;font-size:13px}
+.dct .dIc .ic{width:26px;height:26px}
+.dct .dShield{width:46px;height:46px;filter:drop-shadow(0 0 6px #60a5fa88)}
+@media (max-width:520px){.dct .dRow{grid-template-columns:1fr;gap:8px;text-align:center}.dct .dIc{justify-content:center}}
+</style></body></html>
