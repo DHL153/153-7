@@ -3779,7 +3779,7 @@ function ltPop(kind){
     `<p class="lt-note">프로필 여러 개 · 기록 보기는 스팀 연결 단계에서 붙입니다.</p>`+close;
   if(kind==='lang')card.innerHTML=`<h3>언어</h3><div class="lt-row"><span>한국어</span><b>사용 중</b></div>`+
     `<p class="lt-note">다른 언어는 번역표 단계에서 추가합니다. (153-6처럼 첫 실행 만화 다음에 고르게 됩니다)</p>`+close;
-  card.classList.toggle('wide',['set','col','play','hands'].includes(kind));card.classList.toggle('xwide',kind==='stat');pop.hidden=false;card.querySelector('button')?.focus({preventScroll:true});
+  card.classList.toggle('wide',['set','col','play','hands'].includes(kind));card.classList.toggle('xwide',kind==='stat');pop.hidden=false;(card.querySelector('.ls-tab.on')||card.querySelector('button'))?.focus({preventScroll:true});   /* (DHL 10-29) 키보드 포커스는 지금 열린 탭에 — 다른 탭에 노란 사각형이 남지 않게 */
 }
 function ltReplayIntro(){try{localStorage.removeItem('mergeRoll.storySeen.v1');}catch(e){}location.reload();}
 lmStartGame();
