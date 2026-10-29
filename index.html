@@ -6008,7 +6008,11 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   ltPop=function(kind){
     if(kind!=='fxdemo'){const r=_lp.apply(this,arguments);
       /* (DHL 10-29) 게임 중 옵션에서 빼고 컬렉션으로 옮김 */
-      if(kind==='col'){const c=document.querySelector('#lm-title .lt-card');if(c&&!c.querySelector('.lm-fxbar')){const b=document.createElement('button');b.type='button';b.className='lm-fxbar';b.innerHTML='<img src="assets/ui/maple/icons/sword.webp" alt=""><b>전투 연출 보기</b>';b.onclick=()=>ltPop('fxdemo');const bk=c.querySelector('.lt-mb.back');c.insertBefore(b,bk||null);}}
+      if(kind==='col'){const c=document.querySelector('#lm-title .lt-card'),L=c&&c.querySelector('.lc-list');if(L&&!L.querySelector('.lc-fx')){
+        /* (DHL 10-29) 위 컬렉션 카드와 같은 모양 · 니콜(창 찌르기) · 로시(연사)가 번갈아 공격하는 그림 */
+        const b=document.createElement('button');b.type='button';b.className='lt-cb lc-t lc-fx';
+        b.innerHTML='<span class="lc-art"><img class="fb n" src="mrstage/assets/art/battle_characters/battle_char_0018_Idle.png" alt=""><img class="fb r" src="mrstage/assets/art/battle_characters/battle_char_0004_Idle.png" alt=""><canvas aria-hidden="true"></canvas></span><span class="lc-txt"><b>전투 연출 보기</b><small>공격 · 컷인 · 세 세계 합동기 · 처치 컷신을 바로 재생</small></span>';
+        b.onclick=()=>ltPop('fxdemo');L.appendChild(b);window.lmFxTile&&lmFxTile(b);}}
       return r;}
     _lp('col');
     const card=document.querySelector('#lm-title .lt-card');if(!card)return;
@@ -6881,4 +6885,43 @@ body.lmFxDemo #lmStage{position:relative;z-index:901}
   addEventListener('resize',()=>requestAnimationFrame(fit));
 })();
 </script>
-</body></html>
+<script id="lm-fx-tile-js">
+/* (DHL 10-29) 컬렉션 '전투 연출 보기' 카드 그림: 니콜(네온 · 창 찌르기) · 로시(러스트 · 짧은 연사) 리그가 번갈아 공격 — 리그를 못 받으면 정지 그림 그대로 */
+(function(){
+  const loadJs=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  const lib=()=>window.CharacterRig?Promise.resolve():loadJs('mrstage/assets/rig/rig.js');
+  const cache={};
+  const load=id=>cache[id]||(cache[id]=lib().then(()=>window.MR_RIG_DEFS?.[id]?0:loadJs('mrstage/assets/rig/'+id+'/rig.def.js')).then(()=>{const def=window.MR_RIG_DEFS[id];
+    return Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=rej;im.src=p.src;}))).then(pr=>({def,images:Object.fromEntries(pr)}));}).catch(e=>{delete cache[id];throw e;}));
+  const CAST=[{id:'nicole-neon',x:.30,h:.90,depth:1},{id:'rosi-rust',x:.76,h:.78,depth:0}];
+  window.lmFxTile=function(btn){
+    const art=btn.querySelector('.lc-art'),cv=art.querySelector('canvas');let raf=0,last=0,turn=0,nextAt=0;const who=[];
+    Promise.all(CAST.map(c=>load(c.id).then(v=>({...c,v})))).then(list=>{
+      if(!btn.isConnected)return;
+      for(const c of list){const rig=new CharacterRig(c.v.def,c.v.images),an=new RunAnimator(rig,{runSpeed:620});an.facing=1;who.push({...c,rig,an,U:c.v.def.ui||{}});}
+      who.sort((a,b)=>a.depth-b.depth);art.classList.add('rigOn');last=performance.now();nextAt=last+500;raf=requestAnimationFrame(tick);
+    }).catch(e=>console.warn('[연출 카드 리그]',e));
+    function tick(now){
+      if(!btn.isConnected||document.getElementById('lm-title').hidden){cancelAnimationFrame(raf);return;}raf=requestAnimationFrame(tick);
+      const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
+      if(now>nextAt){const w=who.filter(x=>x.depth===1)[0]&&who[turn%who.length];turn++;nextAt=now+1500;
+        if(w){const nm=w.U.attack||'thrust';if(!w.an.attack(nm,w.U.attackOpts)){w.an.act=null;w.an.attack(nm,w.U.attackOpts);}}}
+      const W=art.clientWidth,H=art.clientHeight;if(!W||!H)return;const dpr=Math.min(2,devicePixelRatio||1),cw=Math.round(W*dpr),ch=Math.round(H*dpr);
+      if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch;}
+      const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cw,ch);
+      for(const w of who){w.an.update(dt,{vx:0,facing:1});const bh=w.rig.def.metrics?.bodyHeight||718,sc=H*w.h/bh;
+        w.rig.draw(g,W*w.x*dpr,H*.97*dpr,sc*dpr,w.an.facingScale);}
+    }
+  };
+})();
+</script>
+<style id="lm-fx-tile">
+#lm-title .lc-fx{--glow:#c9a24a77}
+#lm-title .lc-fx .lc-art canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 4px 4px #000a)}
+#lm-title .lc-fx .lc-art img.fb{height:96%;bottom:-4%;transition:opacity .3s}
+#lm-title .lc-fx .lc-art img.fb.n{left:4%;z-index:1}#lm-title .lc-fx .lc-art img.fb.r{left:40%;height:84%;opacity:.9}
+#lm-title .lc-fx .lc-art.rigOn img.fb{opacity:0}
+#lm-title .lm-fxbar{display:none!important}
+#lm-title .lc-fx .lc-txt b{white-space:nowrap}
+@media (max-width:520px){#lm-title .lc-fx .lc-txt b{font-size:clamp(18px,5vw,22px)!important}}
+</style></body></html>
