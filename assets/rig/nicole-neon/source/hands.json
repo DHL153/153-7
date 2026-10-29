@@ -1,0 +1,112 @@
+{
+ "handL": {
+  "file": "parts_work/handL.png",
+  "grip": [
+   40.4,
+   37.3
+  ],
+  "shaftDir": [
+   1.0,
+   -0.0008
+  ],
+  "thick": 32.0,
+  "axisPts": 62,
+  "fistC": [
+   40.4,
+   32.7
+  ],
+  "off": [
+   94.0,
+   3.0
+  ],
+  "fistW": 61
+ },
+ "handR": {
+  "file": "parts_work/handR.png",
+  "grip": [
+   141.2,
+   36.1
+  ],
+  "shaftDir": [
+   1.0,
+   -0.0004
+  ],
+  "thick": 31.0,
+  "axisPts": 69,
+  "fistC": [
+   141.2,
+   35.0
+  ],
+  "off": [
+   44.0,
+   3.0
+  ],
+  "fistW": 82
+ },
+ "fistF": {
+  "file": "parts_work/fistF.png",
+  "grip": [
+   32.4,
+   31.7
+  ],
+  "shaftDir": [
+   0.0011,
+   -1.0
+  ],
+  "thick": 26.0,
+  "axisPts": 45,
+  "fistC": [
+   30.0,
+   31.7
+  ],
+  "off": [
+   44.0,
+   52.0
+  ],
+  "fistW": 46
+ },
+ "handL2": {
+  "file": "parts_work/handL2s.png",
+  "grip": [
+   74.1,
+   36.5
+  ],
+  "shaftDir": [
+   1.0,
+   0.0
+  ],
+  "thick": 28.0,
+  "axisPts": 40,
+  "fistC": [
+   74.1,
+   41.8
+  ],
+  "off": [
+   16.0,
+   0.0
+  ],
+  "fistW": 69
+ },
+ "handR2": {
+  "file": "parts_work/handR2s.png",
+  "grip": [
+   160.2,
+   33.5
+  ],
+  "shaftDir": [
+   1.0,
+   0.0
+  ],
+  "thick": 28.0,
+  "axisPts": 31,
+  "fistC": [
+   160.2,
+   36.9
+  ],
+  "off": [
+   0.0,
+   0.0
+  ],
+  "fistW": 58
+ }
+}
