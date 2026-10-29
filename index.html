@@ -3670,7 +3670,7 @@ window.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.ge
   const txt=b=>b.textContent.replace(/\s+/g,' ').trim();
   if(!t.hidden){
     if(pop&&!pop.hidden){const b=[...pop.querySelectorAll('.lt-mb.back')].find(vis);if(b)return press(b);stop();ltPop();return;}   // 설정 → 옵션 → 닫기 / 게임 중 옵션은 닫고 계속하기
-    if(!t.classList.contains('ingame'))return;   // 타이틀 첫 화면: 할 일 없음
+    if(!t.classList.contains('ingame')&&ov.hidden)return;   // 타이틀 첫 화면: 할 일 없음 (첫 화면에서 연 배우기 · 도감 창은 아래에서 한 단계 뒤로 — DHL 10-29)
   }
   if(!ov.hidden){
     const bs=[...ov.querySelectorAll('button')].filter(vis);
@@ -6246,7 +6246,7 @@ html.lmB body #app.bl #orbs .orb.hid{font-size:0!important}
   const _lp=ltPop;
   ltPop=function(kind){const r=_lp.apply(this,arguments);if(kind==='gopt'&&onTitle())tweak();return r;};
   addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.getElementById('mr-story')||document.getElementById('game-startup-screen'))return;
-    if(!onTitle())return;const pop=T().querySelector('.lt-pop');if(pop&&!pop.hidden)return;   // 열린 창 닫기는 기존 Esc가 처리
+    if(!onTitle()||!document.getElementById('ov').hidden)return;const pop=T().querySelector('.lt-pop');if(pop&&!pop.hidden)return;   // 배우기 · 도감 창이 떠 있으면 그 창의 Esc(한 단계 뒤로)가 먼저   // 열린 창 닫기는 기존 Esc가 처리
     e.stopImmediatePropagation();e.preventDefault();ltPop('gopt');},true);
   const st=document.createElement('style');st.textContent='body.lmFxPeek #ov{visibility:hidden!important}';document.head.appendChild(st);
 })();
