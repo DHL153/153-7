@@ -6950,4 +6950,43 @@ body.lmFxDemo #lmStage{position:relative;z-index:901}
   new MutationObserver(()=>{hook();go();}).observe(document.body,{childList:true});
 })();
 </script>
+
+<style id="lm-title-mute">
+/* (DHL 10-29) 첫 화면 소리 켜기/끄기 — 언어 버튼 오른쪽, 같은 알약 모양 */
+#lm-title .lt-snd{position:absolute;top:max(12px,env(safe-area-inset-top));left:130px;z-index:3;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border-radius:999px;background:#0f1a2ecc;border:1px solid #c9a24a;box-shadow:0 3px 0 #050a14;color:#f3e6c8;cursor:pointer;transition:filter .12s,transform .08s}
+#lm-title .lt-snd:hover{filter:brightness(1.15)}
+#lm-title .lt-snd:active{transform:translateY(2px);box-shadow:0 1px 0 #050a14}
+#lm-title .lt-snd svg{width:22px;height:22px;display:block}
+#lm-title .lt-snd .w{transition:opacity .15s}
+#lm-title .lt-snd .x{opacity:0;transition:opacity .15s}
+#lm-title .lt-snd.off{color:#9aa3b5}
+#lm-title .lt-snd.off .w{opacity:0}
+#lm-title .lt-snd.off .x{opacity:1}
+#lm-title .lt-snd:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#lm-title .lt-mb.lm-mute.off{filter:saturate(.4) brightness(.85)}
+</style>
+<script id="lm-title-mute-js">
+(function(){
+  const t=document.getElementById('lm-title');if(!t||typeof LM_SET==='undefined')return;
+  const b=document.createElement('button');b.type='button';b.className='lt-snd';
+  b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke-width="1.6"/><g class="w"><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g><g class="x"><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></g></svg>';
+  t.appendChild(b);
+  const sync=()=>{const off=!(LM_SET.master>0);b.classList.toggle('off',off);b.setAttribute('aria-pressed',String(off));b.setAttribute('aria-label',off?'소리 켜기':'소리 끄기');b.title=off?'소리 켜기':'소리 끄기';};
+  const place=()=>{const l=t.querySelector('.lt-lang');if(!l||!l.offsetWidth)return;b.style.left=(l.offsetLeft+l.offsetWidth+8)+'px';b.style.top=l.offsetTop+'px';};
+  b.addEventListener('click',e=>{e.stopPropagation();lmToggleMute();sync();});
+  /* 옵션의 소리 막대를 바꿔도 버튼 모양이 따라가게 */
+  const _ap=lmSetApply;lmSetApply=function(){const r=_ap.apply(this,arguments);try{sync();}catch(e){}return r;};
+  /* (DHL 10-29) 인게임 설정(⚙ 게임 메뉴)에도 같은 소리 켜기/끄기 — '설정' 아래 줄 */
+  window.lmToggleMute=function(){if(LM_SET.master>0){LM_SET.masterPrev=LM_SET.master;LM_SET.master=0;}else{LM_SET.master=LM_SET.masterPrev>0?LM_SET.masterPrev:70;}
+    lmSetSave();lmSetApply();if(LM_SET.master>0){try{unlockGameAudio();}catch(err){}}};
+  const gLab=()=>LM_SET.master>0?'🔊 소리 끄기':'🔇 소리 켜기';
+  const _lp=ltPop;ltPop=function(kind){const r=_lp.apply(this,arguments);
+    if(kind==='gopt'){const l=document.querySelector('#lm-title .lt-mlist');if(l&&!l.querySelector('.lm-mute')){const m=document.createElement('button');m.type='button';m.className='lt-mb lm-mute';m.textContent=gLab();
+      m.onclick=e=>{e.stopPropagation();lmToggleMute();m.textContent=gLab();m.classList.toggle('off',!(LM_SET.master>0));};m.classList.toggle('off',!(LM_SET.master>0));
+      const set=[...l.children].find(x=>x.textContent.trim()==='설정');l.insertBefore(m,set?set.nextSibling:l.children[1]||null);}}
+    return r;};
+  sync();place();addEventListener('resize',place);setTimeout(place,300);setTimeout(place,1500);
+  new MutationObserver(place).observe(t,{attributes:true,attributeFilter:['hidden','class']});
+})();
+</script>
 </body></html>
