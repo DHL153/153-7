@@ -7897,12 +7897,12 @@ let isGameOver = false;
   function gsEl(){let g=$('lm-gshield');if(!g){g=document.createElement('div');g.id='lm-gshield';g.innerHTML='<i class="sh"></i><span class="gems"></span>';stage.appendChild(g);}return g;}
   function gsPlace(){const g=$('lm-gshield'),en=$('enemy');if(!g||!en)return null;const eh=en.offsetHeight||60,sz=Math.max(38,Math.min(80,eh*.56));
     g.style.width=g.style.height=sz+'px';g.style.setProperty('--g',Math.round(sz*.14)+'px');g.style.left=(en.offsetLeft-sz*.2)+'px';g.style.top=(en.offsetTop+eh*.55)+'px';return {x:en.offsetLeft-sz*.2,y:en.offsetTop+eh*.55,sz};}
+  function paintGems(gems,n){const g=gsEl();g.querySelector('.gems').innerHTML=(gems||[]).map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');g.classList.toggle('n2',n===2);g.classList.toggle('n3',n>=3);}
   function drawGems(){const o=capO,g=gsEl();
     const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(finPend>0||hp>o.cap);   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
     g.style.display=show?'block':'none';if(!show){clearInterval(gsT);gsT=0;return;}
-    if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 이번 런에 맞춘 보석 그대로 (손패를 비워도 바뀌지 않게)
-    g.querySelector('.gems').innerHTML=o.gems.map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');
-    g.classList.toggle('n2',o.n===2);g.classList.toggle('n3',o.n>=3);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
+    if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 그 런의 보석 그대로 (연출 시작에 finale이 다시 그림)
+    paintGems(o.gems,o.n);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
   async function gsShatter(){const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
     g.classList.add('pop');await sleep(140);g.classList.remove('pop');g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
     const t=document.createElement('div');t.className='lm-gsbrk-t';t.textContent='관통!';t.style.left=p.x+'px';t.style.top=(p.y-p.sz*.4)+'px';stage.appendChild(t);
@@ -8227,7 +8227,9 @@ let isGameOver = false;
    const _flip=flip;flip=function(...a){if(cutOn()){afterCut(()=>_flip(...a));return null;}return _flip(...a);};}
   async function finale(o){
     if(!o.killed&&!o.demo&&o.hp!=null&&o.hp<=0)o={...o,killed:true};   // (DHL 10-29) 라운드가 끝나는 한 방은 반드시 주인공 막타 + 처치 컷신
-    gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;if(o.cap&&o.cap.brk)await gsShatter();   // (DHL 10-29) 방패 보석: 관통 = 시작에 깨짐 · 막힘 = 마지막 일격 때 튕김
+    gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;
+    if(o.cap&&o.cap.gems&&capO&&!gsBroken&&hp>capO.cap){const g=gsEl();g.style.display='block';paintGems(o.cap.gems,o.cap.n);gsPlace();}   // 이 런의 보석으로 다시 그림 (앞 런 연출이 끝나기 전에 낸 런도 섞이지 않게)
+    if(o.cap&&o.cap.brk)await gsShatter();   // (DHL 10-29) 방패 보석: 관통 = 시작에 깨짐 · 막힘 = 마지막 일격 때 튕김
     placeCharge();if(auraEl)auraEl.classList.add('full');
     stars={...stars,...(o.stars||{})};
     const W=stage.clientWidth||400,hero=activeBattleTeam[0];
