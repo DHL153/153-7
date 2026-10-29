@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Merge &amp; Run — Friend</title>
+<!--
+  단독 관전 창 (친구 전투 보기)
+  - 게임 본체를 실행하지 않고, 받은 관전 데이터를 그리기만 한다.
+  - 데이터는 메인 게임 창이 보내준다. 이 창은 네트워크에 직접 연결하지 않는다.
+      웹 테스트: 메인 창이 window.open 으로 띄우고 postMessage 로 전달
+      exe     : 메인 프로세스가 작은 창으로 띄우고 preload 의 window.mrDesktop.onSpectate 로 전달
+-->
+<style>
+  :root{color-scheme:dark;}
+  html,body{margin:0;height:100%;background:#0f1824;color:#e6eef5;font-family:system-ui,-apple-system,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;overflow:hidden;}
+  body{display:flex;flex-direction:column;}
+  /* exe에서 테두리 없는 창일 때 이 줄을 잡고 창을 옮긴다 */
+  #bar{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:11px;font-weight:800;-webkit-app-region:drag;user-select:none;}
+  #live{color:#ff6b7d;font-size:9.5px;font-weight:1000;}
+  #name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  #close{margin-left:auto;-webkit-app-region:no-drag;border:1px solid #2f4560;background:transparent;color:#e6eef5;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;}
+  #view{flex:1 1 auto;min-height:0;padding:0 6px 6px;}
+</style>
+</head>
+<body>
+<div id="bar"><span id="live">● LIVE</span><span id="name"></span><button id="close" type="button" aria-label="close">✕</button></div>
+<div id="view"></div>
+<script src="assets/ui/social-spectate-view.js"></script>
+<script>
+(function(){
+  'use strict';
+  const params=new URLSearchParams(location.search);
+  const target=String(params.get('target')||'').slice(0,64);
+  let labels={};                      // 메인 창이 현재 언어의 문구를 보내줌
+  const t=k=>labels[k]||k;
+  const view=MRSpectateView.create(document.getElementById('view'),{t});
+  const nameEl=document.getElementById('name');
+  let lastAt=Date.now();
+
+  function receive(msg){
+    if(!msg || typeof msg!=='object' || msg.type!=='mr-spectate') return;
+    if(msg.target && msg.target!==target) return;
+    if(msg.labels && typeof msg.labels==='object'){
+      labels={}; for(const [k,v] of Object.entries(msg.labels)) if(typeof v==='string') labels[k]=v.slice(0,120);
+      view.relabel(t);
+    }
+    if(typeof msg.name==='string'){ nameEl.textContent=msg.name.slice(0,24); document.title=msg.name.slice(0,24); }
+    if(msg.closed){ view.overlay('social.spectateEnded'); return; }
+    if(msg.data && view.apply(msg.data)) lastAt=Date.now();
+  }
+
+  // 웹 테스트: 이 창을 연 메인 창에서 온 메시지만 받는다
+  window.addEventListener('message',ev=>{
+    if(!window.opener || ev.source!==window.opener) return;
+    receive(ev.data);
+  });
+  // exe: preload가 제공하는 통로 (있을 때만)
+  try{ window.mrDesktop?.onSpectate?.(receive); }catch(e){}
+
+  setInterval(()=>{ if(Date.now()-lastAt>6000) view.overlay('social.spectateNoData'); },1000);
+
+  document.getElementById('close').addEventListener('click',()=>{
+    try{ window.mrDesktop?.closeSpectate?.(target); }catch(e){}
+    window.close();
+  });
+  // 준비 완료 알림 → 메인 창이 최신 데이터를 바로 보내줌
+  try{ window.opener?.postMessage({type:'mr-spectate-ready',target},'*'); }catch(e){}
+  try{ window.mrDesktop?.spectateReady?.(target); }catch(e){}
+})();
+</script>
+</body>
+</html>

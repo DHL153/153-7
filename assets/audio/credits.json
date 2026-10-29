@@ -1,0 +1,11 @@
+{
+  "bgm": {
+    "title": "별빛 아틀리에",
+    "durationSeconds": 180,
+    "bpm": 72,
+    "composition": "Original synthesized electric-piano, soft-pad and glass-bell score",
+    "loop": "Circular note tails, decoded Web Audio buffer loop"
+  },
+  "sfx": 29,
+  "sources": "Original synthesis; no third-party recordings or samples"
+}
