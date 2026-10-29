@@ -5985,40 +5985,49 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     [6,'카르덴','지팡이','뒤에서 마법'],[7,'루시아','방패·도끼','방패 밀치기'],[8,'니콜','창','반 걸음 찌르기'],[9,'팔로메','넓은 대검','돌진 · 회전 베기'],[10,'브루노','쌍수','지나치며 베기']];
   let star=1,world=0;
   const stg=()=>{try{return document.querySelector('#lmStage iframe')?.contentWindow?.MRStage||null;}catch(e){return null;}};
-  function run(o){
-    const st=stg();ltPop();
+  let last='';
+  function run(o,key){
+    if(key)last=key;const st=stg();ltHide();document.body.classList.add('lmFxDemo');
     if(!st){return;}
     if(st.busy&&st.busy()){setTimeout(()=>run(o),400);return;}
     // 실제 전투와 같게: 연출하는 동안 오른쪽 위 적 정보 숨김
     const ov=document.getElementById('ov'),peek=ov&&!ov.hidden;if(peek)document.body.classList.add('lmFxPeek');   // (DHL 10-29) 보상 · 캠프 창이 무대를 가리면 연출 동안만 숨김
-    const box=document.getElementById('lmStage');if(box){box.classList.add('lmHit');const tk=setInterval(()=>{if(!(st.busy&&st.busy())){box.classList.remove('lmHit');document.body.classList.remove('lmFxPeek');clearInterval(tk);}},400);}
+    const box=document.getElementById('lmStage');if(box){box.classList.add('lmHit');const t0=performance.now(),tk=setInterval(()=>{if(performance.now()-t0<700)return;if(!(st.busy&&st.busy())){box.classList.remove('lmHit');document.body.classList.remove('lmFxPeek');clearInterval(tk);
+      /* (DHL 10-29) 연출이 끝나면 '전투 연출 보기' 화면으로 다시 */ setTimeout(()=>{try{document.body.classList.remove('lmFxDemo');ltShow();ltPop('fxdemo');}catch(e){}},350);}},400);}
     st.demo(o);
   }
   window.lmFxDemo={
-    one(p){const n=world+p;run({hero:n,nums:[n],stars:{[n]:star}});},
-    combo(p){const n=world+p;run({hero:n,nums:[p,p+10,p+20],stars:{}});},
-    mates(){const h=world+1;run({hero:h,nums:[h,world+4,world+5,world+10],stars:{[world+4]:1,[world+5]:2}});},
-    kill(){const h=world+1;run({hero:h,nums:[h],stars:{[h]:star},killed:true});},
+    one(p){const n=world+p;run({hero:n,nums:[n],stars:{[n]:star}},'one'+p);},
+    combo(p){const n=world+p;run({hero:n,nums:[p,p+10,p+20],stars:{}},'combo');},
+    mates(){const h=world+1;run({hero:h,nums:[h,world+4,world+5,world+10],stars:{[world+4]:1,[world+5]:2}},'mates');},
+    kill(){const h=world+1;run({hero:h,nums:[h],stars:{[h]:star},killed:true},'kill');},
     star(s){star=s;ltPop('fxdemo');},
     world(w){world=w;ltPop('fxdemo');}
   };
   const _lp=ltPop;
   ltPop=function(kind){
     if(kind!=='fxdemo'){const r=_lp.apply(this,arguments);
-      if(kind==='gopt'){const l=document.querySelector('#lm-title .lt-card .lt-mlist');if(l&&!l.querySelector('.lm-fxbtn')){const b=document.createElement('button');b.type='button';b.className='lt-mb lm-fxbtn';b.textContent='⚔ 전투 연출 보기';b.onclick=()=>ltPop('fxdemo');const ex=l.querySelector('.exit');l.insertBefore(b,ex||null);}}
+      /* (DHL 10-29) 게임 중 옵션에서 빼고 컬렉션으로 옮김 */
+      if(kind==='col'){const c=document.querySelector('#lm-title .lt-card');if(c&&!c.querySelector('.lm-fxbar')){const b=document.createElement('button');b.type='button';b.className='lm-fxbar';b.innerHTML='<img src="assets/ui/maple/icons/sword.webp" alt=""><b>전투 연출 보기</b>';b.onclick=()=>ltPop('fxdemo');const bk=c.querySelector('.lt-mb.back');c.insertBefore(b,bk||null);}}
       return r;}
-    _lp('gopt');
+    _lp('col');
     const card=document.querySelector('#lm-title .lt-card');if(!card)return;
     const W=[['러스트',0],['네온',10],['스카이',20]];
-    card.classList.add('wide','lm-fxcard');
-    card.innerHTML=`<h3>⚔ 전투 연출 보기</h3><p class="lt-note" style="text-align:center;margin:-4px 0 8px">지금 무대에서 그대로 재생 · 점수·체력은 바뀌지 않아요</p>`+
-      `<div class="fxRow"><span>세계</span>${W.map(([k,v])=>`<button type="button" class="fxChip${world===v?' on':''}" onclick="lmFxDemo.world(${v})">${k}</button>`).join('')}</div>`+
-      `<div class="fxRow"><span>등급</span>${[1,2,3].map(s=>`<button type="button" class="fxChip${star===s?' on':''}" onclick="lmFxDemo.star(${s})">★${s}${s===1?' 기본':s===2?' 짧은 컷인':' 긴 컷인'}</button>`).join('')}</div>`+
-      `<div class="fxGrid">${NAMES.map(([p,ko,wp,rt])=>`<button type="button" class="fxItem" onclick="lmFxDemo.one(${p})"><b>${ko}</b><small>${wp} · ${rt}</small></button>`).join('')}</div>`+
-      `<div class="fxRow two"><button type="button" class="fxItem sp" onclick="lmFxDemo.combo(1)"><b>세 세계 합동기</b><small>알론소 3명 · 같은 이름 3장</small></button>`+
-      `<button type="button" class="fxItem sp" onclick="lmFxDemo.mates()"><b>동료 합세</b><small>4장 족보 · 동료 2명 → 주인공</small></button>`+
-      `<button type="button" class="fxItem sp kill" onclick="lmFxDemo.kill()"><b>처치 컷신</b><small>쓰러뜨리는 한 방 · 필살기 이름</small></button></div>`+
-      `<button type="button" class="lt-mb back" onclick="ltPop('gopt')">뒤로</button>`;
+    card.classList.add('wide','lm-fxcard','fx2');
+    const WK=['rust','neon','sky'][world/10|0],KEY=['alonso','dulcine','sancho','rosi','gris','carden','lucia','nicole','palome','bruno'];
+    const por=p=>{const u=typeof MR_ART!=='undefined'&&MR_ART.idle[WK+'_'+KEY[p-1]];return u?`<img class="fxPor" src="${u}" alt="">`:'';};
+    const starImg=n=>Array.from({length:3},(_,k)=>`<img class="fxSt${k<n?'':' off'}" src="assets/ui/card/star_g.webp" alt="">`).join('');
+    const wIco=w=>`<span class="fxW" style="background:${WORLD_C[w]}">${ICO(w)}</span>`;
+    card.innerHTML=`<div class="fxHead"><img src="assets/ui/maple/icons/sword.webp" alt=""><h3>전투 연출 보기</h3></div>`+
+      `<p class="fxSub">누르면 무대에서 바로 재생되고, 끝나면 이 화면으로 돌아와요 · 점수와 체력은 바뀌지 않아요</p>`+
+      `<div class="fxBar"><div class="fxSeg" role="group" aria-label="세계">${W.map(([k,v],x)=>`<button type="button" class="${world===v?'on':''}" onclick="lmFxDemo.world(${v})">${wIco(['rust','neon','sky'][x])}<b>${k}</b></button>`).join('')}</div>`+
+      `<div class="fxSeg" role="group" aria-label="등급">${[1,2,3].map(s=>`<button type="button" class="${star===s?'on':''}" onclick="lmFxDemo.star(${s})"><span class="fxStars">${starImg(s)}</span><b>${s===1?'기본':s===2?'짧은 컷인':'긴 컷인'}</b></button>`).join('')}</div></div>`+
+      `<div class="fxGrid">${NAMES.map(([p,ko,wp,rt])=>`<button type="button" class="fxItem${last==='one'+p?' last':''}" onclick="lmFxDemo.one(${p})">${por(p)}<span class="fxTx"><b>${ko}</b><small>${wp}</small><small class="fxRt">${rt}</small></span></button>`).join('')}</div>`+
+      `<div class="fxSp">`+
+      `<button type="button" class="fxBig${last==='combo'?' last':''}" onclick="lmFxDemo.combo(1)"><span class="fxIcs">${['rust','neon','sky'].map(wIco).join('')}</span><span class="fxTx"><b>세 세계 합동기</b><small>세 세계 알론소 · 같은 이름 3장</small></span></button>`+
+      `<button type="button" class="fxBig${last==='mates'?' last':''}" onclick="lmFxDemo.mates()"><span class="fxIcs"><img src="assets/ui/lamancha/icons/handshake.webp" alt=""></span><span class="fxTx"><b>동료 합세</b><small>4장 족보 · 동료 2명 → 주인공</small></span></button>`+
+      `<button type="button" class="fxBig kill${last==='kill'?' last':''}" onclick="lmFxDemo.kill()"><span class="fxIcs"><img src="assets/ui/lamancha/icons/giant.webp" alt=""></span><span class="fxTx"><b>처치 컷신</b><small>쓰러뜨리는 한 방 · 필살기 이름</small></span></button></div>`+
+      `<button type="button" class="lt-mb back" onclick="ltPop('col')">뒤로</button>`;
   };
   const st=document.createElement('style');st.id='lm-fxdemo-css';
   st.textContent=`
@@ -6802,4 +6811,48 @@ html.lmB #ov:has(.ib) > .panel{width:min(880px,100%)!important;height:min(780px,
 /* (DHL 10-29) 드래그바(스크롤바) 통일: 게임 안 모든 스크롤 칸을 원정 창과 같은 모양으로 — 어두운 바탕 · 황동 손잡이 (흰 기본 바 없앰) */
 html,html *{scrollbar-width:thin;scrollbar-color:#c9a24a88 transparent}
 </style>
-</body></html>
+<style id="lm-fxdemo2">/* (DHL 10-29) 전투 연출 보기 새 디자인 — 큰 글자 · 캐릭터 얼굴 · 별 이미지 · 세계 문장 */
+#lm-title .lt-card.fx2{width:min(860px,100%)!important;max-height:calc(100dvh - 24px);overflow:auto}
+#lm-title .fx2 .fxHead{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 0 4px}
+#lm-title .fx2 .fxHead img{width:34px;height:34px}
+#lm-title .fx2 .fxHead h3{margin:0;font:900 clamp(20px,3vh,26px)/1 'Noto Sans KR',sans-serif;color:#f6cf63}
+#lm-title .fx2 .fxSub{margin:0 0 12px;text-align:center;font-size:clamp(13px,1.8vh,15px);color:#cfd6e4;line-height:1.5}
+#lm-title .fx2 .fxBar{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-bottom:12px}
+#lm-title .fx2 .fxSeg{display:flex;background:#0a1222;border-radius:14px;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px #c9a24a66}
+#lm-title .fx2 .fxSeg button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:58px;border:0;border-radius:10px;background:transparent;color:#b7c2d6;cursor:pointer;padding:6px 4px;transition:background .15s,color .15s}
+#lm-title .fx2 .fxSeg button b{font:900 clamp(13px,1.8vh,15px)/1 'Noto Sans KR',sans-serif}
+#lm-title .fx2 .fxSeg button.on{background:linear-gradient(180deg,#f8edd0,#e9d29a);color:#3a2606;box-shadow:0 2px 0 #8a6a2e}
+#lm-title .fx2 .fxSeg button:not(.on):hover{background:#ffffff10;color:#fff}
+#lm-title .fx2 .fxW{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}#lm-title .fx2 .fxW img{width:70%;height:70%}
+#lm-title .fx2 .fxStars{display:flex}#lm-title .fx2 .fxSt{width:18px;height:18px;margin:0 -1px}#lm-title .fx2 .fxSt.off{filter:grayscale(1) brightness(.4);opacity:.7}
+#lm-title .fx2 .fxGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0 0 10px}
+#lm-title .fx2 .fxItem{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 8px;border-radius:12px;border:1px solid #2e476f;background:linear-gradient(180deg,#1a2a4a,#0f1a2e);color:#fff;cursor:pointer;text-align:center;word-break:keep-all;box-shadow:0 3px 0 #050a14;transition:transform .12s,border-color .12s}
+#lm-title .fx2 .fxPor{width:clamp(52px,8.5vh,76px);height:clamp(52px,8.5vh,76px);object-fit:contain;filter:drop-shadow(0 3px 3px #000a)}
+#lm-title .fx2 .fxTx{display:flex;flex-direction:column;align-items:center;gap:2px}
+#lm-title .fx2 .fxItem b,#lm-title .fx2 .fxBig b{font:900 clamp(14px,2vh,16px)/1.15 'Noto Sans KR',sans-serif;color:#fff}
+#lm-title .fx2 .fxItem small{font-size:clamp(11.5px,1.6vh,13px);color:#f6cf63;font-weight:800;line-height:1.2}
+#lm-title .fx2 .fxItem small.fxRt{color:#b7c2d6;font-weight:600}
+#lm-title .fx2 .fxItem:hover,#lm-title .fx2 .fxBig:hover{border-color:#f1d48a;transform:translateY(-2px)}
+#lm-title .fx2 .last{box-shadow:0 0 0 2px #f6cf63,0 3px 0 #050a14!important}
+#lm-title .fx2 .last::after{content:'방금 봄';position:absolute;top:-8px;right:-4px;background:#f6cf63;color:#2a1f00;font:900 10px/1 'Noto Sans KR',sans-serif;padding:3px 6px;border-radius:99px}
+#lm-title .fx2 .fxSp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+#lm-title .fx2 .fxBig{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid #c9a24a;background:linear-gradient(180deg,#26406a,#14213a);color:#fff;cursor:pointer;text-align:left;box-shadow:0 3px 0 #050a14;transition:transform .12s}
+#lm-title .fx2 .fxBig small{display:block;margin-top:3px;font-size:clamp(11.5px,1.6vh,13px);color:#cfd6e4;line-height:1.3}
+#lm-title .fx2 .fxBig .fxTx{align-items:flex-start}
+#lm-title .fx2 .fxBig.kill{border-color:#ff7a68;background:linear-gradient(180deg,#6a1e18,#2a0c0a)}
+#lm-title .fx2 .fxIcs{display:flex;gap:2px;flex:none}#lm-title .fx2 .fxIcs img{width:38px;height:38px}#lm-title .fx2 .fxIcs .fxW{width:22px;height:22px}
+@media (max-width:620px){#lm-title .fx2 .fxBar{grid-template-columns:1fr}#lm-title .fx2 .fxGrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}#lm-title .fx2 .fxItem{padding:4px 2px 6px}#lm-title .fx2 .fxPor{width:44px;height:44px}#lm-title .fx2 .fxItem b{font-size:13px}#lm-title .fx2 .fxItem small{display:none}#lm-title .fx2 .fxSp{grid-template-columns:1fr}#lm-title .fx2 .last::after{display:none}}
+@media (max-height:520px){#lm-title .fx2 .fxPor{width:40px;height:40px}#lm-title .fx2 .fxSub{display:none}#lm-title .fx2 .fxSeg button{min-height:44px}}
+</style><style id="lm-fxbar">/* (DHL 10-29) 컬렉션 아래 '전투 연출 보기' 버튼 바 — 남색 장식판 */
+#lm-title .lm-fxbar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;margin:12px 0 4px;cursor:pointer;color:#fff;background:none;
+  border:solid transparent;border-width:12px 22px;border-image:url(assets/ui/ornament/plate_navy.webp) 32 64 32 64 fill / 12px 22px / 0 stretch;filter:drop-shadow(0 3px 0 #000a);transition:transform .1s,filter .12s}
+#lm-title .lm-fxbar img{width:30px;height:30px;filter:drop-shadow(0 2px 1px #000a)}
+#lm-title .lm-fxbar b{font:900 clamp(17px,2.6vh,21px)/1 'Noto Sans KR',sans-serif;text-shadow:0 2px 0 #0009}
+#lm-title .lm-fxbar:hover{filter:drop-shadow(0 3px 0 #000a) brightness(1.12)}
+#lm-title .lm-fxbar:active{transform:translateY(2px);filter:drop-shadow(0 1px 0 #000a)}
+#lm-title .lm-fxbar:focus-visible{outline:3px solid #f6cf63;outline-offset:2px}
+#lm-title .fx2 .fxIcs .fxW img{width:70%!important;height:70%!important}
+/* 연출 보는 동안: 무대만 보이게 나머지 화면은 어둡게 */
+body.lmFxDemo::after{content:'';position:fixed;inset:0;background:#05080fcc;z-index:900;pointer-events:none}
+body.lmFxDemo #lmStage{position:relative;z-index:901}
+</style></body></html>
