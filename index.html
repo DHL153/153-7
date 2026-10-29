@@ -4105,7 +4105,11 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     if(f.rule)r2+=`<span class="t rl" onclick="this.classList.toggle('open')">${f.rule.ic} ${f.rule.ko}<small>${f.rule.d}</small></span>`;
     try{const hc=hurtCount();if(hc.w||hc.s)r2+=`<span class="t hurt">🩹${hc.w} 🗡${hc.s}</span>`;}catch(e){}
     /* (DHL 10-29) 적 이름 · 세계 · 열쇠 줄은 왼쪽 위 열쇠 칸과 같은 정보라 지움 — 거인 규칙만 남김 */
-    const h=f.rule?`<div class="row"><span class="t rl" onclick="this.classList.toggle('open')">${f.rule.ic} ${f.rule.ko}<small>${f.rule.d}</small></span></div>`:'';
+    /* (DHL 10-29) 오른쪽 위 적 설명판: 왼쪽 위 맞춤 원과 같은 모양(어두운 알약 + 금테) — 세계 · 이름 · 속성 / 의도 · 거인 규칙(누르면 설명) */
+    const ec=e=>`<i class="fc" style="background:${EL_C[e]}">${ICO(EL_KEY[e])}</i>`;
+    const h=`<div class="fpl"><i class="fc" style="background:${WORLD_C[f.home]}">${ICO(f.home)}</i><b class="fnm">${f.name}</b>${ec(f.el)}</div>`+
+      ((cur||f.rule)?`<div class="row">`+(cur?`<span class="t it" onclick="this.closest('.midZone').classList.toggle('atkOpen')">${cur.ic} ${cur.ko} · ${f.atk}장</span>`:'')+
+      (f.rule?`<span class="t rl" onclick="this.classList.toggle('open')">${f.rule.ic} ${f.rule.ko}<small>${f.rule.d}</small></span>`:'')+`</div>`:'');
     tag.innerHTML=h;tag.style.visibility=tagHide?'hidden':'';
   }
   const _rf=renderFoe;renderFoe=function(){_rf.apply(this,arguments);syncRound(false);renderTag();};
@@ -6765,6 +6769,34 @@ html.lmB #ov:has(.ib) > .panel{width:min(880px,100%)!important;height:min(780px,
 #mr-story .mr-story-edge::after{content:"";position:absolute;top:50%;width:clamp(36px,min(9vw,6vh),50px);aspect-ratio:1;translate:0 -50%;background:url(assets/ui/icon/btn_arrow_r.webp) center/contain no-repeat;filter:drop-shadow(0 3px 0 #0009)}
 #mr-story .mr-story-edge.next::after{right:14px}
 #mr-story .mr-story-edge.prev::after{left:14px;background-image:url(assets/ui/icon/btn_arrow_l.webp)}
+</style>
+<style id="lm-hud-v3">
+/* (DHL 10-29) 전투 무대 배치 다시: 맞춤 원 3개 = 왼쪽 위(위·왼쪽 여백 넉넉히) · 적 설명판 = 오른쪽 위 · 알림 = 왼쪽 아래 */
+#keyBar{left:22px!important;right:auto!important;top:18px!important;transform-origin:0 0!important}
+#keyBar.open{left:22px!important;right:22px!important}
+@media (orientation:portrait){#keyBar{left:12px!important;top:10px!important}#keyBar:not(.open){transform:scale(.43)!important;transform-origin:0 0!important}}
+@media (orientation:landscape) and (max-height:500px){#keyBar:not(.open){transform:scale(.8)!important;transform-origin:0 0!important;left:12px!important;right:auto!important;top:8px!important}}
+/* 번호 원: 기울임 글꼴이 오른쪽으로 쏠려 보이던 것 → 가운데 정렬 + 기울임 보정 */
+#keyBar .ki em.kNoE{display:flex!important;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;padding:0!important;line-height:1!important;letter-spacing:0;font-style:normal!important;font-family:Georgia,"Times New Roman",serif!important;font-variant-numeric:lining-nums tabular-nums}
+#keyBar .ki em.kNoE{padding-top:.06em!important}
+#keyBar.mini .ki.h:has(.kNoE){border:0!important}
+/* 오른쪽 위 적 설명판 */
+#lmFoeTag{left:auto!important;right:22px!important;top:18px!important;bottom:auto!important;align-items:flex-end!important;gap:5px!important;max-width:58%!important}
+#lmFoeTag .fpl{display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:999px;background:#120e20cc;border:1.5px solid #c9a24a99;box-shadow:0 2px 8px #0008;pointer-events:auto}
+#lmFoeTag .fc{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 2px #0004,0 1px 2px #000a;flex:none}
+#lmFoeTag .fc img,#lmFoeTag .fc svg{width:66%;height:66%;object-fit:contain}
+#lmFoeTag .fnm{font:900 15px/1 "Noto Sans KR",sans-serif;color:#fff1cf;text-shadow:0 1px 0 #000;white-space:nowrap}
+#lmFoeTag .row{gap:5px!important}
+#lmFoeTag .t{background:#120e20cc!important;border:1.5px solid #c9a24a77!important;font-size:12px!important;padding:3px 10px!important}
+#lmFoeTag .t.it{border-color:#f87171aa!important}
+#lmFoeTag .t.rl{border-color:#c4b5fdaa!important}
+@media (orientation:portrait){#lmFoeTag{right:10px!important;top:10px!important}#lmFoeTag .fc{width:22px;height:22px}#lmFoeTag .fnm{font-size:12px}#lmFoeTag .t{font-size:10.5px!important;padding:2px 7px!important}}
+@media (orientation:landscape) and (max-height:500px){#lmFoeTag{right:14px!important;top:10px!important}#lmFoeTag .fc{width:22px;height:22px}#lmFoeTag .fnm{font-size:12px}#lmFoeTag .t{font-size:10px!important;padding:1px 7px!important}}
+/* 알림: 왼쪽 아래(주인공 발밑 위쪽 빈 땅), 새 알림이 아래에서 위로 쌓임 */
+#lmToast{left:22px!important;right:auto!important;top:auto!important;bottom:16px!important;translate:none!important;align-items:flex-start!important;flex-direction:column-reverse!important;max-width:50%!important}
+#lmToast .lmT{text-align:left!important}
+#lmToast .lmT.out{translate:-8px 0!important}
+@media (orientation:portrait),(orientation:landscape) and (max-height:500px){#lmToast{left:10px!important;bottom:10px!important}}
 </style>
 <style id="lm-scrollbar-all">
 /* (DHL 10-29) 드래그바(스크롤바) 통일: 게임 안 모든 스크롤 칸을 원정 창과 같은 모양으로 — 어두운 바탕 · 황동 손잡이 (흰 기본 바 없앰) */
