@@ -2605,7 +2605,7 @@ function render(){
   $('bPlay').disabled=busy||!sc.length||S.runs<=0;
   $('bDis').disabled=busy||!sc.length||S.dis<=0;
   $('bMerge').disabled=busy||!canMerge();
-  const mk=canMerge();$('bMerge').textContent='머지';   /* (DHL 10-29) 버튼 이름은 '머지' 하나로 통일 */
+  const mk=canMerge();$('bMerge').textContent='머지';document.body.classList.toggle('lm-noMergeBtn',!!(S&&DIFF[S.diff]&&DIFF[S.diff].mergeRun));   /* (DHL 10-29 '혼선') 기사 · 편력 기사: 머지 버튼 없음 — 같은 카드를 함께 내면 런에서 합쳐짐 */   /* (DHL 10-29) 버튼 이름은 '머지' 하나로 통일 */
   document.getElementById('runLbl').textContent='런';
   $('bPlay').textContent=psyShort()&&sc.length?`🎯 ${wsum(sc)}/5장`:mergeRun()&&runPairs(sc).length?'머지 & 런!':'런!';
   $('bClear').disabled=busy||!sc.length;
@@ -3607,7 +3607,7 @@ $('bClear').onclick=()=>{S.sel=[];render();};
 $('bSort').onclick=()=>{const o=Object.keys(SORT_KO);S.sort=o[(o.indexOf(S.sort)+1)%o.length];sortHand();render();$('tip').textContent='정렬: '+o.map(k=>k===S.sort?'['+SORT_KO[k]+']':SORT_KO[k]).join(' → ');};
 $('bLearn').onclick=()=>{if(S)openInfo('learn','list');};
 $('bInfo').onclick=()=>{if(S){S.orbs.forEach(k=>codexMark('orb',k));LEARN_SEEN.length?openInfo('run'):openInfo('learn','list');}};   // 처음 온 사람은 배우기, 이후엔 이번 판
-document.addEventListener('keydown',e=>{if(!$('ov').hidden)return;if(e.key==='Enter')doPlay();if(e.key==='m')doMerge();});
+document.addEventListener('keydown',e=>{if(!$('ov').hidden)return;if(e.key==='Enter')doPlay();if(e.key==='m'&&!document.body.classList.contains('lm-noMergeBtn'))doMerge();});
 /* ───────── ▶ 시작 흐름 (2026-10-27) — 153-6 index.html의 runStartupIntro · startGame 순서를 그대로 옮김 ─────────
    첫 실행: 풍차 로고(3초, 날개가 깨어남) → 스토리 8컷 → 로딩(풍차 가속 + 구슬이 풍차로) → 포털로 빨려 들어가며 타이틀
    다시 켤 때: 로딩 → 타이틀.  (언어 선택 단계는 번역표가 생기면 153-6과 같은 자리에 켠다) */
@@ -7018,4 +7018,10 @@ body.lmFxDemo.lmFxOut #lm-title{z-index:902}
   window.ltPop=ltPop;
 })();
 </script>
+
+<style id="lm-no-merge-btn">
+/* (DHL 10-29) 기사 · 편력 기사에서는 머지 버튼을 없애고 '해제'가 그 자리까지 씀 */
+body.lm-noMergeBtn #app.bl #btns>#bMerge{display:none!important}
+html body.lm-noMergeBtn #app.bl #btns{grid-template-areas:'play sort sort dis' 'play clear clear dis'!important}
+</style>
 </body></html>
