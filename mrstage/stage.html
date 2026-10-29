@@ -7824,7 +7824,7 @@ let isGameOver = false;
   if(track&&!$('lm-hp-lag')){const lag=document.createElement('div');lag.id='lm-hp-lag';track.insertBefore(lag,track.firstChild);}
   if(track&&!$('lm-capwrap')){const w=document.createElement('div');w.id='lm-capwrap';track.parentNode.insertBefore(w,track);w.appendChild(track);
     const ln=document.createElement('i');ln.id='lm-cap-line';ln.innerHTML='<img src="../assets/ui/lamancha/cap_shield.webp" alt="" onerror="this.remove()">';w.appendChild(ln);
-    const pv=document.createElement('div');pv.id='lm-hp-prev';track.appendChild(pv);}
+    const zn=document.createElement('div');zn.id='lm-cap-zone';track.appendChild(zn);const pv=document.createElement('div');pv.id='lm-hp-prev';track.appendChild(pv);}
   let impact=null,impactT=0,hitCb=null;
   if(window.MRFX&&MRFX.enemyHit){const oh=MRFX.enemyHit;MRFX.enemyHit=function(){const r=oh.apply(this,arguments);land();if(hitCb){const f=hitCb;hitCb=null;try{f();}catch(e){console.warn(e);}}return r;};}
   function land(){
@@ -7855,10 +7855,11 @@ let isGameOver = false;
   }
   let finPend=0,finHp=null;
   let capO=null;
-  function drawCap(){const L=$('lm-cap-line'),P=$('lm-hp-prev');if(!L||!P)return;const o=capO,M=Math.max(1,maxHp);
-    if(!o||finPend>0){L.style.display='none';P.style.display='none';return;}
+  function drawCap(){const L=$('lm-cap-line'),P=$('lm-hp-prev'),Z=$('lm-cap-zone');if(!L||!P)return;const o=capO,M=Math.max(1,maxHp);
+    if(!o||finPend>0){L.style.display='none';P.style.display='none';if(Z)Z.style.display='none';return;}
     const lineHp=hp-o.cap;   // 이번 런 최대로 쳐도 남는 체력 → 🛡 선 (남은 체력이 한 번 최대 피해 이하면 선 없음)
     if(lineHp>0){L.style.display='block';L.style.left=(lineHp/M*100)+'%';L.classList.toggle('brk',!!o.brk);L.classList.toggle('hit',!o.brk&&o.dmg>o.cap);}else L.style.display='none';
+    /* (DHL 10-29 B안) 이번 런에 못 깎는 구간 = 철판 무늬 칸 (한계 돌파면 숨김) */ if(Z){if(lineHp>0&&!o.brk){Z.style.display='block';Z.style.width=(lineHp/M*100)+'%';}else Z.style.display='none';}
     if(o.dmg>0){const eff=o.brk?o.dmg:Math.min(o.dmg,o.cap),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
   function setHud(){
     if(!hud)return;drawCap();
@@ -8427,5 +8428,14 @@ let isGameOver = false;
 @keyframes lmBanner{0%{scale:2.2;opacity:0}14%{scale:1;opacity:1}80%{scale:1;opacity:1}100%{scale:1.05;opacity:0;translate:-50% -70%}}
 @media (prefers-reduced-motion:reduce){.lmfx,.lmfx::before,.lmfx::after{animation-duration:.01s!important}}
 .lmflip{position:absolute;z-index:35;pointer-events:none;background-repeat:no-repeat;transform-origin:50% 50%}
+
+/* (DHL 10-29 B안) 관통 방패 표시: 바 밖으로 솟던 큰 방패 → 바 안 작은 방패 + 못 깎는 구간 철판 무늬. 바와 숫자 사이 살짝 띄움 */
+html body #lm-capwrap #lm-cap-line{width:1.5px!important;margin-left:-.75px!important;top:0!important;bottom:0!important;background:#eef4ff!important;box-shadow:0 0 0 .5px #0b1430!important}
+html body #lm-capwrap #lm-cap-line img{width:8px!important;height:8px!important;bottom:auto!important;top:50%!important;translate:-50% -50%!important;filter:drop-shadow(0 0 .5px #0b1430) drop-shadow(0 .5px .5px #000)!important}
+html body #lm-capwrap #lm-cap-line.hit img{animation:lmCapPulse .7s ease-in-out infinite}
+html body #lm-capwrap #lm-cap-line.brk{background:#fde047!important;box-shadow:0 0 0 .5px #3a2a00,0 0 3px #f59e0b!important}
+html body #lm-capwrap #lm-cap-line.brk img{filter:drop-shadow(0 0 2px #fde047) brightness(1.2)!important;animation:lmCapShake .45s linear infinite}
+#lm-cap-zone{position:absolute;top:0;bottom:0;left:0;z-index:3;display:none;pointer-events:none;background:repeating-linear-gradient(135deg,#dbe6f7aa 0 2px,#4a5f86aa 2px 4px);box-shadow:inset 0 .5px 0 #ffffff55;transition:width .25s ease}
+html body #boss-hp-text{margin-top:3px!important}
 </style>
 </body></html>
