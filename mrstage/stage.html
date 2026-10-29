@@ -5421,6 +5421,7 @@ body:has(#battle-stage[data-team-skill="on"]) .lmflip,body:has(#skill-cinematic 
 #lm-gshield.flash .sh{animation:lmGsClank .5s ease-out}
 #lm-gshield.gone{opacity:0}
 #battle-stage.lm-foe-dead #lm-gshield{opacity:0}
+#battle-stage.lm-cleared #lm-gshield{display:none!important}
 .lm-gsbrk{position:absolute;z-index:36;pointer-events:none;translate:-50% -50%;background:url(../assets/ui/lamancha/cap_break.webp) 0 0/600% 100% no-repeat;animation:lmGsBrk .6s step-end forwards}
 .lm-gsbrk-t{position:absolute;z-index:41;pointer-events:none;translate:-50% -100%;font:900 20px/1 'Noto Sans KR',system-ui,sans-serif;color:#fde047;-webkit-text-stroke:3px #3a1a00;paint-order:stroke fill;animation:lmDmgFin 1.3s cubic-bezier(.2,1.5,.4,1) forwards;white-space:nowrap}
 .lm-dmg.blk{color:#e2e8f0;font-size:18px;-webkit-text-stroke:4px #0b1220;animation:lmBlk 1.6s cubic-bezier(.2,1,.4,1) forwards}
@@ -7863,7 +7864,7 @@ let isGameOver = false;
     if(o.hp!=null){hp=o.hp;setHud();}
     if(o.dmg!=null&&o.final){popNum(o);if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}}
     if(o.heavy){resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.55)');}catch(e){}}
-    if(o.killed){slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}else if(o.heavy)hitStop(170);   // 쓰러지면 체력바도 적과 함께 사라짐
+    if(o.killed){gsDead=true;try{drawGems();}catch(e){}slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}else if(o.heavy)hitStop(170);   // 쓰러지면 체력바도 적과 함께 사라짐
   }
   const fmt=n=>Math.round(n).toLocaleString();
   function popNum(o){
@@ -7885,12 +7886,12 @@ let isGameOver = false;
     setTimeout(()=>{globalPause=false;stage.classList.remove('lm-slowmo');(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},450);
   }
   let finPend=0,finHp=null;
-  let capO=null,gsBroken=false,gsBlock=null,gsT=0;
+  let capO=null,gsBroken=false,gsBlock=null,gsT=0,gsDead=false;   // gsDead: 적이 쓰러짐 → 다음 적이 나올 때까지 방패 없음 (DHL 10-29 '전투가 끝났는데 방패가 남음')
   function gsEl(){let g=$('lm-gshield');if(!g){g=document.createElement('div');g.id='lm-gshield';g.innerHTML='<i class="sh"></i><span class="gems"></span>';stage.appendChild(g);}return g;}
   function gsPlace(){const g=$('lm-gshield'),en=$('enemy');if(!g||!en)return null;const eh=en.offsetHeight||60,sz=Math.max(38,Math.min(80,eh*.56));
     g.style.width=g.style.height=sz+'px';g.style.setProperty('--g',Math.round(sz*.14)+'px');g.style.left=(en.offsetLeft-sz*.2)+'px';g.style.top=(en.offsetTop+eh*.55)+'px';return {x:en.offsetLeft-sz*.2,y:en.offsetTop+eh*.55,sz};}
   function drawGems(){const o=capO,g=gsEl();
-    const show=!!(o&&o.gems)&&!gsBroken&&(finPend>0||hp>o.cap);   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
+    const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(finPend>0||hp>o.cap);   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
     g.style.display=show?'block':'none';if(!show){clearInterval(gsT);gsT=0;return;}
     if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 이번 런에 맞춘 보석 그대로 (손패를 비워도 바뀌지 않게)
     g.querySelector('.gems').innerHTML=o.gems.map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');
@@ -8287,10 +8288,10 @@ let isGameOver = false;
     if(cleared){stage.classList.remove('lm-cleared','lm-still','lm-foe-dead');if(en0)en0.className='character enemy'+(kind==='boss'?' boss-enemy':'');skyN=1;window.MRBattleSky?.setStage(1,true);}
     if(o.hero){const h=o.hero;await loadRigDef(h);show(ALL,false);applyTeam([h-1,null,null]);await waitRig([0],4000);offsetTeam(0);show([0],true);}
     if(o.stars)stars={...stars,...o.stars};
-    const keep={hp,maxHp};demoPh='live';
+    const keep={hp,maxHp},gsKeep=[gsDead,gsBroken];demoPh='live';
     try{await finale({final:true,nums:o.nums||[],stars:o.stars,dmg:o.dmg||1234,mult:o.mult||3,hp:null,killed:!!o.killed,demo:true});}finally{demoPh='end';}
     await new Promise(r=>setTimeout(r,280));   // 바깥 화면이 무대를 감출 시간
-    hp=keep.hp;maxHp=keep.maxHp;setHud();stage.classList.remove('lm-foe-dead');
+    hp=keep.hp;maxHp=keep.maxHp;[gsDead,gsBroken]=gsKeep;setHud();stage.classList.remove('lm-foe-dead');try{drawGems();}catch(e){}
     const en=$('enemy');if(en&&/explode/.test(en.className))en.className='character enemy'+(kind==='boss'?' boss-enemy':'');
     if(o.hero||before.some((v,i)=>v!==activeBattleTeam[i])){show(ALL,false);applyTeam(before);await waitRig(ALL,4000);clearOffset();for(const sl of ALL){actors[sl].oy=0;actors[sl].rot=0;}show(ALL.filter(i=>before[i]!=null),true);}
     if(cleared){show(ALL,false);stage.classList.add('lm-still','lm-cleared');skyN=sky0;window.MRBattleSky?.setStage(sky0,true);}
@@ -8345,7 +8346,7 @@ let isGameOver = false;
     await sleep(80);
   }
   function setupEnemy(o){
-    stage.classList.remove('lm-foe-dead');
+    stage.classList.remove('lm-foe-dead');gsDead=false;gsBroken=false;
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
     clearBattleVisualQueue(true);
     const enemy=$('enemy');
@@ -8428,12 +8429,12 @@ let isGameOver = false;
     setSky(n,instant){skyN=n|0;window.MRBattleSky?.setStage(skyN%5,instant!==false);},
     // 적: kind 'normal'(망령 8종) | 'boss'(보스 4종, WARNING 등장)
     async setEnemy(o={}){await ready;return seq(async()=>setupEnemy(o));},
-    setCap(o){capO=o||null;drawCap();},   // (DHL 10-29) 관통: {cap:한 번 최대 피해, dmg:예상 피해(견습만), brk:3개 맞춤} · null = 숨김
+    setCap(o){capO=o||null;if(finPend<=0)gsBroken=false;drawCap();},   // 관통으로 깨진 방패는 다음 손패를 고를 때 다시 차오름   // (DHL 10-29) 관통: {cap:한 번 최대 피해, dmg:예상 피해(견습만), brk:3개 맞춤} · null = 숨김
     setHp(cur,max){if(finPend>0){finHp=[cur,max];if(max)maxHp=max;return;}hp=cur;if(max)maxHp=max;setHud();},   // (DHL 10-28) 마지막 일격 연출 중엔 체력을 한 번에 깎지 않음 — 공격마다 깎이고, 끝난 뒤 맞춤
     // 타격 한 번: num = 카드 캐릭터(무대에 없으면 동료로 나왔다 들어감), skill = 컷인, level = 세기(0~11), dmg·crit = 피해 숫자, combo = 연타 수
     //   final = 합동 일격(팀 전원, 총 피해·배수), killed = 쓰러짐(슬로모션 → 처치 컷신 → 하늘)
     joinRun(){return Promise.resolve();},   // ★11 동료는 마지막에 치고 빠지기만
-    hit(o={}){if(o.final){finPend++;return seq(async()=>{try{await finale(o);}finally{finPend--;gsBroken=false;gsBlock=null;try{drawGems();}catch(e){}if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}}});}quick(o);return Promise.resolve();},
+    hit(o={}){if(o.final){finPend++;return seq(async()=>{try{await finale(o);}finally{finPend--;gsBlock=null;if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}try{drawGems();}catch(e){}}});}quick(o);return Promise.resolve();},
     demo(o={}){return ready.then(()=>seq(()=>demo(o)));},
     demoPhase(){return demoPh;},   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
     routes(){return {ROUTE,ROUTE_KO};},
