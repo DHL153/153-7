@@ -5421,6 +5421,10 @@ body:has(#battle-stage[data-team-skill="on"]) .lmflip,body:has(#skill-cinematic 
 #lm-gshield.flash .sh{animation:lmGsClank .5s ease-out}
 #lm-gshield.gone{opacity:0}
 #battle-stage.lm-foe-dead #lm-gshield{opacity:0}
+/* (DHL 10-30) 연출 중엔 반투명 — 캐릭터 · 적이 잘 보이게. 막힐 때(flash) · 깨질 때(pop)만 다시 또렷하게 */
+#battle-stage.lm-fin #lm-gshield{opacity:var(--gs-fin,.35)}
+#battle-stage.lm-fin #lm-gshield.flash,#battle-stage.lm-fin #lm-gshield.pop{opacity:1;transition:opacity .08s}
+#lm-gshield.gone{opacity:0!important}
 #battle-stage.lm-cleared #lm-gshield{display:none!important}
 .lm-gsbrk{position:absolute;z-index:36;pointer-events:none;translate:-50% -50%;background:url(../assets/ui/lamancha/cap_break.webp) 0 0/600% 100% no-repeat;animation:lmGsBrk .6s step-end forwards}
 .lm-gsbrk-t{position:absolute;z-index:41;pointer-events:none;translate:-50% -100%;font:900 20px/1 'Noto Sans KR',system-ui,sans-serif;color:#fde047;-webkit-text-stroke:3px #3a1a00;paint-order:stroke fill;animation:lmDmgFin 1.3s cubic-bezier(.2,1.5,.4,1) forwards;white-space:nowrap}
@@ -7897,12 +7901,12 @@ let isGameOver = false;
     g.querySelector('.gems').innerHTML=o.gems.map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');
     g.classList.toggle('n2',o.n===2);g.classList.toggle('n3',o.n>=3);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
   async function gsShatter(){const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
-    g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
+    g.classList.add('pop');await sleep(140);g.classList.remove('pop');g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
     const t=document.createElement('div');t.className='lm-gsbrk-t';t.textContent='관통!';t.style.left=p.x+'px';t.style.top=(p.y-p.sz*.4)+'px';stage.appendChild(t);
     try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(253,224,71,.45)');}catch(e){}
     setTimeout(()=>b.remove(),700);setTimeout(()=>t.remove(),1300);gsBroken=true;await sleep(420);g.style.display='none';g.classList.remove('gone');}
   function gsClank(blocked){const g=$('lm-gshield');if(!g||g.style.display==='none')return;const sz=parseFloat(g.style.width)||46,p={x:parseFloat(g.style.left)||0,y:parseFloat(g.style.top)||0,sz};
-    g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
+    g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');clearTimeout(g._ft);g._ft=setTimeout(()=>g.classList.remove('flash'),700);
     const sp=document.createElement('div');sp.className='lm-gsspark';sp.style.left=(p.x-p.sz*.42)+'px';sp.style.top=p.y+'px';sp.style.setProperty('--s',Math.round(p.sz*1.3)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),500);
     const d=document.createElement('div');d.className='lm-dmg blk';d.style.left=(p.x-p.sz*.75)+'px';d.style.top=(p.y+p.sz*.15)+'px';d.innerHTML=`<b>${fmt(blocked)}</b><small>막힘</small>`;stage.appendChild(d);setTimeout(()=>d.remove(),1650);}
   function drawCap(){const L=$('lm-cap-line'),P=$('lm-hp-prev'),Z=$('lm-cap-zone');if(!L||!P)return;const o=capO,M=Math.max(1,maxHp);
@@ -8434,7 +8438,7 @@ let isGameOver = false;
     // 타격 한 번: num = 카드 캐릭터(무대에 없으면 동료로 나왔다 들어감), skill = 컷인, level = 세기(0~11), dmg·crit = 피해 숫자, combo = 연타 수
     //   final = 합동 일격(팀 전원, 총 피해·배수), killed = 쓰러짐(슬로모션 → 처치 컷신 → 하늘)
     joinRun(){return Promise.resolve();},   // ★11 동료는 마지막에 치고 빠지기만
-    hit(o={}){if(o.final){finPend++;return seq(async()=>{try{await finale(o);}finally{finPend--;gsBlock=null;if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}try{drawGems();}catch(e){}}});}quick(o);return Promise.resolve();},
+    hit(o={}){if(o.final){finPend++;stage.classList.add('lm-fin');return seq(async()=>{try{await finale(o);}finally{finPend--;gsBlock=null;if(finPend<=0)stage.classList.remove('lm-fin');if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}try{drawGems();}catch(e){}}});}quick(o);return Promise.resolve();},
     demo(o={}){return ready.then(()=>seq(()=>demo(o)));},
     demoPhase(){return demoPh;},   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
     routes(){return {ROUTE,ROUTE_KO};},
