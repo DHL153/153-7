@@ -6855,4 +6855,30 @@ html,html *{scrollbar-width:thin;scrollbar-color:#c9a24a88 transparent}
 /* 연출 보는 동안: 무대만 보이게 나머지 화면은 어둡게 */
 body.lmFxDemo::after{content:'';position:fixed;inset:0;background:#05080fcc;z-index:900;pointer-events:none}
 body.lmFxDemo #lmStage{position:relative;z-index:901}
-</style></body></html>
+</style>
+<script id="lm-keybar-fit">
+/* (DHL 10-29 '모바일에서 깨져 보임') 열쇠(맞춤) 칸을 눌러 펼치면 무대보다 키가 커서 아래가 잘리던 것
+   → 펼쳤을 때 무대 안에 쏙 들어가도록 크기를 줄여 맞춤 (PC처럼 넉넉하면 그대로) */
+(function(){
+  const kb=document.getElementById('keyBar');if(!kb)return;
+  function fit(){
+    const st=document.getElementById('lmStage');
+    if(!kb.classList.contains('open')||!st){kb.style.removeProperty('position');kb.style.removeProperty('z-index');kb.style.removeProperty('transform');kb.style.removeProperty('width');kb.style.removeProperty('transform-origin');kb.style.removeProperty('right');return;}
+    kb.style.removeProperty('position');kb.style.removeProperty('z-index');kb.style.removeProperty('transform');kb.style.removeProperty('width');kb.style.removeProperty('right');
+    const m=8;let sr=st.getBoundingClientRect();const fx=sr.height<170;
+    if(fx){kb.style.setProperty('position','fixed','important');kb.style.setProperty('z-index','60','important');sr={left:0,top:0,width:innerWidth,height:innerHeight};}
+    const W=Math.min(sr.width-2*m,fx?560:1e9),H=sr.height-2*m;
+    kb.style.setProperty('right','auto','important');kb.style.setProperty('width',W+'px','important');
+    const h=kb.scrollHeight,k=Math.min(1,H/h);
+    if(k<1){kb.style.setProperty('width',(W/k)+'px','important');const h2=kb.scrollHeight;const k2=Math.min(1,H/h2);
+      kb.style.setProperty('width',(W/k2)+'px','important');kb.style.setProperty('transform','scale('+k2+')','important');kb.style.setProperty('transform-origin','0 0','important');}
+    const pr=fx?{left:0,top:0}:(kb.offsetParent?kb.offsetParent.getBoundingClientRect():{left:0,top:0});
+    kb.style.setProperty('left',(sr.left-pr.left+m)+'px','important');kb.style.setProperty('top',(sr.top-pr.top+m)+'px','important');
+    if(fx){const r=kb.getBoundingClientRect();kb.style.setProperty('left',Math.max(m,(innerWidth-r.width)/2)+'px','important');kb.style.setProperty('top',Math.max(m,(innerHeight-r.height)/2)+'px','important');}
+  }
+  const clean=()=>{if(!kb.classList.contains('open')){kb.style.removeProperty('left');kb.style.removeProperty('top');}};
+  new MutationObserver(()=>{clean();fit();}).observe(kb,{attributes:true,attributeFilter:['class']});
+  addEventListener('resize',()=>requestAnimationFrame(fit));
+})();
+</script>
+</body></html>
