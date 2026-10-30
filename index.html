@@ -2647,7 +2647,8 @@ function render(){
       S.scoreU=[].concat(...[r.ht].concat(r.bonds||[]).flatMap(k=>scoringCards(pv,k,S.foe)).map(c=>c._u||[c.uid]));   // 점수에 들어가는 카드 (겹친 족보 모두)
       $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(pv.length<sc.length?' · 머지 & 런':'')+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · 관통':''}`:'');S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;
       if(mergeRun()&&pv.length<sc.length){S.willM=[].concat(...pv.filter(c=>c._u&&c._u.length>1).map(c=>c._u));
-        if(S.bOrb==null)$('tip').innerHTML='🔗 '+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합(다른 세계)':' 순수'}`).join(' · ')+' — 런하면 <b>합쳐져요</b><br><span class="ordNote">합치기 싫으면 같은 이름 · 같은 ★ 카드는 한 장만 고르세요</span>';}
+        if(S.bOrb==null)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합':''}`).join(' · ')+' — 런하면 <b>합쳐져요</b>';}
+      else if(mergeRun()&&S.mrOff&&runPairs(sc).length&&S.bOrb==null)$('tip').innerHTML=`<button class="mrTog" onclick="event.stopPropagation();S.mrOff=false;render()">⛔ 머지 끔</button> 같은 카드도 <b>따로</b> 달려요`;   /* (DHL 10-30) 머지 할지 말지 버튼 */
       lmCapSync(r,!!(DIFF[S.diff].preview||S.sandbox));
       if(DIFF[S.diff].preview||S.sandbox){$('vC').textContent=r.chips;$('vM').textContent=r.mult;const hc=hitCap(r);$('tot').innerHTML=hc&&!hc.brk?`${hc.cap.toLocaleString()}<small class="capTag" title="한 번에 최대 ${Math.round(ARMOR_HIT*100)}% — 세 가지 다 맞추면 관통">🛡${hc.raw.toLocaleString()}</small>`:hc&&hc.brk?`${r.total.toLocaleString()}<small class="capTag brk">관통!</small>`:r.total.toLocaleString();}
       else{$('vC').textContent=r.steps[0].chips;$('vM').textContent=r.steps[0].mult;$('tot').textContent='?';}}   // 기사 이상: 족보 기본값만, 최종 점수는 런에서
@@ -2837,7 +2838,7 @@ function runPairs(cs){ // 미리보기용: 복사본으로 합쳐 본 짝 목록
 }
 function mergedPreview(cs){ // 합쳐진 뒤 달릴 카드들 (점수 미리보기용)
   let a=cs.map(c=>({...c,_u:[c.uid]})),did=true;
-  if(!mergeRun()||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return cs;
+  if(!mergeRun()||S.mrOff||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return cs;
   while(did){did=false;for(const want of ['up','mix']){for(let i=0;i<a.length&&!did;i++)for(let j=0;j<a.length;j++){if(i!==j&&!a[i].fog&&!a[j].fog&&mergeKind(a[i],a[j])===want){applyMerge(a[i],a[j]);a[i]._u=a[i]._u.concat(a[j]._u);a.splice(j,1);did=true;break;}}if(did)break;}}
   return a;
 }
@@ -2846,6 +2847,7 @@ function runChain(){
   for(const want of ['up','mix'])for(const a of L)for(const b of L){if(a!==b&&!a.fog&&!b.fog&&mergeKind(a,b)===want){
     if(S._skip&&S._skip.has(a.uid+'_'+b.uid))continue;   // '머지 하지 않음'을 고른 짝 (DHL 10-30)
     S._ma=a;S._mb=b;
+    if(cardW(a)===cardW(b)&&a.el===b.el&&cardNo(a)===cardNo(b))return finishMerge(a,b,null);   // (DHL 10-30) 고를 게 없는 짝은 창 없이 바로
     return askFuse(a,b,want);}}   // 머지 & 런: 짝마다 고르기 창 (세계 · 속성 · 번호 + 머지 하지 않음)
   S._chain=null;S._skip=null;S.sel=L.map(c=>c.uid);doPlay(true);     // 더 합칠 짝이 없으면 달린다
 }
@@ -2855,7 +2857,8 @@ function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(sel
 function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
   if(!merged&&psyShort()){$('tip').textContent='🎯 다섯의 맹세 — 카드 5장 이상 내야 런할 수 있어요 (★2는 2장 · ★3은 4장 · 족보 밖 카드도 세요)';return;}
-  if(!merged&&mergeRun()&&runPairs(selCards()).length){S._chain=selCards();return runChain();}
+  if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();return runChain();}
+  S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
   const RK=S.foe&&S.foe.rule&&S.foe.rule.k;
   if(RK==='arm'){const h=handInfo(selCards()).ht;if((S.lv[h]||1)>1){S.lv[h]--;popMsg('💪 '+HT[h][0]+' 레벨 −1');}}
@@ -7304,5 +7307,10 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 .mgOpt .mgNo{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6d8,#e8c56a 55%,#9a6b16);color:#2a1a00;font:900 24px/1 Georgia,serif;font-style:italic;box-shadow:inset 0 0 0 2px #0003,0 2px 4px #0008}
 .mgSkip{flex:0 1 auto;white-space:nowrap;min-height:48px;border-radius:12px;border:2px solid #94a3b8;background:#1e293b;color:#e2e8f0;font:800 14px/1.2 "Noto Sans KR",sans-serif;padding:6px 10px;cursor:pointer}
 .mgSkip:hover{background:#334155}
+</style>
+<style id="lm-mr-toggle">
+/* (DHL 10-30) 머지 & 런: 머지 켬/끔 버튼 */
+.mrTog{display:inline-flex;align-items:center;gap:4px;margin-right:6px;padding:4px 12px;border-radius:999px;border:2px solid #94a3b8;background:#1e293b;color:#e2e8f0;font:800 13px/1.2 "Noto Sans KR",sans-serif;cursor:pointer;pointer-events:auto;vertical-align:middle}
+.mrTog.on{border-color:#4ade80;background:#14532d;color:#dcfce7;box-shadow:0 0 8px #4ade8066}
 </style>
 </body></html>
