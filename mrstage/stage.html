@@ -7849,8 +7849,11 @@ let isGameOver = false;
     const imgH=parseFloat(el.style.getPropertyValue('--team-height'))/100*H,body=imgH*290/512;
     const S=body*(kind==='boss'?1.15:1.0)/0.75*lmPortraitK();   // (DHL 10-29) 휴대폰 세로는 빌런도 70%
     stage.style.setProperty('--lm-enemy-size',S.toFixed(1)+'px');
-    stage.style.setProperty('--lm-enemy-bottom',Math.max(0,H*BATTLE_GROUND_LINE-S*0.1).toFixed(1)+'px');   // 그림 아래 여백(약 10%)만큼 내려 발을 땅 선에
-    stage.style.setProperty('--lm-hud-w',Math.max(40,S*.62).toFixed(1)+'px');stage.style.setProperty('--lm-hud-bottom',Math.max(18,H*BATTLE_GROUND_LINE-S*0.1+6).toFixed(1)+'px');   // (DHL 10-29) 체력 줄이 아래 구분선과 겹치지 않게 살짝 위로
+    /* (DHL 10-30) 방패 바 + HP 바 2단: 게이지는 빌런 발밑에 — 빌런을 가리지 않게. 자리가 모자라면 빌런을 그만큼만 올림 */
+    const gk=lmPortraitK()<1?1.5:1,gH=17*gk;stage.style.setProperty('--gk',gk);
+    const eb=Math.max(H*BATTLE_GROUND_LINE-S*0.1,gH+8*gk);
+    stage.style.setProperty('--lm-enemy-bottom',eb.toFixed(1)+'px');
+    stage.style.setProperty('--lm-hud-w',Math.max(70*gk,S*1.0).toFixed(1)+'px');stage.style.setProperty('--lm-hud-bottom',Math.max(5*gk,eb-gH-3).toFixed(1)+'px');
   }
   // ★4
   function trimRunFrames(){
@@ -7863,7 +7866,8 @@ let isGameOver = false;
   if(track&&!$('lm-hp-lag')){const lag=document.createElement('div');lag.id='lm-hp-lag';track.insertBefore(lag,track.firstChild);}
   if(track&&!$('lm-capwrap')){const w=document.createElement('div');w.id='lm-capwrap';track.parentNode.insertBefore(w,track);w.appendChild(track);
     const ln=document.createElement('i');ln.id='lm-cap-line';ln.innerHTML='<img src="../assets/ui/lamancha/cap_shield.webp" alt="" onerror="this.remove()">';w.appendChild(ln);
-    const zn=document.createElement('div');zn.id='lm-cap-zone';track.appendChild(zn);const pv=document.createElement('div');pv.id='lm-hp-prev';track.appendChild(pv);}
+    const zn=document.createElement('div');zn.id='lm-cap-zone';track.appendChild(zn);const pv=document.createElement('div');pv.id='lm-hp-prev';track.appendChild(pv);
+    const sb=document.createElement('div');sb.id='lm-sbar';sb.innerHTML='<span class="t"></span>';w.parentNode.insertBefore(sb,w);}
   let impact=null,impactT=0,hitCb=null;
   if(window.MRFX&&MRFX.enemyHit){const oh=MRFX.enemyHit;MRFX.enemyHit=function(){const r=oh.apply(this,arguments);land();if(hitCb){const f=hitCb;hitCb=null;try{f();}catch(e){console.warn(e);}}return r;};}
   function land(){
@@ -7893,25 +7897,31 @@ let isGameOver = false;
     setTimeout(()=>{globalPause=false;stage.classList.remove('lm-slowmo');(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},450);
   }
   let finPend=0,finHp=null;
-  let capO=null,gsBroken=false,gsBlock=null,gsT=0,gsDead=false;   // gsDead: 적이 쓰러짐 → 다음 적이 나올 때까지 방패 없음 (DHL 10-29 '전투가 끝났는데 방패가 남음')
+  let capO=null,gsBroken=false,gsBlock=null,gsRaw=null,gsT=0,gsDead=false;   // gsDead: 적이 쓰러짐 → 다음 적이 나올 때까지 방패 없음 (DHL 10-29 '전투가 끝났는데 방패가 남음')
   function gsEl(){let g=$('lm-gshield');if(!g){g=document.createElement('div');g.id='lm-gshield';g.innerHTML='<i class="sh"></i><span class="gems"></span>';stage.appendChild(g);}return g;}
-  function gsPlace(){const g=$('lm-gshield'),en=$('enemy');if(!g||!en)return null;const eh=en.offsetHeight||60,sz=Math.max(38,Math.min(80,eh*.56));
-    g.style.width=g.style.height=sz+'px';g.style.setProperty('--g',Math.round(sz*.14)+'px');g.style.left=(en.offsetLeft-sz*.2)+'px';g.style.top=(en.offsetTop+eh*.55)+'px';return {x:en.offsetLeft-sz*.2,y:en.offsetTop+eh*.55,sz};}
+  function gsPlace(){const g=$('lm-gshield');if(!g||!hud)return null;const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,sz=Math.round(21*gk);   /* (DHL 10-30) 방패 = 2단 게이지 왼쪽 끝 (빌런 몸 위가 아니라) */
+    const x=hud.offsetLeft-hud.offsetWidth/2+sz*.3,y=hud.offsetTop+hud.offsetHeight/2;
+    g.style.width=g.style.height=sz+'px';g.style.setProperty('--g',Math.round(sz*.15)+'px');g.style.left=x+'px';g.style.top=y+'px';return {x,y,sz};}
+  const SHI='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg>';
+  function sbarDraw(show){const b=$('lm-sbar');if(!b)return;b.classList.toggle('on',!!show);if(show&&capO&&!b._busy)b.querySelector('.t').innerHTML=SHI+fmt(capO.cap);}
+  function bigText(txt,cls,sub){const d=document.createElement('div');d.className='lm-big '+cls;d.innerHTML=`<b>${txt}</b>`+(sub?`<small>${sub}</small>`:'');const en=$('enemy');if(en){d.style.left=(en.offsetLeft-en.offsetWidth*.95)+'px';d.style.top=Math.max(4,en.offsetTop*.25)+'px';}stage.appendChild(d);setTimeout(()=>d.remove(),1500);}   // 빌런 위 (무대 가운데는 화면에 따라 잘릴 수 있음)
   function paintGems(gems,n){const g=gsEl();g.querySelector('.gems').innerHTML=(gems||[]).map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');g.classList.toggle('n2',n===2);g.classList.toggle('n3',n>=3);}
   function drawGems(){const o=capO,g=gsEl();
     const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(finPend>0||hp>o.cap);   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
-    g.style.display=show?'block':'none';if(!show){clearInterval(gsT);gsT=0;return;}
+    g.style.display=show?'block':'none';sbarDraw(show);if(!show){clearInterval(gsT);gsT=0;return;}
     if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 그 런의 보석 그대로 (연출 시작에 finale이 다시 그림)
     paintGems(o.gems,o.n);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
   async function gsShatter(){const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
     g.classList.add('pop');await sleep(140);g.classList.remove('pop');g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
-    const t=document.createElement('div');t.className='lm-gsbrk-t';t.textContent='관통!';t.style.left=p.x+'px';t.style.top=(p.y-p.sz*.4)+'px';stage.appendChild(t);
+    bigText('관통!','prc');{const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.add('brk');sb.querySelector('.t').textContent='';setTimeout(()=>{sb._busy=false;sb.classList.remove('brk');sbarDraw(false);},900);}}
     try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(253,224,71,.45)');}catch(e){}
-    setTimeout(()=>b.remove(),700);setTimeout(()=>t.remove(),1300);gsBroken=true;await sleep(420);g.style.display='none';g.classList.remove('gone');}
+    setTimeout(()=>b.remove(),700);gsBroken=true;await sleep(420);g.style.display='none';g.classList.remove('gone');}
   function gsClank(blocked){const g=$('lm-gshield');if(!g||g.style.display==='none')return;const sz=parseFloat(g.style.width)||46,p={x:parseFloat(g.style.left)||0,y:parseFloat(g.style.top)||0,sz};
     g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');clearTimeout(g._ft);g._ft=setTimeout(()=>g.classList.remove('flash'),700);
     const sp=document.createElement('div');sp.className='lm-gsspark';sp.style.left=(p.x-p.sz*.42)+'px';sp.style.top=p.y+'px';sp.style.setProperty('--s',Math.round(p.sz*1.3)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),500);
-    const d=document.createElement('div');d.className='lm-dmg blk';d.style.left=(p.x-p.sz*.75)+'px';d.style.top=(p.y+p.sz*.15)+'px';d.innerHTML=`<b>${fmt(blocked)}</b><small>막힘</small>`;stage.appendChild(d);setTimeout(()=>d.remove(),1650);}
+    /* (DHL 10-30) 막힌 양은 방패 바('910 막음')와 큰 글씨 아래 '1,040 → 130'으로 — 떠다니는 회색 숫자는 뺌 */
+    {const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');sb.querySelector('.t').innerHTML=SHI+fmt(blocked)+' 막음';clearTimeout(sb._t);sb._t=setTimeout(()=>{sb.classList.remove('flash');sb._busy=false;sbarDraw(sb.classList.contains('on'));},1300);}}
+    bigText('막힘!','blk',gsRaw&&capO?fmt(gsRaw)+' → '+fmt(gsRaw-blocked):'');}
   function drawCap(){const L=$('lm-cap-line'),P=$('lm-hp-prev'),Z=$('lm-cap-zone');if(!L||!P)return;const o=capO,M=Math.max(1,maxHp);
     drawGems();
     if(!o||finPend>0){L.style.display='none';P.style.display='none';if(Z)Z.style.display='none';return;}
@@ -8227,7 +8237,7 @@ let isGameOver = false;
    const _flip=flip;flip=function(...a){if(cutOn()){afterCut(()=>_flip(...a));return null;}return _flip(...a);};}
   async function finale(o){
     if(!o.killed&&!o.demo&&o.hp!=null&&o.hp<=0)o={...o,killed:true};   // (DHL 10-29) 라운드가 끝나는 한 방은 반드시 주인공 막타 + 처치 컷신
-    gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;
+    gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;gsRaw=o.cap&&o.cap.raw||null;
     if(o.cap&&o.cap.gems&&capO&&!gsBroken&&hp>capO.cap){const g=gsEl();g.style.display='block';paintGems(o.cap.gems,o.cap.n);gsPlace();}   // 이 런의 보석으로 다시 그림 (앞 런 연출이 끝나기 전에 낸 런도 섞이지 않게)
     if(o.cap&&o.cap.brk)await gsShatter();   // (DHL 10-29) 방패 보석: 관통 = 시작에 깨짐 · 막힘 = 마지막 일격 때 튕김
     placeCharge();if(auraEl)auraEl.classList.add('full');
@@ -8511,5 +8521,32 @@ html body #lm-capwrap #lm-cap-line.brk{background:#fde047!important;box-shadow:0
 html body #lm-capwrap #lm-cap-line.brk img{filter:drop-shadow(0 0 2px #fde047) brightness(1.2)!important;animation:lmCapShake .45s linear infinite}
 #lm-cap-zone{position:absolute;top:0;bottom:0;left:0;z-index:3;display:none;pointer-events:none;background:repeating-linear-gradient(135deg,#dbe6f7aa 0 2px,#4a5f86aa 2px 4px);box-shadow:inset 0 .5px 0 #ffffff55;transition:width .25s ease}
 html body #boss-hp-text{margin-top:3px!important}
+</style>
+<style id="lm-2tier">
+/* (DHL 10-30) 방패 바 + HP 바 2단 — 빌런 발밑 · 방패(보석 3개)는 게이지 왼쪽 끝 · 막힘! / 관통! 큰 글씨 */
+html.mr-uikit body #app#app#app #battle-stage #boss-hud{width:var(--lm-hud-w,90px)!important}
+#battle-stage #boss-hud{--gk:inherit}
+#lm-sbar{position:relative;display:none;height:calc(8px*var(--gk,1));margin:0 0 calc(2px*var(--gk,1)) calc(13px*var(--gk,1));border-radius:3px;background:linear-gradient(#e2e8f0,#94a3b8 45%,#475569);border:1px solid #0f172a;box-shadow:inset 0 1px 0 #ffffffaa,0 1px 2px #000a;overflow:hidden}
+#lm-sbar.on{display:block}
+#lm-sbar .t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:1px;font:900 calc(6px*var(--gk,1))/1 'Noto Sans KR',system-ui,sans-serif;color:#0f172a;text-shadow:0 .5px 0 #ffffffaa;white-space:nowrap;z-index:2}
+#lm-sbar .t svg{width:1em;height:1em}
+#lm-sbar.flash{box-shadow:0 0 0 1px #fff,0 0 8px 2px #93c5fd}
+#lm-sbar.flash::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#ffffffee,#ffffff55 40%,transparent 75%);z-index:1;animation:lmSbFlash 1.2s ease-out forwards}
+#lm-sbar.brk{display:block;opacity:.3;filter:grayscale(1);transition:opacity .4s}
+@keyframes lmSbFlash{0%{opacity:1}100%{opacity:0}}
+html.mr-uikit body #app#app#app #battle-stage #boss-hud #lm-capwrap{margin-left:calc(13px*var(--gk,1))}
+html.mr-uikit body #app#app#app #battle-stage #boss-hud #boss-hp-track{height:calc(7px*var(--gk,1))!important;border-radius:3px!important}
+html.mr-uikit body #app#app#app #battle-stage #boss-hud #boss-hp-text{position:absolute!important;right:3px;bottom:0;height:calc(7px*var(--gk,1));display:flex!important;align-items:center;margin:0!important;font:900 calc(5.2px*var(--gk,1))/1 'Noto Sans KR',system-ui,sans-serif!important;z-index:5}
+#boss-hud{position:absolute}
+#lm-cap-line,#lm-cap-zone{display:none!important}
+.lm-big{position:absolute;left:50%;top:13%;translate:-50% 0;z-index:42;pointer-events:none;text-align:center;line-height:1;animation:lmBigIn 1.5s cubic-bezier(.2,1.4,.4,1) forwards}
+.lm-big b{display:block;font:900 24px/1 'Noto Sans KR',system-ui,sans-serif;-webkit-text-stroke:4px #0b1220;paint-order:stroke fill;letter-spacing:.02em}
+.lm-big small{display:block;margin-top:3px;font:900 10px/1 'Noto Sans KR',system-ui,sans-serif;-webkit-text-stroke:3px #0b1220;paint-order:stroke fill}
+.lm-big.blk b{color:#e2e8f0}.lm-big.blk small{color:#cbd5e1}
+.lm-big.prc b{color:#fde047;-webkit-text-stroke-color:#3a1a00}.lm-big.prc small{color:#fff1cf}
+@keyframes lmBigIn{0%{opacity:0;scale:.5}12%{opacity:1;scale:1.18}22%{scale:1}82%{opacity:1}100%{opacity:0;translate:-50% -6px}}
+body:has(#battle-stage[data-team-skill="on"]) #lm-sbar,body:has(#battle-stage.skill-cutscene) #lm-sbar{visibility:hidden}
+#battle-stage.lm-foe-dead #lm-sbar,#battle-stage.lm-cleared #lm-sbar{display:none!important}
+@media (prefers-reduced-motion:reduce){.lm-big{animation-duration:.01s}#lm-sbar.flash::before{animation:none}}
 </style>
 </body></html>
