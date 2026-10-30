@@ -1388,6 +1388,10 @@ html body #game-startup-screen.lm-replay.out{opacity:0!important;transition:opac
 html body .rbScore b.rbNum{white-space:nowrap;font-size:min(clamp(22px,5vh,52px),calc((100cqi - 8px) / (var(--n,6) * .6)))!important;line-height:1.1}   /* --n = 숫자 수 + 쉼표 × 0.45 */
 .rbSkip{container-type:inline-size}
 html body .rbSkip button{white-space:nowrap;font-size:min(22px,calc((100cqi - 16px) / 4.9))!important;padding-left:2px!important;padding-right:2px!important}   /* '야영하기'도 줄바꿈 없이 칸 폭에 맞춰 */
+</style><style id="lm-ghost-host">/* 끌기 그림자의 투명 껍데기: 부모 class만 빌리고 모양은 모두 지움 */
+html body div.sBox.lmGhostHost.lmGhostHost{position:fixed!important;inset:0!important;z-index:90!important;pointer-events:none!important;display:block!important;background:none!important;border:0!important;box-shadow:none!important;outline:0!important;padding:0!important;margin:0!important;transform:none!important;filter:none!important;backdrop-filter:none!important;animation:none!important;opacity:1!important;overflow:visible!important;width:auto!important;height:auto!important;min-height:0!important;max-width:none!important}
+html body div.sBox.lmGhostHost.lmGhostHost::before,html body div.sBox.lmGhostHost.lmGhostHost::after{content:none!important;display:none!important}
+html body .lmGhostHost .tile.dragGhost.dragGhost.dragGhost{position:fixed!important;margin:0!important}   /* 칸 안 '.sBox .tile{position:relative}'보다 우선 · 원정 캠프 창(#ov z 60) 위 */
 </style></head><body>
 <!-- ▶ 시작 흐름 (153-6 index.html의 #game-startup-screen 그대로 · 언어 선택은 다국어 단계에서 켬) -->
 <div id="game-startup-screen" role="status" aria-live="polite"><div class="mr-portal-bg"></div><div class="mr-bead-layer"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><i class="mr-portal-flash"></i><div class="mr-loading-track"></div><select class="mr-startup-language" hidden disabled aria-label="언어"><option value="ko">한국어</option></select><button id="game-startup-next" type="button" hidden disabled>다음</button><span id="game-startup-message">게임을 준비하고 있어요…</span><button id="game-startup-retry" type="button" hidden>다시 불러오기</button></div>
@@ -3309,7 +3313,10 @@ document.addEventListener('pointermove',e=>{
     const info=itemInfo(SD.key);if(!info.ok){SD=null;return;}
     SD.moved=true;const r=SD.el.getBoundingClientRect();
     const g=SD.el.cloneNode(true);g.classList.add('dragGhost');g.classList.remove('up');
-    Object.assign(g.style,{width:r.width+'px',height:r.height+'px'});document.body.appendChild(g);SD.g=g;SD.dx=SD.x-r.left;SD.dy=SD.y-r.top;
+    /* (DHL 10-31 '팩을 끌면 팩 그림이 아니라 예전 틀이 움직임') 물건 그림은 '.sBox .tile.t-pack'처럼 부모 칸 기준으로 입혀짐 →
+       body에 바로 붙이면 그림이 빠짐. 원래 부모들의 class를 그대로 가진 투명 껍데기 안에 넣어 같은 그림이 나오게 함 */
+    let host=document.body;if(SD.el.closest('.sBox')){host=document.createElement('div');host.className='sBox lmGhostHost';document.body.appendChild(host);SD.host=host;}   // 그림 규칙이 '.sBox .tile…' 기준 → 껍데기에 sBox만 빌림
+    Object.assign(g.style,{width:r.width+'px',height:r.height+'px'});host.appendChild(g);SD.g=g;SD.dx=SD.x-r.left;SD.dy=SD.y-r.top;
     SD.el.style.opacity=.3;
     SD.zone=document.querySelector(SD.key.startsWith('own')?'.sellZone':'.sOrbs');SD.zone.classList.add('dropOn');
     if(SD.key.startsWith('own'))document.querySelector('.sOrbs')?.classList.add('lmReord');   // (DHL 10-29) 구슬칸 안에서 놓으면 순서 바꿈
@@ -3329,7 +3336,7 @@ function endDrag(){
   if(!SD)return;const d=SD;SD=null;
   if(!d.moved)return;
   SD_SUPPRESS=true;setTimeout(()=>SD_SUPPRESS=false,50);
-  d.g.remove();d.el.style.opacity='';d.zone.classList.remove('dropOn','over');
+  d.g.remove();if(d.host)d.host.remove();d.el.style.opacity='';d.zone.classList.remove('dropOn','over');
   document.querySelector('.sOrbs')?.classList.remove('lmReord');document.querySelectorAll('.lmDropTo').forEach(x=>x.classList.remove('lmDropTo'));
   if(d.over)actItem(d.key,true);
   else if(d.to!=null){const from=+d.key.slice(3),k=S.orbs.splice(from,1)[0];S.orbs.splice(d.to,0,k);S.pick='own'+d.to;S.confirm=null;render();openShop();}
