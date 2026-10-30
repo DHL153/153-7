@@ -1371,7 +1371,15 @@ html:not(.lmB) .otx .oef{display:block;font-size:9px;opacity:.75}
 :is(em,i,span,b):has(>img.wico){background:transparent!important;box-shadow:none!important;border-color:transparent!important}
 img.wico{object-fit:contain;transform:scale(1.22)}
 </style>
-</head><body>
+<style id="lm-replay-css">/* (DHL 10-30) 첫 실행 연출 다시 보기 */
+html body #game-startup-screen.lm-replay{background:#0c0a0b!important}
+html body #game-startup-screen.lm-replay.out{opacity:0!important;transition:opacity .3s ease!important}
+#game-startup-screen.lm-replay .lm-replay-back{position:absolute;left:50%;bottom:max(28px,8vh);translate:-50% 0;z-index:5;min-width:160px;padding:11px 30px;border-radius:12px;border:2px solid #c9a24a!important;background:linear-gradient(#1d2f55,#13213f)!important;color:#f3e6d8!important;font:800 17px/1 'Noto Sans KR',system-ui,sans-serif;letter-spacing:.02em;box-shadow:0 0 0 1px #0b1220,0 6px 16px #000a,inset 0 1px 0 #ffffff22;cursor:pointer;animation:lmReplayBack .45s ease-out both}
+#game-startup-screen.lm-replay .lm-replay-back[hidden]{display:none}
+#game-startup-screen.lm-replay .lm-replay-back:hover,#game-startup-screen.lm-replay .lm-replay-back:focus-visible{border-color:#f0d27a!important;outline:none;filter:brightness(1.12)}
+@keyframes lmReplayBack{from{opacity:0;translate:-50% 10px}to{opacity:1;translate:-50% 0}}
+@media (prefers-reduced-motion:reduce){#game-startup-screen.lm-replay .lm-replay-back{animation:none}}
+</style></head><body>
 <!-- ▶ 시작 흐름 (153-6 index.html의 #game-startup-screen 그대로 · 언어 선택은 다국어 단계에서 켬) -->
 <div id="game-startup-screen" role="status" aria-live="polite"><div class="mr-portal-bg"></div><div class="mr-bead-layer"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><i class="mr-portal-flash"></i><div class="mr-loading-track"></div><select class="mr-startup-language" hidden disabled aria-label="언어"><option value="ko">한국어</option></select><button id="game-startup-next" type="button" hidden disabled>다음</button><span id="game-startup-message">게임을 준비하고 있어요…</span><button id="game-startup-retry" type="button" hidden>다시 불러오기</button></div>
 <script id="mr-boot-screen">
@@ -3888,7 +3896,30 @@ function ltPop(kind){
     `<p class="lt-note">다른 언어는 번역표 단계에서 추가합니다. (153-6처럼 첫 실행 만화 다음에 고르게 됩니다)</p>`+close;
   card.classList.toggle('wide',['set','col','play','hands'].includes(kind));card.classList.toggle('xwide',kind==='stat');pop.hidden=false;(card.querySelector('.ls-tab.on')||card.querySelector('button'))?.focus({preventScroll:true});   /* (DHL 10-29) 키보드 포커스는 지금 열린 탭에 — 다른 탭에 노란 사각형이 남지 않게 */
 }
-function ltReplayIntro(){try{localStorage.removeItem('mergeRoll.storySeen.v1');}catch(e){}location.reload();}
+/* (DHL 10-30) 첫 실행 연출 다시 보기 = 로고 화면만 — 처음처럼 '움직이려다 말고 ×2 → 돌기 시작' 후 그 속도로 계속 돌기 · 3초 뒤 '돌아가기' (새로고침 · 스토리 만화 · 로딩 없음) */
+function ltReplayIntro(){
+  if(document.getElementById('game-startup-screen'))return;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const sc=document.createElement('div');sc.id='game-startup-screen';sc.className='lm-replay';sc.dataset.phase='logo';sc.setAttribute('role','dialog');sc.setAttribute('aria-label','첫 실행 연출');
+  sc.innerHTML='<div class="mr-portal-bg"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><button type="button" class="lm-replay-back" hidden>돌아가기</button>';
+  document.body.appendChild(sc);
+  const bl=sc.querySelector('.mr-logo-blades'),st=sc.querySelector('.mr-logo-stage'),back=sc.querySelector('.lm-replay-back');
+  // 처음 실행 때와 같은 '움직이려다 마는' 한 번 (t0초에 시작, peak°까지 밀렸다가 살짝 반대로 넘어가 제자리)
+  const attempt=(a,t0,peak)=>{const t=a-t0;if(t<0||t>.65)return 0;if(t<.3){const k=t/.3;return peak*(1-(1-k)*(1-k));}if(t<.5){const k=(t-.3)/.2;return peak+(-.18*peak-peak)*(k*k);}const k=(t-.5)/.15;return -.18*peak*(1-k*k*(3-2*k));};
+  const SPD=110;   // 다 돈 뒤 일정한 속도 (도/초)
+  let t0=0,last=0,ang=0,raf=0;
+  const loop=t=>{if(!sc.isConnected)return;if(!t0)t0=t;const dt=last?Math.min(64,t-last):16;last=t;const age=(t-t0)/1000;let spd=0,wob=0;
+    if(age<1.85)wob=attempt(age,.25,7)+attempt(age,1.05,26);           // 1차 살짝 · 2차 크게
+    else{const k=Math.min(1,(age-1.85)/.9);spd=SPD*k*k*(3-2*k);}         // 바람을 타고 돌기 시작 → 그 속도로 계속
+    ang=(ang+spd*dt/1000)%360;bl.style.transform='rotate('+(ang+wob).toFixed(2)+'deg)';
+    st.style.setProperty('--glow',(.25+Math.min(1,Math.max(0,age-2.2)/.8)*.35).toFixed(3));
+    raf=requestAnimationFrame(loop);};
+  if(reduce)st.style.setProperty('--glow','.6');else raf=requestAnimationFrame(loop);
+  const close=()=>{if(!sc.isConnected)return;cancelAnimationFrame(raf);document.removeEventListener('keydown',onKey,true);sc.classList.add('out');setTimeout(()=>sc.remove(),320);};
+  const onKey=e=>{if(e.key==='Escape'&&!back.hidden){e.stopImmediatePropagation();e.preventDefault();close();}};
+  back.onclick=close;document.addEventListener('keydown',onKey,true);
+  setTimeout(()=>{if(!sc.isConnected)return;back.hidden=false;back.focus({preventScroll:true});},3000);
+}
 lmStartGame();
 
 window.__v3={get S(){return S},pickAwaken,beginRound,campOpen,guestGo,campPick,campTap,campApply,startRound,finishMerge,doPlay,doMerge,doDiscard,tapCard,actItem,pickItem,nextRound,collect};
