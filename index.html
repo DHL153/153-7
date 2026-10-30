@@ -3826,10 +3826,10 @@ function ltPlayHTML(){
   const tab=(k,n)=>`<button type="button" class="ls-tab ${ltPlayTab===k?'on':''}" onclick="ltPlayTab='${k}';ltPop('play')">${n}</button>`;
   let h=`<div class="ls-tabs">${tab('new','새로운 런')}${tab('cont','계속하기')}${tab('try','배우기')}</div><div class="ls-body">`;
   if(ltPlayTab==='new'){
-    const i=keys.indexOf(ltDiff),d=DIFF[ltDiff],TK=['diff_app','diff_knight','diff_errant'];   // 난이도 아이콘 = 예전 라운드 토큰(투구 · 방패 · 거인 얼굴)
+    const i=keys.indexOf(ltDiff),d=DIFF[ltDiff],TK=['diff_app','diff_knight','diff_errant'];   // 난이도 아이콘 (DHL 10-30 새 시트: 견습 나무 칼·방패 · 기사 투구·창 · 편력 이발사 대야 투구·풍차) — 라운드 토큰과 같은 청동 리벳 테
     h+=`<div class="pl-wrap"><div class="pl-deck"><img src="assets/ui/lamancha/card_back.webp" alt=""><div class="pl-info"><b>라만차 덱</b><div class="pl-white">`+
       `<p><span>덱</span>: <em class="b">60장</em></p><p><span>동료</span>: <em class="b">30명 · 세계 3</em></p><p><span>최고 장</span>: <em class="r">${LM_ST.bestJang||'—'}</em></p><p><span>최고 한 방</span>: <em class="r">${LM_ST.best?LM_ST.best.toLocaleString():'—'}</em></p></div></div></div>`+
-      `<div class="pl-stake"><span class="pl-vert">난이도</span><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp" alt=""><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}${LM_ST.clears[ltDiff]?' ✔':''}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div><div class="pl-white small">${d.d}</div></div></div></div>`+
+      `<div class="pl-stake"><span class="pl-vert">난이도</span><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt=""><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}${LM_ST.clears[ltDiff]?' ✔':''}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div><div class="pl-white small">${d.d}</div></div></div></div>`+
       `<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`;
   }
   if(ltPlayTab==='cont'){
