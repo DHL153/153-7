@@ -8331,7 +8331,7 @@ let isGameOver = false;
   //          · 리그 위치 footX = (원본이 정한 제자리) + off  ← 속성 자체를 이렇게 정의해서, 누가 다시 배치해도 off가 사라지지 않음
   //          · 보이기는 매 프레임 이 상태에서만 정함 (기본 = 안 보임). 리그는 그림이 다 준비돼야 보이고, 리그 캐릭터의 정지 그림(img)은 절대 안 보임
   //          · 라운드 시작은 round() 한 번에: 숨김 → 팀·적·땅 바꾸기 → 리그 준비 → 보이며 걸어 들어옴 (중간 상태가 화면에 안 나옴)
-  const ROUND_SKY=[1,2,4];let roundTk=0;   // 하늘: 0 새벽 · 1 낮 · 2 노을 · 3 밤 · 4 포털 — 졸개 낮 · 기사 노을 · 거인 포털
+  const ROUND_SKY=[1,2,4];let roundTk=0;   // 하늘: 0 새벽 · 1 낮 · 2 노을 · 3 밤 · 4 포털 — 망령 낮 · 수문장 노을 · 거인 포털
   const ALL=[0,1,2];
   const actors=ALL.map(()=>({off:0,vis:false,mul:null,oy:0,rot:0}));window.__lmActors=actors;   // ★14 oy·rot = 뛰어오르기·떨어지기·기울기
   const isRigSlot=sl=>{const id=activeBattleTeam[sl];return id!=null&&!!window.MRRig?.enabled&&!!window.MRRig?.registry?.[id+1];};
