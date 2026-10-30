@@ -7615,7 +7615,7 @@ const LM_STORY=[
   {k:'reveal',cls:'lc-s2',ko:'풍차의 진실',sub:'스카이아크 알론소의 고백',img:'assets/art/story/reveal_04.webp',n:4,seen:()=>{try{return localStorage.getItem('lm.scene.reveal.v1')==='1'}catch(e){return false}},play:()=>MRStory.play({mode:'replay',set:LM_SCENES.reveal})},
   {k:'ending',cls:'lc-s3',ko:'다시, 라만차',sub:'풍차가 멈춘 뒤의 이야기',img:'assets/art/story/ending_04.webp',n:4,seen:()=>{try{return localStorage.getItem('lm.scene.ending.v1')==='1'}catch(e){return false}},play:()=>MRStory.play({mode:'replay',set:LM_SCENES.ending})}
 ];
-function ltStoryPlay(i){const S=LM_STORY[i];ltPop();Promise.resolve(S.play()).finally(()=>ltPop('story'));}
+function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그대로 둔 채 스토리가 위에 뜸 → 끝나면 목록이 그 자리에 있음 (사라졌다 다시 뜨지 않게) */
 (function(){
   const _lp=ltPop;
   ltPop=function(kind){
