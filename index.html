@@ -2649,9 +2649,11 @@ function render(){
     if(sc.some(c=>c.fog)){$('htName').textContent='? 가려진 카드';$('vC').textContent='?';$('vM').textContent='?';$('tot').textContent='';}
     else if(sc.length){const pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length)),L=(S.lv[r.ht]||1)-1;
       S.scoreU=[].concat(...[r.ht].concat(r.bonds||[]).flatMap(k=>scoringCards(pv,k,S.foe)).map(c=>c._u||[c.uid]));   // 점수에 들어가는 카드 (겹친 족보 모두)
+      const G3=mergeRun()&&!S.mrOff?mrGroups3(sc):[];if(G3.length)S.scoreU=S.scoreU.concat(...G3.map(g=>g.map(c=>c.uid)));   // (DHL 10-30) 같은 카드 3장 이상 = 어느 둘을 합칠지 아직 안 정함 → '족보 밖' 회색 표시 안 함
       $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(pv.length<sc.length?' · 머지 & 런':'')+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · 관통':''}`:'');S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;
       if(mergeRun()&&pv.length<sc.length){S.willM=[].concat(...pv.filter(c=>c._u&&c._u.length>1).map(c=>c._u));
-        if(S.bOrb==null)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합':''}`).join(' · ')+' — 런하면 <b>합쳐져요</b>';}
+        if(S.bOrb==null&&G3.length)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+G3.map(g=>`<b>${TYPES[g[0].id].ko} ${g.length}장</b> → 두 장 골라 ★${g[0].star+1}`).join(' · ')+' — 런할 때 골라요';
+        else if(S.bOrb==null)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합':''}`).join(' · ')+' — 런하면 <b>합쳐져요</b>';}
       else if(mergeRun()&&S.mrOff&&runPairs(sc).length&&S.bOrb==null)$('tip').innerHTML=`<button class="mrTog" onclick="event.stopPropagation();S.mrOff=false;render()">⛔ 머지 끔</button> 같은 카드도 <b>따로</b> 달려요`;   /* (DHL 10-30) 머지 할지 말지 버튼 */
       lmCapSync(r,!!(DIFF[S.diff].preview||S.sandbox));
       if(DIFF[S.diff].preview||S.sandbox){$('vC').textContent=r.chips;$('vM').textContent=r.mult;const hc=hitCap(r);$('tot').innerHTML=hc&&!hc.brk?`${hc.cap.toLocaleString()}<small class="capTag" title="한 번에 최대 ${Math.round(ARMOR_HIT*100)}% — 세 가지 다 맞추면 관통">🛡${hc.raw.toLocaleString()}</small>`:hc&&hc.brk?`${r.total.toLocaleString()}<small class="capTag brk">관통!</small>`:r.total.toLocaleString();}
@@ -2851,6 +2853,7 @@ function mrSnap(){const cs=S.deck.slice();return {deck:cs,hand:S.hand.slice(),se
 function mrRollback(){const z=S._snap;S._chain=null;S._skip=null;S._snap=null;if(!z)return;
   z.cards.forEach(([c,o])=>{Object.keys(c).forEach(k=>delete c[k]);Object.assign(c,o);});
   S.deck=z.deck;S.hand=z.hand;S.sel=z.sel;[S.merges,S.roundMerges,S.runMerges]=z.m;S.gold=z.gold;}
+function mrGroups3(cs){const m={};cs.filter(c=>!c.fog&&c.star<3).forEach(c=>{const k=TYPES[c.id].n+'|'+c.star;(m[k]=m[k]||[]).push(c);});return Object.values(m).filter(g=>g.length>=3);}
 const mrSame=(a,b)=>cardW(a)===cardW(b)&&a.el===b.el&&cardNo(a)===cardNo(b);
 function runChain(){
   const L=S._chain;if(!L)return;
@@ -2862,7 +2865,7 @@ function runChain(){
     S._ma=a;S._mb=b;
     if(mrSame(a,b))return finishMerge(a,b,null);   // (DHL 10-30) 고를 게 없는 짝(딱 2장)은 창 없이 바로
     return askFuse(a,b,want);}}   // 머지 & 런: 짝마다 고르기 창 (세계 · 속성 · 번호 + 머지 하지 않음)
-  S._chain=null;S._skip=null;S._snap=null;S.sel=L.map(c=>c.uid);doPlay(true);     // 더 합칠 짝이 없으면 달린다
+  S._chain=null;S._skip=null;S._snap=null;S.sel=L.map(c=>c.uid);render();doPlay('chain');     // 더 합칠 짝이 없으면 달린다 (합친 뒤의 카드로 동작 · 족보 밖 표시) (DHL 10-30)
 }
 /* 다섯의 맹세: 고른 카드의 족보 인정 장수(★2=2 · ★3=4)가 5 이상이어야 함 — 손패 전체가 5 미만이면 면제 */
 const wsum=cs=>cs.reduce((s,c)=>s+weight(c),0);
@@ -4567,7 +4570,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
         hrWait=true;if(S)S.busy=true;setTimeout(go,wait);
       }
       const canRun=()=>S&&!S.busy&&S.sel.length&&S.runs>0&&!(typeof psyShort==='function'&&psyShort());
-      const _dp=doPlay;doPlay=function(merged){if(merged===true||!canRun())return _dp.apply(this,arguments);return perform('run',_dp,this,arguments);};
+      const willChain=m=>!m&&typeof mergeRun==='function'&&mergeRun()&&!S.mrOff&&typeof runPairs==='function'&&runPairs(selCards()).length>0;   /* (DHL 10-30) 머지 & 런 고르기 전에는 카드를 숨기거나 날리지 않음 — 취소하면 그대로 */
+      const _dp=doPlay;doPlay=function(merged){if(merged===true||!canRun()||willChain(merged))return _dp.apply(this,arguments);return perform('run',_dp,this,arguments);};
       const _dd=doDiscard;doDiscard=function(){if(!(S&&!S.busy&&S.sel.length&&S.dis>0))return _dd.apply(this,arguments);return perform('dis',_dd,this,arguments);};
       const hand=document.getElementById('hand');
       if(hand){let q=false;new MutationObserver(()=>{if(q)return;q=true;queueMicrotask(()=>{q=false;hrSync();});}).observe(hand,{childList:true});hrSync();}
