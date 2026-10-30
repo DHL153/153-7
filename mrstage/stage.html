@@ -7874,11 +7874,12 @@ let isGameOver = false;
   if(track&&!$('lm-capwrap')){const w=document.createElement('div');w.id='lm-capwrap';track.parentNode.insertBefore(w,track);w.appendChild(track);
     const ln=document.createElement('i');ln.id='lm-cap-line';ln.innerHTML='<img src="../assets/ui/lamancha/cap_shield.webp" alt="" onerror="this.remove()">';w.appendChild(ln);
     const zn=document.createElement('div');zn.id='lm-cap-zone';track.appendChild(zn);const pv=document.createElement('div');pv.id='lm-hp-prev';track.appendChild(pv);
-    const sb=document.createElement('div');sb.id='lm-sbar';sb.innerHTML='<span class="t"></span>';w.parentNode.insertBefore(sb,w);}
+    const sb=document.createElement('div');sb.id='lm-sbar';sb.innerHTML='<i class="f"></i><span class="t"></span>';w.parentNode.insertBefore(sb,w);}
   let impact=null,impactT=0,hitCb=null;
   if(window.MRFX&&MRFX.enemyHit){const oh=MRFX.enemyHit;MRFX.enemyHit=function(){const r=oh.apply(this,arguments);land();if(hitCb){const f=hitCb;hitCb=null;try{f();}catch(e){console.warn(e);}}return r;};}
   function land(){
     const o=impact;impact=null;clearTimeout(impactT);if(!o)return;
+    if(gsSh&&!gsSh._d&&!gsSh.brk){gsSh._d=1;const sb=$('lm-sbar');if(sb){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');sbarSet(gsSh.after,gsSh.max);}}   // (DHL 10-30) 첫 타격에 방패 에너지부터 깎임 → 그다음 몸체
     if(o.hp!=null){hp=o.hp;setHud();}
     if(o.dmg!=null&&o.final){popNum(o);if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}}
     if(o.heavy){resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.55)');}catch(e){}}
@@ -7904,38 +7905,40 @@ let isGameOver = false;
     setTimeout(()=>{globalPause=false;stage.classList.remove('lm-slowmo');(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},450);
   }
   let finPend=0,finHp=null;
-  let capO=null,gsBroken=false,gsBlock=null,gsRaw=null,gsT=0,gsDead=false;   // gsDead: 적이 쓰러짐 → 다음 적이 나올 때까지 방패 없음 (DHL 10-29 '전투가 끝났는데 방패가 남음')
+  let capO=null,gsBroken=false,gsBlock=null,gsRaw=null,gsSh=null,gsT=0,gsDead=false;   // gsDead: 적이 쓰러짐 → 다음 적이 나올 때까지 방패 없음 (DHL 10-29 '전투가 끝났는데 방패가 남음')
   function gsEl(){let g=$('lm-gshield');if(!g){g=document.createElement('div');g.id='lm-gshield';g.innerHTML='<i class="sh"></i><span class="gems"></span>';stage.appendChild(g);}return g;}
   function gsPlace(){const g=$('lm-gshield');if(!g||!hud)return null;const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,sz=Math.round(21*gk);   /* (DHL 10-30) 방패 = 2단 게이지 왼쪽 끝 (빌런 몸 위가 아니라) */
     const x=hud.offsetLeft-hud.offsetWidth/2+sz*.3,y=hud.offsetTop+hud.offsetHeight/2;
     g.style.width=g.style.height=sz+'px';g.style.setProperty('--g',Math.round(sz*.15)+'px');g.style.left=x+'px';g.style.top=y+'px';return {x,y,sz};}
   const SHI='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg>';
-  function sbarDraw(show){const b=$('lm-sbar');if(!b)return;b.classList.toggle('on',!!show);if(show&&capO&&!b._busy)b.querySelector('.t').innerHTML=SHI+fmt(capO.cap);}
+  function sbarSet(v,max){const b=$('lm-sbar');if(!b)return;b.querySelector('.f').style.width=Math.max(0,Math.min(100,v/Math.max(1,max)*100))+'%';b.querySelector('.t').innerHTML=SHI+fmt(v);}
+  function sbarDraw(show){const b=$('lm-sbar');if(!b)return;if(b._lock)return;b.classList.toggle('on',!!show);if(show&&capO)sbarSet(capO.cap,capO.max||capO.cap);}   /* (DHL 10-30) 방패 바 = 방패 에너지 (먼저 깎임 · 다시 차지 않음) */
   function bigText(txt,cls,sub){const d=document.createElement('div');d.className='lm-big '+cls;d.innerHTML=`<b>${txt}</b>`+(sub?`<small>${sub}</small>`:'');const en=$('enemy');if(en){d.style.left=(en.offsetLeft-en.offsetWidth*.95)+'px';d.style.top=Math.max(4,en.offsetTop*.25)+'px';}stage.appendChild(d);setTimeout(()=>d.remove(),1500);}   // 빌런 위 (무대 가운데는 화면에 따라 잘릴 수 있음)
   function paintGems(gems,n){const g=gsEl();g.querySelector('.gems').innerHTML=(gems||[]).map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');g.classList.toggle('n2',n===2);g.classList.toggle('n3',n>=3);}
   function drawGems(){const o=capO,g=gsEl();
-    const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(finPend>0||hp>o.cap);   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
+    const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(finPend>0||o.cap>0);   // (DHL 10-30) 방패 에너지가 남아 있으면 계속 보임 — 0이 되거나 관통일 때만 사라짐   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
     g.style.display=show?'block':'none';sbarDraw(show);if(!show){clearInterval(gsT);gsT=0;return;}
     if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 그 런의 보석 그대로 (연출 시작에 finale이 다시 그림)
     paintGems(o.gems,o.n);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
   async function gsShatter(){const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
     g.classList.add('pop');await sleep(140);g.classList.remove('pop');g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
-    bigText('관통!','prc');{const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.add('brk');sb.querySelector('.t').textContent='';setTimeout(()=>{sb._busy=false;sb.classList.remove('brk');sbarDraw(false);},900);}}
+    bigText('관통!','prc');{const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.add('brk');sb.querySelector('.t').textContent='';setTimeout(()=>{sb._busy=false;sb._lock=false;sb.classList.remove('brk');sbarDraw(false);},900);}}
     try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(253,224,71,.45)');}catch(e){}
     setTimeout(()=>b.remove(),700);gsBroken=true;await sleep(420);g.style.display='none';g.classList.remove('gone');}
   function gsClank(blocked){const g=$('lm-gshield');if(!g||g.style.display==='none')return;const sz=parseFloat(g.style.width)||46,p={x:parseFloat(g.style.left)||0,y:parseFloat(g.style.top)||0,sz};
     g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');clearTimeout(g._ft);g._ft=setTimeout(()=>g.classList.remove('flash'),700);
     const sp=document.createElement('div');sp.className='lm-gsspark';sp.style.left=(p.x-p.sz*.42)+'px';sp.style.top=p.y+'px';sp.style.setProperty('--s',Math.round(p.sz*1.3)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),500);
     /* (DHL 10-30) 막힌 양은 방패 바('910 막음')와 큰 글씨 아래 '1,040 → 130'으로 — 떠다니는 회색 숫자는 뺌 */
-    {const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');sb.querySelector('.t').innerHTML=SHI+fmt(blocked)+' 막음';clearTimeout(sb._t);sb._t=setTimeout(()=>{sb.classList.remove('flash');sb._busy=false;sbarDraw(sb.classList.contains('on'));},1300);}}
-    bigText('막힘!','blk',gsRaw&&capO?fmt(gsRaw)+' → '+fmt(gsRaw-blocked):'');}
+    {const sb=$('lm-sbar'),z=gsSh;if(sb&&z){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');sbarSet(z.after,z.max);z._d=1;clearTimeout(sb._t);
+      sb._t=setTimeout(()=>{sb.classList.remove('flash');if(z.after<=0){sb.classList.add('brk');const g2=$('lm-gshield');if(g2)g2.classList.add('gone');setTimeout(()=>{sb.classList.remove('brk');sb._lock=false;sbarDraw(false);if(g2){g2.style.display='none';g2.classList.remove('gone');}},700);}else{sb._lock=false;sbarDraw(true);}},900);}}
+    bigText('막힘!','blk',gsRaw?'방패 '+fmt(blocked)+' · 몸체 '+fmt(Math.max(0,gsRaw-blocked)):'');}
   function drawCap(){const L=$('lm-cap-line'),P=$('lm-hp-prev'),Z=$('lm-cap-zone');if(!L||!P)return;const o=capO,M=Math.max(1,maxHp);
     drawGems();
     if(!o||finPend>0){L.style.display='none';P.style.display='none';if(Z)Z.style.display='none';return;}
     const lineHp=hp-o.cap;   // 이번 런 최대로 쳐도 남는 체력 → 🛡 선 (남은 체력이 한 번 최대 피해 이하면 선 없음)
     if(lineHp>0){L.style.display='block';L.style.left=(lineHp/M*100)+'%';L.classList.toggle('brk',!!o.brk);L.classList.toggle('hit',!o.brk&&o.dmg>o.cap);}else L.style.display='none';
     /* (DHL 10-29 B안) 이번 런에 못 깎는 구간 = 철판 무늬 칸 (한계 돌파면 숨김) */ if(Z){if(lineHp>0&&!o.brk){Z.style.display='block';Z.style.width=(lineHp/M*100)+'%';}else Z.style.display='none';}
-    if(o.dmg>0){const eff=o.brk?o.dmg:Math.min(o.dmg,o.cap),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
+    if(o.dmg>0){const eff=o.brk?o.dmg:Math.max(0,o.dmg-o.cap),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
   function setHud(){
     if(!hud)return;drawCap();
     hud.style.display='block';
@@ -8244,7 +8247,8 @@ let isGameOver = false;
    const _flip=flip;flip=function(...a){if(cutOn()){afterCut(()=>_flip(...a));return null;}return _flip(...a);};}
   async function finale(o){
     if(!o.killed&&!o.demo&&o.hp!=null&&o.hp<=0)o={...o,killed:true};   // (DHL 10-29) 라운드가 끝나는 한 방은 반드시 주인공 막타 + 처치 컷신
-    gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;gsRaw=o.cap&&o.cap.raw||null;
+    gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;gsRaw=o.cap&&o.cap.raw||null;gsSh=o.cap&&o.cap.sh||null;
+    if(gsSh){const sb=$('lm-sbar');if(sb){sb._lock=true;sb.classList.add('on');sbarSet(gsSh.before,gsSh.max);}}   // 연출 동안 방패 바는 친 순간까지 그대로 (먼저 줄어들지 않게)
     if(o.cap&&o.cap.gems&&capO&&!gsBroken&&hp>capO.cap){const g=gsEl();g.style.display='block';paintGems(o.cap.gems,o.cap.n);gsPlace();}   // 이 런의 보석으로 다시 그림 (앞 런 연출이 끝나기 전에 낸 런도 섞이지 않게)
     if(o.cap&&o.cap.brk)await gsShatter();   // (DHL 10-29) 방패 보석: 관통 = 시작에 깨짐 · 막힘 = 마지막 일격 때 튕김
     placeCharge();if(auraEl)auraEl.classList.add('full');
@@ -8556,5 +8560,14 @@ html.mr-uikit body #app#app#app #battle-stage #boss-hud #boss-hp-text{position:a
 body:has(#battle-stage[data-team-skill="on"]) #lm-sbar,body:has(#battle-stage.skill-cutscene) #lm-sbar{visibility:hidden}
 #battle-stage.lm-foe-dead #lm-sbar,#battle-stage.lm-cleared #lm-sbar{display:none!important}
 @media (prefers-reduced-motion:reduce){.lm-big{animation-duration:.01s}#lm-sbar.flash::before{animation:none}}
+</style>
+<style id="lm-shield-energy">
+/* (DHL 10-30) 방패 에너지 바 · 몸체 바 초록 · 숫자 가운데 · 연출 중에도 방패가 흐려지지 않게 */
+#lm-sbar{background:#1e293b!important}
+#lm-sbar .f{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(#e2e8f0,#94a3b8 45%,#475569);box-shadow:inset 0 1px 0 #ffffffaa;transition:width .45s cubic-bezier(.3,.8,.3,1)}
+#lm-sbar .t{color:#fff!important;text-shadow:0 0 2px #0b1220,0 0 2px #0b1220,0 1px 1px #000!important}
+html.mr-uikit body #app#app#app #battle-stage #boss-hp-fill{background:linear-gradient(#86efac,#22c55e 55%,#15803d)!important}
+html.mr-uikit body #app#app#app #battle-stage #boss-hud #boss-hp-text{left:0!important;right:0!important;justify-content:center!important}
+#battle-stage.lm-fin #lm-gshield{opacity:1!important}
 </style>
 </body></html>
