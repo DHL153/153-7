@@ -1378,9 +1378,12 @@ img.wico{object-fit:contain;transform:scale(1.22)}
 <style id="lm-replay-css">/* (DHL 10-30) 첫 실행 연출 다시 보기 */
 html body #game-startup-screen.lm-replay{background:#0c0a0b!important}
 html body #game-startup-screen.lm-replay.out{opacity:0!important;transition:opacity .3s ease!important}
-#game-startup-screen.lm-replay .lm-replay-back{position:absolute;left:50%;bottom:max(28px,8vh);translate:-50% 0;z-index:5;min-width:160px;padding:11px 30px;border-radius:12px;border:2px solid #c9a24a!important;background:linear-gradient(#1d2f55,#13213f)!important;color:#f3e6d8!important;font:800 17px/1 'Noto Sans KR',system-ui,sans-serif;letter-spacing:.02em;box-shadow:0 0 0 1px #0b1220,0 6px 16px #000a,inset 0 1px 0 #ffffff22;cursor:pointer;animation:lmReplayBack .45s ease-out both}
+#game-startup-screen.lm-replay .lm-replay-back{position:absolute;left:50%;bottom:max(28px,8vh);translate:-50% 0;z-index:5;width:max(56px,8vh);height:max(56px,8vh);padding:0;border:0!important;border-radius:50%;background:none!important;box-shadow:none!important;cursor:pointer;filter:drop-shadow(0 3px 4px #000c);animation:lmReplayBack .45s ease-out both}   /* (DHL 10-31) 글자 없는 우리 '돌아가기' 아이콘 버튼 (assets/ui/icon/back.webp) */
+#game-startup-screen.lm-replay .lm-replay-back img{width:100%;height:100%;object-fit:contain;pointer-events:none}
 #game-startup-screen.lm-replay .lm-replay-back[hidden]{display:none}
-#game-startup-screen.lm-replay .lm-replay-back:hover,#game-startup-screen.lm-replay .lm-replay-back:focus-visible{border-color:#f0d27a!important;outline:none;filter:brightness(1.12)}
+#game-startup-screen.lm-replay .lm-replay-back:hover,#game-startup-screen.lm-replay .lm-replay-back:focus-visible{outline:none;filter:drop-shadow(0 3px 4px #000c) brightness(1.15);scale:1.08}
+#game-startup-screen.lm-replay .lm-replay-back:active{scale:.94}
+html body #game-startup-screen.lm-replay .lm-replay-back:focus,html body #game-startup-screen.lm-replay .lm-replay-back:focus-visible{outline:none!important;box-shadow:none!important;border:0!important}
 @keyframes lmReplayBack{from{opacity:0;translate:-50% 10px}to{opacity:1;translate:-50% 0}}
 @media (prefers-reduced-motion:reduce){#game-startup-screen.lm-replay .lm-replay-back{animation:none}}
 </style><style id="lm-rbscore-fit">/* (DHL 10-31 '최소 득점 숫자가 아래로 내려옴') 줄바꿈 없이 · 칸 폭과 자릿수에 맞춰 반응형으로 작아짐 (고정 크기로 줄이지 않음) */
@@ -3938,7 +3941,7 @@ function ltReplayIntro(){
   if(document.getElementById('game-startup-screen'))return;
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const sc=document.createElement('div');sc.id='game-startup-screen';sc.className='lm-replay';sc.dataset.phase='logo';sc.setAttribute('role','dialog');sc.setAttribute('aria-label','첫 실행 연출');
-  sc.innerHTML='<div class="mr-portal-bg"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><button type="button" class="lm-replay-back" hidden>돌아가기</button>';
+  sc.innerHTML='<div class="mr-portal-bg"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><button type="button" class="lm-replay-back" aria-label="돌아가기" title="돌아가기" hidden><img src="assets/ui/icon/back.webp" alt=""></button>';
   document.body.appendChild(sc);
   const bl=sc.querySelector('.mr-logo-blades'),st=sc.querySelector('.mr-logo-stage'),back=sc.querySelector('.lm-replay-back');
   // 처음 실행 때와 같은 '움직이려다 마는' 한 번 (t0초에 시작, peak°까지 밀렸다가 살짝 반대로 넘어가 제자리)
