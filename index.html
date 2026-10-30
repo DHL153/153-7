@@ -1628,7 +1628,7 @@ function ltSetHTML(){
   const tab=(k,n)=>`<button type="button" class="ls-tab ${ltSetTab===k?'on':''}" onclick="ltSetTab='${k}';ltPop('set')">${n}</button>`;
   let h=`<div class="ls-tabs">${tab('game','게임')}${tab('gfx','그래픽')}${tab('audio','오디오')}</div><div class="ls-body">`;
   if(ltSetTab==='game')h+=step('speed','게임 속도',[[1,'1'],[2,'2'],[3,'3'],[4,'4']])+step('btnpos','런/버리기 버튼 위치',[['pd','런/버리기'],['dp','버리기/런']])+sld('shake','화면 흔들기')+chk('rm','동작 감소')+
-    `<div class="ls-pair"><button type="button" class="ls-small" onclick="ltPop();openStoryReplay()">스토리 다시 보기</button><button type="button" class="ls-small" onclick="ltReplayIntro()">첫 실행 연출 다시 보기</button></div>`;
+    `<div class="ls-pair"><button type="button" class="ls-small" onclick="ltPop('story')">스토리 다시 보기</button><button type="button" class="ls-small" onclick="ltReplayIntro()">첫 실행 연출 다시 보기</button></div>`;
   if(ltSetTab==='gfx')h+=step('shadow','그림자',[[true,'켜짐'],[false,'꺼짐']])+step('motion','카드 몸짓',[[true,'켜짐'],[false,'꺼짐']])+step('tbl','테이블 무늬',[[true,'켜짐'],[false,'꺼짐']]);
   if(ltSetTab==='audio')h+=sld('master','마스터 볼륨')+sld('music','음악 볼륨')+sld('sfx','게임 볼륨','효과음은 아직 없어서 값만 저장됩니다');
   return h+`</div>`;
@@ -1663,7 +1663,7 @@ lmSetApply();
  function play(opts){
   const mode=(opts&&opts.mode)||'replay';
   const first=mode==='first';
-  const SET=opts&&opts.set,CUTS=SET?SET.n:CUTS0,SRC=SET?SET.src:SRC0,scene=!!SET,sceneSeen=scene&&(()=>{try{return localStorage.getItem(SET.key)==='1';}catch(e){return false;}})();   /* (DHL 10-30) 반전 씬 · 엔딩: 처음엔 끝까지(건너뛰기 없음), 본 뒤로는 건너뛰기 */
+  const SET=opts&&opts.set,CUTS=SET?SET.n:CUTS0,SRC=SET?SET.src:SRC0,scene=!!SET,sceneSeen=scene&&(mode==='replay'||(()=>{try{return localStorage.getItem(SET.key)==='1';}catch(e){return false;}})());   /* (DHL 10-30) 반전 씬 · 엔딩: 처음엔 끝까지(건너뛰기 없음), 본 뒤로는 건너뛰기 */
   return new Promise(resolve=>{
    document.getElementById('mr-story')?.remove();
    const host=document.createElement('section');
@@ -7558,5 +7558,36 @@ async function lmEnding(){
   showOv(runEndHTML(true));
 }
 function lmEndless(){hideOv();S.endless=true;S._statEnded=1;cashOut();}
+</script>
+
+<style id="lm-story-list-css">
+/* (DHL 10-30) 설정 › 스토리 다시 보기: 컬렉션처럼 3개 묶음 카드 */
+#lm-title .lc-story .lc-art img{inset:0;width:100%;height:100%;object-fit:cover;filter:sepia(.15) contrast(1.05)}
+#lm-title .lc-story .lc-art::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,#111c33)}
+#lm-title .lc-s1{--glow:#c98a3a66}#lm-title .lc-s2{--glow:#b8453a77}#lm-title .lc-s3{--glow:#e0b84a66}
+@media (max-height:500px){#lm-title .lc-story.lt-cb.lc-t{min-height:0!important;height:72px;flex:none}#lm-title .lc-story .lc-txt b{font-size:17px!important}#lm-title .lc-story .lc-txt em{font-size:13px}html.lmB #lm-title .lt-card.wide:has(.lc-story){min-height:0}#lm-title .lt-card:has(.lc-story) .lc-head{padding:0}#lm-title .lt-card:has(.lc-story) .lc-wrap{gap:6px}#lm-title .lt-card:has(.lc-story) .lc-list{gap:6px}#lm-title .lt-card:has(.lc-story) .lt-mb.back{margin-top:6px;min-height:36px}}
+#lm-title .lt-cb.lc-t.lock{filter:grayscale(1) brightness(.6);pointer-events:none}
+#lm-title .lc-t.lock .lc-art::before{content:"";position:absolute;inset:0;z-index:1;background:url(assets/ui/maple/icons/lock.webp) center/34% no-repeat}
+</style>
+<script id="lm-story-list">
+/* 스토리 묶음 — 이름 · 설명 · 그림은 여기서만 바꾸면 됨. 출시 때 LM_STORY_ALL=false로 하면 본 것만 열림 */
+var LM_STORY_ALL=true;
+const LM_STORY=[
+  {k:'open',cls:'lc-s1',ko:'여정의 시작',sub:'녹슨 기사, 구슬을 줍다',img:'assets/art/story/story_02.webp?v=2',n:8,seen:()=>window.MRStory&&MRStory.seen(),play:()=>MRStory.play({mode:'replay'})},
+  {k:'reveal',cls:'lc-s2',ko:'풍차의 진실',sub:'스카이아크 알론소의 고백',img:'assets/art/story/reveal_04.webp',n:4,seen:()=>{try{return localStorage.getItem('lm.scene.reveal.v1')==='1'}catch(e){return false}},play:()=>MRStory.play({mode:'replay',set:LM_SCENES.reveal})},
+  {k:'ending',cls:'lc-s3',ko:'다시, 라만차',sub:'풍차가 멈춘 뒤의 이야기',img:'assets/art/story/ending_04.webp',n:4,seen:()=>{try{return localStorage.getItem('lm.scene.ending.v1')==='1'}catch(e){return false}},play:()=>MRStory.play({mode:'replay',set:LM_SCENES.ending})}
+];
+function ltStoryPlay(i){const S=LM_STORY[i];ltPop();Promise.resolve(S.play()).finally(()=>ltPop('story'));}
+(function(){
+  const _lp=ltPop;
+  ltPop=function(kind){
+    if(kind!=='story')return _lp.apply(this,arguments);
+    _lp('set');const card=document.querySelector('#lm-title .lt-pop .lt-card');
+    const T=(S,i)=>{const open=LM_STORY_ALL||S.seen();
+      return `<button type="button" class="lt-cb lc-t lc-story ${S.cls}${open?'':' lock'}" ${open?`onclick="ltStoryPlay(${i})"`:'disabled'}><span class="lc-art"><img src="${S.img}" alt=""></span><span class="lc-txt"><b>${open?S.ko:'???'}</b><small>${open?S.sub:'아직 보지 못한 이야기'}</small><em>${S.n}<u>컷</u></em></span></button>`;};
+    card.innerHTML=`<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">스토리</div></div><div class="lc-list">${LM_STORY.map(T).join('')}</div></div><button type="button" class="lt-mb back" onclick="ltPop('set')">뒤로</button>`;
+    card.classList.add('wide');
+  };
+})();
 </script>
 </body></html>
