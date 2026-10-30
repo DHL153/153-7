@@ -4,9 +4,9 @@
    fx: 원본의 빛 위에 겹치는 이펙트(화면 더하기) · emit: 입자 */
 window.LM_LIVE={
 reveal_01:{img:'../reveal_01.webp',cam:{z:1.05,x:70,y:60},
-  move:[{t:'breathe',x:380,y:700,rx:250,ry:420,an:1030,a:.005,f:.25},
-        {t:'hair',x:400,y:300,rx:160,ry:120,an:390,a:2.5,f:.35},
-        {t:'flag',x:230,y:470,rx:150,ry:100,an:330,a:3,f:.4},
+  move:[{t:'breathe',x:400,y:730,rx:240,ry:330,an:1010,a:.005,f:.25},
+        {t:'hair',x:380,y:470,rx:160,ry:120,an:560,a:2.5,f:.35},
+        {t:'flag',x:210,y:710,rx:130,ry:90,an:320,a:3,f:.4},
         {t:'breathe',x:1100,y:800,rx:170,ry:210,an:1000,a:.007,f:.2},
         {t:'hair',x:1090,y:520,rx:110,ry:85,an:585,a:2.5,f:.3,ph:1},
         {t:'flag',x:930,y:720,rx:120,ry:110,an:1060,a:3,f:.35,ph:2}],
