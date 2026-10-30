@@ -1692,13 +1692,15 @@ lmSetApply();
    }
    let idx=0,finished=false;
    function syncMute(){const m=isMuted();btnMute.innerHTML=m?ICON.off:ICON.on;btnMute.classList.toggle('is-muted',m);btnMute.title=btnMute.ariaLabel=t('소리 켜기 / 끄기');}
+   let live=null;   /* (DHL 10-30) 반전 · 엔딩 컷: 원본 컷 위에서 부분만 살짝 움직이는 Live (assets/art/story/live) */
+   function liveShow(){live&&live.stop();live=null;if(!SET||!SET.live||!window.LMLive)return;live=LMLive.mount(stage,SET.live+'_'+String(idx+1).padStart(2,'0'),'assets/art/story/live/');}
    function show(n,dir){
     idx=Math.max(0,Math.min(CUTS-1,n));
     imgs.forEach((im,i)=>{im.classList.toggle('is-current',i===idx);im.classList.toggle('is-back',i<idx);});
     const cur=imgs[idx];
     stage.classList.toggle('is-loading',!(cur.complete&&cur.naturalWidth>0));
     if(!cur.complete)cur.addEventListener('load',()=>{if(idx===imgs.indexOf(cur))stage.classList.remove('is-loading');},{once:true});
-    count.textContent=(idx+1)+' / '+CUTS;
+    count.textContent=(idx+1)+' / '+CUTS;liveShow();
     dots.forEach((d,i)=>{d.classList.toggle('is-on',i===idx);d.classList.toggle('is-done',i<idx);});
     const last=idx===CUTS-1;
     btnPrev.disabled=edgePrev.disabled=idx===0;
@@ -1708,7 +1710,7 @@ lmSetApply();
     btnNext.focus({preventScroll:true});
    }
    function finish(){
-    if(finished)return;finished=true;
+    if(finished)return;finished=true;live&&live.stop();live=null;
     try{localStorage.setItem(scene?SET.key:SEEN_KEY,'1');}catch(e){}
     document.removeEventListener('keydown',onKey,true);
     host.classList.add('is-out');
@@ -7526,6 +7528,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 </style>
 
 <style id="lm-finale-css">.sToken[data-boss="skyAlonso"]{background-image:url(assets/ui/lamancha/token_sky.webp)!important}.sToken[data-boss="windmill"]{background-image:url(assets/ui/lamancha/token_mill.webp)!important}</style>
+<script src="assets/art/story/live/scenes.js"></script><script src="assets/art/story/live/live.js"></script>
 <script id="lm-finale">
 /* 🌀 편력 기사 피날레 (DHL 10-30): 8장 거인 스카이아크 알론소 → 반전 씬 → 풍차 거인(같은 판·같은 덱, 목표 ×1.5) → 찐 엔딩 → 원정 계속하기(무한)
    · 저장 없음: 풍차 거인에게 지면 판 끝 — 편력 클리어는 풍차 거인을 쓰러뜨릴 때만
@@ -7536,8 +7539,8 @@ var LM_BOSS_ART={
   windmill:['assets/art/villains/boss_windmill.png','풍차 거인','walk','lm-mill']   // (DHL 10-30) 풍차 거인 — 원본 1254px: assets/art/villains/boss_windmill_full.webp
 };
 const LM_SCENES={
-  reveal:{n:4,key:'lm.scene.reveal.v1',src:i=>'assets/art/story/reveal_'+String(i).padStart(2,'0')+'.webp'},
-  ending:{n:4,key:'lm.scene.ending.v1',src:i=>'assets/art/story/ending_'+String(i).padStart(2,'0')+'.webp'}
+  reveal:{n:4,live:'reveal',key:'lm.scene.reveal.v1',src:i=>'assets/art/story/reveal_'+String(i).padStart(2,'0')+'.webp'},
+  ending:{n:4,live:'ending',key:'lm.scene.ending.v1',src:i=>'assets/art/story/ending_'+String(i).padStart(2,'0')+'.webp'}
 };
 function lmScene(k){const D=LM_SCENES[k];return new Promise(res=>{if(!D||!window.MRStory)return res(false);
   const im=new Image();im.onload=()=>MRStory.play({mode:'scene',set:D}).then(()=>res(true),()=>res(false));im.onerror=()=>res(false);im.src=D.src(1);});}
