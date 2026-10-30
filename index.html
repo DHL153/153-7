@@ -4170,7 +4170,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r37" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r38" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -7527,7 +7527,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
    · 씬 그림: assets/art/story/reveal_01~04.webp · ending_01~04.webp — 없으면 건너뜀 */
 const LM_BOSS_ART={
   skyAlonso:['assets/art/battle_characters/battle_char_0021_Idle.png','스카이아크 알론소','float','lm-ghost lm-flip'],
-  windmill:null   // 풍차 거인 그림이 오면 ['경로','풍차 거인','walk','lm-flip?']
+  windmill:['assets/art/villains/boss_windmill.png','풍차 거인','walk','lm-mill']   // (DHL 10-30) 풍차 거인 — 원본 1254px: assets/art/villains/boss_windmill_full.webp
 };
 const LM_SCENES={
   reveal:{n:4,key:'lm.scene.reveal.v1',src:i=>'assets/art/story/reveal_'+String(i).padStart(2,'0')+'.webp'},

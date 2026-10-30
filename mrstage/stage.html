@@ -2226,6 +2226,7 @@ html.game-booting #app{visibility:hidden!important;}
 /* (라만차 10-30) 스카이아크 알론소 = 적: 좌우 반전 + 유령빛(청록 · 반투명 · 빛 테두리) */
 #battle-stage .boss-art.lm-flip{scale:-1 1}
 #battle-stage .boss-art.lm-ghost{filter:grayscale(.65) sepia(.35) hue-rotate(135deg) saturate(2.2) brightness(1.08) contrast(1.05) drop-shadow(0 0 6px #7ff6ffcc) drop-shadow(0 0 18px #2ec8ff88);opacity:.86;animation:enemyHover 1.65s ease-in-out infinite,lmGhost 2.4s ease-in-out infinite}
+#battle-stage .boss-art.lm-mill{scale:1.12;transform-origin:50% 100%;filter:drop-shadow(0 0 10px #ff3a3a55)}
 @keyframes lmGhost{0%,100%{opacity:.9}50%{opacity:.68}}
 @media(prefers-reduced-motion:reduce){#battle-stage .boss-art.lm-ghost{animation:none!important}}
 #battle-stage .flying-enemy-art {animation:enemyHover 1.65s ease-in-out infinite;}
