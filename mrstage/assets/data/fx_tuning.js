@@ -3,7 +3,7 @@
 // chars = 캐릭터별(전투 캐릭터 번호 1~30) trail·hit 값 — 적힌 값만 공통 값을 덮음 · custom[].chars = 그 캐릭터들만
 // custom[] 플립북: cols×rows 시트, frameStart~frameEnd, fps(0 = len 에 맞춤)·loops·pingpong, blend "screen"(검은 배경 지움) | "normal"(투명 PNG 그대로)
 // ms = 1/1000초, size = 기본 크기 배율, x·y = 캐릭터 그림 안 위치(0~1)
-// off = true 면 그 이펙트를 안 그림(그림 파일·값은 그대로) — trail.off: 2026-10-22 DHL 흰 칼 트레일을 전투에서 뺌
+// off = true 면 그 이펙트를 안 그림(그림 파일·값은 그대로) — trail.off: 2026-10-22 DHL 흰 칼 트레일을 전투에서 뺌 · custom[0](파란 칼 궤적).off: 2026-10-30 DHL '공격 파랑 이펙트 빼고 장난감 때 넣은 것(fx/route)으로'
 window.MR_FX_TUNING={
  "version":1,
  "trail":{"off":true,"lead":-60,"len":300,"imgDelay":60,"size":2.25,"opacity":1,"x":0.73,"y":0.53,"cw":true,"frameStart":3,"frameEnd":22,"rotStart":-105,"spin":0,"alphaCurve":[[0,0],[0.211,1],[0.833,1],[1,0]],"colorCurve":null},
@@ -22,6 +22,6 @@ window.MR_FX_TUNING={
  },
  "chars":{},
  "custom":[
-  {"name":"새 이펙트","src":"assets/art/effects/battle/fx_battle_attack_slash_blue_0001.png","trigger":"attack","anchor":"hero","chars":[],"cols":2,"rows":2,"frameStart":0,"frameEnd":3,"fps":15,"loops":1,"pingpong":false,"blend":"normal","at":-60,"len":90,"size":2.9,"opacity":1,"x":0.85,"y":0.15,"rotate":-140,"spin":195,"flipX":false,"fadeOut":0,"off":false,"alphaCurve":[[0,0],[0.172,1],[0.52,1],[0.642,0.146],[0.845,0],[1,0]],"sizeCurve":[[0,0],[0.13790714743750943,1],[1,1]]}
+  {"name":"새 이펙트","src":"assets/art/effects/battle/fx_battle_attack_slash_blue_0001.png","trigger":"attack","anchor":"hero","chars":[],"cols":2,"rows":2,"frameStart":0,"frameEnd":3,"fps":15,"loops":1,"pingpong":false,"blend":"normal","at":-60,"len":90,"size":2.9,"opacity":1,"x":0.85,"y":0.15,"rotate":-140,"spin":195,"flipX":false,"fadeOut":0,"off":true,"alphaCurve":[[0,0],[0.172,1],[0.52,1],[0.642,0.146],[0.845,0],[1,0]],"sizeCurve":[[0,0],[0.13790714743750943,1],[1,1]]}
  ]
 };
