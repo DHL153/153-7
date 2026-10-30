@@ -6283,7 +6283,7 @@ function layoutBattleTeam(stage,team,preview=false){
         const entries=battleTeamEntries(team),count=Math.max(entries.length,window.MRStageMinTeam||0);/*손패: 진형 고정*/
         const W=stage.clientWidth,H=stage.clientHeight;
         // Visible centers (% of stage width), computed per team size and stage ratio (main + mini).
-        const formation=battleFormation(count,W,H),positions=formation.heroes;
+        const formation=battleFormation(count,W,H);if(Array.isArray(window.LM_PACK))formation.heroes=window.LM_PACK.slice();const positions=formation.heroes;   // (라만차 10-30) 세 알론소: 무대 안에 촘촘히
         stage.dataset.teamSize=String(count);stage.style.setProperty('--team-enemy-x',formation.enemy+'%');
         const relayout=()=>layoutBattleTeam(stage,activeBattleTeam);
         const members=entries.map((entry,index)=>({...entry,index:window.MRStageMinTeam?entry.slot:index,/*손패: 자리 고정*/el:battleTeamElement(entry.slot),bounds:getBattleHeroArtBounds(entry.id,relayout)})).filter(m=>m.el);
@@ -8390,7 +8390,7 @@ let isGameOver = false;
   }
   // 라운드 시작 (한 번에): 밤 · 모두 숨김 → 땅 · 적 · 팀 → 리그 준비 → 하늘 밝아지며 왼쪽에서 걸어 들어옴
   async function round(o){
-    const W=stage.clientWidth||400;
+    const W=stage.clientWidth||400;window.LM_PACK=Array.isArray(o.pack)?o.pack:null;
     show(ALL,false);setMul(ALL,null);offsetTeam(-W*.75);resetCharge();
     stage.classList.remove('lm-cleared','lm-foe-dead');stage.classList.add('lm-still');
     window.MRBattleSky?.setStage(3,true);skyN=3;
