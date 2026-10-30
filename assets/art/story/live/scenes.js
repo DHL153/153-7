@@ -83,7 +83,7 @@ reveal_04:{img:'../reveal_04.webp',cam:{z:1.06,x:50,y:30,d:10},shake:1.2,
         {t:'hair',x:525,y:800,rx:90,ry:65,an:850,a:2,f:.4},
         {t:'hair',x:690,y:800,rx:90,ry:65,an:850,a:2,f:.4,ph:1},
         {t:'flag',x:470,y:880,rx:80,ry:70,an:540,a:2.5,f:.4}],
-  fx:[{i:'r4_fx1.webp',x:667,y:225,w:42,k:'flick',v:{d:'2.2s'}},{i:'r4_fx0.webp',x:712,y:225,w:42,k:'flick',v:{d:'2.2s',dl:'-.3s'}},
+  fx:[{i:'r4_eye.webp',x:676,y:219,w:48,k:'blink',v:{d:'3.6s'}},{i:'r4_eye.webp',x:714,y:219,w:48,k:'blink',v:{d:'3.6s'}},   /* 창문(678~760 × 237~272) 안 두 눈 */
       {i:'r4_fx2.webp',x:591,y:301,w:248,k:'pulse',v:{d:'1.8s',lo:.3,hi:1}}],
   emit:[{i:['r4_rock4.webp','r4_rock6.webp','r4_rock7.webp','r4_rock8.webp','r4_rock9.webp','r4_rock10.webp','r4_rock11.webp','r4_rock12.webp'],n:12,a:[0,-220,1448,-120],w:[24,70],k:'fall',d:[3,6],dy:1350,dx:60,b:'n'}]},
 ending_01:{img:'../ending_01.webp',cam:{z:1.05,x:54,y:48},shake:2,

@@ -29,6 +29,8 @@ const CSS=`.lmL{position:absolute;inset:0;overflow:hidden;background:transparent
 @keyframes lmPulse{0%,100%{opacity:var(--lo,.35)}50%{opacity:var(--hi,1)}}
 .lmL .k-flick{animation:lmFlick var(--d,1.6s) steps(1) var(--dl,0s) infinite both}
 @keyframes lmFlick{0%{opacity:var(--hi,1)}23%{opacity:var(--lo,.3)}31%{opacity:var(--hi,1)}64%{opacity:.6}72%{opacity:var(--hi,1)}}
+.lmL .k-blink{transform-origin:50% 50%;animation:lmBlink var(--d,3.6s) ease-in-out var(--dl,0s) infinite both}
+@keyframes lmBlink{0%,100%{opacity:.85;scale:1 1}40%{opacity:1;scale:1 1}44%{scale:1 .08;opacity:.6}48%{scale:1 1;opacity:1}52%{scale:1 .08}56%{scale:1 1;opacity:1}75%{opacity:.75}}
 .lmL .k-spin{animation:lmSpin var(--d,20s) linear infinite}
 @keyframes lmSpin{to{rotate:var(--a,360deg)}}
 .lmL .k-rise{opacity:0;animation:lmRise var(--d,3s) ease-in-out var(--dl,0s) infinite}
