@@ -4957,7 +4957,7 @@ html.lmB body #app.bl #orbs .orb.bump{animation:none}html.lmB body #app.bl #orbs
    그림: assets/ui/defeat/ slash · emblem · ribbon(가운데만 늘어남) · cracks — 글자는 그림에 없고 12개 언어로 얹음 · 화면을 누르면 건너뜀 */
 #lmDefeat{position:fixed;inset:0;z-index:8;pointer-events:auto;cursor:pointer;overflow:hidden}
 #lmDefeat .dfStageFx{position:fixed;pointer-events:none}
-#lmDefeat .dfSlash{position:absolute;left:36%;top:50%;width:auto;height:150%;translate:-50% -50%;opacity:0;filter:drop-shadow(0 0 12px #ff2a1a)}
+#lmDefeat .dfSlash{position:absolute;left:36%;top:50%;width:auto;height:150%;translate:-50% -50%;transform:scaleX(-1);opacity:0;filter:drop-shadow(0 0 12px #ff2a1a)}   /* (DHL 10-30) 적의 반격 = 오른쪽(적) → 왼쪽(주인공) 방향 — 그림(왼쪽에서 오는 참격)을 좌우 반전 */
 #lmDefeat .dfSlash.go{animation:dfSlash .5s cubic-bezier(.2,.8,.3,1) forwards}
 @keyframes dfSlash{0%{opacity:0;scale:.35;rotate:-14deg;clip-path:inset(0 0 100% 0)}25%{opacity:1}55%{opacity:1;scale:1;rotate:0deg;clip-path:inset(0 0 0 0)}100%{opacity:0;scale:1.08;clip-path:inset(0 0 0 0)}}
 #lmDefeat .dfHitFlash{position:absolute;inset:0;background:radial-gradient(ellipse at 35% 60%,#fff 0,#ffd0c8cc 20%,#ff3b2f55 45%,transparent 70%);opacity:0}
