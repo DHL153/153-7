@@ -2639,7 +2639,7 @@ function render(){
   $('pTgt').innerHTML=S.sandbox?`🧪 <b style="color:var(--gold)">연습장</b> · 최고 ${(S.best||0).toLocaleString()}`:S.practice?'🎯 <b style="color:var(--gold)">해보기</b>':`🎯 <b style="color:var(--gold)">${S.score.toLocaleString()}</b> / <b>${S.tgt.toLocaleString()}</b>`;
   $('pGold').textContent=`💰 ${S.gold}`;
   $('nRun').textContent=S.sandbox?'∞':S.runs;$('nDis').textContent=S.sandbox?'∞':S.dis;$('nDeck').textContent=`${S.draw.length}/${S.deck.length}`;$('hand').style.setProperty('--hn',Math.max(8,S.hand.length));document.body.classList.toggle('handWide',S.hand.length>8);
-  $('bSort').textContent=SORT_KO[S.sort];
+  if(S.sort==='star')$('bSort').innerHTML='<img class="sortStar" src="assets/ui/card/star_g.webp" alt="★" draggable="false">';else $('bSort').textContent=SORT_KO[S.sort];   /* (DHL 10-30 '정렬 별이 깨짐') 이모지 그림(옆 칸이 같이 잘려 나옴) 대신 카드 별 그림 */
   const sc=selCards();S.scoreU=null;if(!S.busy)S.keyNow=null;const hadW=S.willM&&S.willM.length;S.willM=null;
   if(!S.busy){
     if(sc.some(c=>c.fog)){$('htName').textContent='? 가려진 카드';$('vC').textContent='?';$('vM').textContent='?';$('tot').textContent='';}
@@ -6203,10 +6203,10 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];S.restSel=null;}
     S.inRest=true;const L=all();if(S.restSel&&!L.find(x=>x[0]===S.restSel))S.restSel=null;
     const sel=S.restSel&&L.find(x=>x[0]===S.restSel);
-    showOv(`<div class="rest">${header()}<div class="cpRow n${L.length}">`+L.map(([k,I,g])=>card(k,I,g)).join('')+`</div>`+desc(S.restSel)+
-      `<div class="cpFoot">`+(S.campLog.length?'':`<button class="cpBack" onclick="restLeave(0)"><img src="assets/ui/icon/back.webp" alt=""></button>`)+
-      `<button class="cpGo${sel&&!sel[1].off?'':' hid'}" onclick="restTap('${S.restSel||''}')"><img class="lmIcA" src="assets/ui/icon/check.webp" alt="">${S.restSel?(S.restSel==='guest'?GUESTS[S.campGuest.k].ko:NM[S.restSel]):''}</button>`+
-      (S.campLog.length?`<button class="cpLeave" onclick="restLeave(1)"><i></i>출발</button>`:'')+`</div></div>`);};
+    let nfH='';try{if(armorOn()&&typeof nextFoeHTML==='function'){const nf=S.rd<2?S.foes[S.rd+1]:null;if(nf)nfH=`<div class="nextFoe nf2 cpNext"><small>다음 빌런 · ${S.jang}장 ${RD_KO[S.rd+1]}</small>${nextFoeHTML(nf)}</div>`;}}catch(e){}   /* (DHL 10-30) 야영에서도 다음 빌런 */
+    showOv(`<div class="rest">${nfH}${header()}<div class="cpRow n${L.length}">`+L.map(([k,I,g])=>card(k,I,g)).join('')+`</div>`+desc(S.restSel)+
+      `<div class="cpFoot cpFoot3"><span class="cpL"></span><span class="cpC">`+(S.campLog.length?`<button class="cpLeave" onclick="restLeave(1)"><i></i>출발</button>`:`<button class="cpBack" onclick="restLeave(0)" aria-label="돌아가기"><img src="assets/ui/icon/btn_arrow_l.webp" alt=""></button>`)+`</span>`+
+      `<span class="cpR"><button class="cpGo${sel&&!sel[1].off?'':' hid'}" onclick="restTap('${S.restSel||''}')"><img class="lmIcA" src="assets/ui/icon/check.webp" alt="">${S.restSel?(S.restSel==='guest'?GUESTS[S.campGuest.k].ko:NM[S.restSel]):''}</button></span></div></div>`);};   /* (DHL 10-30) 돌아가기 · 출발은 가운데, 확인은 오른쪽 */
   window.restLeave=go=>{S.inRest=false;S.restSel=null;if(go)return campFinish();startRound();};
   /* 정비 뒤 화면(이름 고르기 · 카드 고르기 · 손님 · 밤 산책)도 같은 숲 배경 안에 */
   const _so=showOv;showOv=function(h){
@@ -7312,5 +7312,18 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 /* (DHL 10-30) 머지 & 런: 머지 켬/끔 버튼 */
 .mrTog{display:inline-flex;align-items:center;gap:4px;margin-right:6px;padding:4px 12px;border-radius:999px;border:2px solid #94a3b8;background:#1e293b;color:#e2e8f0;font:800 13px/1.2 "Noto Sans KR",sans-serif;cursor:pointer;pointer-events:auto;vertical-align:middle}
 .mrTog.on{border-color:#4ade80;background:#14532d;color:#dcfce7;box-shadow:0 0 8px #4ade8066}
+</style>
+
+<style id="lm-sort-star">#bSort img.sortStar{height:1.3em!important;width:auto!important;max-width:none;vertical-align:middle;display:inline-block;filter:drop-shadow(0 1px 0 #0006)}</style>
+<style id="lm-camp-v2">
+/* (DHL 10-30) 야영: 위에 다음 빌런 · 아래 돌아가기(남색 원 왼쪽 화살표) 가운데 */
+.rest .cpNext{width:min(560px,92cqw);flex:none;margin:0 auto}
+.cpFoot.cpFoot3{display:grid!important;grid-template-columns:1fr auto 1fr;gap:12px;width:min(640px,94cqw);align-items:center}
+.cpFoot3 .cpC{display:flex;justify-content:center}
+.cpFoot3 .cpR{display:flex;justify-content:flex-start}
+.cpFoot3 .cpBack{width:clamp(50px,7vh,60px)!important;height:clamp(50px,7vh,60px)!important;filter:drop-shadow(0 3px 0 #0009)!important}
+.cpFoot3 .cpGo{padding:0 18px}
+@media (orientation:portrait){.rest .cpNext{width:94cqw}}
+@media (orientation:landscape) and (max-height:500px){.rest .cpNext{display:none!important}}
 </style>
 </body></html>
