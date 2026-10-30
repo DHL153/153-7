@@ -1,0 +1,291 @@
+{
+ "rust": {
+  "torsoCut": 380,
+  "farG": "S4_00",
+  "sole": 24,
+  "walkHip": {
+   "N": -22,
+   "F": 16
+  },
+  "farUp": {
+   "piece": "S1_00",
+   "ball": [
+    170,
+    130
+   ],
+   "elbow": [
+    140,
+    395
+   ],
+   "across": 0.26,
+   "ext": 0.12
+  },
+  "nearUp": {
+   "piece": "S1_01",
+   "ball": [
+    330,
+    150
+   ],
+   "elbow": [
+    110,
+    430
+   ],
+   "across": 0.26,
+   "ext": 0.12
+  },
+  "restBend": {
+   "N": -1,
+   "F": 1
+  },
+  "walk": {
+   "N": {
+    "thigh": {
+     "piece": "S2_00",
+     "top": [
+      112,
+      55
+     ],
+     "bot": [
+      105,
+      370
+     ],
+     "length": 38,
+     "width": 54
+    },
+    "shin": {
+     "piece": "S2_01",
+     "top": [
+      100,
+      60
+     ],
+     "bot": [
+      100,
+      335
+     ],
+     "length": 34,
+     "width": 50
+    },
+    "foot": {
+     "piece": "S2_02",
+     "top": [
+      115,
+      300
+     ],
+     "bot": [
+      115,
+      425
+     ],
+     "length": 24,
+     "width": 68,
+     "crop": [
+      288,
+      433
+     ]
+    }
+   },
+   "F": {
+    "thigh": {
+     "piece": "S2_00",
+     "top": [
+      112,
+      55
+     ],
+     "bot": [
+      105,
+      370
+     ],
+     "length": 38,
+     "width": 52
+    },
+    "shin": {
+     "piece": "S2_01",
+     "top": [
+      100,
+      60
+     ],
+     "bot": [
+      100,
+      335
+     ],
+     "length": 34,
+     "width": 48
+    },
+    "foot": {
+     "piece": "S2_03",
+     "top": [
+      105,
+      292
+     ],
+     "bot": [
+      105,
+      418
+     ],
+     "length": 24,
+     "width": 66,
+     "crop": [
+      283,
+      424
+     ]
+    }
+   }
+  },
+  "vestRGB": "olive",
+  "walk2": {
+   "scale": 0.305,
+   "farShade": 0.86
+  },
+  "punch": {
+   "cuff": 185,
+   "overlap": 6,
+   "thickK": 0.3
+  }
+ },
+ "neon": {
+  "torsoCut": 378,
+  "farG": "S4_01",
+  "sole": 26,
+  "walkHip": {
+   "N": -22,
+   "F": 16
+  },
+  "farUp": {
+   "piece": "S1_00",
+   "ball": [
+    130,
+    95
+   ],
+   "elbow": [
+    115,
+    330
+   ],
+   "across": 0.24,
+   "ext": 0.12
+  },
+  "nearUp": {
+   "piece": "S1_01",
+   "ball": [
+    340,
+    105
+   ],
+   "elbow": [
+    110,
+    380
+   ],
+   "across": 0.24,
+   "ext": 0.12
+  },
+  "restBend": {
+   "N": -1,
+   "F": 1
+  },
+  "walk": {
+   "N": {
+    "thigh": {
+     "piece": "S2_01",
+     "top": [
+      88,
+      60
+     ],
+     "bot": [
+      88,
+      370
+     ],
+     "length": 38,
+     "width": 58
+    },
+    "shin": {
+     "piece": "S2_02",
+     "top": [
+      95,
+      60
+     ],
+     "bot": [
+      100,
+      262
+     ],
+     "length": 34,
+     "width": 52,
+     "crop": [
+      0,
+      280
+     ]
+    },
+    "foot": {
+     "piece": "S2_02",
+     "top": [
+      100,
+      265
+     ],
+     "bot": [
+      100,
+      400
+     ],
+     "length": 26,
+     "width": 76,
+     "crop": [
+      235,
+      415
+     ]
+    }
+   },
+   "F": {
+    "thigh": {
+     "piece": "S2_01",
+     "top": [
+      88,
+      60
+     ],
+     "bot": [
+      88,
+      370
+     ],
+     "length": 38,
+     "width": 56
+    },
+    "shin": {
+     "piece": "S2_03",
+     "top": [
+      95,
+      60
+     ],
+     "bot": [
+      95,
+      265
+     ],
+     "length": 34,
+     "width": 50,
+     "crop": [
+      0,
+      282
+     ]
+    },
+    "foot": {
+     "piece": "S2_03",
+     "top": [
+      95,
+      268
+     ],
+     "bot": [
+      95,
+      405
+     ],
+     "length": 26,
+     "width": 74,
+     "crop": [
+      240,
+      415
+     ]
+    }
+   }
+  },
+  "walk2": {
+   "scale": 0.4,
+   "farShade": 0.86
+  },
+  "punch": {
+   "cuff": 430,
+   "overlap": 6,
+   "thickK": 0.3
+  }
+ }
+}
