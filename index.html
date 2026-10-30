@@ -770,9 +770,9 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 #mr-story .mr-story-frame::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border:solid transparent;border-width:27px 28px;
  border-image:url(assets/ui/theme/ui_frame_main.webp) 106 120 108 120 / 27px 28px / 0 stretch;filter:drop-shadow(0 10px 22px rgba(0,0,0,.7));}
 #mr-story .mr-story-stage{position:absolute;inset:9px;overflow:hidden;background:#efe9dc;cursor:pointer;box-shadow:inset 0 0 18px rgba(60,40,10,.35);}
-#mr-story .mr-story-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:translateX(14px) scale(1.01);transition:opacity .28s ease,transform .28s ease;}
-#mr-story .mr-story-stage img.is-current{opacity:1;transform:none;}
-#mr-story .mr-story-stage img.is-back{transform:translateX(-14px) scale(1.01);}
+#mr-story .mr-story-stage>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:translateX(14px) scale(1.01);transition:opacity .28s ease,transform .28s ease;}
+#mr-story .mr-story-stage>img.is-current{opacity:1;transform:none;}
+#mr-story .mr-story-stage>img.is-back{transform:translateX(-14px) scale(1.01);}
 #mr-story .mr-story-stage .mr-story-spinner{position:absolute;left:50%;top:50%;z-index:2;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #b8893a44;border-top-color:#b8893a;animation:mrStorySpin .9s linear infinite;opacity:0;transition:opacity .2s;}
 #mr-story .mr-story-stage.is-loading .mr-story-spinner{opacity:1;}
 /* 그림 좌우 끝 화살표 (마우스 올렸을 때만) */
@@ -807,7 +807,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
  #mr-story .mr-story-edge,#mr-story .mr-story-hint{display:none;}
 }
 @media(hover:none){#mr-story .mr-story-edge{display:none;}}
-@media(prefers-reduced-motion:reduce){#mr-story,#mr-story .mr-story-stage img{transition:none!important;}#mr-story .mr-story-spinner,#mr-story .mr-story-next.is-final{animation:none!important;}}
+@media(prefers-reduced-motion:reduce){#mr-story,#mr-story .mr-story-stage>img{transition:none!important;}#mr-story .mr-story-spinner,#mr-story .mr-story-next.is-final{animation:none!important;}}
 
 /* ── 타이틀 화면 (2026-10-27) — 발라트로 2번 화면 배치 + 153-6 로딩과 같은 배경(bg_merge_0005 · 비네트 · 느린 줌) ── */
 #lm-title{position:fixed;inset:0;z-index:50;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a1325;color:#f3efe6;font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;user-select:none}
