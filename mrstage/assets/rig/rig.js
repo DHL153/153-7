@@ -445,7 +445,9 @@
       const act = an.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * act.speed; if (act.t >= act.def.dur) an.act = null }
       const D = an.act ? an.act.def : null, at = an.act ? an.act.t : 0, tr = k => D && D[k] ? track(D[k], at) : 0;
       an.A = damp(an.A, D ? 0 : smooth(15, 200, sp), D ? 16 : 7, dt); const A = an.A, I = 1 - A;
-      const hz = s.stepHz > 0 && sp > 14 ? s.stepHz : (R.hz0 + R.hzK * sp), T2 = 2 / hz, st = R.stance;
+      let hz = s.stepHz > 0 && sp > 14 ? s.stepHz : (R.hz0 + R.hzK * sp); const st = R.stance;
+      if (R.maxStride && sp > 14) { const need = 2 * sp * st / R.maxStride; if (need > hz) hz = Math.min(R.maxHz || 7, need) }   // (DHL 10-30 '다리가 배경보다 느림') 짧은 다리라 보폭 상한에 걸리면 걸음 수를 늘려 땅 속도를 따라감
+      const T2 = 2 / hz;
       if (!D) an.ph = (an.ph + dt / T2 * smooth(5, 60, sp)) % 1;
       const P = an.ph * TAU, T = an.t, br = Math.sin(T * TAU / (I0.period || 2.9));
       const accel = (lvx - an.prevLVx) / Math.max(dt, 1e-4); an.prevLVx = lvx;
