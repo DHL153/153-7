@@ -7365,6 +7365,90 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 .mrTog.on{border-color:#4ade80;background:#14532d;color:#dcfce7;box-shadow:0 0 8px #4ade8066}
 </style>
 
+<style id="lm-merge-fx-css">
+/* (DHL 10-30) 머지 연출 — ★2 = 손패 안에서 빠르게(C) · ★3 = 가운데서 모루 일격(A) */
+#mgfx{position:fixed;inset:0;z-index:9000;pointer-events:none}
+#mgfx.block{pointer-events:auto}
+#mgfx .dim{position:absolute;inset:0;background:radial-gradient(circle at 50% 46%,#0b1222aa,#000d);opacity:0}
+#mgfx .mc.card.dz{position:absolute;width:var(--w);aspect-ratio:.72;margin:0;container-type:inline-size}
+#mgfx .sp{position:absolute;translate:-50% -50%;background-repeat:no-repeat}
+#mgfx .stars{position:absolute;display:flex;gap:6px;translate:-50% 0}
+#mgfx .stars i.m2{width:calc(var(--s)*1.75);height:calc(var(--s)*1.75);margin:0 calc(var(--s)*-.36);background:none no-repeat;filter:none;opacity:0}
+#mgfx .stars i{width:var(--s);height:var(--s);background:url(assets/ui/card/star_g.webp) center/contain no-repeat;opacity:0;filter:drop-shadow(0 0 8px #ffd66a)}
+#mgfx .plus{position:absolute;translate:-50% 0;display:flex;align-items:center;gap:2px;font:900 24px/1 "Noto Sans KR",sans-serif;color:#ffe08a;text-shadow:0 2px 0 #3a1f0c,0 0 10px #ffb43a;opacity:0;white-space:nowrap}
+#mgfx .plus img{height:1.15em}
+#mgfx .ttl{position:absolute;left:50%;translate:-50% 0;font:900 clamp(18px,3vh,26px)/1 "Noto Sans KR",sans-serif;color:#ffe08a;text-shadow:0 2px 0 #3a1f0c,0 0 12px #ffb43a;opacity:0;white-space:nowrap}
+</style>
+<script id="lm-merge-fx">
+(function(){
+  if(typeof finishMerge!=='function')return;
+  /* 리소스 자리: DHL 리소스(M1 반짝임 · M2 별 박힘 · M3 모루 불꽃)가 오면 src · 칸만 바꾸면 됨 — 지금은 전투 이펙트를 빌려 씀 */
+  const FX={
+    spark:{src:'assets/ui/lamancha/fx_merge_spark.webp',c:4,r:2,f:[0,1,2,3,4,5,6,7],fps:14,tint:true},   // M1 머지 반짝임 (DHL 10-30 리소스)
+    forge:{src:'assets/ui/lamancha/fx_merge_forge.webp',c:4,r:2,f:[0,1,2,3,4,5,6,7],fps:16,tint:false},   // M3 모루 불꽃 (DHL 10-30 리소스)
+    flash:{src:'mrstage/fx/route/fx12w.webp',c:4,r:4,f:[6,7,8,9,10,11,12],fps:24,tint:true},
+    star:{src:'assets/ui/lamancha/fx_merge_star.webp',c:4,r:2,f:[0,1,2,3,4,5,6,7],fps:16}           // M2 별 박히기 (DHL 10-30 리소스)
+  };
+  const WC={rust:'#ff9a3c',neon:'#ff6fd0',sky:'#7cc4ff'};
+  Object.values(FX).forEach(F=>{if(F){const im=new Image();im.src=F.src;}});   // 미리 받아 두기 (첫 머지 때 늦게 뜨지 않게)
+  const off=()=>(typeof LM_SET!=='undefined'&&(LM_SET.rm||LM_SET.motion===false))||matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const host=()=>{let h=document.getElementById('mgfx');if(!h){h=document.createElement('div');h.id='mgfx';document.body.appendChild(h);}return h;};
+  function sheet(h,F,x,y,size,col){if(!F)return;const d=document.createElement('div');d.className='sp';d.style.cssText+=`left:${x}px;top:${y}px;width:${size}px;height:${size}px;`;
+    if(F.tint){d.style.background=`radial-gradient(circle,#fff 0 18%,${col} 52%,#ffe08a 78%)`;d.style.webkitMaskImage=d.style.maskImage=`url(${F.src})`;d.style.webkitMaskSize=d.style.maskSize=`${F.c*100}% ${F.r*100}%`;d.style.webkitMaskRepeat=d.style.maskRepeat='no-repeat';d.style.filter='drop-shadow(0 0 6px #fff8)';}
+    else{d.style.backgroundImage=`url(${F.src})`;d.style.backgroundSize=`${F.c*100}% ${F.r*100}%`;}
+    const put=f=>{const p=`${F.c>1?(f%F.c)/(F.c-1)*100:0}% ${F.r>1?Math.floor(f/F.c)/(F.r-1)*100:0}%`;if(F.tint)d.style.webkitMaskPosition=d.style.maskPosition=p;else d.style.backgroundPosition=p;};
+    put(F.f[0]);h.appendChild(d);let i=0;const t=setInterval(()=>{i++;if(i>=F.f.length){clearInterval(t);d.remove();return;}put(F.f[i]);},1000/F.fps);}
+  function card(h,c,x,y,w){const d=document.createElement('div');d.className='mc card dz s'+c.star;d.style.setProperty('--w',w+'px');d.style.left=(x-w/2)+'px';d.style.top=(y-w/.72/2)+'px';d.innerHTML=cardFace(c);h.appendChild(d);return d;}
+  const rectOf=c=>{const e=document.querySelector(`#hand .card[data-uid="${c.uid}"]`);if(!e)return null;const r=e.getBoundingClientRect();return r.width?r:null;};
+  /* C — ★2: 손패 안에서 빠르게 (약 0.8초, 화면 안 가림) */
+  async function quick(bCopy,rb,a){
+    await sleep(30);const ra=rectOf(a);if(!ra)return;const h=host(),col=WC[cardW(a)]||'#ffe08a',ae=document.querySelector(`#hand .card[data-uid="${a.uid}"]`);
+    if(rb){const B=card(h,bCopy,rb.x+rb.width/2,rb.y+rb.height/2,rb.width);
+      await B.animate([{},{left:ra.x+'px',top:(ra.y-ra.height*.18)+'px',rotate:'-6deg',offset:.6},{left:ra.x+'px',top:ra.y+'px',rotate:'0deg',opacity:0}],{duration:380,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).finished;B.remove();}
+    sheet(h,FX.spark,ra.x+ra.width/2,ra.y+ra.height/2,ra.width*1.9,col);
+    if(ae)ae.animate([{scale:1,filter:'brightness(2.4)'},{scale:1.16,offset:.35},{scale:1,filter:'brightness(1)'}],{duration:420,easing:'cubic-bezier(.3,1.6,.5,1)'});
+    const p=document.createElement('div');p.className='plus';p.innerHTML='+<img src="assets/ui/card/star_g.webp" alt="★">';p.style.left=(ra.x+ra.width/2)+'px';p.style.top=(ra.y-6)+'px';h.appendChild(p);
+    await p.animate([{opacity:0,translate:'-50% 0'},{opacity:1,translate:'-50% -18px',offset:.3},{opacity:0,translate:'-50% -42px'}],{duration:900,fill:'forwards'}).finished;p.remove();
+    if(!h.children.length)h.remove();}
+  /* A — ★3: 가운데서 모루 일격 (약 1.6초, 끝나면 각성 고르기) */
+  async function forge(aCopy,bCopy,ra,rb,out){
+    const h=host();h.classList.add('block');const W=innerWidth,H=innerHeight,cx=W/2,cy=H*.46,cw=Math.min(W*.34,H*.3,190),col=WC[cardW(out)]||'#ffe08a';
+    const dim=document.createElement('div');dim.className='dim';h.appendChild(dim);dim.animate([{opacity:0},{opacity:1}],{duration:200,fill:'forwards'});
+    const st=(r,w)=>r||{x:cx-w/2,y:H,width:w,height:w/.72};ra=st(ra,cw*.7);rb=st(rb,cw*.7);
+    const A=card(h,aCopy,ra.x+ra.width/2,ra.y+ra.height/2,ra.width),B=card(h,bCopy,rb.x+rb.width/2,rb.y+rb.height/2,rb.width);
+    const go=(el,x,rot)=>el.animate([{},{left:(x-cw/2)+'px',top:(cy-cw/.72/2)+'px',width:cw+'px',rotate:rot+'deg'}],{duration:420,easing:'cubic-bezier(.3,.8,.3,1)',fill:'forwards'}).finished;
+    await Promise.all([go(A,cx-cw*.62,-8),go(B,cx+cw*.62,8)]);await sleep(110);
+    const hit=(el,x)=>el.animate([{},{left:(x-cw/2)+'px',rotate:'0deg'}],{duration:130,easing:'cubic-bezier(.6,0,1,.6)',fill:'forwards'}).finished;
+    await Promise.all([hit(A,cx-cw*.04),hit(B,cx+cw*.04)]);
+    sheet(h,FX.forge,cx,cy+cw*.05,cw*2.6,col);sheet(h,FX.flash,cx,cy,cw*2,'#ff9a3c');
+    dim.animate([{},{background:'#fff'},{}],{duration:160});
+    document.getElementById('app')?.animate([{translate:'0 0'},{translate:'-6px 3px'},{translate:'5px -2px'},{translate:'0 0'}],{duration:260});
+    try{typeof lmSfx==='function'&&lmSfx('sfx_merge_max.wav',.5);}catch(e){}
+    A.remove();B.remove();
+    const R=card(h,out,cx,cy,cw*1.05);R.animate([{scale:.6,filter:'brightness(3)'},{scale:1.12,filter:'brightness(1.6)',offset:.5},{scale:1,filter:'brightness(1)'}],{duration:520,easing:'cubic-bezier(.2,1.5,.4,1)',fill:'forwards'});
+    const t=document.createElement('div');t.className='ttl';t.textContent=TYPES[out.id].ko;t.style.top=(cy-cw/.72/2-40)+'px';h.appendChild(t);t.animate([{opacity:0,translate:'-50% 8px'},{opacity:1,translate:'-50% 0'}],{duration:300,delay:200,fill:'forwards'});
+    await sleep(360);
+    const s=document.createElement('div');s.className='stars';s.style.cssText+=`left:${cx}px;top:${cy+cw/.72/2+10}px;--s:${cw*.24}px`;h.appendChild(s);
+    for(let i=0;i<out.star;i++)s.appendChild(document.createElement('i'));
+    if(FX.star){   /* M2: 위에서 떨어져 '쿵' 박히는 별 (8칸 · 마지막 칸 = 별만) — 별마다 0.16초씩 늦게 */
+      [...s.children].forEach((e,i)=>{e.classList.add('m2');const F=FX.star;e.style.backgroundImage=`url(${F.src})`;e.style.backgroundSize=`${F.c*100}% ${F.r*100}%`;
+        const put=f=>e.style.backgroundPosition=`${(f%F.c)/(F.c-1)*100}% ${Math.floor(f/F.c)/(F.r-1)*100}%`;put(0);
+        setTimeout(()=>{e.style.opacity=1;let k=0;const t=setInterval(()=>{k++;if(k>=F.f.length){clearInterval(t);return;}put(F.f[k]);},1000/F.fps);},i*160);});
+      await sleep(160*out.star+(1000/FX.star.fps)*FX.star.f.length+450);}
+    else{[...s.children].forEach((e,i)=>e.animate([{opacity:0,scale:2.6,translate:'0 -40px'},{opacity:1,scale:.9,translate:'0 0',offset:.7},{opacity:1,scale:1}],{duration:320,delay:i*140,easing:'cubic-bezier(.3,1.6,.5,1)',fill:'forwards'}));
+      await sleep(140*out.star+700);}
+    h.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'});await sleep(220);h.remove();}
+  const _fm=finishMerge;
+  finishMerge=function(a,b,keepEl,keepW,keepNo){
+    if(off()||!a||!b)return _fm.apply(this,arguments);
+    const ra=rectOf(a),rb=rectOf(b),aCopy={...a},bCopy={...b},args=arguments,self=this;
+    if((a.star||1)+1>=3){   // ★3: 모루 일격 뒤에 실제 머지(→ 각성 고르기)
+      const out={...a,star:a.star+1,el:keepEl||a.el,w:keepW||a.w,mixed:cardW(a)!==cardW(b)||!!a.mixed};delete out.st;
+      const wasBusy=S.busy;S.busy=true;forge(aCopy,bCopy,ra,rb,out).finally(()=>{S.busy=wasBusy;_fm.apply(self,args);});return;}
+    const r=_fm.apply(this,arguments);quick(bCopy,rb,a);return r;};
+})();
+</script>
 <style id="lm-sort-star">#bSort img.sortStar{height:1.3em!important;width:auto!important;max-width:none;vertical-align:middle;display:inline-block;filter:drop-shadow(0 1px 0 #0006)}</style>
 <style id="lm-camp-v2">
 /* (DHL 10-30) 야영: 위에 다음 빌런 · 아래 돌아가기(남색 원 왼쪽 화살표) 가운데 */
