@@ -7326,6 +7326,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 #mgfx .mc.card.dz{position:absolute;width:var(--w);aspect-ratio:.72;margin:0;container-type:inline-size}
 #mgfx .sp{position:absolute;translate:-50% -50%;background-repeat:no-repeat}
 #mgfx .stars{position:absolute;display:flex;gap:6px;translate:-50% 0}
+#mgfx .stars i.m2{width:calc(var(--s)*1.75);height:calc(var(--s)*1.75);margin:0 calc(var(--s)*-.36);background:none no-repeat;filter:none;opacity:0}
 #mgfx .stars i{width:var(--s);height:var(--s);background:url(assets/ui/card/star_g.webp) center/contain no-repeat;opacity:0;filter:drop-shadow(0 0 8px #ffd66a)}
 #mgfx .plus{position:absolute;translate:-50% 0;display:flex;align-items:center;gap:2px;font:900 24px/1 "Noto Sans KR",sans-serif;color:#ffe08a;text-shadow:0 2px 0 #3a1f0c,0 0 10px #ffb43a;opacity:0;white-space:nowrap}
 #mgfx .plus img{height:1.15em}
@@ -7337,11 +7338,12 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
   /* 리소스 자리: DHL 리소스(M1 반짝임 · M2 별 박힘 · M3 모루 불꽃)가 오면 src · 칸만 바꾸면 됨 — 지금은 전투 이펙트를 빌려 씀 */
   const FX={
     spark:{src:'assets/ui/lamancha/fx_merge_spark.webp',c:4,r:2,f:[0,1,2,3,4,5,6,7],fps:14,tint:true},   // M1 머지 반짝임 (DHL 10-30 리소스)
-    forge:{src:'mrstage/fx/route/fx09.webp',c:4,r:2,f:[0,1,2,3,4,5,6,7],fps:22,tint:false},         // M3 자리 (불꽃 고리)
+    forge:{src:'assets/ui/lamancha/fx_merge_forge.webp',c:4,r:2,f:[0,1,2,3,4,5,6,7],fps:16,tint:false},   // M3 모루 불꽃 (DHL 10-30 리소스)
     flash:{src:'mrstage/fx/route/fx12w.webp',c:4,r:4,f:[6,7,8,9,10,11,12],fps:24,tint:true},
-    star:null                                                                                      // M2 자리 (없으면 별 그림이 떨어져 박힘)
+    star:{src:'assets/ui/lamancha/fx_merge_star.webp',c:4,r:2,f:[0,1,2,3,4,5,6,7],fps:16}           // M2 별 박히기 (DHL 10-30 리소스)
   };
   const WC={rust:'#ff9a3c',neon:'#ff6fd0',sky:'#7cc4ff'};
+  Object.values(FX).forEach(F=>{if(F){const im=new Image();im.src=F.src;}});   // 미리 받아 두기 (첫 머지 때 늦게 뜨지 않게)
   const off=()=>(typeof LM_SET!=='undefined'&&(LM_SET.rm||LM_SET.motion===false))||matchMedia('(prefers-reduced-motion: reduce)').matches;
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const host=()=>{let h=document.getElementById('mgfx');if(!h){h=document.createElement('div');h.id='mgfx';document.body.appendChild(h);}return h;};
@@ -7372,7 +7374,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     await Promise.all([go(A,cx-cw*.62,-8),go(B,cx+cw*.62,8)]);await sleep(110);
     const hit=(el,x)=>el.animate([{},{left:(x-cw/2)+'px',rotate:'0deg'}],{duration:130,easing:'cubic-bezier(.6,0,1,.6)',fill:'forwards'}).finished;
     await Promise.all([hit(A,cx-cw*.04),hit(B,cx+cw*.04)]);
-    sheet(h,FX.forge,cx,cy+cw*.25,cw*2.2,col);sheet(h,FX.flash,cx,cy,cw*2,'#ff9a3c');
+    sheet(h,FX.forge,cx,cy+cw*.05,cw*2.6,col);sheet(h,FX.flash,cx,cy,cw*2,'#ff9a3c');
     dim.animate([{},{background:'#fff'},{}],{duration:160});
     document.getElementById('app')?.animate([{translate:'0 0'},{translate:'-6px 3px'},{translate:'5px -2px'},{translate:'0 0'}],{duration:260});
     try{typeof lmSfx==='function'&&lmSfx('sfx_merge_max.wav',.5);}catch(e){}
@@ -7382,8 +7384,13 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     await sleep(360);
     const s=document.createElement('div');s.className='stars';s.style.cssText+=`left:${cx}px;top:${cy+cw/.72/2+10}px;--s:${cw*.24}px`;h.appendChild(s);
     for(let i=0;i<out.star;i++)s.appendChild(document.createElement('i'));
-    [...s.children].forEach((e,i)=>e.animate([{opacity:0,scale:2.6,translate:'0 -40px'},{opacity:1,scale:.9,translate:'0 0',offset:.7},{opacity:1,scale:1}],{duration:320,delay:i*140,easing:'cubic-bezier(.3,1.6,.5,1)',fill:'forwards'}));
-    await sleep(140*out.star+700);
+    if(FX.star){   /* M2: 위에서 떨어져 '쿵' 박히는 별 (8칸 · 마지막 칸 = 별만) — 별마다 0.16초씩 늦게 */
+      [...s.children].forEach((e,i)=>{e.classList.add('m2');const F=FX.star;e.style.backgroundImage=`url(${F.src})`;e.style.backgroundSize=`${F.c*100}% ${F.r*100}%`;
+        const put=f=>e.style.backgroundPosition=`${(f%F.c)/(F.c-1)*100}% ${Math.floor(f/F.c)/(F.r-1)*100}%`;put(0);
+        setTimeout(()=>{e.style.opacity=1;let k=0;const t=setInterval(()=>{k++;if(k>=F.f.length){clearInterval(t);return;}put(F.f[k]);},1000/F.fps);},i*160);});
+      await sleep(160*out.star+(1000/FX.star.fps)*FX.star.f.length+450);}
+    else{[...s.children].forEach((e,i)=>e.animate([{opacity:0,scale:2.6,translate:'0 -40px'},{opacity:1,scale:.9,translate:'0 0',offset:.7},{opacity:1,scale:1}],{duration:320,delay:i*140,easing:'cubic-bezier(.3,1.6,.5,1)',fill:'forwards'}));
+      await sleep(140*out.star+700);}
     h.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'});await sleep(220);h.remove();}
   const _fm=finishMerge;
   finishMerge=function(a,b,keepEl,keepW,keepNo){
