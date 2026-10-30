@@ -4774,7 +4774,15 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // 창이 화면보다 조금 크면(가로·세로) 내용 전체를 같은 비율로 줄여 스크롤 없이 한 화면에 — 60%보다 더 줄여야 하는 긴 창은 줄이지 않고 얇은 스크롤
   if(typeof showOv==='function'){
     const fitPanel=()=>{const p=document.getElementById('panel'),ov=document.getElementById('ov');if(!p||!ov||ov.hidden)return;
+      /* (DHL 10-31 '모바일 세로에서 누를 때마다 화면이 흔들림') 같은 창(같은 종류 · 같은 화면 크기)을 다시 그릴 때는 지난 배율을 그대로 — 다시 재면서 커졌다 작아지지 않게 */
+      const kind=(p.firstElementChild&&p.firstElementChild.className||'')+'|'+innerWidth+'x'+innerHeight;
+      if(p._fitKind===kind&&p._fitZ){p.classList.add('lmFit');p.style.setProperty('--lmz',p._fitZ);if(p._fitOy)p.style.overflowY='hidden';else p.style.removeProperty('overflow-y');
+        if(p.scrollHeight<=p.clientHeight+2||p._fitOy)return;}
       p.classList.remove('lmFit');p.style.removeProperty('--lmz');p.style.removeProperty('overflow-y');
+      const done=()=>{p._fitKind=kind;p._fitZ=p.classList.contains('lmFit')?p.style.getPropertyValue('--lmz'):'';p._fitOy=p.style.overflowY==='hidden';};
+      const prevZ=p._fitKind===kind?parseFloat(p._fitZ)||0:0;
+      try{fitPanel0(p);if(prevZ&&p.classList.contains('lmFit')&&parseFloat(p.style.getPropertyValue('--lmz'))>prevZ)p.style.setProperty('--lmz',String(prevZ));}finally{done();}};   // 같은 창은 배율이 커지지 않게 (커졌다 작아지는 흔들림 방지)
+    const fitPanel0=p=>{
       if(p.querySelector('.ib,.rsB'))return;   // 도감·배우기(안쪽 목록 스크롤)·라운드 선택은 제외
       // 높이는 '자식 상자들의 실제 높이'로 잼: 카드 밖으로 살짝 튀어나온 장식(별·장수)은 스크롤 이유가 아님
       const need=()=>{const cs=getComputedStyle(p),pt=parseFloat(cs.paddingTop)||0,pb=parseFloat(cs.paddingBottom)||0,top=p.getBoundingClientRect().top;
