@@ -772,6 +772,10 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 #mr-story .mr-story-stage{position:absolute;inset:9px;overflow:hidden;background:#efe9dc;cursor:pointer;box-shadow:inset 0 0 18px rgba(60,40,10,.35);}
 #mr-story .mr-story-stage>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:translateX(14px) scale(1.01);transition:opacity .28s ease,transform .28s ease;}
 #mr-story .mr-story-stage>img.is-current{opacity:1;transform:none;}
+#mr-story .mr-story-stage.is-turning>img{transition:none!important;transform:none!important}
+#mr-story .mr-page{position:absolute;inset:0;z-index:5;background:center/cover no-repeat;backface-visibility:hidden;box-shadow:0 0 24px #0008;pointer-events:none;will-change:transform}
+#mr-story .mr-page i{position:absolute;inset:0;opacity:0}
+#mr-story .mr-page-shade{position:absolute;inset:0;z-index:4;pointer-events:none}
 #mr-story .mr-story-stage>img.is-back{transform:translateX(-14px) scale(1.01);}
 #mr-story .mr-story-stage .mr-story-spinner{position:absolute;left:50%;top:50%;z-index:2;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #b8893a44;border-top-color:#b8893a;animation:mrStorySpin .9s linear infinite;opacity:0;transition:opacity .2s;}
 #mr-story .mr-story-stage.is-loading .mr-story-spinner{opacity:1;}
@@ -1702,8 +1706,25 @@ lmSetApply();
    function syncMute(){const m=isMuted();btnMute.innerHTML=m?ICON.off:ICON.on;btnMute.classList.toggle('is-muted',m);btnMute.title=btnMute.ariaLabel=t('소리 켜기 / 끄기');}
    let live=null;   /* (DHL 10-30) 반전 · 엔딩 컷: 원본 컷 위에서 부분만 살짝 움직이는 Live (assets/art/story/live) */
    function liveShow(){live&&live.stop();live=null;if(!SET||!SET.live||!window.LMLive)return;live=LMLive.mount(stage,SET.live+'_'+String(idx+1).padStart(2,'0'),'assets/art/story/live/');}
+   /* (DHL 10-30) 넘길 때 종이 넘기듯: 앞장이 왼쪽 모서리를 축으로 들려 넘어가고(앞으로), 뒤로 갈 땐 오른쪽 모서리를 축으로 넘어감 — 아래에는 새 장이 이미 놓여 있음 */
+   let flipping=null;
+   function pageTurn(from,dir){
+    if(from==null||matchMedia('(prefers-reduced-motion: reduce)').matches||typeof Element.prototype.animate!=='function')return;
+    flipping&&flipping.remove();
+    const pg=document.createElement('div');pg.className='mr-page';const fwd=dir>=0;
+    pg.style.backgroundImage=`url("${imgs[from].currentSrc||imgs[from].src}")`;pg.style.transformOrigin=fwd?'0% 50%':'100% 50%';
+    const sh=document.createElement('i');pg.appendChild(sh);stage.appendChild(pg);flipping=pg;
+    const under=document.createElement('b');under.className='mr-page-shade';stage.appendChild(under);
+    const D=620,E='cubic-bezier(.45,.05,.3,1)';
+    pg.animate([{transform:'perspective(2200px) rotateY(0deg)',filter:'brightness(1)'},{transform:`perspective(2200px) rotateY(${fwd?-35:35}deg) skewY(${fwd?-2:2}deg)`,filter:'brightness(1.05)',offset:.35},{transform:`perspective(2200px) rotateY(${fwd?-96:96}deg)`,filter:'brightness(.7)'}],{duration:D,easing:E,fill:'forwards'});
+    sh.style.background=`linear-gradient(${fwd?90:270}deg,transparent 40%,#3a2a1088 85%,#000a)`;sh.animate([{opacity:0},{opacity:.9}],{duration:D,easing:E,fill:'forwards'});
+    under.style.background=`linear-gradient(${fwd?90:270}deg,#0008,transparent 45%)`;under.animate([{opacity:.9},{opacity:0}],{duration:D,easing:E,fill:'forwards'});
+    setTimeout(()=>{pg.remove();under.remove();if(flipping===pg)flipping=null;},D+30);
+   }
    function show(n,dir){
+    const from=imgs.findIndex(im=>im.classList.contains('is-current'));
     idx=Math.max(0,Math.min(CUTS-1,n));
+    if(from>=0&&from!==idx){stage.classList.add('is-turning');pageTurn(from,dir??(idx>from?1:-1));clearTimeout(stage._tt);stage._tt=setTimeout(()=>stage.classList.remove('is-turning'),650);}
     imgs.forEach((im,i)=>{im.classList.toggle('is-current',i===idx);im.classList.toggle('is-back',i<idx);});
     const cur=imgs[idx];
     stage.classList.toggle('is-loading',!(cur.complete&&cur.naturalWidth>0));
