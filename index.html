@@ -1486,7 +1486,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
   {"ko": "같은 동료 두 장을 머지하면 별이 하나 늘어요.\n별이 늘면 힘이 훨씬 세져요.", "en": "Merge two of the same companion to add a star.\nMore stars, much more power."},
   {"ko": "적이 약한 속성으로 공격하면 힘 ×2!\n물 → 불 → 바람 → 흙 → 전기 → 물", "en": "Hit the enemy's weak element for ×2 power!\nWater → Fire → Wind → Earth → Electric → Water"},
   {"ko": "버리기로 필요 없는 카드를 바꿀 수 있어요.\n버리기 횟수는 라운드마다 정해져 있어요.", "en": "Discard to swap out cards you don't need.\nDiscards are limited each round."},
-  {"ko": "거인 규칙은 미리 볼 수 있어요.\n졸개 · 기사 라운드에서 미리 준비하세요.", "en": "You can preview the Giant's rule.\nPrepare during the Minion and Knight rounds."}
+  {"ko": "거인 규칙은 미리 볼 수 있어요.\n망령 · 수문장 라운드에서 미리 준비하세요.", "en": "You can preview the Giant's rule.\nPrepare during the Wraith and Warden rounds."}
  ];
  var MIDNIGHT={ko:'자정',en:'midnight',fr:'minuit',it:'a mezzanotte',de:'Mitternacht',es:'a medianoche',ru:'полночь','pt-BR':'à meia-noite','zh-CN':'午夜0点','zh-TW':'午夜0點',ja:'午前0時',pl:'północy'};
  var TIME_PREFIX={it:'alle ',es:'a las ','pt-BR':'às '};
@@ -1752,7 +1752,7 @@ lmSetApply();
 </script>
 <div id="app" class="bl">
   <aside id="side">
-    <div id="sRound" class="sRound"><button type="button" id="sOpt" class="sOpt" onclick="gameOpt()" aria-label="옵션" title="옵션 (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M19.25 10.53 L22.11 10.68 L22.11 13.32 L19.25 13.47 L18.84 14.83 L18.17 16.09 L20.09 18.22 L18.22 20.09 L16.09 18.17 L14.83 18.84 L13.47 19.25 L13.32 22.11 L10.68 22.11 L10.53 19.25 L9.17 18.84 L7.91 18.17 L5.78 20.09 L3.91 18.22 L5.83 16.09 L5.16 14.83 L4.75 13.47 L1.89 13.32 L1.89 10.68 L4.75 10.53 L5.16 9.17 L5.83 7.91 L3.91 5.78 L5.78 3.91 L7.91 5.83 L9.17 5.16 L10.53 4.75 L10.68 1.89 L13.32 1.89 L13.47 4.75 L14.83 5.16 L16.09 5.83 L18.22 3.91 L20.09 5.78 L18.17 7.91 L18.84 9.17Z M12 8.6a3.4 3.4 0 1 0 0 6.8a3.4 3.4 0 1 0 0-6.8Z"/></svg></button><b id="sRdName">졸개</b><span id="pJang"></span></div>
+    <div id="sRound" class="sRound"><button type="button" id="sOpt" class="sOpt" onclick="gameOpt()" aria-label="옵션" title="옵션 (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M19.25 10.53 L22.11 10.68 L22.11 13.32 L19.25 13.47 L18.84 14.83 L18.17 16.09 L20.09 18.22 L18.22 20.09 L16.09 18.17 L14.83 18.84 L13.47 19.25 L13.32 22.11 L10.68 22.11 L10.53 19.25 L9.17 18.84 L7.91 18.17 L5.78 20.09 L3.91 18.22 L5.83 16.09 L5.16 14.83 L4.75 13.47 L1.89 13.32 L1.89 10.68 L4.75 10.53 L5.16 9.17 L5.83 7.91 L3.91 5.78 L5.78 3.91 L7.91 5.83 L9.17 5.16 L10.53 4.75 L10.68 1.89 L13.32 1.89 L13.47 4.75 L14.83 5.16 L16.09 5.83 L18.22 3.91 L20.09 5.78 L18.17 7.91 L18.84 9.17Z M12 8.6a3.4 3.4 0 1 0 0 6.8a3.4 3.4 0 1 0 0-6.8Z"/></svg></button><b id="sRdName">망령</b><span id="pJang"></span></div>
     <div class="sBlind">
       <div id="sToken" class="sToken"><span id="sTokIc"></span><small id="sFoeName"></small></div>
       <div class="sTgtBox"><small>최소 득점</small><b id="sTgt">0</b><small id="sRw">보상 💰</small></div>
@@ -2147,7 +2147,7 @@ function score(cards,ctx){
   return {disUp,promote,orbUp,osUp,gold3,lvUp,ht,bonds,label,comboTag,chips,mult,total,raw,keys,capped,lim,steps};
 }
 
-/* 목표 점수: 장(1~8) × 라운드(졸개·기사·거인) · 난이도별 x(전체 배수) · xg(장마다 추가 성장) */
+/* 목표 점수: 장(1~8) × 라운드(망령·수문장·거인) · 난이도별 x(전체 배수) · xg(장마다 추가 성장) */
 function tgtFor(j,r,dk){const D=DIFF[dk]||{};return Math.round(target(j,r)*(D.x||1)*Math.pow(D.xg||1,j-1)*(armorOn()?ARMOR_T:1)/10)*10;}
 /* 난이도: 추천(힌트)은 견습에서만 공짜. 기사부터는 원정 캠프의 '산초의 조언' 구슬로만 */
 const DIFF={
@@ -2196,7 +2196,7 @@ const FOE_NAMES={
   sky:[['구름 양치기','바람 떠돌이','하늘 해적'],['은빛 달의 기사','비스카야 기사'],['풍차 거인','천공 거인']]
 };
 const HOME_X=1.5;                            // 고향의 힘: 그 장의 세계 카드 힘 ×1.5
-const FOE_ATK=[1,2,2];                       // 의도가 노리는 카드 수 (졸개 1 · 기사 2 · 거인 2)
+const FOE_ATK=[1,2,2];                       // 의도가 노리는 카드 수 (망령 1 · 수문장 2 · 거인 2)
 /* 적 의도 (2026-10-27 개편 — A: 런 전에 공개 · C: 피해가 이어짐)
    런마다 적이 의도 하나를 먼저 보여준다(빌런마다 2종 중 하나). 결과는 이긴 런에도 적용된다.
    🩹 부상 = 출전 불가 · 상처 = 힘 −% — 장이 바뀌어도 이어지고, 야영 😴 잠자기로 모두 회복(상처는 머지로도 치료) */
@@ -2223,7 +2223,7 @@ function banRule(kind,j){
 }
 const ACT_RULES={
   manacle:{ic:'🗝',ko:'족쇄',d:'손패 8 → 7장',min:1},
-  pillar:{ic:'🗿',ko:'기억의 기둥',d:'이번 장 졸개 · 기사전에서 낸 카드는 출전 불가',min:1},
+  pillar:{ic:'🗿',ko:'기억의 기둥',d:'이번 장 망령 · 수문장전에서 낸 카드는 출전 불가',min:1},
   psychic:{ic:'🎯',ko:'다섯의 맹세',d:'카드 5장 이상 내야 런 (★2는 2장 · 족보 밖 카드도 셈)',min:1},
   fog:{ic:'🌫',ko:'안개',d:'새로 들어오는 손패 일부가 뒷면',min:2},
   house:{ic:'🏚',ko:'뒤집힌 집',d:'첫 손패가 모두 뒷면',min:2},
@@ -2271,7 +2271,7 @@ function battlePower(c,foe){if(paralyzed(c,foe))return 0;if(foe&&foe.rule&&foe.r
 
 /* 원정 캠프 구슬 등급 확률: 장이 오를수록 고급 · 희귀가 늘어난다 */
 function rarityOdds(j){const r=Math.min(0.2,0.04+0.02*(j-1)),u=Math.min(0.45,0.22+0.03*(j-1));return {r,u};}
-const RD_KO=['졸개','기사','거인'];   // 장 안의 세 전투 (추후 지도 방식이면 바뀔 수 있음)
+const RD_KO=['망령','수문장','거인'];   /* (DHL 10-30) 졸개 → 망령 · 기사 → 수문장 (난이도 '기사'와 겹쳐서) */   // 장 안의 세 전투 (추후 지도 방식이면 바뀔 수 있음)
 const _E=(k,d)=>(typeof process!=='undefined'&&process.env&&process.env[k])?+process.env[k]:d;
 const EXM=_E('EXM',1);   // 겹친 이름 족보(남은 묶음)의 기세 비율 — 봇 실험용
 const ORB_XS=_E('OMX',0.5), TGT_G=_E('TG',2.3), TGT_G2=_E('TG2',2.3);   // 구슬 ★당 곱하기 증가 · 목표 성장률(1~4장 / 5장~)
@@ -2324,11 +2324,11 @@ function newGame(diff){
   if(firstGame){firstGame=false;S.selecting=true;ensureFoes();openInfo('learn','page',0);return;}
   startRound();
 }
-/* 장의 빌런 3명(졸개 · 기사 · 거인)을 장이 시작될 때 정한다 — 거인 규칙을 미리 보고 준비 */
+/* 장의 빌런 3명(망령 · 수문장 · 거인)을 장이 시작될 때 정한다 — 거인 규칙을 미리 보고 준비 */
 const giantKey=R=>R?(R.k==='ban'?({'부상':'inj','세계 봉쇄':'wban','속성 봉쇄':'elban'}[R.ko]||'inj'):R.k):null;
 function ensureFoes(){if(!S.foes||S.foesJang!==S.jang){S.foes=S.foesNext||makeFoes(JANG_WORLD(S.jang),S.jang,S.diff);S.foesNext=null;S.foesJang=S.jang;codexMark('giant',giantKey(S.foes[2].rule));}
   S.foes.forEach((f,r)=>{if(!f.hero)f.hero=heroFor(S.jang,r);if(!f.no)f.no=1+(Math.random()*10|0);});S.foe=S.foes[S.rd];}
-/* 야영 (졸개 · 기사 대신): 그 라운드의 돈 · 머지 기회 · 원정 캠프를 모두 포기하고 정비 하나를 한다 */
+/* 야영 (망령 · 수문장 대신): 그 라운드의 돈 · 머지 기회 · 원정 캠프를 모두 포기하고 정비 하나를 한다 */
 const scoutCost=()=>5+S.jang;
 const CAMP={
   /* (DHL 10-29) 잠자기 삭제 — 적 공격(부상 · 상처)이 없어져 할 일이 없음 */
@@ -2643,7 +2643,7 @@ function renderAtk(){
 /* ───────── 렌더 ───────── */
 function render(){
   if(S.orbs&&S.orbs.some(k=>!ORBS[k]))S.orbs=S.orbs.filter(k=>ORBS[k]);
-  // 진행 표시줄: 3장 ✔졸개 ━ ⚔기사 ━ 👑거인
+  // 진행 표시줄: 3장 ✔망령 ━ ⚔수문장 ━ 👑거인
   $('pJang').innerHTML=`<b>${S.jang}장</b> `+RD_KO.map((n,r)=>`<span class="stp${r<S.rd?' done':r===S.rd?' now':''}" title="${n}">${r<S.rd?'✔':r===S.rd?(r===2?'👑':'⚔')+n:r===2?'👑':'○'}</span>`).join('<i class="lnk">━</i>');
   $('pJang').title=DIFF[S.diff].ko;
   $('pTgt').innerHTML=S.sandbox?`🧪 <b style="color:var(--gold)">연습장</b> · 최고 ${(S.best||0).toLocaleString()}`:S.practice?'🎯 <b style="color:var(--gold)">해보기</b>':`🎯 <b style="color:var(--gold)">${S.score.toLocaleString()}</b> / <b>${S.tgt.toLocaleString()}</b>`;
@@ -2984,7 +2984,7 @@ function drawStrip(now){
 cv.onclick=()=>{if(S.anim)S.anim.spd=S.anim.spd===1?3:S.anim.spd;};
 
 /* ───────── 승패 · 보상 받기 · 원정 캠프 (발라트로식) ───────── */
-const ENEMY_KO=['풍차','기사','거인'];
+const ENEMY_KO=['망령','수문장','거인'];
 function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes(k)&&(!VOUCH[k].base||S.vouch.includes(VOUCH[k].base)));return pool.length?pool[Math.random()*pool.length|0]:null;}
 function win(){
   const last=S.jang===8&&S.rd===2;
@@ -3118,7 +3118,7 @@ function openShop(){
   if(S.packView)return openPack();
   let h='<div class="shop">'+(S.campMsg?`<div class="skipGot">🏕 야영 — ${S.campMsg}</div>`:'');
   { const nf=S.rd<2?S.foes[S.rd+1]:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff))[0];
-    h+=`<div class="nextFoe${armorOn()?' nf2':''}"><small>다음 빌런 · ${S.rd<2?S.jang+'장 '+RD_KO[S.rd+1]:(S.jang+1)+'장 졸개'}</small>${armorOn()?nextFoeHTML(nf):'<br>'+foeLine(nf)}</div>`; }
+    h+=`<div class="nextFoe${armorOn()?' nf2':''}"><small>다음 빌런 · ${S.rd<2?S.jang+'장 '+RD_KO[S.rd+1]:(S.jang+1)+'장 망령'}</small>${armorOn()?nextFoeHTML(nf):'<br>'+foeLine(nf)}</div>`; }
   // 구슬칸 (발라트로의 조커 줄)
   h+=`<div class="sOrbs">`;for(let i=0;i<S.maxOrb;i++){const k=S.orbs[i];h+=k?`<div class="sorb on${S.pick==='own'+i?' up':''}" data-slot="${i}" onclick="pickItem('own${i}')">${orbLabel(k)}</div>`:`<div class="sorb" data-slot="${i}"></div>`;}
   h+=`</div><div class="sRow1"><span>${S.orbs.length}/${S.maxOrb}</span><span class="gold">💰 ${S.gold}</span></div>`;
@@ -3307,7 +3307,7 @@ const LEARN=[
   {t:'같은 동료 둘이면 머지',s:'별이 늘면 힘이 세집니다',at:1},
   {t:'세 가지를 맞춰 방패 뚫기',s:'방패 바 · HP 바 · 막힘 · 관통',at:1},
   {t:'거인은 맞추기를 방해합니다',s:'반격 · 약점 바꾸기 · 갑옷 회복',at:1},
-  {t:'거인을 물리치면 다음 장',s:'졸개 · 기사 · 거인 · 구슬',at:1},
+  {t:'거인을 물리치면 다음 장',s:'망령 · 수문장 · 거인 · 구슬',at:1},
   {t:'기사 · 편력 기사',s:'난이도마다 달라지는 것',at:1}
 ];
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
@@ -3422,9 +3422,9 @@ function runInfoHTML(){
   h+=`<div class="rDeck"><div><b>덱 ${S.deck.length}장</b><span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
   h+=`<details class="iMore"><summary>덱 전체 보기</summary><div class="dk">`+TYPE_IDS.map(id=>{const t=TYPES[id],all=S.deck.filter(c=>c.id===id),left=S.draw.filter(c=>c.id===id).length;if(!all.length)return '';
       return `<div style="border-color:${WORLD_C[t.w]}"><b>${t.ko}</b><br><small>남음 ${left}/${all.length} ${all.map(c=>`<span style="color:${EL_C[c.el]}">${EL_SYM[c.el]}${c.star>1?(c.mixed?'☆':'★')+c.star:''}${c.out?'🩹':''}</span>`).join(' ')}</small></div>`;}).join('')+`</div></details>`;
-  h+=`<details class="iMore"><summary>장별 목표 점수</summary><table><tr><th>장</th><th>졸개</th><th>기사</th><th>거인</th></tr>`;
+  h+=`<details class="iMore"><summary>장별 목표 점수</summary><table><tr><th>장</th><th>망령</th><th>수문장</th><th>거인</th></tr>`;
   for(let j=1;j<=8;j++)h+=`<tr class="${j===S.jang?'cur':''}"><td>${j}장</td>`+[0,1,2].map(r=>`<td>${j===S.jang&&r===S.rd?'▶ ':''}${tgtFor(j,r,S.diff).toLocaleString()}</td>`).join('')+'</tr>';
-  h+=`</table><p class="iNote">보상 · 졸개 ${REWARD[0]} · 기사 ${REWARD[1]} · 거인 ${REWARD[2]}<br>남은 런 1개당 1 · 5골드마다 이자 1 (최대 ${S.interestMax})</p></details>`;
+  h+=`</table><p class="iNote">보상 · 망령 ${REWARD[0]} · 수문장 ${REWARD[1]} · 거인 ${REWARD[2]}<br>남은 런 1개당 1 · 5골드마다 이자 1 (최대 ${S.interestMax})</p></details>`;
   h+=`<details class="iMore"><summary>★ 머지 배율</summary><table><tr><th></th><th>★2</th><th>★3</th></tr><tr><td>같은 세계끼리</td><td>힘 ×${STAR_X[2]}</td><td>힘 ×${STAR_X[3]}</td></tr><tr><td>다른 세계끼리</td><td>힘 ×${MIX_X[2]}</td><td>힘 ×${MIX_X[3]}</td></tr></table><p class="iNote">같은 이름 · 같은 ★끼리만 머지됩니다 (★3까지).</p></details>`;
   return h;
 }
@@ -3586,7 +3586,7 @@ function renderPractice(bar){const P=practiceOf(S.practice.i);
 const practiceHL=c=>{if(!(S&&S.practice&&S.practice.tries>0))return false;const h=practiceOf(S.practice.i).hl;return typeof h==='function'?!!h(c):(h||[]).includes(TYPES[c.id].n);};
 
 const RB_KEY_PAGE="<section class=\"pg\">\n  <h2><span class=\"no\">4</span>세 가지를 맞춰 방패 뚫기</h2>\n  <p class=\"say\">족보 카드로 적의 <b class=\"k\">세계 · 약점 · 번호</b>를 맞춰요</p>\n  <div class=\"keys3\" id=\"rb_k3\"></div>\n  <p class=\"tip p4tap\">카드를 눌러 보세요 ↓</p>\n  <div class=\"row\" id=\"rb_p4k\"></div>\n  <div class=\"gsLive\" id=\"rb_cap\"><span class=\"gsArt\" id=\"rb_gs\"><span class=\"gm w\"><i style=\"background:var(--sky)\"></i></span><span class=\"gm e\"><i style=\"background:#2563eb\"></i></span><span class=\"gm h\"><em>9</em></span></span>\n    <div class=\"gsSide\"><div class=\"board\"><span class=\"hn\" id=\"rb_k4hn\">맞춤 0 / 3</span><span class=\"sc\" id=\"rb_k4sc\">막힘</span></div></div><div class=\"armor4\" id=\"rb_k4ar\"></div></div>\n  <div class=\"lscs\"><p class=\"lscT\">적 체력 <b>1,000</b> → 방패 <b>550</b> <small>공격 1,000일 때</small></p><div class=\"lscRow\"><figure class=\"lsc s0\"><div class=\"lst\"><img class=\"bg\" src=\"mrstage/assets/art/backgrounds/battle/bg_battle_0001.png\" alt=\"\"><img class=\"he\" src=\"mrstage/assets/art/battle_characters/battle_char_0001_Idle.png\" alt=\"\"><img class=\"fo\" src=\"mrstage/assets/art/villains/villain_0008.png\" alt=\"\"><div class=\"g\"><span class=\"gs\"><i class=\"gm w on\"></i><i class=\"gm e on\"></i><i class=\"gm h\"></i></span><div class=\"sb\"><span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z\" fill=\"currentColor\"/></svg>550</span></div><div class=\"hb\"><i style=\"width:100%\"></i><span>1,000 / 1,000</span></div></div></div><figcaption>① 런 전 · 맞춤 2/3</figcaption></figure><figure class=\"lsc s1\"><div class=\"lst\"><img class=\"bg\" src=\"mrstage/assets/art/backgrounds/battle/bg_battle_0001.png\" alt=\"\"><img class=\"he\" src=\"mrstage/assets/art/battle_characters/battle_char_0001_Idle.png\" alt=\"\"><img class=\"fo\" src=\"mrstage/assets/art/villains/villain_0008.png\" alt=\"\"><div class=\"g\"><span class=\"gs\"><i class=\"gm w on\"></i><i class=\"gm e on\"></i><i class=\"gm h\"></i></span><div class=\"sb\"><span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z\" fill=\"currentColor\"/></svg>450 막음</span></div><div class=\"hb\"><i style=\"width:45%\"></i><b class=\"lost\" style=\"left:45%;width:55%\"></b><span>450 / 1,000</span></div></div><i class=\"spk\"></i><p class=\"big blk\"><b>막힘!</b><small>1,000 → 550</small></p></div><figcaption>② 막힘 · 550만</figcaption></figure><figure class=\"lsc s2\"><div class=\"lst\"><img class=\"bg\" src=\"mrstage/assets/art/backgrounds/battle/bg_battle_0001.png\" alt=\"\"><img class=\"he\" src=\"mrstage/assets/art/battle_characters/battle_char_0001_Idle.png\" alt=\"\"><img class=\"fo\" src=\"mrstage/assets/art/villains/villain_0008.png\" alt=\"\"><div class=\"g\"><span class=\"gs\"><i class=\"gm w on\"></i><i class=\"gm e on\"></i><i class=\"gm h on\"></i></span><div class=\"sb\"><span></span></div><div class=\"hb\"><i style=\"width:0%\"></i><b class=\"lost gold\" style=\"left:0;width:100%\"></b><span>0 / 1,000</span></div></div><i class=\"brst\"></i><p class=\"big prc\"><b>관통!</b><small>1,750</small></p></div><figcaption>③ 관통 · 3/3</figcaption></figure></div></div>\n  <svg class=\"ring\" id=\"rb_ring\" viewBox=\"0 0 300 260\" role=\"img\" aria-label=\"약점 속성: 물은 불을, 불은 바람을, 바람은 흙을, 흙은 전기를, 전기는 물을 이깁니다\"></svg>\n  <p class=\"tip\">약점 = 적을 이기는 색</p>\n</section>";
-const RB_PAGES=["<section class=\"pg\">\n  <h2><span class=\"no\">1</span>당신은 기사단 대장!</h2>\n  <div class=\"row\" id=\"rb_p1\"></div>\n  <p class=\"say\">손에 <b class=\"k\">동료 카드 8장</b>을 듭니다.<br>왼쪽 위 숫자가 클수록 <b class=\"k\">기본 힘이 셉니다.</b><br>오른쪽 위 숫자는 <b class=\"k\">지금 힘</b>입니다.</p>\n  <p class=\"tip\">왼쪽 위 번호는 <b class=\"k\">판마다 새로 정해집니다</b> (1~10, 번호마다 6장).<br>지금 힘은 별(★)이 늘면 세집니다(초록 ▲).<br>카드 테두리 색은 동료가 사는 세계입니다.<br>주황 러스트, 보라 네온, 파랑 스카이.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">2</span>골라서 “런!”</h2>\n  <p class=\"say\">카드를 눌러 골라 보세요.<br><b class=\"k\">같은 숫자</b>를 모을수록 점수가 커집니다.</p>\n  <div class=\"hand\" id=\"rb_p2\"></div>\n  <div class=\"board\"><span class=\"hn\" id=\"rb_hn\">카드를 골라 보세요 (최대 5장)</span><span class=\"sc\" id=\"rb_sc\"></span></div>\n  <div class=\"meter\" aria-hidden=\"true\"><i id=\"rb_mt\"></i><u title=\"목표\"></u></div>\n  <div class=\"found\" id=\"rb_found\"></div>\n  <p class=\"tip\">위 족보를 모두 찾아보세요.<br>걸린 족보가 여러 개면 <b class=\"k\">모두 더해집니다.</b><br>족보에 들어가지 않은 카드는 흐리게 보이고, 힘이 더해지지 않습니다.<br>빨간 줄(목표 300점)을 넘기면 이깁니다.<br>런은 4번까지 할 수 있습니다.</p>\n  <button class=\"btn sm\" id=\"rb_p2r\" type=\"button\">다시 고르기</button>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">3</span>같은 동료 둘이면 머지!</h2>\n  <div class=\"merge\" id=\"rb_mg\">\n    <span class=\"l-wrap\"></span><span class=\"plus\">+</span><span class=\"r-wrap\"></span><span class=\"res\"></span>\n  </div>\n  <button class=\"btn\" id=\"rb_mgBtn\" type=\"button\">머지!</button>\n  <p class=\"say\">이름이 같은 동료 두 장을 겹치면<br><b class=\"k\">한 장으로 합쳐지고 별이 하나 늘어납니다.</b><br>별이 늘면 힘이 훨씬 세집니다.</p>\n  <p class=\"tip\">견습 기사는 머지 버튼으로 언제든 합칩니다.<br>기사부터는 7번을 보세요.</p>\n</section>", "", "<section class=\"pg\">\n  <h2><span class=\"no\">5</span>거인은 맞추기를 방해합니다</h2>\n  <p class=\"say\">거인은 <b class=\"k\">규칙</b> 하나를 가지고 나옵니다.<br>졸개 라운드부터 미리 볼 수 있습니다.</p>\n  <div class=\"legend\">\n    <span class=\"pill\">⚔ 반격</span><span><b class=\"k\">1가지 이하</b>로 맞춰 런하면 남은 런 −1</span>\n    <span class=\"pill\">⚔ 약점 바꾸기</span><span>런할 때마다 세계 · 약점 속성 중 하나가 바뀜</span>\n    <span class=\"pill\">✚ 갑옷 회복</span><span>런할 때마다 체력이 최대 체력의 10%만큼 다시 참</span>\n  </div>\n  <p class=\"tip\">세 규칙 모두 많이 맞춰 한 번에 크게 칠수록 덜 아픕니다.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">6</span>거인을 물리치면 다음 장으로!</h2>\n  <div class=\"road\">\n    <div class=\"stop\"><span class=\"d\">🗡</span>졸개</div><span class=\"ln\"></span>\n    <div class=\"stop\"><span class=\"d\">🛡</span>기사</div><span class=\"ln\"></span>\n    <div class=\"stop g\"><span class=\"d\">👹</span>거인</div>\n  </div>\n  <p class=\"say\">한 장에서 세 번 싸웁니다.<br>이기면 원정 캠프에서 <b class=\"k\">구슬</b>을 사서 점수를 더 키웁니다.</p>\n  <p class=\"tip\">구슬은 런할 때마다 점수를 더하거나 곱해 주는 특별한 힘입니다.</p>\n  <p class=\"end\">8장 마지막 거인을 물리치면 승리!</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">7</span>다음은 기사,<br>그다음은 편력 기사</h2>\n  <p class=\"say\">견습 기사를 깨면 <b class=\"k\">기사</b>, 기사를 깨면 <b class=\"k\">편력 기사</b>가 열립니다.<br>규칙은 같고, 목표와 거인이 세집니다.</p>\n  <div class=\"cmp\" role=\"table\" aria-label=\"난이도별 차이\">\n    <div class=\"h\" role=\"row\"><span role=\"columnheader\"></span><span role=\"columnheader\">견습 기사</span><span role=\"columnheader\">기사</span><span role=\"columnheader\">편력 기사</span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🔗</i>머지</span><span class=\"y\">버튼으로<small>언제든</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🎯</i>목표</span><span class=\"y\">보통</span><span>장마다 더 높아짐</span><span class=\"x\">처음부터 높음<small>더 빨리 오름</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>👹</i>거인<br>규칙</span><span class=\"y\">쉬운 것만</span><span>4장부터 족보 규칙<small>같은 족보 금지 · 처음 족보만</small></span><span class=\"x\">1장부터 족보 규칙</span></div>\n  </div>\n  <p class=\"tip\">장마다 세계 · 적 · 주인공이 무작위로 나옵니다.<br><b class=\"k\">편력 기사</b>를 깨야 엔딩을 볼 수 있습니다.</p>\n</section>"];
+const RB_PAGES=["<section class=\"pg\">\n  <h2><span class=\"no\">1</span>당신은 기사단 대장!</h2>\n  <div class=\"row\" id=\"rb_p1\"></div>\n  <p class=\"say\">손에 <b class=\"k\">동료 카드 8장</b>을 듭니다.<br>왼쪽 위 숫자가 클수록 <b class=\"k\">기본 힘이 셉니다.</b><br>오른쪽 위 숫자는 <b class=\"k\">지금 힘</b>입니다.</p>\n  <p class=\"tip\">왼쪽 위 번호는 <b class=\"k\">판마다 새로 정해집니다</b> (1~10, 번호마다 6장).<br>지금 힘은 별(★)이 늘면 세집니다(초록 ▲).<br>카드 테두리 색은 동료가 사는 세계입니다.<br>주황 러스트, 보라 네온, 파랑 스카이.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">2</span>골라서 “런!”</h2>\n  <p class=\"say\">카드를 눌러 골라 보세요.<br><b class=\"k\">같은 숫자</b>를 모을수록 점수가 커집니다.</p>\n  <div class=\"hand\" id=\"rb_p2\"></div>\n  <div class=\"board\"><span class=\"hn\" id=\"rb_hn\">카드를 골라 보세요 (최대 5장)</span><span class=\"sc\" id=\"rb_sc\"></span></div>\n  <div class=\"meter\" aria-hidden=\"true\"><i id=\"rb_mt\"></i><u title=\"목표\"></u></div>\n  <div class=\"found\" id=\"rb_found\"></div>\n  <p class=\"tip\">위 족보를 모두 찾아보세요.<br>걸린 족보가 여러 개면 <b class=\"k\">모두 더해집니다.</b><br>족보에 들어가지 않은 카드는 흐리게 보이고, 힘이 더해지지 않습니다.<br>빨간 줄(목표 300점)을 넘기면 이깁니다.<br>런은 4번까지 할 수 있습니다.</p>\n  <button class=\"btn sm\" id=\"rb_p2r\" type=\"button\">다시 고르기</button>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">3</span>같은 동료 둘이면 머지!</h2>\n  <div class=\"merge\" id=\"rb_mg\">\n    <span class=\"l-wrap\"></span><span class=\"plus\">+</span><span class=\"r-wrap\"></span><span class=\"res\"></span>\n  </div>\n  <button class=\"btn\" id=\"rb_mgBtn\" type=\"button\">머지!</button>\n  <p class=\"say\">이름이 같은 동료 두 장을 겹치면<br><b class=\"k\">한 장으로 합쳐지고 별이 하나 늘어납니다.</b><br>별이 늘면 힘이 훨씬 세집니다.</p>\n  <p class=\"tip\">견습 기사는 머지 버튼으로 언제든 합칩니다.<br>기사부터는 7번을 보세요.</p>\n</section>", "", "<section class=\"pg\">\n  <h2><span class=\"no\">5</span>거인은 맞추기를 방해합니다</h2>\n  <p class=\"say\">거인은 <b class=\"k\">규칙</b> 하나를 가지고 나옵니다.<br>망령 라운드부터 미리 볼 수 있습니다.</p>\n  <div class=\"legend\">\n    <span class=\"pill\">⚔ 반격</span><span><b class=\"k\">1가지 이하</b>로 맞춰 런하면 남은 런 −1</span>\n    <span class=\"pill\">⚔ 약점 바꾸기</span><span>런할 때마다 세계 · 약점 속성 중 하나가 바뀜</span>\n    <span class=\"pill\">✚ 갑옷 회복</span><span>런할 때마다 체력이 최대 체력의 10%만큼 다시 참</span>\n  </div>\n  <p class=\"tip\">세 규칙 모두 많이 맞춰 한 번에 크게 칠수록 덜 아픕니다.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">6</span>거인을 물리치면 다음 장으로!</h2>\n  <div class=\"road\">\n    <div class=\"stop\"><span class=\"d\">🗡</span>망령</div><span class=\"ln\"></span>\n    <div class=\"stop\"><span class=\"d\">🛡</span>수문장</div><span class=\"ln\"></span>\n    <div class=\"stop g\"><span class=\"d\">👹</span>거인</div>\n  </div>\n  <p class=\"say\">한 장에서 세 번 싸웁니다.<br>이기면 원정 캠프에서 <b class=\"k\">구슬</b>을 사서 점수를 더 키웁니다.</p>\n  <p class=\"tip\">구슬은 런할 때마다 점수를 더하거나 곱해 주는 특별한 힘입니다.</p>\n  <p class=\"end\">8장 마지막 거인을 물리치면 승리!</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">7</span>다음은 기사,<br>그다음은 편력 기사</h2>\n  <p class=\"say\">견습 기사를 깨면 <b class=\"k\">기사</b>, 기사를 깨면 <b class=\"k\">편력 기사</b>가 열립니다.<br>규칙은 같고, 목표와 거인이 세집니다.</p>\n  <div class=\"cmp\" role=\"table\" aria-label=\"난이도별 차이\">\n    <div class=\"h\" role=\"row\"><span role=\"columnheader\"></span><span role=\"columnheader\">견습 기사</span><span role=\"columnheader\">기사</span><span role=\"columnheader\">편력 기사</span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🔗</i>머지</span><span class=\"y\">버튼으로<small>언제든</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🎯</i>목표</span><span class=\"y\">보통</span><span>장마다 더 높아짐</span><span class=\"x\">처음부터 높음<small>더 빨리 오름</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>👹</i>거인<br>규칙</span><span class=\"y\">쉬운 것만</span><span>4장부터 족보 규칙<small>같은 족보 금지 · 처음 족보만</small></span><span class=\"x\">1장부터 족보 규칙</span></div>\n  </div>\n  <p class=\"tip\">장마다 세계 · 적 · 주인공이 무작위로 나옵니다.<br><b class=\"k\">편력 기사</b>를 깨야 엔딩을 볼 수 있습니다.</p>\n</section>"];
 function rbMount(){
 
 const A={art:MR_ART.idle,ico:ICON_IMG};
@@ -4147,7 +4147,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
 </style>
 <script id="lm-mrstage">
 /* ⚔ 손패 ↔ M&R 전투 무대 연결 (2026-10-27)
-   · 라운드 시작: 땅(이번 장의 세계) · 이번 라운드 주인공(+합류 동료) · 적(졸개·기사 = 망령, 거인 = 보스 + WARNING)
+   · 라운드 시작: 땅(이번 장의 세계) · 이번 라운드 주인공(+합류 동료) · 적(망령·수문장 = 망령 그림, 거인 = 보스 + WARNING)
    · 런: 점수를 내는 카드 한 장 = 공격 한 번(원본 공격·피격 이펙트), 주인공 카드 = 스킬 컷인, 쓰러뜨리면 처치 컷신(스킬 이름)
    · 무대에 없는 동료 카드: 동료가 나와 적을 치며 컷인 → 다시 들어감 · 쓰러뜨리면 처치 컷신 → 전투 화면 → 하늘이 바뀜(M&R 보스 처치 연출)
    · 런이 끝나면 이번 런의 ★2 이상 카드가 무대에 합류(최대 3명, 라운드 동안 유지)
@@ -5294,7 +5294,7 @@ html.lmB #lmFoeTag .t.it img.emi[alt="☠"],html.lmB #atkBar img.emi[alt="☠"],
 /* ═══ 3단계: 색으로 정보 나누기 (DHL 10-28 "다 비슷한 색이라 안 읽힘" → 발라트로처럼 정보마다 고유색) ═══
    색의 뜻 (화면 전체에서 같은 뜻 = 같은 색):
    파랑 = 힘 · 런 · 시작하기     빨강 = 기세 · 버리기 · 목표 점수     주황 = 이동 · 선택 · 뒤로 · 장/라운드 진행
-   초록 = 머지 · 졸개 · 컬렉션    금색 = 골드                         남색 = 중립(해제 · 목록)
+   초록 = 머지 · 망령 · 컬렉션    금색 = 골드                         남색 = 중립(해제 · 목록)
    바탕은 '판(밝은 남색) 위에 우물(아주 어두운 칸)' 2단으로 — 칸과 바탕이 확실히 구분되게 */
 :root{--well:#081022;--plate:#1c2c4a;--plate2:#243a60;
   --c-blue:#45a3ff;--c-red:#ff5040;--c-orange:#ff9a1f;--c-green:#4cd07a;--c-gold:#ffd04a;--c-white:#fff7e6;
@@ -5303,7 +5303,7 @@ html.lmB #lmFoeTag .t.it img.emi[alt="☠"],html.lmB #atkBar img.emi[alt="☠"],
 html.lmB #side{background:linear-gradient(180deg,var(--plate2),var(--plate) 40%,#16233d)!important}
 html.lmB .sTgtBox,html.lmB .sRow,html.lmB .sCell{background:var(--well)!important;box-shadow:inset 0 2px 4px #000c,inset 0 0 0 1px #ffffff12,0 1px 0 #ffffff14!important;border-radius:9px!important}
 html.lmB .sTgtBox small,html.lmB .sCell small,html.lmB .sRow small{color:#e7ecf7!important;font-weight:800!important;letter-spacing:.3px}
-/* 라운드 판: 라운드 종류 색으로 물듦 (졸개 초록 · 기사 파랑 · 거인 빨강) */
+/* 라운드 판: 라운드 종류 색으로 물듦 (망령 초록 · 수문장 파랑 · 거인 빨강) */
 html.lmB .sBlind{border-radius:11px!important;padding:7px!important}
 html.lmB #side:has(.sToken[data-rd="0"]) .sBlind{background:linear-gradient(180deg,#2f7a3c,#1d4f27)!important;box-shadow:inset 0 0 0 2px #5ccf6d66,0 2px 0 #0008!important}
 html.lmB #side:has(.sToken[data-rd="1"]) .sBlind{background:linear-gradient(180deg,#2c5bb0,#1b3a78)!important;box-shadow:inset 0 0 0 2px #6fa8ff66,0 2px 0 #0008!important}
