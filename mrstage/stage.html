@@ -7303,7 +7303,7 @@ let isGameOver = false;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
-<script src="assets/rig/rig.js?v=b8"></script>
+<script src="assets/rig/rig.js?v=b9"></script>
 <script id="mr-rig-js">Element.prototype.__lmRect=function(){const r=this.getBoundingClientRect(),k=window.MRStageK||1;return {left:r.left/k,top:r.top/k,right:r.right/k,bottom:r.bottom/k,width:r.width/k,height:r.height/k,x:r.x/k,y:r.y/k};};/*손패: 확대 무대 좌표*/
 
 (()=>{
@@ -7794,7 +7794,7 @@ let isGameOver = false;
   function loadRigDef(num){
     const id=window.MRRig?.registry?.[num];if(!id)return Promise.resolve();
     if(window.MR_RIG_DEFS?.[id])return Promise.resolve();
-    return defLoads[id]=defLoads[id]||new Promise(res=>{const s=document.createElement('script');s.src=RIG_DIR+id+'/rig.def.js?v=b8';s.onload=s.onerror=()=>res();document.head.appendChild(s);});
+    return defLoads[id]=defLoads[id]||new Promise(res=>{const s=document.createElement('script');s.src=RIG_DIR+id+'/rig.def.js?v=b9';s.onload=s.onerror=()=>res();document.head.appendChild(s);});
   }
 
   // ★7 컷인 미리 데우기: 캐릭터마다 첫 컷인 때 리그 정지 그림을 만드느라 0.5초 멈춰 컷인이 통째로 안 보였음
@@ -7840,7 +7840,9 @@ let isGameOver = false;
   };
   // ★12 주인공과 빌런 사이 간격은 그대로, 두 사람의 가운데를 무대 가운데로
   const origFormation=battleFormation;
-  battleFormation=function(){const r=origFormation.apply(this,arguments);if(!r||!r.heroes)return r;const sh=50-(r.heroes[0]+r.enemy)/2;return {heroes:r.heroes.map(x=>Math.round((x+sh)*10)/10),enemy:Math.round((r.enemy+sh)*10)/10};};
+  battleFormation=function(){const r=origFormation.apply(this,arguments);if(!r||!r.heroes)return r;const sh=50-(r.heroes[0]+r.enemy)/2;
+    const hg=(r.enemy-r.heroes[0])/2,ng=Math.min(hg*1.3,28),d=ng-hg;   /* (DHL 10-30 '적과 우리 캐릭터 사이를 더 띄워') 간격 ×1.3 — 주인공은 왼쪽으로, 적은 오른쪽으로 같은 만큼 (적 중심 최대 78%) */
+    return {heroes:r.heroes.map(x=>Math.round((x+sh-d)*10)/10),enemy:Math.round((r.enemy+sh+d)*10)/10};};
   // ★6 빌런 크기 = 우리 캐릭터 몸 크기에 맞춤 (원본은 92px 상자 고정 — 손패 무대 비율에선 너무 작아짐)
   //    빌런 그림은 512 칸의 약 75% 높이, 전투 캐릭터 몸은 290/512 → 일반 빌런 몸 = 캐릭터 몸 × 1.0, 보스 × 1.15
   const origLayout=layoutBattleTeam;
