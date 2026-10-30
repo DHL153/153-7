@@ -7922,7 +7922,8 @@ let isGameOver = false;
     paintGems(o.gems,o.n);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
   async function gsShatter(){const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
     g.classList.add('pop');await sleep(140);g.classList.remove('pop');g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
-    bigText('관통!','prc');{const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.add('brk');sb.querySelector('.t').textContent='';setTimeout(()=>{sb._busy=false;sb._lock=false;sb.classList.remove('brk');sbarDraw(false);},900);}}
+    bigText(((()=>{try{return parent.LM_TD();}catch(e){return '고정 피해';}})())+'!','prc');   // (DHL 10-30) 관통 → 고정 피해 · 영문 True Damage
+    {const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.add('brk');sb.querySelector('.t').textContent='';setTimeout(()=>{sb._busy=false;sb._lock=false;sb.classList.remove('brk');sbarDraw(false);},900);}}
     try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(253,224,71,.45)');}catch(e){}
     setTimeout(()=>b.remove(),700);gsBroken=true;await sleep(420);g.style.display='none';g.classList.remove('gone');}
   function gsClank(blocked){const g=$('lm-gshield');if(!g||g.style.display==='none')return;const sz=parseFloat(g.style.width)||46,p={x:parseFloat(g.style.left)||0,y:parseFloat(g.style.top)||0,sz};
