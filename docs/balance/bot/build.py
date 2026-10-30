@@ -8,5 +8,5 @@ blocks = re.findall(r'<script(?![^>]*src)[^>]*>(.*?)</script>', html, re.S)
 core = [b for b in blocks if 'function score(' in b and 'function handType' in b]
 if len(core) != 1:
     sys.exit(f'코어 스크립트를 하나로 찾지 못했어요 (찾은 수: {len(core)}) — index.html 구조가 바뀌었는지 확인하세요')
-(here / 'sim.js').write_text(core[0] + '\n' + (here / 'sim_body.js').read_text(encoding='utf-8'), encoding='utf-8')
+(here / 'sim.js').write_text('var window=globalThis;   /* 코어가 window.LM_TD 등을 쓰므로 node에서도 돌게 */\n' + core[0] + '\n' + (here / 'sim_body.js').read_text(encoding='utf-8'), encoding='utf-8')
 print('sim.js 생성 완료 —', src)

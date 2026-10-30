@@ -35,6 +35,7 @@ const EMODE=process.env.EMODE||'hold';   // first: 방패부터 깎고 남은 �
 function energyHit(raw,n,sh){if(sh<=0)return {d:raw,ab:0,sh:0};if(n>=3)return {d:raw,ab:0,sh:0,brk:true};
   if(EMODE==='hold'){const cap=Math.max(10,Math.floor(S.tgt*CAPB/10)*10),d0=Math.min(raw,cap),ab=Math.min(sh,raw-d0);return {d:d0,ab,sh:sh-ab};}   // hold: 깨지는 그 공격까지는 막아 줌
   if(EMODE==='over'){const cap=Math.max(10,Math.floor(S.tgt*CAPB/10)*10),d0=Math.min(raw,cap),over=raw-d0,ab=Math.min(sh,over);return {d:d0+(over-ab),ab,sh:sh-ab};}
+  if(EMODE==='ratio'){const RA=+(process.env.RA||0.5),ab=Math.min(sh,Math.floor(raw*RA));let d=raw-ab;if(CAPB>0)d=Math.min(d,Math.max(10,Math.floor(S.tgt*CAPB/10)*10));return {d,ab,sh:sh-ab};}   // ratio: 매 공격 RA만큼 방패가 먼저 받음(방패부터 줄어 보임) · 나머지는 몸체(방패 있는 동안 한 번 CAPB까지)
   const ab=Math.min(sh,raw);let d=raw-ab;if(CAPB>0)d=Math.min(d,Math.max(10,Math.floor(S.tgt*CAPB/10)*10));return {d,ab,sh:sh-ab};}
 const unbon=(raw,n)=>Math.round(raw/(1+ARMOR_BON[n]));
 function barHit(raw,n,bar,rnd){const D=unbon(raw,n),p=PIER[n];
