@@ -5357,7 +5357,7 @@ html.mr-uikit body #app#app#app #boss-hp-fill{position:relative;z-index:1;transi
 #lm-hp-lag{position:absolute;left:0;top:0;bottom:0;width:100%;z-index:0;background:#fff;opacity:.6;border-radius:inherit;transition:width .55s ease .4s}
 #battle-stage.lm-slowmo{filter:contrast(1.18) saturate(1.25) brightness(1.08)}
 /* 빌런 체력: 빌런 발밑에 작게 (이름 숨김, 숫자 작게) */
-html.mr-uikit body #app#app#app #battle-stage #boss-hud{position:absolute!important;left:var(--team-enemy-x,78%)!important;right:auto!important;top:auto!important;bottom:var(--lm-hud-bottom,6%)!important;transform:translateX(-50%)!important;translate:none!important;width:var(--lm-hud-w,64px)!important;min-width:0!important;max-width:none!important;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;z-index:6!important}
+html.mr-uikit body #app#app#app #battle-stage #boss-hud{position:absolute!important;left:var(--team-enemy-x,78%)!important;right:auto!important;top:auto!important;bottom:var(--lm-hud-bottom,6%)!important;transform:translateX(-50%)!important;translate:none!important;width:var(--lm-hud-w,64px)!important;min-width:0!important;max-width:none!important;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;z-index:2!important}   /* (DHL 10-31) 방패 · 체력 게이지는 캐릭터 · 적 뒤로 (적 3 · 캐릭터 5~7 · 피해 숫자 40) */
 html.mr-uikit body #app#app#app #battle-stage #boss-name{display:none!important}
 html.mr-uikit body #app#app#app #battle-stage #boss-hp-track{height:5px!important;min-height:0!important;margin:0!important;border-radius:3px!important;background:#0009!important;border:1px solid #000c!important;box-shadow:0 1px 2px #0008!important;overflow:hidden}
 html.mr-uikit body #app#app#app #battle-stage #boss-hp-fill{border-radius:2px!important}
@@ -5416,7 +5416,7 @@ body:has(#battle-stage[data-team-skill="on"]) :is(#lm-gshield,#lm-cap-line),body
 @media (prefers-reduced-motion:reduce){#lm-cap-line img,#lm-hp-prev{animation:none}}
 </style>
 <style id="lm-gshield-css">/* (DHL 10-29) 적 앞 방패 + 보석 3개(세계 · 약점 속성 · 번호) = 맞춤. 막힘이면 튕기고, 3개면 금 가고 관통에 깨짐 */
-#lm-gshield{position:absolute;z-index:35;pointer-events:none;translate:-50% -50%;display:none;transition:opacity .25s,left .2s,top .2s}
+#lm-gshield{position:absolute;z-index:2;pointer-events:none;translate:-50% -50%;display:none;transition:opacity .25s,left .2s,top .2s}
 #lm-gshield .sh{position:absolute;inset:0;background:url(../assets/ui/lamancha/gem_shield.webp) center/contain no-repeat;opacity:.96;filter:drop-shadow(0 0 1px #0b1220) drop-shadow(0 2px 3px #000a)}
 #lm-gshield .gems{position:absolute;inset:0}   /* 보석 자리: 방패 그림(gem_shield)의 구멍 3개 — 가로 30 · 50.6 · 71.1%, 세로 56.1% */
 #lm-gshield .gm{position:absolute;top:56.1%;translate:-50% -50%;width:var(--g,13px);height:var(--g,13px);border-radius:50%;display:grid;place-items:center;background:#1b2233;border:1.5px solid #0b1220;box-shadow:inset 0 1px 2px #0008;filter:grayscale(1) brightness(.55);transition:filter .2s,transform .2s,box-shadow .2s;font:900 calc(var(--g,13px)*.62)/1 Georgia,serif;font-style:italic;color:#fff;overflow:hidden}
