@@ -7932,14 +7932,14 @@ let isGameOver = false;
     /* (DHL 10-30) 막힌 양은 방패 바('910 막음')와 큰 글씨 아래 '1,040 → 130'으로 — 떠다니는 회색 숫자는 뺌 */
     {const sb=$('lm-sbar'),z=gsSh;if(sb&&z){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');sbarSet(z.after,z.max);z._d=1;clearTimeout(sb._t);
       sb._t=setTimeout(()=>{sb.classList.remove('flash');if(z.after<=0){sb.classList.add('brk');const g2=$('lm-gshield');if(g2)g2.classList.add('gone');setTimeout(()=>{sb.classList.remove('brk');sb._lock=false;sbarDraw(false);if(g2){g2.style.display='none';g2.classList.remove('gone');}},700);}else{sb._lock=false;sbarDraw(true);}},900);}}
-    bigText('막힘!','blk',gsRaw?'방패 '+fmt(blocked)+' · 몸체 '+fmt(Math.max(0,gsRaw-blocked)):'');}
+    bigText('막힘!','blk',gsRaw?'방패 −'+fmt(gsSh?Math.max(0,gsSh.before-gsSh.after):blocked)+' · 몸체 −'+fmt(Math.max(0,gsRaw-blocked)):'');}
   function drawCap(){const L=$('lm-cap-line'),P=$('lm-hp-prev'),Z=$('lm-cap-zone');if(!L||!P)return;const o=capO,M=Math.max(1,maxHp);
     drawGems();
     if(!o||finPend>0){L.style.display='none';P.style.display='none';if(Z)Z.style.display='none';return;}
     const lineHp=hp-o.cap;   // 이번 런 최대로 쳐도 남는 체력 → 🛡 선 (남은 체력이 한 번 최대 피해 이하면 선 없음)
     if(lineHp>0){L.style.display='block';L.style.left=(lineHp/M*100)+'%';L.classList.toggle('brk',!!o.brk);L.classList.toggle('hit',!o.brk&&o.dmg>o.cap);}else L.style.display='none';
     /* (DHL 10-29 B안) 이번 런에 못 깎는 구간 = 철판 무늬 칸 (한계 돌파면 숨김) */ if(Z){if(lineHp>0&&!o.brk){Z.style.display='block';Z.style.width=(lineHp/M*100)+'%';}else Z.style.display='none';}
-    if(o.dmg>0){const eff=o.brk?o.dmg:Math.max(0,o.dmg-o.cap),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
+    if(o.dmg>0){const eff=o.brk||!(o.cap>0)?o.dmg:Math.min(o.dmg,o.hit||o.dmg),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
   function setHud(){
     if(!hud)return;drawCap();
     hud.style.display='block';
