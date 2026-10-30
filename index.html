@@ -2643,7 +2643,7 @@ function render(){
   $('pTgt').innerHTML=S.sandbox?`🧪 <b style="color:var(--gold)">연습장</b> · 최고 ${(S.best||0).toLocaleString()}`:S.practice?'🎯 <b style="color:var(--gold)">해보기</b>':`🎯 <b style="color:var(--gold)">${S.score.toLocaleString()}</b> / <b>${S.tgt.toLocaleString()}</b>`;
   $('pGold').textContent=`💰 ${S.gold}`;
   $('nRun').textContent=S.sandbox?'∞':S.runs;$('nDis').textContent=S.sandbox?'∞':S.dis;$('nDeck').textContent=`${S.draw.length}/${S.deck.length}`;$('hand').style.setProperty('--hn',Math.max(8,S.hand.length));document.body.classList.toggle('handWide',S.hand.length>8);
-  $('bSort').textContent=SORT_KO[S.sort];
+  if(S.sort==='star')$('bSort').innerHTML='<img class="sortStar" src="assets/ui/card/star_g.webp" alt="★" draggable="false">';else $('bSort').textContent=SORT_KO[S.sort];   /* (DHL 10-30 '정렬 별이 깨짐') 이모지 그림(옆 칸이 같이 잘려 나옴) 대신 카드 별 그림 */
   const sc=selCards();S.scoreU=null;if(!S.busy)S.keyNow=null;const hadW=S.willM&&S.willM.length;S.willM=null;
   if(!S.busy){
     if(sc.some(c=>c.fog)){$('htName').textContent='? 가려진 카드';$('vC').textContent='?';$('vM').textContent='?';$('tot').textContent='';}
@@ -2846,14 +2846,23 @@ function mergedPreview(cs){ // 합쳐진 뒤 달릴 카드들 (점수 미리보�
   while(did){did=false;for(const want of ['up','mix']){for(let i=0;i<a.length&&!did;i++)for(let j=0;j<a.length;j++){if(i!==j&&!a[i].fog&&!a[j].fog&&mergeKind(a[i],a[j])===want){applyMerge(a[i],a[j]);a[i]._u=a[i]._u.concat(a[j]._u);a.splice(j,1);did=true;break;}}if(did)break;}}
   return a;
 }
+/* (DHL 10-30) 머지 & 런 되돌리기: 짝을 여러 번 합치다 취소하면 처음 상태로 */
+function mrSnap(){const cs=S.deck.slice();return {deck:cs,hand:S.hand.slice(),sel:S.sel.slice(),cards:cs.map(c=>[c,JSON.parse(JSON.stringify(c))]),m:[S.merges,S.roundMerges,S.runMerges],gold:S.gold};}
+function mrRollback(){const z=S._snap;S._chain=null;S._skip=null;S._snap=null;if(!z)return;
+  z.cards.forEach(([c,o])=>{Object.keys(c).forEach(k=>delete c[k]);Object.assign(c,o);});
+  S.deck=z.deck;S.hand=z.hand;S.sel=z.sel;[S.merges,S.roundMerges,S.runMerges]=z.m;S.gold=z.gold;}
+const mrSame=(a,b)=>cardW(a)===cardW(b)&&a.el===b.el&&cardNo(a)===cardNo(b);
 function runChain(){
   const L=S._chain;if(!L)return;
+  const sk=(a,b)=>S._skip&&S._skip.has(a.uid+'_'+b.uid);
   for(const want of ['up','mix'])for(const a of L)for(const b of L){if(a!==b&&!a.fog&&!b.fog&&mergeKind(a,b)===want){
-    if(S._skip&&S._skip.has(a.uid+'_'+b.uid))continue;   // '머지 하지 않음'을 고른 짝 (DHL 10-30)
+    if(sk(a,b))continue;   // '머지 하지 않음'을 고른 짝 (DHL 10-30)
+    const G=L.filter(x=>!x.fog&&(x===a||(mergeKind(a,x)&&!sk(a,x))));
+    if(G.length>=3&&typeof askPair==='function')return askPair(G);   // (DHL 10-30) 같은 카드 3장 이상: 어느 두 장을 합칠지 플레이어가 고름
     S._ma=a;S._mb=b;
-    if(cardW(a)===cardW(b)&&a.el===b.el&&cardNo(a)===cardNo(b))return finishMerge(a,b,null);   // (DHL 10-30) 고를 게 없는 짝은 창 없이 바로
+    if(mrSame(a,b))return finishMerge(a,b,null);   // (DHL 10-30) 고를 게 없는 짝(딱 2장)은 창 없이 바로
     return askFuse(a,b,want);}}   // 머지 & 런: 짝마다 고르기 창 (세계 · 속성 · 번호 + 머지 하지 않음)
-  S._chain=null;S._skip=null;S.sel=L.map(c=>c.uid);doPlay(true);     // 더 합칠 짝이 없으면 달린다
+  S._chain=null;S._skip=null;S._snap=null;S.sel=L.map(c=>c.uid);doPlay(true);     // 더 합칠 짝이 없으면 달린다
 }
 /* 다섯의 맹세: 고른 카드의 족보 인정 장수(★2=2 · ★3=4)가 5 이상이어야 함 — 손패 전체가 5 미만이면 면제 */
 const wsum=cs=>cs.reduce((s,c)=>s+weight(c),0);
@@ -2861,7 +2870,7 @@ function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(sel
 function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
   if(!merged&&psyShort()){$('tip').textContent='🎯 다섯의 맹세 — 카드 5장 이상 내야 런할 수 있어요 (★2는 2장 · ★3은 4장 · 족보 밖 카드도 세요)';return;}
-  if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();return runChain();}
+  if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();S._snap=mrSnap();return runChain();}
   S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
   const RK=S.foe&&S.foe.rule&&S.foe.rule.k;
@@ -4165,7 +4174,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     if(!S||!S.foe)return;
     const k=((S.jang-1)*3+S.rd)%HERO_PLAN.length,key=S.jang+':'+S.rd+':'+(S.foe.name||'');
     if(!force&&key===roundKey)return;roundKey=key;
-    team=HERO_PLAN[k].slice(0,3);seenGuest=new Set();tagHide=false;
+    const fw=OFF[S.foe.home]!=null?S.foe.home:JANG_WORLD(S.jang);   /* (DHL 10-30 '배경 · 주인공은 스카이아크인데 네온으로 표기') 주인공 · 배경은 그 라운드 적의 세계(= 장 세계, 열쇠 ①)로 — 이름(무기 계열)은 배정표 그대로 */
+    team=HERO_PLAN[k].slice(0,3).map(n=>((n-1)%10)+1+OFF[fw]);seenGuest=new Set();tagHide=false;
     const boss=S.rd===2,maxHp=Math.max(1,S.tgt||1),hp=Math.max(0,maxHp-(S.score||0));
     team=team.slice(0,1);const rd=S.rd,tm=team.slice();call(st=>st.round({ground:tm[0],team:tm,rd,enemy:{kind:boss?'boss':'normal',name:S.foe.name,maxHp,hp,level:S.jang}}));   // 라운드 시작을 한 번에: 주인공의 배경 · 밤에서 걸어 들어옴
     renderTag();setTimeout(warmHand,2500);
@@ -6207,10 +6217,10 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];S.restSel=null;}
     S.inRest=true;const L=all();if(S.restSel&&!L.find(x=>x[0]===S.restSel))S.restSel=null;
     const sel=S.restSel&&L.find(x=>x[0]===S.restSel);
-    showOv(`<div class="rest">${header()}<div class="cpRow n${L.length}">`+L.map(([k,I,g])=>card(k,I,g)).join('')+`</div>`+desc(S.restSel)+
-      `<div class="cpFoot">`+(S.campLog.length?'':`<button class="cpBack" onclick="restLeave(0)"><img src="assets/ui/icon/back.webp" alt=""></button>`)+
-      `<button class="cpGo${sel&&!sel[1].off?'':' hid'}" onclick="restTap('${S.restSel||''}')"><img class="lmIcA" src="assets/ui/icon/check.webp" alt="">${S.restSel?(S.restSel==='guest'?GUESTS[S.campGuest.k].ko:NM[S.restSel]):''}</button>`+
-      (S.campLog.length?`<button class="cpLeave" onclick="restLeave(1)"><i></i>출발</button>`:'')+`</div></div>`);};
+    let nfH='';try{if(armorOn()&&typeof nextFoeHTML==='function'){const nf=S.rd<2?S.foes[S.rd+1]:null;if(nf)nfH=`<div class="nextFoe nf2 cpNext"><small>다음 빌런 · ${S.jang}장 ${RD_KO[S.rd+1]}</small>${nextFoeHTML(nf)}</div>`;}}catch(e){}   /* (DHL 10-30) 야영에서도 다음 빌런 */
+    showOv(`<div class="rest">${nfH}${header()}<div class="cpRow n${L.length}">`+L.map(([k,I,g])=>card(k,I,g)).join('')+`</div>`+desc(S.restSel)+
+      `<div class="cpFoot cpFoot3"><span class="cpL"></span><span class="cpC">`+(S.campLog.length?`<button class="cpLeave" onclick="restLeave(1)"><i></i>출발</button>`:`<button class="cpBack" onclick="restLeave(0)" aria-label="돌아가기"><img src="assets/ui/icon/btn_arrow_l.webp" alt=""></button>`)+`</span>`+
+      `<span class="cpR"><button class="cpGo${sel&&!sel[1].off?'':' hid'}" onclick="restTap('${S.restSel||''}')"><img class="lmIcA" src="assets/ui/icon/check.webp" alt="">${S.restSel?(S.restSel==='guest'?GUESTS[S.campGuest.k].ko:NM[S.restSel]):''}</button></span></div></div>`);};   /* (DHL 10-30) 돌아가기 · 출발은 가운데, 확인은 오른쪽 */
   window.restLeave=go=>{S.inRest=false;S.restSel=null;if(go)return campFinish();startRound();};
   /* 정비 뒤 화면(이름 고르기 · 카드 고르기 · 손님 · 밤 산책)도 같은 숲 배경 안에 */
   const _so=showOv;showOv=function(h){
@@ -6242,7 +6252,21 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   const optNo=(on,n,click)=>`<button class="mgOpt mgNoOpt${on?' on':''}" onclick="${click}"><em class="mgNo">${n}</em><span>번호 ${n}</span></button>`;
   /* (DHL 10-30) 머지 & 런(기사 이상) 중이면 '머지 하지 않음' — 이 짝은 합치지 않고 그대로 달림 */
   const skip=()=>S._chain?`<button class="mgSkip" onclick="hideOv();(S._skip=S._skip||new Set()).add(S._ma.uid+'_'+S._mb.uid);(S._skip).add(S._mb.uid+'_'+S._ma.uid);runChain()">머지 하지 않음</button>`:'';
-  const foot=ok=>`<div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();S._chain=null;S._skip=null;render()" aria-label="취소"><img src="assets/ui/icon/back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
+  const foot=ok=>`<div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
+  /* (DHL 10-30) 같은 카드 3장 이상을 함께 런: 합칠 두 장을 고름 (기본 = 세계 · 속성 · 번호가 같은 두 장, 없으면 번호 높은 두 장) */
+  window.askPair=function(G){
+    S._pg=G;let def=null;for(const a of G)for(const b of G)if(!def&&a!==b&&mrSame(a,b))def=[a,b];
+    if(!def)def=G.slice().sort((x,y)=>cardNo(y)-cardNo(x)).slice(0,2);S._pp=def;
+    const draw=()=>{const P=S._pp,t=TYPES[G[0].id];
+      showOv(`<div class="mgPk"><h2>${t.ko} <i class="mgStar"></i>${G[0].star+1}</h2><p class="mgQ">합칠 두 장을 고르세요 <b>${P.length} / 2</b></p>
+        <div class="mgPair">${G.map((c,i)=>`<button class="mgPc${P.includes(c)?' on':''}" onclick="S._ppT(${i})"><div class="mgCard card dz s${c.star}">${cardFace(c)}</div></button>`).join('')}</div>
+        <div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/back.webp" alt=""></button>
+        <button class="mgSkip" onclick="hideOv();S._skip=S._skip||new Set();S._pg.forEach(a=>S._pg.forEach(b=>{if(a!==b)S._skip.add(a.uid+'_'+b.uid);}));runChain()">머지 하지 않음</button>
+        <button class="mgGo"${P.length===2?'':' disabled'} onclick="S._ppGo()"><img src="assets/ui/icon/check.webp" alt="">다음</button></div></div>`);};
+    S._ppT=i=>{const c=G[i],P=S._pp;S._pp=P.includes(c)?P.filter(x=>x!==c):P.length<2?P.concat(c):[P[1],c];draw();};
+    S._ppGo=()=>{const [a,b]=S._pp;if(!a||!b)return;hideOv();S._ma=a;S._mb=b;if(mrSame(a,b))return finishMerge(a,b,null);askFuse(a,b,mergeKind(a,b));};
+    draw();
+  };
   askFuse=function(a,b){
     const t=TYPES[a.id];S._ma=a;S._mb=b;
     const ws=[...new Set([cardW(a),cardW(b)])],es=[...new Set([a.el,b.el])],ns=[...new Set([cardNo(a),cardNo(b)])].sort((x,y)=>y-x);
@@ -7141,6 +7165,29 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
   fmt();
 })();
 </script>
+
+<style id="lm-fixed-layout">
+/* (DHL 10-29 '고정된 레이아웃으로') 무대 아래 안내 줄(#tip: '정렬: …' · 머지 & 런 안내 · 카드 설명)은 화면에 자리를 차지하지 않게 숨김
+   — 꼭 알아야 하는 경고(바람 종 · 다섯의 맹세 · 안개 · 맷돌 · 치료)는 무대 왼쪽 아래 알림으로 */
+#tip{display:none!important}
+/* 휴대폰 세로: 족보 이름 칸 높이 고정 (카드를 고를 때 아래 무대 · 손패가 밀리지 않게) — 제목 · 족보 · 보너스를 한 줄로 이어 붙이고 최대 2줄 */
+@media (orientation:portrait){
+  html body .sScoreBox .lmNameRow{height:50px!important;min-height:50px!important;overflow:hidden;align-items:center}
+  #htName.hnC{flex-direction:row!important;flex-wrap:wrap;justify-content:center;align-content:center;gap:3px 4px!important;max-height:50px}
+  #htName.hnC .hnR{display:contents}
+  #htName .hnP{font-size:12.5px!important;padding:3px 8px!important}
+  #htName .hnT,#htName .hnB{font-size:10.5px!important}
+}
+</style>
+<script id="lm-fixed-layout-js">
+(function(){
+  const tip=document.getElementById('tip');if(!tip)return;
+  const WARN=/^(🔔|🎯|안개|⚙ 맷돌|✚)/;let last='',lastT=0;
+  new MutationObserver(()=>{const t=(tip.textContent||'').trim();if(!t)return;
+    if(WARN.test(t)&&typeof popMsg==='function'){const m=t.split(' — ')[0].split(' · ')[0];const now=performance.now();if(m!==last||now-lastT>1500){last=m;lastT=now;popMsg(m);}}
+  }).observe(tip,{childList:true,characterData:true,subtree:true});
+})();
+</script>
 <style id="lm-ctrl">
 /* (DHL 10-29) 설정 › 조작: 키보드 키 바꾸기 · 조이패드 — 방향키 · 십자키로 화면의 버튼 · 카드 사이를 옮겨 다님 */
 .lmFocus{outline:3px solid #ffe08a!important;outline-offset:3px!important;box-shadow:0 0 0 6px #ffb43a55!important;border-radius:10px;z-index:30}
@@ -7402,4 +7449,25 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     const r=_fm.apply(this,arguments);quick(bCopy,rb,a);return r;};
 })();
 </script>
+<style id="lm-sort-star">#bSort img.sortStar{height:1.3em!important;width:auto!important;max-width:none;vertical-align:middle;display:inline-block;filter:drop-shadow(0 1px 0 #0006)}</style>
+<style id="lm-camp-v2">
+/* (DHL 10-30) 야영: 위에 다음 빌런 · 아래 돌아가기(남색 원 왼쪽 화살표) 가운데 */
+.rest .cpNext{width:min(560px,92cqw);flex:none;margin:0 auto}
+.cpFoot.cpFoot3{display:grid!important;grid-template-columns:1fr auto 1fr;gap:12px;width:min(640px,94cqw);align-items:center}
+.cpFoot3 .cpC{display:flex;justify-content:center}
+.cpFoot3 .cpR{display:flex;justify-content:flex-start}
+.cpFoot3 .cpBack{width:clamp(50px,7vh,60px)!important;height:clamp(50px,7vh,60px)!important;filter:drop-shadow(0 3px 0 #0009)!important}
+.cpFoot3 .cpGo{padding:0 18px}
+@media (orientation:portrait){.rest .cpNext{width:94cqw}}
+@media (orientation:landscape) and (max-height:500px){.rest .cpNext{display:none!important}}
+<style id="lm-merge-pair">
+/* (DHL 10-30) 같은 카드 3장 이상: 합칠 두 장 고르기 */
+.mgQ{margin:0;font-weight:800;color:#e8d6aa}.mgQ b{color:#ffe08a}
+.mgPair{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;width:100%}
+.mgPc{padding:4px;border-radius:14px;border:2px solid #c9a24a44;background:#0a1122cc;cursor:pointer;opacity:.6;transition:opacity .15s,transform .15s,box-shadow .15s}
+.mgPc.on{opacity:1;border-color:#ffe08a;box-shadow:0 0 14px #ffc85a88;transform:translateY(-4px)}
+.mgPc .mgCard.card.dz{width:clamp(84px,13vh,130px)!important;pointer-events:none}
+@media (orientation:portrait){.mgPc .mgCard.card.dz{width:min(26vw,120px)!important}}
+.mgGo[disabled]{opacity:.45;cursor:default}
+</style>
 </body></html>
