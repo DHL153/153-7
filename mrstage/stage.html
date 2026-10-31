@@ -7859,10 +7859,10 @@ let isGameOver = false;
     const S=body*(kind==='boss'?1.15:1.0)/0.75*lmPortraitK();   // (DHL 10-29) 휴대폰 세로는 빌런도 70%
     stage.style.setProperty('--lm-enemy-size',S.toFixed(1)+'px');
     /* (DHL 10-30) 방패 바 + HP 바 2단: 게이지는 빌런 발밑에 — 빌런을 가리지 않게. 자리가 모자라면 빌런을 그만큼만 올림 */
-    const gk=lmPortraitK()<1?1.5:1,gH=17*gk;stage.style.setProperty('--gk',gk);
+    const gk=(lmPortraitK()<1?1.5:1)*.8,gH=17*gk;   /* (DHL 10-31) 방패 · 게이지 전체 20% 작게 */stage.style.setProperty('--gk',gk);
     const eb=Math.max(0,H*BATTLE_GROUND_LINE-S*0.1);   // (DHL 10-31) 적은 땅에 붙게 — 공격 이펙트가 땅 높이에서 터지도록
     stage.style.setProperty('--lm-enemy-bottom',eb.toFixed(1)+'px');
-    stage.style.setProperty('--lm-hud-w',Math.max(70*gk,S*1.0).toFixed(1)+'px');stage.style.setProperty('--lm-hud-bottom',Math.min(H-gH-6*gk,eb+S*0.9).toFixed(1)+'px');   // 방패 · 에너지 = 적 머리 위
+    stage.style.setProperty('--lm-hud-w',Math.max(70*gk,S*1.0).toFixed(1)+'px');stage.style.setProperty('--lm-hud-bottom',Math.min(H-gH-6*gk,eb+S*1.08).toFixed(1)+'px');   /* (DHL 10-31) 적 머리 위로 올려 겹치지 않게 */   // 방패 · 에너지 = 적 머리 위
   }
   // ★4
   function trimRunFrames(){
