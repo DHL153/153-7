@@ -4248,7 +4248,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r49" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r50" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4393,7 +4393,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
      · 누르면 마이룸·도감 터치 반응 차례로(캐릭터의 ui.tap, 없으면 손 흔들기·폴짝·끄덕·움찔), 길게 누르면 긴 반응(ui.long, 없으면 살랑·폴짝폴짝)
      · 하트·반짝이·말풍선·오라 없음. 리그가 없는 번호(15·25)는 그림 몸짓만 */
   if(typeof cmTap==='function'&&typeof openInfo==='function'){
-    const RIG_REG={1:'alonso-rust',2:'dulcinea-rust',3:'sancho-rust',4:'rosi-rust',5:'basil-rust',6:'carden-rust',7:'lucia-rust',8:'rust-fork-girl',9:'palome-rust',10:'bruno-rust',11:'alonso-neon',12:'dulcinea-neon',13:'sancho-neon',14:'rosi-neon',15:'basil-neon',16:'carden-neon',17:'lucia-neon',18:'nicole-neon',19:'palome-neon',20:'bruno-neon',21:'alonso-sky',22:'dulcinea-sky',23:'sancho-sky',24:'rosi-sky',26:'carden-sky',27:'lucia-sky',28:'nicole-sky',29:'palome-sky',30:'bruno-sky'};
+    const RIG_REG={1:'alonso-rust',2:'dulcinea-rust',3:'sancho-rust',4:'rosi-rust',5:'basil-rust',6:'carden-rust',7:'lucia-rust',8:'rust-fork-girl',9:'palome-rust',10:'bruno-rust',11:'alonso-neon',12:'dulcinea-neon',13:'sancho-neon',14:'rosi-neon',15:'basil-neon',16:'carden-neon',17:'lucia-neon',18:'nicole-neon',19:'palome-neon',20:'bruno-neon',21:'alonso-sky',22:'dulcinea-sky',23:'sancho-sky',24:'rosi-sky',25:'basil-sky',26:'carden-sky',27:'lucia-sky',28:'nicole-sky',29:'palome-sky',30:'bruno-sky'};
   const NOARM={w:[[0,0]],wAmp:[[0,0]],weapon:[[0,1]]};
   const REACT={
     hop:  {kind:"wave",plant:false,dur:1.05,cancelAt:.9,...NOARM,                                  // 폴짝 두 번
