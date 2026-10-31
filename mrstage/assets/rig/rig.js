@@ -109,7 +109,7 @@
           continue }
         const b = this.by[name], pn = this.swap[name] || b.part, part = this.def.parts[pn], img = this.images[pn]; if (!img) continue;
         const op = this.alpha[name] ?? 1; if (op <= .003) continue;
-        const clip_ = this.def.hemClip && this.def.hemClip.includes(name); if (clip_) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); if (this._hemPath(ctx, base)) ctx.clip() }   // hemClip(opt-in, 바실 v6): 이 조각은 밑단 아래만
+        const clip_ = this.def.hemClip && this.def.hemClip.includes(name) && !this.swap.skirt;   // 달리기 반바지로 바뀌면 원래 밑단으로 자르지 않음(반바지가 위에 그려짐) if (clip_) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); if (this._hemPath(ctx, base)) ctx.clip() }   // hemClip(opt-in, 바실 v6): 이 조각은 밑단 아래만
         ctx.globalAlpha = op;
         const k = part.scale || 1, M = mul(mul(base, b.m), [k, 0, 0, k, 0, 0]);
         if (part.mesh) this._drawMesh(ctx, M, img, part, this.meshFx[pn]);
@@ -512,7 +512,8 @@
       if (LG.punchThick && rig.def.parts.punchSkin?.mesh && !rig.meshFx.punchSkin) { const T = LG.punchThick, W0 = LG.punchThin ?? .62, W1 = LG.punchThinEnd ?? .9;   // (DHL 10-31 25 스카이 바실, opt-in) 펀치 팔(어깨~손목) 두께 — 손목 쪽은 원래 두께로 줄여 건틀릿 입구 안에 들어가게
         rig.meshFx.punchSkin = (u, v, x, y) => { const q = clamp((u - W0) / (W1 - W0), 0, 1), t = T + (1 - T) * q * q * (3 - 2 * q); return [0, y * (t - 1)] } }
       if (R.skirtRunW && b.skirt) b.skirt.asx = lerp(1, R.skirtRunW, A);
-      if (R.skirtRunPart && rig.def.parts[R.skirtRunPart]) rig.swap.skirt = w ? R.skirtRunPart : null;   // (DHL 10-31 25 스카이 바실, opt-in) 달릴 때 좁은 반바지 그림(DHL 시트)으로 바꿈 — 다리 그림 바꿈과 같은 순간   // (DHL 10-31, opt-in) 달릴 때 반바지 폭을 좁힘 — 걷는 다리 그림과 어울리게
+      if (R.skirtRunPart && rig.def.parts[R.skirtRunPart]) rig.swap.skirt = w ? R.skirtRunPart : null;
+      if (R.torsoRunPart && rig.def.parts[R.torsoRunPart] && w && pOn <= .5) rig.swap.torso = R.torsoRunPart;   // (opt-in) 달릴 때 상체 그림에서 원래 반바지 윗부분 · 재킷 끝을 뺀 그림   // (DHL 10-31 25 스카이 바실, opt-in) 달릴 때 좁은 반바지 그림(DHL 시트)으로 바꿈 — 다리 그림 바꿈과 같은 순간   // (DHL 10-31, opt-in) 달릴 때 반바지 폭을 좁힘 — 걷는 다리 그림과 어울리게
       b.armU.ax += tr("guardX"); b.armU.ay += tr("guardY");
       if (b.pony) { const pT = an.sP.step(hipY + accel * .01, dt) - hipY; b.pony.ar = clamp(-pT * .004 * (R.ponySway ?? .5) / .5, -.18, .18) }
       if (an.act && !an.act.hit && D.hitAt != null && at >= D.hitAt) { an.act.hit = true; if (D.hitStop) an.act.freeze = D.hitStop; rig.compute(); const p = rig.point(D.pOn ? "fistP" : "fistF"); an.events.push({ type: "hit", x: p[0], y: p[1] }) }
