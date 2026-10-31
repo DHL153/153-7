@@ -7967,4 +7967,10 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   window.lmLoseCards=()=>{seen=null;return loseFx();};   // 패배는 반격 연출 끝(lose 래퍼 안)에서 부름
 })();
 </script>
+<style id="lm-back-44">
+/* (DHL 10-31 B안) 돌아가기 ↩ · 닫기 ✕ 원판 버튼은 어디서나 44px — 머지 창 · 야영 · 하단 버튼 줄 · 안내 · 배우기/도감 · 구슬 창 · 연출 보기 · 첫 실행 연출 다시 보기 */
+html body .cpBack.cpBack:not(#_),html body .cpFoot3 .cpBack:not(#_),html body .mgFoot .cpBack:not(#_),html body .rest .cpBack:not(#_),
+html body #game-startup-screen.lm-replay .lm-replay-back:not(#_),html body #lmFxPlayer .fpBack:not(#_){width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;flex:none}
+html body button.lmIco.ibBack:not(#_),html body button.lmIco.lmIcoNav:not(#_),html body button.lmIco.omX:not(#_),html body button.lmIco.iClose:not(#_){--s:44px}
+</style>
 </body></html>
