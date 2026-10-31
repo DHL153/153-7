@@ -3840,7 +3840,7 @@ window.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.ge
   }else if(S&&S.sel&&S.sel.length&&!S.busy){stop();S.sel=[];render();return;}   // 고른 카드 모두 해제
   stop();gameOpt();
 },true);   // Esc: 한 단계 뒤로 · 취소
-function ltHide(){$('lm-title').hidden=true;document.body.classList.remove('lm-titleOn');ltPop();}
+function ltHide(){_ovPark=null;$('lm-title').hidden=true;document.body.classList.remove('lm-titleOn');ltPop();}
 function ltPlay(){ltPlayTab=S&&!S.practice&&!S._statEnded?'cont':'new';ltPop('play');}
 /* 📊 기록 (통계 창용) — 실제 판에서만 쌓임(해보기 제외). 저장 키 lm_stats */
 let LM_ST=lsGet('lm_stats',{best:0,bestLabel:'',bestRound:0,bestJang:0,maxGold:0,hands:{},runs:0,wins:0,streak:0,maxStreak:0,clears:{}});
@@ -3901,7 +3901,15 @@ function ltPlayHTML(){
 function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k.length)%k.length];ltPop('play');}
 function ltNewRun(){lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length)openInfo('learn','page',0);}
 /* 계속하기 (2026-10-29 버그): 라운드 선택 · 원정 캠프 중에 메인 메뉴로 갔다 오면 창이 사라져 손패 0장 판이 열리던 문제 → 그 단계 창을 다시 띄움 */
-function ltCont(){ltHide();if(!S)return;render();if($('ov').hidden){if(S.selecting&&!S.practice&&!S.sandbox)startRound();else if(S.inShop)openShop();}}
+/* 메인 메뉴로 (2026-11-01 DHL 버그): 라운드 선택 · 상점 · 캠프 창(#ov)이 타이틀보다 위(z 60)라 타이틀이 안 보이던 문제
+   → 나갈 때 그 창을 통째로 보관(이벤트 그대로)하고 숨김, 계속하기에서 그대로 되돌림 */
+var _ovPark=null;
+function ltExit(){const o=$('ov');ltPop();
+  if(S&&o&&!o.hidden){_ovPark={S,cls:o.className,kids:[...o.childNodes]};o.replaceChildren();o.hidden=true;}
+  ltShow();}
+function ltCont(){const pk=_ovPark;ltHide();if(!S)return;
+  if(pk&&pk.S===S){const o=$('ov');o.className=pk.cls;o.replaceChildren(...pk.kids);o.hidden=false;render();return;}
+  render();if($('ov').hidden){if(S.selecting&&!S.practice&&!S.sandbox)startRound();else if(S.inShop)openShop();}}
 function ltLearn(i){ltPop();openInfo('learn','page',i);}
 function ltPractice(i){ltHide();practiceStart(i);}
 /* 🧪 연습장 (2026-10-29 DHL): 추천이 켜진 연습용 — 런 · 버리기 무한, 적 체력 무한(쓰러지지 않음), 의도 · 거인 규칙 없음, 보상 · 캠프 없음 */
@@ -3928,7 +3936,7 @@ function ltPop(kind){
   const on=gameSettings.masterVolume>0;
   // 발라트로 옵션 창 배치: 가운데 판 · 빨간 버튼 세로 · 맨 아래 넓은 주황 '뒤로'
   if(kind==='opt')card.innerHTML=`<div class="lt-mlist">${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('덱 사용자 지정',"ltPop('deck')")}${B('크레딧',"ltPop('credit')")}</div>${close}`;
-  if(kind==='gopt')card.innerHTML=`<div class="lt-mlist">${B('계속하기','ltPop()','go')}${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('배우기',"ltPop();window._lmBack=()=>gameOpt();openInfo('learn')")}${B('메인 메뉴로',"ltPop();ltShow()",'exit')}</div><p class="lt-note" style="text-align:center;margin:-6px 0 0">진행 중인 판은 그대로 남아요 · 타이틀의 플레이 → 계속하기</p>`;   /* 나가기(2026-10-28 DHL): 판을 끝내지 않고 타이틀로 — goMenu는 판을 끝냄(_statEnded)이라 쓰지 않음 */
+  if(kind==='gopt')card.innerHTML=`<div class="lt-mlist">${B('계속하기','ltPop()','go')}${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('배우기',"ltPop();window._lmBack=()=>gameOpt();openInfo('learn')")}${B('메인 메뉴로',"ltExit()",'exit')}</div><p class="lt-note" style="text-align:center;margin:-6px 0 0">진행 중인 판은 그대로 남아요 · 타이틀의 플레이 → 계속하기</p>`;   /* 나가기(2026-10-28 DHL): 판을 끝내지 않고 타이틀로 — goMenu는 판을 끝냄(_statEnded)이라 쓰지 않음 */
   if(kind==='set')card.innerHTML=ltSetHTML()+back;
   if(kind==='col')card.innerHTML=ltColHTML()+close;
   if(kind==='stat')card.innerHTML=ltStatHTML()+back;
