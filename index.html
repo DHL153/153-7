@@ -4253,7 +4253,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r53" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r54" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4446,8 +4446,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     const TAP_CYCLE=['wave','hop','nod','surprise'],LONG_PICK=['cute','cute2'];
     const loadJs=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
     let libP=null;const defP={},ready={};let cm=null;
-    const lib=()=>libP||(libP=(window.RunAnimator?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b12')).then(()=>{Object.assign(RunAnimator.ACTIONS,REACT);}));
-    const loadDef=id=>defP[id]||(defP[id]=(window.MR_RIG_DEFS?.[id]?Promise.resolve():loadJs('mrstage/assets/rig/'+id+'/rig.def.js?v=b12')).then(()=>{
+    const lib=()=>libP||(libP=(window.RunAnimator?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b13')).then(()=>{Object.assign(RunAnimator.ACTIONS,REACT);}));
+    const loadDef=id=>defP[id]||(defP[id]=(window.MR_RIG_DEFS?.[id]?Promise.resolve():loadJs('mrstage/assets/rig/'+id+'/rig.def.js?v=b13')).then(()=>{
       const def=window.MR_RIG_DEFS[id];
       if(def.faces&&!def.faces.sad){const f=def.faces.grimace||def.faces.effort||def.faces.focus;if(f)def.faces.sad=f;}   // 슬픈 얼굴이 없는 캐릭터: 찡그린 얼굴로 (버리기 · 족보 밖)
       return Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=rej;im.src=p.src;}))).then(pr=>(ready[id]={def,images:Object.fromEntries(pr)}));}));
@@ -6753,8 +6753,8 @@ html.lmPtr #lm-title .ls-tab:focus-visible,html.lmPtr #lm-title .lt-mb:focus-vis
   const cv=sc.querySelector('.ltv-run'),g=cv.getContext('2d');
   const loadJs=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
   let libP=null;const defP={};
-  const lib=()=>libP||(libP=window.CharacterRig?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b12'));
-  const loadDef=id=>defP[id]||(defP[id]=lib().then(()=>window.MR_RIG_DEFS?.[id]?0:loadJs('mrstage/assets/rig/'+id+'/rig.def.js?v=b12')).then(()=>{
+  const lib=()=>libP||(libP=window.CharacterRig?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b13'));
+  const loadDef=id=>defP[id]||(defP[id]=lib().then(()=>window.MR_RIG_DEFS?.[id]?0:loadJs('mrstage/assets/rig/'+id+'/rig.def.js?v=b13')).then(()=>{
     const def=window.MR_RIG_DEFS[id];return Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=rej;im.src=p.src;}))).then(pr=>({def,images:Object.fromEntries(pr)}));
   }).catch(e=>{console.warn('title rig',id,e);delete defP[id];return null;}));
   const base=n=>n.split('-')[0];
@@ -7237,9 +7237,9 @@ body.lmFxDemo.lmFxOut #lm-title{z-index:902}
 /* (DHL 10-29) 컬렉션 '전투 연출 보기' 카드 그림: 니콜(네온 · 창 찌르기) · 로시(러스트 · 짧은 연사) 리그가 번갈아 공격 — 리그를 못 받으면 정지 그림 그대로 */
 (function(){
   const loadJs=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-  const lib=()=>window.CharacterRig?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b12');
+  const lib=()=>window.CharacterRig?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b13');
   const cache={};
-  const load=id=>cache[id]||(cache[id]=lib().then(()=>window.MR_RIG_DEFS?.[id]?0:loadJs('mrstage/assets/rig/'+id+'/rig.def.js?v=b12')).then(()=>{const def=window.MR_RIG_DEFS[id];
+  const load=id=>cache[id]||(cache[id]=lib().then(()=>window.MR_RIG_DEFS?.[id]?0:loadJs('mrstage/assets/rig/'+id+'/rig.def.js?v=b13')).then(()=>{const def=window.MR_RIG_DEFS[id];
     return Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=rej;im.src=p.src;}))).then(pr=>({def,images:Object.fromEntries(pr)}));}).catch(e=>{delete cache[id];throw e;}));
   const CAST=[{id:'rust-fork-girl',x:.60,h:.94,depth:1,face:-1}];   /* (DHL 10-29) 러스트 니콜 혼자 · 좌우 반전 · 가운데 왼쪽에서 창 찌르기 반복 */   /* (DHL 10-29) 로시는 위 동료 카드에 있어 빼고 · 네온 둘시네(해머) ↔ 러스트 니콜(좌우 반전 · 창) 마주 보고 번갈아 공격 */
   window.lmFxTile=function(btn){
