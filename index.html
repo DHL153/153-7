@@ -1378,7 +1378,7 @@ img.wico{object-fit:contain;transform:scale(1.22)}
 <style id="lm-replay-css">/* (DHL 10-30) 첫 실행 연출 다시 보기 */
 html body #game-startup-screen.lm-replay{background:#0c0a0b!important}
 html body #game-startup-screen.lm-replay.out{opacity:0!important;transition:opacity .3s ease!important}
-#game-startup-screen.lm-replay .lm-replay-back{position:absolute;left:50%;bottom:max(28px,8vh);translate:-50% 0;z-index:5;width:max(56px,8vh);height:max(56px,8vh);padding:0;border:0!important;border-radius:50%;background:none!important;box-shadow:none!important;cursor:pointer;filter:drop-shadow(0 3px 4px #000c);animation:lmReplayBack .45s ease-out both}   /* (DHL 10-31) 글자 없는 우리 '돌아가기' 아이콘 버튼 (assets/ui/icon/back.webp) */
+#game-startup-screen.lm-replay .lm-replay-back{position:absolute;left:50%;bottom:max(28px,8vh);translate:-50% 0;z-index:5;width:max(28px,4vh);height:max(28px,4vh);padding:0;border:0!important;border-radius:50%;background:none!important;box-shadow:none!important;cursor:pointer;filter:drop-shadow(0 3px 4px #000c);animation:lmReplayBack .45s ease-out both}   /* (DHL 10-31) 글자 없는 우리 '돌아가기' 아이콘 버튼 (assets/ui/icon/back.webp) */
 #game-startup-screen.lm-replay .lm-replay-back img{width:100%;height:100%;object-fit:contain;pointer-events:none}
 #game-startup-screen.lm-replay .lm-replay-back[hidden]{display:none}
 #game-startup-screen.lm-replay .lm-replay-back:hover,#game-startup-screen.lm-replay .lm-replay-back:focus-visible{outline:none;filter:drop-shadow(0 3px 4px #000c) brightness(1.15);scale:1.08}
@@ -5907,7 +5907,7 @@ body:has(#ov:not([hidden]) .rest) #midZone,body:has(#ov:not([hidden]) .rest) #ha
 .cpDesc em{font-style:normal;color:#ff9a7a;font-weight:800}
 .cpFoot{display:flex;gap:14px;align-items:center;justify-content:center;min-height:max(46px,7vh)}
 .cpFoot button{font-family:inherit;cursor:pointer}
-.cpBack{width:max(46px,7vh);height:max(46px,7vh);border-radius:50%;border:0;padding:0;background:none;filter:drop-shadow(0 3px 4px #000c)}
+.cpBack{width:max(23px,3.5vh);height:max(23px,3.5vh);border-radius:50%;border:0;padding:0;background:none;filter:drop-shadow(0 3px 4px #000c)}
 .cpBack img{width:100%;height:100%;object-fit:contain}
 .cpGo{display:flex;align-items:center;gap:8px;height:max(44px,6.4vh);padding:0 26px;border-radius:99px;border:2px solid #e9c46a;background:linear-gradient(#7a4a1e,#4a2a10);color:#fff1cf;font-weight:900;font-size:clamp(14px,2.3vh,19px);box-shadow:0 3px 0 #2a1606,0 0 14px #ffc85a55}
 .cpGo.hid{visibility:hidden}
@@ -5948,7 +5948,7 @@ body:has(#ov:not([hidden]) .rest) #midZone,body:has(#ov:not([hidden]) .rest) #ha
   .cpGold{font-size:15px;padding:3px 10px}
   .cpDesc{width:88cqw;height:calc(clamp(14px,4cqw,18px)*3.5);font-size:clamp(14px,4cqw,18px)}
   .cpFoot{min-height:56px}
-  .cpBack{width:56px;height:56px}
+  .cpBack{width:28px;height:28px}
   .cpGo,.cpLeave{height:52px;font-size:17px}.cpLeave i{height:44px}
   .rest.sub{justify-content:flex-start;gap:2.5cqh}
   .rest.sub .cpHead{--sh:min(9cqh,16cqw)}
@@ -5964,8 +5964,8 @@ body:has(#ov:not([hidden]) .rest) #midZone,body:has(#ov:not([hidden]) .rest) #ha
 }
 .rest .cpSubIn .cpBack{display:block;margin:10px auto 0}
 /* 뒤로 아이콘 크기 줄임 (DHL 10-28 "너무 큼") — 야영 모든 화면 같은 크기 */
-.rest .cpBack,.rest .cpSubIn .cpBack{width:38px;height:38px}
-@media (orientation:portrait){.rest .cpBack,.rest .cpSubIn .cpBack{width:40px;height:40px}}
+.rest .cpBack,.rest .cpSubIn .cpBack{width:19px;height:19px}
+@media (orientation:portrait){.rest .cpBack,.rest .cpSubIn .cpBack{width:20px;height:20px}}
 /* 속성 코인: 메달 옆(안 보임) → 오른쪽 아래, 왼쪽 아래 세계 방패와 짝 · 크게 · 색 진하게 (DHL 10-28) */
 html.lmB body .card.dz .dzi[data-w] .dzel{left:auto!important;right:6%!important;top:84.6%!important;width:15.5%!important;z-index:8;
   filter:saturate(1.6) contrast(1.18) brightness(.93) drop-shadow(0 1px 1.5px #000c)!important}
@@ -6037,7 +6037,7 @@ html.lmB body .card.dz .dzi[data-w] .dzel{right:2.8%!important;top:81.4%!importa
 .mgOpt.on{opacity:1;border-color:#ffe08a;transform:scale(1.06);box-shadow:0 0 12px #ffe08a55}
 .mgX2{margin:0;font:900 clamp(15px,2.4vh,20px)/1 'Noto Sans KR',sans-serif;color:#9cf5b4;text-shadow:0 1px 0 #000}
 .mgFoot{display:flex;align-items:center;justify-content:center;gap:16px;width:100%;margin-top:4px}
-.mgFoot .cpBack{width:44px;height:44px;border:0;background:none;padding:0;filter:drop-shadow(0 3px 4px #000c)}
+.mgFoot .cpBack{width:22px;height:22px;border:0;background:none;padding:0;filter:drop-shadow(0 3px 4px #000c)}
 .mgFoot .cpBack img{width:100%;height:100%;object-fit:contain}
 .mgGo{display:flex;align-items:center;gap:8px;height:52px;padding:0 34px;border-radius:99px;border:2px solid #ffe08a;background:linear-gradient(#c9822a,#8a4c14);color:#fff6dc;font-weight:900;font-size:clamp(16px,2.6vh,20px);box-shadow:0 3px 0 #2a1606,0 0 14px #ffc85a55;cursor:pointer}
 .mgGo img{width:22px;height:22px}
@@ -7561,7 +7561,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 .cpFoot.cpFoot3{display:grid!important;grid-template-columns:1fr auto 1fr;gap:12px;width:min(640px,94cqw);align-items:center}
 .cpFoot3 .cpC{display:flex;justify-content:center}
 .cpFoot3 .cpR{display:flex;justify-content:flex-start}
-.cpFoot3 .cpBack{width:clamp(50px,7vh,60px)!important;height:clamp(50px,7vh,60px)!important;filter:drop-shadow(0 3px 0 #0009)!important}
+.cpFoot3 .cpBack{width:clamp(25px,3.5vh,30px)!important;height:clamp(25px,3.5vh,30px)!important;filter:drop-shadow(0 3px 0 #0009)!important}
 .cpFoot3 .cpGo{padding:0 18px}
 @media (orientation:portrait){.rest .cpNext{width:94cqw}}
 @media (orientation:landscape) and (max-height:500px){.rest .cpNext{display:none!important}}
