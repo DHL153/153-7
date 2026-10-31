@@ -446,7 +446,7 @@
       const D = an.act ? an.act.def : null, at = an.act ? an.act.t : 0, tr = k => D && D[k] ? track(D[k], at) : 0;
       an.A = damp(an.A, D ? 0 : smooth(15, 200, sp), D ? 16 : 7, dt); const A = an.A, I = 1 - A;
       let hz = s.stepHz > 0 && sp > 14 ? s.stepHz : (R.hz0 + R.hzK * sp); const st = R.stance;
-      if (R.maxStride && sp > 14) { const need = 2 * sp * st / R.maxStride; if (need > hz) hz = Math.min(R.maxHz || 7, need) }   // (DHL 10-30 '다리가 배경보다 느림') 짧은 다리라 보폭 상한에 걸리면 걸음 수를 늘려 땅 속도를 따라감
+      if (R.maxStride && R.stepBoost && sp > 14) { const need = 2 * sp * st / R.maxStride; if (need > hz) hz = Math.min(R.maxHz || 7, need) }   // (DHL 10-31 '걷는 속도 빠르게 한 것 롤백') 보폭 상한에 걸려도 걸음 수를 늘리지 않음 — stepBoost(opt-in)일 때만
       const T2 = 2 / hz;
       if (!D) an.ph = (an.ph + dt / T2 * smooth(5, 60, sp)) % 1;
       const P = an.ph * TAU, T = an.t, br = Math.sin(T * TAU / (I0.period || 2.9));
@@ -509,7 +509,8 @@
       rig.alpha.farUp = rig.alpha.foreF = 1 - pOn; rig.alpha.punchSkin = rig.alpha.punchG = pOn;
       if (rig.def.parts.torsoP) rig.swap.torso = pOn > .5 ? "torsoP" : null;   // v11: torso without the far-shoulder lump while the straight arm is out
       if (b.punch) { const k = D && D.pK ? tr("pK") : 1; b.punch.ar = tr("pA"); b.punchSkin.asx = k; b.punchG.ax = (LG.skinLen || 0) * (k - 1) }
-      if (LG.punchThick && b.punchSkin) b.punchSkin.asy = LG.punchThick;   // (DHL 10-31 25 스카이 바실, opt-in) 펀치 팔(어깨~손목) 두께
+      if (LG.punchThick && rig.def.parts.punchSkin?.mesh && !rig.meshFx.punchSkin) { const T = LG.punchThick, W0 = LG.punchThin ?? .62, W1 = LG.punchThinEnd ?? .9;   // (DHL 10-31 25 스카이 바실, opt-in) 펀치 팔(어깨~손목) 두께 — 손목 쪽은 원래 두께로 줄여 건틀릿 입구 안에 들어가게
+        rig.meshFx.punchSkin = (u, v, x, y) => { const q = clamp((u - W0) / (W1 - W0), 0, 1), t = T + (1 - T) * q * q * (3 - 2 * q); return [0, y * (t - 1)] } }
       if (R.skirtRunW && b.skirt) b.skirt.asx = lerp(1, R.skirtRunW, A);   // (DHL 10-31, opt-in) 달릴 때 반바지 폭을 좁힘 — 걷는 다리 그림과 어울리게
       b.armU.ax += tr("guardX"); b.armU.ay += tr("guardY");
       if (b.pony) { const pT = an.sP.step(hipY + accel * .01, dt) - hipY; b.pony.ar = clamp(-pT * .004 * (R.ponySway ?? .5) / .5, -.18, .18) }
