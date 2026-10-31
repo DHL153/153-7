@@ -2620,7 +2620,7 @@ function cardFace(c){
   const nm=t.ko,nmc=nm.length>6?' xs':nm.length>4?' sm':'';
   const pl=typeof ICON_IMG!=='undefined'&&ICON_IMG['plate_'+w];
   const stars=Array(c.star).fill(ICO(c.star>=3?'star3':'star2')).join('');
-  return `<span class="dzi${d?' mood-'+d:''}" data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}" style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}"><span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
+  return `<span class="dzi${d?' mood-'+d:''}" data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}" style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(STAR_W[c.star]-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${STAR_W[c.star]-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
     `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${TYPES[c.id].n}${c.aw==='B'?'_b':''}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
@@ -4104,6 +4104,22 @@ html body .sScoreBox .lmNameRow.lmPop{animation:lmNamePop .45s cubic-bezier(.3,1
 #lmSRow .lmTk.out::after{content:"밖";position:absolute;bottom:3px;left:50%;translate:-50% 0;font:900 10px 'Noto Sans KR',sans-serif;background:#000c;color:#fff;border-radius:6px;padding:0 4px}
 #lmSRow .lmTk.hit{transform:translateY(-6px) scale(1.12);box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #ffcf3f,0 0 16px #ffcf3faa;overflow:visible;z-index:2}
 #lmSRow .lmTk.done{box-shadow:inset 0 0 0 2px #ffffff99,0 0 0 1.5px #ffcf3f99}
+/* (DHL 10-31 시안 1-A) ★ 카드 = 족보에서 여러 장 → 뒤에 겹친 카드 뒷면으로 장수 표시 (★2 1겹 · ★3 3겹), 고르면 부채처럼 펼쳐짐 */
+.card.dz .dzStk{position:absolute;inset:0;border-radius:5cqw;background:url(assets/ui/kit/card_back.webp) center/100% 100% no-repeat;box-shadow:0 1px 3px #000a;pointer-events:none;transform:translate(calc(var(--k)*4.5cqw),calc(var(--k)*-4.5cqw));transition:transform .28s cubic-bezier(.3,1.4,.5,1)}
+.card.dz.sel .dzStk,.card.dz:hover .dzStk{transform:translate(calc(var(--k)*7cqw),calc(var(--k)*-7cqw)) rotate(calc(var(--k)*3deg))}
+@media (prefers-reduced-motion:reduce){.card.dz .dzStk{transition:none}}
+/* (DHL 10-31 시안 2-A) 고른 ★ 카드 옆에 그림자 카드가 장수만큼 더 놓임 */
+#lmSRow .lmGh{position:relative;width:var(--tk,48px);aspect-ratio:3/4;border-radius:8px;flex:none;overflow:hidden;opacity:.62;filter:saturate(.3) brightness(1.15);outline:2px dashed #ffd36a;outline-offset:-2px;background:linear-gradient(170deg,color-mix(in srgb,var(--e) 75%,#fff 15%),color-mix(in srgb,var(--e) 60%,#000));transition:opacity .2s,filter .2s}
+#lmSRow .lmGh img{position:absolute;left:-10%;right:-10%;bottom:-4%;width:120%;height:96%;object-fit:contain;object-position:50% 100%}
+#lmSRow .lmGh b{position:absolute;left:3px;top:2px;font:italic 900 calc(var(--tk,48px) * .38)/1 Georgia,serif;color:#fff;text-shadow:0 1px 0 #000,0 0 3px #000}
+#lmSRow .lmGh::before{content:"";position:absolute;left:-6px;top:50%;width:10px;height:4px;margin-top:-2px;border-radius:2px;background:#ffd36a;box-shadow:0 0 5px #ffd36a}
+#lmSRow.lmCmp .lmGh{margin-left:calc(var(--tk,48px) * -.62 - 8px);box-shadow:-3px 0 4px #0008}#lmSRow.lmCmp .lmGh::before{display:none}#lmSRow.lmCmp .lmTks{width:auto;max-width:100%}
+#lmSRow .lmGh.new{animation:lmGhIn .42s cubic-bezier(.3,1.3,.5,1) both}
+@keyframes lmGhIn{from{opacity:0;transform:translateX(calc(-100% - 8px)) scale(.9)}to{opacity:.62;transform:none}}
+#lmSRow .lmGh.out{filter:grayscale(.85) brightness(.55);opacity:.4}
+#lmSRow .lmGh.hit{opacity:1;filter:none;outline-style:solid}
+#lmSRow .lmGh.done{opacity:.85;filter:none}
+@media (prefers-reduced-motion:reduce){#lmSRow .lmGh{animation:none!important;transition:none!important}}
 #lmSRow .lmCap{font:700 12px 'Noto Sans KR',sans-serif;color:#f1d48a;text-align:center}#lmSRow .lmCap em{font-style:normal;color:#8f9bb5;font-weight:500}#lmSRow .lmCap.dim{color:#8f9bb5;font-weight:500}
 #lmSRow .lmFly{position:absolute;translate:-50% -100%;font:900 18px 'Noto Sans KR',sans-serif;color:#9fd0ff;text-shadow:0 2px 0 #000;pointer-events:none;animation:lmFly .75s ease-out forwards;z-index:3;white-space:nowrap}
 #lmSRow .lmFly.m{color:#ffb0a8}
@@ -4726,22 +4742,34 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     const tokInfo=c=>{const t=TYPES[c.id]||{};const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"] .dzno');
       return info[c.uid]={n:el?el.textContent.trim():(t.n||''),ec:(typeof EL_C!=='undefined'&&EL_C[c.el])||'#777',img:(typeof MR_ART!=='undefined'&&MR_ART.idle&&MR_ART.idle[c.id])||'',star:c.star||1};};
     const tok=(c,out)=>{const f=info[c.uid]||tokInfo(c);return `<span class="lmTk${out?' out':''}${f.star>1?' s'+f.star:''}" data-uid="${c.uid}" style="--e:${f.ec}">${f.img?`<img src="${f.img}" alt="">`:''}<b>${f.n}</b></span>`;};
-    let mode='';
-    const cols=n=>{row.style.setProperty('--cols',n<=3?Math.max(1,n):n===4?2:3);};   // 4장 = 2×2 · 5장 = 3+2 · 3장 이하 = 한 줄
-    function fit(){const h=row.clientHeight,w=row.clientWidth;
+    const W=c=>(typeof STAR_W!=='undefined'&&STAR_W[c.star||1])||1;   // 족보에서 세는 장수
+    let ghSeen=new Set();   // 그림자 카드 등장 연출은 처음 고를 때만
+    const ghosts=(c,out)=>{const f=info[c.uid]||tokInfo(c),n=W(c)-1;if(n<1)return '';const nw=!ghSeen.has(c.uid);
+      return Array(n).fill(0).map((_,j)=>`<span class="lmGh${out?' out':''}${nw?' new':''}" data-gh="${c.uid}" style="--e:${f.ec};animation-delay:${j*90}ms">${f.img?`<img src="${f.img}" alt="">`:''}<b>${f.n}</b></span>`).join('');};
+    const toks=(cs,outF)=>{const h=cs.map(c=>tok(c,outF(c))+ghosts(c,outF(c))).join('');ghSeen=new Set(cs.map(c=>c.uid));return h;};
+    const tw=cs=>cs.reduce((a,c)=>a+W(c),0);
+    let mode='',nTk=5,nCd=5;
+    const cols=(n,c)=>{nTk=n;nCd=c||n;row.style.setProperty('--cols',n<=3?Math.max(1,n):n===4?2:n<=6?3:n<=8?4:5);};   // 4장 = 2×2 · 5~6장 = 3열 · 그림자 카드까지 세면 더 넓게
+    function fit(){row.classList.remove('lmCmp');const ok=fit1(nTk);
+      // 그림자 카드까지 칸이 모자라면: 그림자를 카드 뒤에 겹쳐 붙임(카드 수 기준 배치)
+      if(!ok&&nTk>nCd){row.classList.add('lmCmp');row.style.setProperty('--cols',nCd<=3?Math.max(1,nCd):nCd===4?2:3);fit1(nCd,1.6);}}
+    function fit1(nT,gx){row.classList.remove('lmOff');const h=row.clientHeight,w=row.clientWidth;   // 숨김 상태에선 높이가 0이라 먼저 풀고 잼
       // 두 줄(3+2)이 들어가는 크기: 높이 = (칸 높이 - 틈)/2 , 너비 = 높이 × .75, 세 장이 가로에 들어가야 함
-      const th=Math.min(80,(h-44)/2)*.88,tw=Math.min(th*.75,(w-36)/3);   // 위 족보·아래 안내와 겹치지 않도록 여유
-      row.classList.toggle('lmOff',!(tw>=26));row.style.setProperty('--tk',Math.max(0,Math.floor(tw))+'px');}
+      const nc=+row.style.getPropertyValue('--cols')||3,nr=Math.max(1,Math.ceil(nT/nc));   // 실제 줄 수(한 줄이면 더 크게) — 숫자 줄은 flex라 바는 그대로
+     
+      const th=Math.min(80,(h-44-(nr-2)*10)/nr)*.88,tw=Math.min(th*.75,(w-36-(nc-3)*8)/Math.max(3,nc)/(gx||1));   // 위 족보·아래 안내와 겹치지 않도록 여유
+      row.classList.toggle('lmOff',!(tw>=26));row.style.setProperty('--tk',Math.max(0,Math.floor(tw))+'px');return tw>=26;}
     function paint(){
       if(S&&S.anim&&S.anim.cards){   // 런 중: 낸 카드 그대로
         if(mode!=='run'){mode='run';const sc=S.anim.r&&S.anim.r.steps||[];const outI=new Set(sc.filter(x=>x.out).map(x=>x.i));const nIn=S.anim.cards.length-outI.size;
-          cols(S.anim.cards.length);row.innerHTML='<div class="lmTks">'+S.anim.cards.map(c=>tok(c,false)).join('')+'</div><span class="lmCap">족보 안 '+nIn+'장'+(outI.size?' <em>· 밖 '+outI.size+'장</em>':'')+'</span>';
+          const AC=S.anim.cards,wIn=tw(AC.filter((c,i)=>!outI.has(i))),wOut=tw(AC)-wIn;
+          cols(tw(AC),AC.length);row.innerHTML='<div class="lmTks">'+toks(AC,c=>outI.has(AC.indexOf(c)))+'</div><span class="lmCap">족보 안 '+wIn+'장'+(wOut?' <em>· 밖 '+wOut+'장</em>':'')+'</span>';
           row.querySelectorAll('.lmTk').forEach((e,i)=>e.classList.toggle('out',outI.has(i)));}
         return;}
       mode='';const sc=(S&&typeof selCards==='function')?selCards():[];
-      if(!sc.length){cols(5);row.innerHTML='<div class="lmTks">'+'<span class="lmSlot"></span>'.repeat(5)+'</div><span class="lmCap dim">고른 카드가 여기에 놓여요</span>';lv.hidden=true;}
-      else{cols(sc.length);sc.forEach(tokInfo);const U=S.scoreU;const nIn=U?sc.filter(c=>U.includes(c.uid)).length:sc.length;
-        row.innerHTML='<div class="lmTks">'+sc.map(c=>tok(c,U&&!U.includes(c.uid))).join('')+'</div><span class="lmCap">족보 안 '+nIn+'장'+(sc.length>nIn?' <em>· 밖 '+(sc.length-nIn)+'장</em>':'')+'</span>';
+      if(!sc.length){ghSeen=new Set();cols(5);row.innerHTML='<div class="lmTks">'+'<span class="lmSlot"></span>'.repeat(5)+'</div><span class="lmCap dim">고른 카드가 여기에 놓여요</span>';lv.hidden=true;}
+      else{sc.forEach(tokInfo);cols(tw(sc),sc.length);const U=S.scoreU;const isOut=c=>!!(U&&!U.includes(c.uid));const nIn=tw(sc.filter(c=>!isOut(c))),nOut=tw(sc)-nIn;
+        row.innerHTML='<div class="lmTks">'+toks(sc,isOut)+'</div><span class="lmCap">족보 안 '+nIn+'장'+(nOut?' <em>· 밖 '+nOut+'장</em>':'')+'</span>';
         try{const pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length));const L=(S.lv&&S.lv[r.ht])||1;lv.textContent='Lv.'+L;lv.hidden=!!r.block||sc.some(c=>c.fog);}catch(e){lv.hidden=true;}}
       const pre=!!S&&!S.busy&&tot.textContent.trim()!==''&&tot.textContent.trim()!=='?';
       tot.classList.toggle('lmPre',pre);tot.classList.remove('lmFin');fit();}
@@ -4755,7 +4783,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       if(shown===-1){prevC=0;lv.hidden=true;tot.classList.remove('lmPre');}
       shown=A.shown;const st=A.r.steps[shown];if(!st)return;
       if(st.i===-1){nr.classList.remove('lmPop');void nr.offsetWidth;nr.classList.add('lmPop');}
-      else if(st.i>=0&&!st.out){const e=row.querySelectorAll('.lmTk')[st.i];if(e){e.classList.add('hit');setTimeout(()=>{e.classList.remove('hit');e.classList.add('done');},360);
+      else if(st.i>=0&&!st.out){const e=row.querySelectorAll('.lmTk')[st.i];if(e){const gs=row.querySelectorAll('.lmGh[data-gh="'+e.dataset.uid+'"]');[e,...gs].forEach(x=>x.classList.add('hit'));setTimeout(()=>{[e,...gs].forEach(x=>{x.classList.remove('hit');x.classList.add('done');});},360);
         if(st.add)fly(e,'+'+Math.round(st.add),'c');}}
       else if(st.pop){fly(row,st.pop,'m');}
       if(A.fin)tot.classList.add('lmFin');})();
