@@ -499,6 +499,7 @@ button.elPick{flex:1;color:#fff;font-size:22px;padding:18px 0}
 .lRow .tx{flex:1;min-width:0;display:flex;flex-direction:column;word-break:keep-all}.lRow .tx b{font-size:15px}.lRow .tx small{font-size:11px;color:var(--dim)}
 .lRow .tag{flex:none;font-size:11px;font-weight:700;border-radius:99px;padding:3px 8px;background:#4a4554;color:var(--dim)}
 .lRow.seen .tag{background:#14361f;color:#86efac}.lRow.now .tag{background:#3b3320;color:var(--gold)}.lRow.lock{opacity:.55}
+.lNavL{min-width:36px}
 .lNav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-bottom:8px}.lNav button{min-height:40px;padding:6px 12px;font-size:14px}.lNav b{text-align:center}
 .lDots{display:flex;justify-content:center;gap:5px}.lDots span{width:8px;height:8px;border-radius:4px;background:#4a4554}.lDots span.seen{background:#22c55e}.lDots span.on{width:20px;background:var(--gold)}
 .lNo{font-size:13px;color:var(--dim);min-width:40px;text-align:right}
@@ -3440,7 +3441,7 @@ function learnHTML(){
     if(!LEARN_SEEN.includes(i)){LEARN_SEEN.push(i);lsSet('lm_learn_seen',LEARN_SEEN);}
     const dots=LEARN.map((_,k)=>`<span class="${k===i?'on':LEARN_SEEN.includes(k)?'seen':''}"></span>`).join('');
     const last=i===LEARN.length-1;
-    return `<div class="lNav"><button class="lmIco lmIcoNav" onclick="openInfo('learn','list')" aria-label="목록으로" title="목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><span class="lDots" aria-label="${LEARN.length}개 중 ${i+1}번째">${dots}</span><span class="lNo">${i+1} / ${LEARN.length}</span></div>`+
+    return `<div class="lNav"><span class="lNavL" aria-hidden="true"></span><span class="lDots" aria-label="${LEARN.length}개 중 ${i+1}번째">${dots}</span><span class="lNo">${i+1} / ${LEARN.length}</span></div>`+
       `<div class="rb"><div class="wrap">${i===3?RB_KEY_PAGE:RB_PAGES[i]}</div></div>`+
       `<div class="lBot lbArrows"><button class="arrowBtn prev" aria-label="이전" title="이전" ${i?'':'disabled'} onclick="openInfo('learn','page',${i-1})"></button>${practiceOf(i)?`<button class="try on" onclick="practiceStart(${i})">해보기${PRACTICE_DONE.includes(i)?'<small class="lbDone">완료</small>':''}</button>`:`<button class="try" disabled>해보기 · 준비 중</button>`}`+
       (last?`<button class="arrowBtn next" aria-label="목록으로" title="목록으로" onclick="openInfo('learn','list')"></button>`:`<button class="arrowBtn next" aria-label="다음" title="다음" onclick="openInfo('learn','page',${i+1})"></button>`)+`</div>`;
