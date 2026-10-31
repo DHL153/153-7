@@ -2,6 +2,36 @@
 <html lang="ko" class="mr-uikit ui-t6 ui-t1">
 <head>
 <meta charset="utf-8">
+<script id="lm-vclock">
+/* (DHL 10-31 '연출 화면에서 플레이 · 일시정지 · 뒤로') 무대 안 시간 손잡이 — 전투 연출 보기 플레이어용
+   타이머 · 프레임 · 애니메이션이 모두 이 시계를 따름: MRClock.pause(true) = 그 자리에서 멈춤, MRClock.rate(n) = n배 빠르게(건너뛰기)
+   평소(멈춤 없음 · 1배)에는 원래와 똑같이 동작 */
+(function(){
+  const W=window,P=performance,rNow=P.now.bind(P),rST=W.setTimeout.bind(W),rCT=W.clearTimeout.bind(W),rSI=W.setInterval.bind(W),rRAF=W.requestAnimationFrame.bind(W);
+  let rate=1,paused=false,vB=0,rB=rNow(),held=[],seq=1e9;const map=new Map();
+  const vnow=()=>paused?vB:vB+(rNow()-rB)*rate;
+  const rebase=()=>{vB=vnow();rB=rNow();};
+  P.now=vnow;
+  W.setTimeout=function(fn,ms,...a){
+    if(typeof fn!=='function')return rST(fn,ms,...a);
+    const id=seq++,d=Math.max(0,+ms||0),due=vnow()+d;
+    const arm=()=>{const left=due-vnow();if(!paused&&left<=.5){map.delete(id);fn(...a);return;}map.set(id,rST(arm,paused?60:Math.max(0,left/rate)));};
+    map.set(id,rST(arm,d/rate));return id;};
+  W.clearTimeout=function(id){if(map.has(id)){rCT(map.get(id));map.delete(id);}else rCT(id);};
+  W.setInterval=function(fn,ms,...a){if(typeof fn!=='function')return rSI(fn,ms,...a);return rSI(()=>{if(!paused)fn(...a);},ms);};
+  const anims=()=>{try{return document.getAnimations();}catch(e){return [];}};
+  W.requestAnimationFrame=function(cb){return rRAF(()=>{
+    if(rate!==1&&!paused)for(const a of anims())if(a.playbackRate===1)a.playbackRate=rate;   // 빨리 감는 동안 새로 생긴 애니메이션도 같은 속도
+    cb(vnow());});};
+  W.MRClock={
+    pause(on){on=!!on;if(on===paused)return;
+      if(on){vB=vnow();paused=true;held=anims().filter(a=>a.playState==='running');held.forEach(a=>{try{a.pause();}catch(e){}});}
+      else{rB=rNow();paused=false;held.forEach(a=>{try{a.play();}catch(e){}});held=[];}},
+    rate(n){n=Math.max(.1,+n||1);if(n===rate)return;rebase();const old=rate;rate=n;for(const a of anims())if(Math.abs(a.playbackRate-old)<1e-3)a.playbackRate=n;},
+    get paused(){return paused;},get speed(){return rate;}
+  };
+})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Merge &amp; Run La Mancha — 전투 무대</title>
 <link rel="stylesheet" href="assets/ui/art-edition.css"/>
@@ -8477,6 +8507,8 @@ let isGameOver = false;
     busy(){return pending>0||!idle()||!!document.querySelector('.mrfc');},
     queued(){return pending;},
     pause(on){globalPause=!!on;},
+    freeze(on){window.MRClock?.pause(on);},   // (DHL 10-31) 연출 보기 플레이어: 멈춤/계속
+    speed(n){window.MRClock?.rate(n);},
     clear(){clearBattleVisualQueue(true);}
   };
 
