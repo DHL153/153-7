@@ -2780,7 +2780,7 @@ html.game-booting #app{visibility:hidden!important;}
 #skill-cinematic .mrfc i{position:absolute;display:block;}
 #skill-cinematic .mrfc-glow{right:8cqw;top:50%;width:140cqh;height:140cqh;translate:0 -50%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--mrfc-c1) 55%,transparent),transparent 65%);animation:mrfcGlow calc(var(--t)*.33) calc(var(--t)*.05) ease-out both;}
 /* 2026-10-12: 얼굴 클로즈업 — 그림을 키우고(165→240cqh) 얼굴 중심(--fx,--fy)을 화면 (66%, 42%)에 둠 */
-#skill-cinematic .mrfc-art{width:240cqh;height:240cqh;left:calc(66cqw - var(--fx)*240cqh);top:calc(42cqh - var(--fy)*240cqh);background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
+#skill-cinematic .mrfc-art{--fa:calc(240cqh * var(--fz,1));width:var(--fa);height:var(--fa);left:calc(66cqw - var(--fx)*var(--fa));top:calc(42cqh - var(--fy)*var(--fa));background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
 #skill-cinematic .mrfc-plate{position:absolute;left:4cqw;bottom:12cqh;display:flex;flex-direction:column;align-items:flex-start;gap:1.2cqh;padding:3.6cqh 3.4cqw 4cqh 2.4cqw;background:linear-gradient(90deg,rgba(6,8,16,.9),rgba(6,8,16,.55));border-left:.8cqw solid var(--mrfc-c1);transform:skewX(-10deg);clip-path:inset(0 100% 0 0);animation:mrfcWipe calc(var(--t)*.18) calc(var(--t)*.1) cubic-bezier(.3,.8,.3,1) both;}
 #skill-cinematic .mrfc-name,#skill-cinematic .mrfc-skill{display:block;white-space:nowrap;font-family:'Pretendard','Segoe UI','Hiragino Sans','Noto Sans CJK JP','Microsoft YaHei',sans-serif;}
 #skill-cinematic .mrfc-name{font-size:min(2.6cqw,7.6cqh);font-weight:800;letter-spacing:.06em;color:var(--mrfc-c2);-webkit-text-fill-color:var(--mrfc-c2);transform-origin:left center;opacity:0;animation:mrfcNameBig calc(var(--t)*.22) calc(var(--t)*.12) ease-out both,mrfcNameBack calc(var(--t)*.17) calc(var(--t)*.4) ease-in-out forwards;}
@@ -5812,7 +5812,7 @@ window.MRBattleFX=(()=>{
 //  · 마이룸 배치: 키(머리 꼭대기~발끝)를 모든 캐릭터가 같게 맞추고, 발끝을 같은 높이에 둠 → 기본 크기가 고르게
 //  새 마이룸 그림을 넣으면 이 표만 고치면 된다.
 window.MRRoomFit=(()=>{
- const FACE={1:[0.72,0.38],2:[0.56,0.43],3:[0.59,0.56],4:[0.49,0.4],5:[0.49,0.38],6:[0.51,0.44],7:[0.552,0.536],8:[0.59,0.45],9:[0.58,0.46],10:[0.57,0.49],11:[0.47,0.47],12:[0.55,0.46],13:[0.62,0.55],14:[0.494,0.427],15:[0.49,0.37],16:[0.55,0.48],17:[0.544,0.544],18:[0.53,0.4],19:[0.576,0.456],20:[0.598,0.508],21:[0.7,0.44],22:[0.565,0.44],23:[0.61,0.555],24:[0.492,0.421],25:[0.50,0.365],26:[0.545,0.49],27:[0.575,0.54],28:[0.5,0.39],29:[0.58,0.35],30:[0.545,0.506]};
+ const FACE={1:[0.72,0.38],2:[0.56,0.43],3:[0.59,0.56],4:[0.49,0.4],5:[0.49,0.38],6:[0.51,0.44],7:[0.552,0.477],8:[0.59,0.45],9:[0.58,0.46],10:[0.57,0.49],11:[0.47,0.47],12:[0.55,0.46],13:[0.62,0.55],14:[0.494,0.427],15:[0.49,0.37],16:[0.55,0.48],17:[0.554,0.466],18:[0.53,0.4],19:[0.576,0.456],20:[0.598,0.508],21:[0.7,0.44],22:[0.565,0.44],23:[0.61,0.555],24:[0.492,0.421],25:[0.50,0.365],26:[0.545,0.49],27:[0.615,0.452],28:[0.5,0.39],29:[0.58,0.35],30:[0.545,0.506]};
  // TOP[번호] = 머리 꼭대기(머리카락·모자 포함, 무기 제외) 세로 위치
  const TOP={1:0.2,2:0.18,3:0.3,4:0.15,5:0.17,6:0.29,7:0.256,8:0.28,9:0.3,10:0.32,11:0.15,12:0.23,13:0.31,14:0.164,15:0.19,16:0.29,17:0.352,18:0.221,19:0.294,20:0.307,21:0.15,22:0.2,23:0.33,24:0.178,25:0.13,26:0.29,27:0.27,28:0.24,29:0.22,30:0.305};
  const FOOT={1:0.935,2:0.94,3:0.95,4:0.88,5:0.94,6:0.98,7:0.875,8:0.98,9:0.98,10:0.95,11:0.95,12:0.95,13:0.95,14:0.875,15:0.94,16:0.98,17:0.879,18:0.988,19:0.98,20:0.969,21:0.94,22:0.95,23:0.95,24:0.904,25:0.924,26:0.98,27:0.87,28:0.94,29:0.94,30:0.971};
@@ -6417,6 +6417,9 @@ function clearBattleTeamSkill(){
         }
     }
 const MYROOM_FACE=window.MRRoomFit.FACE;
+/* (DHL 11-01 '컷신 몇몇은 너무 크게') 필살기 컷신 확대 보정: 마이룸 그림마다 머리 크기가 달라(덩치 · 수염 큰 5·6·15·16·25·26 등) 같은 확대면 얼굴 크기가 들쭉날쭉
+   → 머리(정수리~턱) 높이를 그림에서 재서 모두 같은 얼굴 크기(512 그림 기준 머리 105px)가 되게 곱함. 없으면 1 */
+const FINISH_ZOOM={2:.97,4:.97,5:.7,6:.7,7:.97,9:.84,11:.9,13:.97,14:.97,15:.7,16:.7,19:.78,21:.97,22:.97,23:.97,24:.9,25:.7,26:.7,27:.86,29:.78};
 const FINISH_WORLD_COLORS=[['#e07a3f','#ffc58a'],['#ff3fa4','#7ff6ff'],['#58b8ff','#ffd27a']];
 function localizedAssetText(meta,key){
         const lang=window.MRLocale?.language,raw=String(meta?.[key]||'');
@@ -6449,7 +6452,7 @@ function startBattleFinishCutscene(stage,root,duration){
         // team-cut-in: 컷인 중 구슬 연출이 모이는 대상 · data-no-i18n: 이름 일부만 번역되어 섞이지 않게
         cut.className='mrfc team-cut-in';cut.id=`battle-cut-in-${leader.slot}`;cut.dataset.teamSlot=String(leader.slot);
         cut.setAttribute('data-no-i18n','');cut.setAttribute('aria-hidden','true');
-        cut.style.setProperty('--fx',fx);cut.style.setProperty('--fy',fy);
+        cut.style.setProperty('--fx',fx);cut.style.setProperty('--fy',fy);cut.style.setProperty('--fz',FINISH_ZOOM[num]||1);
         cut.style.setProperty('--mrfc-c1',c1);cut.style.setProperty('--mrfc-c2',c2);cut.style.setProperty('--mrfc-time',duration+'ms');
         cut.innerHTML='<i class="mrfc-glow"></i><i class="mrfc-art"></i><div class="mrfc-plate"><span class="mrfc-name"></span><strong class="mrfc-skill"></strong></div><i class="mrfc-flash"></i>';
         cut.querySelector('.mrfc-art').style.backgroundImage=`url("${encodeURI(room.path)}")`;
@@ -7771,6 +7774,15 @@ let isGameOver = false;
       // 2026-10-18 DHL '6 카르덴 컷인 다리가 잘림': 컷인은 발이 전투 칸 아래 5% 안에 오도록 위로 올림 (8 러스트 니콜처럼 전신)
       if(e.cut){const st=img.closest('#battle-stage')?.__lmRect();if(st&&st.height>0){const foot=fy+kf*s,lim=st.bottom-st.height*.05;if(foot>lim)fy-=foot-lim;
         const low=fy+k.bottom*s;if(low>st.bottom)fy-=low-st.bottom;}} // 발보다 아래인 방패·칼끝도 칸 아래 끝 안
+      /* (DHL 11-01 '루시아 컷인이 살짝 위 · 전체 컷인 정련') 컷인 한 틀: 모든 캐릭터 발 = 칸 높이 93% 한 줄 · 자세 상자(무기 포함)를 그림 칸 가운데에 · 칸 위 4%·좌우 2% 안에 들도록 필요하면 줄임(최소 78%).
+         방패가 발보다 아래로 내려오는 루시아(7·17·27)도 발 기준 — 방패 끝은 칸 아래에서 잘려도 됨 (예전엔 방패를 칸 안에 넣느라 몸 전체가 올라감) */
+      if(e.cut){const st=img.closest('#battle-stage')?.__lmRect();if(st&&st.height>0){
+        const ft=k.foot??k.bottom,top=k.bottom-k.h,G=st.top+st.height*.93,T0=st.top+st.height*.04,mx=st.width*.02;
+        s=Math.max(s*.78,Math.min(s,(G-T0)/Math.max(1,ft-top),(st.width-2*mx)/Math.max(1,k.w)));
+        const c0=f.left+(img.naturalWidth||512)*f.D/2,hw=k.w*s/2,c=Math.max(st.left+mx+hw,Math.min(st.right-mx-hw,c0));
+        fx=c-k.cx*s;fy=G-ft*s;
+        const hb=(def.bones||[]).find(x=>x.name==='hip'),hx=fx+(hb?hb.pos[0]:0)*s,lim=st.width*.1;   // 몸(골반)은 칸 가운데에서 10% 안 — 긴 칼·방패 끝은 칸 밖으로 잘려도 됨
+        if(hx<c0-lim)fx+=c0-lim-hx;else if(hx>c0+lim)fx-=hx-(c0+lim);}}
       // 2026-10-17 20:45 DHL: 도감 전투 칸(대기 → 공격 → 대기)은 캐릭터 몸(골반)이 칸 가운데('2/2 · 전투' 글자 위)에 오게. 창·칼 길이와 상관없이 몸 기준
       if(e.N?.other&&!e.cut){const host=img.closest('.mrw-hero'),hr=host?.__lmRect(),cxs=hr&&hr.width>0?hr.left+hr.width/2:f.left+(img.naturalWidth||512)*f.D/2;
         const hb=(def.bones||[]).find(x=>x.name==='hip');fx=cxs-(hb?hb.pos[0]:0)*s;
