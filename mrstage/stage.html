@@ -7948,7 +7948,7 @@ let isGameOver = false;
   function bigText(txt,cls,sub){const d=document.createElement('div');d.className='lm-big '+cls;d.innerHTML=`<b>${txt}</b>`+(sub?`<small>${sub}</small>`:'');const en=$('enemy');if(en){d.style.left=(en.offsetLeft-en.offsetWidth*1.15)+'px';d.style.top=Math.max(4,en.offsetTop*.25)+'px';}stage.appendChild(d);setTimeout(()=>d.remove(),1500);}   // 빌런 위 (무대 가운데는 화면에 따라 잘릴 수 있음)
   function paintGems(gems,n){const g=gsEl();g.querySelector('.gems').innerHTML=(gems||[]).map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');g.classList.toggle('n2',n===2);g.classList.toggle('n3',n>=3);}
   function drawGems(){const o=capO,g=gsEl();
-    const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(finPend>0||o.cap>0);   // (DHL 10-30) 방패 에너지가 남아 있으면 계속 보임 — 0이 되거나 관통일 때만 사라짐   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
+    const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(o.cap>0||(finPend>0&&!!gsSh&&gsSh.before>0));   /* (DHL 10-31) 방패 에너지가 0이면 연출 중에도 다시 나오지 않음 — 이번 런 시작에 방패가 남아 있었을 때만 */   // (DHL 10-30) 방패 에너지가 남아 있으면 계속 보임 — 0이 되거나 관통일 때만 사라짐   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
     g.style.display=show?'block':'none';sbarDraw(show);if(!show){clearInterval(gsT);gsT=0;return;}
     if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 그 런의 보석 그대로 (연출 시작에 finale이 다시 그림)
     paintGems(o.gems,o.n);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
@@ -8297,7 +8297,7 @@ let isGameOver = false;
     if(!o.killed&&!o.demo&&o.hp!=null&&o.hp<=0)o={...o,killed:true};   // (DHL 10-29) 라운드가 끝나는 한 방은 반드시 주인공 막타 + 처치 컷신
     gsBlock=o.cap&&o.cap.blocked>0?o.cap.blocked:null;gsRaw=o.cap&&o.cap.raw||null;gsSh=o.cap&&o.cap.sh||null;
     if(gsSh){const sb=$('lm-sbar');if(sb){sb._lock=true;sb.classList.add('on');sbarSet(gsSh.before,gsSh.max);}}   // 연출 동안 방패 바는 친 순간까지 그대로 (먼저 줄어들지 않게)
-    if(o.cap&&o.cap.gems&&capO&&!gsBroken&&hp>capO.cap){const g=gsEl();g.style.display='block';paintGems(o.cap.gems,o.cap.n);gsPlace();}   // 이 런의 보석으로 다시 그림 (앞 런 연출이 끝나기 전에 낸 런도 섞이지 않게)
+    if(o.cap&&o.cap.gems&&capO&&!gsBroken&&gsSh&&gsSh.before>0&&hp>capO.cap){const g=gsEl();g.style.display='block';paintGems(o.cap.gems,o.cap.n);gsPlace();}   // 이 런의 보석으로 다시 그림 (앞 런 연출이 끝나기 전에 낸 런도 섞이지 않게)
     if(o.cap&&o.cap.brk)await gsShatter();   // (DHL 10-29) 방패 보석: 관통 = 시작에 깨짐 · 막힘 = 마지막 일격 때 튕김
     placeCharge();if(auraEl)auraEl.classList.add('full');
     stars={...stars,...(o.stars||{})};
@@ -8424,7 +8424,7 @@ let isGameOver = false;
     await sleep(80);
   }
   function setupEnemy(o){
-    stage.classList.remove('lm-foe-dead');gsDead=false;gsBroken=false;
+    stage.classList.remove('lm-foe-dead');gsDead=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
     clearBattleVisualQueue(true);
     const enemy=$('enemy');
@@ -8508,7 +8508,7 @@ let isGameOver = false;
     setSky(n,instant){skyN=n|0;window.MRBattleSky?.setStage(skyN%5,instant!==false);},
     // 적: kind 'normal'(망령 8종) | 'boss'(보스 4종, WARNING 등장)
     async setEnemy(o={}){await ready;return seq(async()=>setupEnemy(o));},
-    setCap(o){capO=o||null;if(finPend<=0)gsBroken=false;drawCap();},   // 관통으로 깨진 방패는 다음 손패를 고를 때 다시 차오름   // (DHL 10-29) 관통: {cap:한 번 최대 피해, dmg:예상 피해(견습만), brk:3개 맞춤} · null = 숨김
+    setCap(o){capO=o||null;if(finPend<=0){gsBroken=false;const sb=$('lm-sbar');if(sb&&!sb._busy&&!sb.classList.contains("flash")&&!sb.classList.contains("brk"))sb._lock=false;}drawCap();},   // 관통으로 깨진 방패는 다음 손패를 고를 때 다시 차오름   // (DHL 10-29) 관통: {cap:한 번 최대 피해, dmg:예상 피해(견습만), brk:3개 맞춤} · null = 숨김
     setHp(cur,max){if(finPend>0){finHp=[cur,max];if(max)maxHp=max;return;}hp=cur;if(max)maxHp=max;setHud();},   // (DHL 10-28) 마지막 일격 연출 중엔 체력을 한 번에 깎지 않음 — 공격마다 깎이고, 끝난 뒤 맞춤
     // 타격 한 번: num = 카드 캐릭터(무대에 없으면 동료로 나왔다 들어감), skill = 컷인, level = 세기(0~11), dmg·crit = 피해 숫자, combo = 연타 수
     //   final = 합동 일격(팀 전원, 총 피해·배수), killed = 쓰러짐(슬로모션 → 처치 컷신 → 하늘)
