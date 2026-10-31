@@ -7324,7 +7324,17 @@ body.lmFxDemo.lmFxOut #lm-title{z-index:902}
 #lm-title .lt-snd.off .w{opacity:0}
 #lm-title .lt-snd.off .x{opacity:1}
 #lm-title .lt-snd:focus-visible{outline:2px solid #fff;outline-offset:2px}
-#lm-title .lt-mb.lm-mute.off{filter:saturate(.4) brightness(.85)}
+#lm-title .lt-mb.lm-mute{display:flex!important;align-items:center;justify-content:center;gap:10px;position:relative}
+#lm-title .lt-mb.lm-mute .mmIc{display:flex;color:#f6cf63}#lm-title .lt-mb.lm-mute .mmIc svg{width:1.15em;height:1.15em}
+#lm-title .lt-mb.lm-mute .mmIc .x{opacity:0}#lm-title .lt-mb.lm-mute.off .mmIc .w{opacity:0}#lm-title .lt-mb.lm-mute.off .mmIc .x{opacity:1}
+#lm-title .lt-mb.lm-mute.off .mmIc{color:#9aa3b5}
+#lm-title .lt-mb.lm-mute .mmSw{position:relative;flex:none;margin-left:4px;width:2.9em;height:1.4em;border-radius:99px;background:linear-gradient(180deg,#f8e09a,#d9a441);box-shadow:inset 0 0 0 1.5px #7a5418,0 2px 0 #0007;transition:background .15s}
+#lm-title .lt-mb.lm-mute .mmSw i{position:absolute;top:50%;right:.17em;translate:0 -50%;width:1.08em;height:1.08em;border-radius:50%;background:#fff8e6;box-shadow:0 1px 2px #0008;transition:right .15s}
+#lm-title .lt-mb.lm-mute .mmSw em{position:absolute;left:.55em;top:50%;translate:0 -50%;font:900 .62em/1 'Noto Sans KR',sans-serif;font-style:normal;color:#5a3a08}
+#lm-title .lt-mb.lm-mute .mmSw em{display:none}
+#lm-title .lt-mb.lm-mute.off .mmSw{background:#0a1222;box-shadow:inset 0 0 0 1.5px #5b6b86,0 2px 0 #0007}
+#lm-title .lt-mb.lm-mute.off .mmSw i{right:calc(100% - 1.25em);background:#8b96ab}
+#lm-title .lt-mb.lm-mute.off .mmSw em{left:auto;right:.6em;color:#8b96ab}
 </style>
 <script id="lm-title-mute-js">
 (function(){
@@ -7340,10 +7350,12 @@ body.lmFxDemo.lmFxOut #lm-title{z-index:902}
   /* (DHL 10-29) 인게임 설정(⚙ 게임 메뉴)에도 같은 소리 켜기/끄기 — '설정' 아래 줄 */
   window.lmToggleMute=function(){if(LM_SET.master>0){LM_SET.masterPrev=LM_SET.master;LM_SET.master=0;}else{LM_SET.master=LM_SET.masterPrev>0?LM_SET.masterPrev:70;}
     lmSetSave();lmSetApply();if(LM_SET.master>0){try{unlockGameAudio();}catch(err){}}};
-  const gLab=()=>LM_SET.master>0?'🔊 소리 끄기':'🔇 소리 켜기';
+  /* (DHL 10-31 '소리 켜기 디자인 · 스피커 이상') 이모지 대신 첫 화면과 같은 금빛 선 스피커 + 오른쪽 켬/끔 스위치. 버튼 판은 다른 메뉴와 똑같이(회색 처리 없음) */
+  const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke-width="1.6"/><g class="w"><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g><g class="x"><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></g></svg>';
+  const gPaint=m=>{const on=LM_SET.master>0;m.classList.toggle('off',!on);m.setAttribute('aria-checked',String(on));m.title=on?'소리 끄기':'소리 켜기';m.querySelector('.mmSw em').textContent=on?'켬':'끔';};
   const _lp=ltPop;ltPop=function(kind){const r=_lp.apply(this,arguments);
-    if(kind==='gopt'){const l=document.querySelector('#lm-title .lt-mlist');if(l&&!l.querySelector('.lm-mute')){const m=document.createElement('button');m.type='button';m.className='lt-mb lm-mute';m.textContent=gLab();
-      m.onclick=e=>{e.stopPropagation();lmToggleMute();m.textContent=gLab();m.classList.toggle('off',!(LM_SET.master>0));};m.classList.toggle('off',!(LM_SET.master>0));
+    if(kind==='gopt'){const l=document.querySelector('#lm-title .lt-mlist');if(l&&!l.querySelector('.lm-mute')){const m=document.createElement('button');m.type='button';m.className='lt-mb lm-mute';m.setAttribute('role','switch');m.setAttribute('aria-label','소리');m.innerHTML='<span class="mmIc">'+SPK+'</span><b>소리</b><span class="mmSw" aria-hidden="true"><i></i><em></em></span>';gPaint(m);
+      m.onclick=e=>{e.stopPropagation();lmToggleMute();gPaint(m);};
       const set=[...l.children].find(x=>x.textContent.trim()==='설정');l.insertBefore(m,set?set.nextSibling:l.children[1]||null);}}
     return r;};
   sync();place();addEventListener('resize',place);setTimeout(place,300);setTimeout(place,1500);
