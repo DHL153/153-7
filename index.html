@@ -3218,7 +3218,7 @@ function orbSlotHTML(k){const st=S.ost[k]||1,kd=orbKind(k);
 function orbModal(i){
   if(S.orbHidden&&!S.selecting){$('tip').textContent='⚙ 맷돌 — 구슬이 섞여 뒷면이 됐어요 (라운드가 끝나면 돌아와요)';return;}
   const k=S.orbs[i],st=S.ost[k]||1,kind=orbKind(k);
-  let h=`<div class="omTop"><small>${kind==='mul'?'곱하기 구슬':kind==='add'?'더하기 구슬':'카드 순서 구슬'} · ${i+1}번째 칸</small><button class="omX" onclick="hideOv()">✕</button></div>`+
+  let h=`<div class="omTop"><small>${kind==='mul'?'곱하기 구슬':kind==='add'?'더하기 구슬':'카드 순서 구슬'} · ${i+1}번째 칸</small><button class="omX lmIco" onclick="hideOv()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button></div>`+
     `<h2 class="omName">${kind==='mul'?'<i class="ok mul">×</i>':kind==='add'?'<i class="ok add">+</i>':''}${ORBS[k].ko}</h2>`;
   if(k!=='advice'){h+='<div class="omTiers">'+[1,2,3].map(s=>{const t=tierText(k,s);return `<div class="omTier${s===st?' cur':''}"><b>${dia(s)}</b><span>${t||(s===2?'더하기 ×2 · 곱하기 ×1.5':'더하기 ×3 · 곱하기 ×2')}</span>${s===st?'<em>현재</em>':''}</div>`;}).join('')+'</div>'+
     `<p class="omNote">같은 구슬을 원정 캠프에서 또 사면 머지돼서 다음 단계로 올라가요.</p>`;}
@@ -3380,14 +3380,14 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 let LEARN_SEEN=lsGet('lm_learn_seen',[]);
 let CODEX=lsGet('lm_codex',{orb:{},giant:{}});
 function codexMark(kind,key){if(!key||CODEX[kind][key])return;CODEX[kind][key]=1;lsSet('lm_codex',CODEX);}
-const infoClose=()=>`<button class="iClose" onclick="S&&S.selecting?startRound():hideOv()" aria-label="닫기">✕</button>`;
+const infoClose=()=>`<button class="iClose lmIco" onclick="S&&S.selecting?startRound():hideOv()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button>`;
 function openInfo(tab,view,idx){
   const prevTab=infoTab;
   if(tab)infoTab=OLD_TAB[tab]||tab;if(view)learnView=view;if(idx!=null)learnIdx=idx;
   const body=infoTab==='learn'?learnHTML():infoTab==='run'?runInfoHTML():codexHTML();
   const tabs=INFO_TABS.map(([k,n])=>`<button role="tab" aria-selected="${k===infoTab}" class="ibTab${k===infoTab?' on':''}" onclick="openInfo('${k}')">${n}</button>`).join('');
   const keep=prevTab===infoTab&&document.querySelector('.ibBody');const sc=keep?keep.scrollTop:0;
-  showOv(`<div class="ib"><div class="ibTabs" role="tablist">${tabs}</div><div class="ibBody">${body}</div><button class="ibBack" onclick="(function(){const d=document.querySelector('.ib .cmBackBtn');if(d){d.click();return;}S&&S.selecting?startRound():hideOv();})()">뒤로</button></div>`);
+  showOv(`<div class="ib"><div class="ibTabs" role="tablist">${tabs}</div><div class="ibBody">${body}</div><button class="ibBack lmIco" onclick="(function(){const d=document.querySelector('.ib .cmBackBtn');if(d){d.click();return;}S&&S.selecting?startRound():hideOv();})()" aria-label="뒤로" title="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button></div>`);
   const nb=document.querySelector('.ibBody');if(nb&&keep&&!document.querySelector('.cmV'))nb.scrollTop=sc;
   if(infoTab==='learn'&&learnView==='page')rbMount();
 }
@@ -3402,7 +3402,7 @@ function cmDetailHTML(id){
   const t=TYPES[id],w=t.w,A=STAR3[t.n],B=STAR3B[t.n],ord=CM_ORDER(),i=ord.indexOf(id);
   const img=HAS_ART&&MR_ART.idle[id],bg=typeof MR_BG!=='undefined'&&MR_BG[w]&&MR_BG[w][0];
   return `<div class="cmV" style="--wc:${WORLD_C[w]}">`+
-   `<div class="cmTop"><button class="cmBackBtn" onclick="codexSel=null;openInfo('codex')">‹ 동료 목록</button><span class="cmCount">${i+1} / ${ord.length}</span><span class="cmNav"><button onclick="cmGo(-1)" aria-label="이전 동료">‹</button><button onclick="cmGo(1)" aria-label="다음 동료">›</button></span></div>`+
+   `<div class="cmTop"><button class="cmBackBtn lmIco lmIcoNav" onclick="codexSel=null;openInfo('codex')" aria-label="동료 목록으로" title="동료 목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><span class="cmCount">${i+1} / ${ord.length}</span><span class="cmNav"><button onclick="cmGo(-1)" aria-label="이전 동료">‹</button><button onclick="cmGo(1)" aria-label="다음 동료">›</button></span></div>`+
    `<div class="cmMain"><div class="cmStage" onpointerdown="cmTap(event)" role="button" aria-label="${t.ko} 쓰다듬기">`+
      `<div class="cmBg"${bg?` style="background-image:url(${bg})"`:''}></div><div class="cmFloor"></div>`+
      (img?`<img class="cmChar" src="${img}" alt="${t.ko}" draggable="false">`:'')+`<span class="cmHint">눌러 보세요</span></div>`+
@@ -3434,13 +3434,13 @@ function cmTap(ev){
 /* 📖 배우기 */
 function learnHTML(){
   const J=S?S.jang:1;
-  if(learnView==='dict')return `<div class="lNav"><button onclick="openInfo('learn','list')">‹ 목록</button><b>기호 사전</b><span></span></div>`+dictHTML();
+  if(learnView==='dict')return `<div class="lNav"><button class="lmIco lmIcoNav" onclick="openInfo('learn','list')" aria-label="목록으로" title="목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><b>기호 사전</b><span></span></div>`+dictHTML();
   if(learnView==='page'){
     const i=Math.max(0,Math.min(LEARN.length-1,learnIdx));learnIdx=i;
     if(!LEARN_SEEN.includes(i)){LEARN_SEEN.push(i);lsSet('lm_learn_seen',LEARN_SEEN);}
     const dots=LEARN.map((_,k)=>`<span class="${k===i?'on':LEARN_SEEN.includes(k)?'seen':''}"></span>`).join('');
     const last=i===LEARN.length-1;
-    return `<div class="lNav"><button onclick="openInfo('learn','list')">‹ 목록</button><span class="lDots" aria-label="${LEARN.length}개 중 ${i+1}번째">${dots}</span><span class="lNo">${i+1} / ${LEARN.length}</span></div>`+
+    return `<div class="lNav"><button class="lmIco lmIcoNav" onclick="openInfo('learn','list')" aria-label="목록으로" title="목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><span class="lDots" aria-label="${LEARN.length}개 중 ${i+1}번째">${dots}</span><span class="lNo">${i+1} / ${LEARN.length}</span></div>`+
       `<div class="rb"><div class="wrap">${i===3?RB_KEY_PAGE:RB_PAGES[i]}</div></div>`+
       `<div class="lBot lbArrows"><button class="arrowBtn prev" aria-label="이전" title="이전" ${i?'':'disabled'} onclick="openInfo('learn','page',${i-1})"></button>${practiceOf(i)?`<button class="try on" onclick="practiceStart(${i})">해보기${PRACTICE_DONE.includes(i)?'<small class="lbDone">완료</small>':''}</button>`:`<button class="try" disabled>해보기 · 준비 중</button>`}`+
       (last?`<button class="arrowBtn next" aria-label="목록으로" title="목록으로" onclick="openInfo('learn','list')"></button>`:`<button class="arrowBtn next" aria-label="다음" title="다음" onclick="openInfo('learn','page',${i+1})"></button>`)+`</div>`;
@@ -3946,7 +3946,7 @@ function ltReplayIntro(){
   if(document.getElementById('game-startup-screen'))return;
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const sc=document.createElement('div');sc.id='game-startup-screen';sc.className='lm-replay';sc.dataset.phase='logo';sc.setAttribute('role','dialog');sc.setAttribute('aria-label','첫 실행 연출');
-  sc.innerHTML='<div class="mr-portal-bg"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><button type="button" class="lm-replay-back" aria-label="돌아가기" title="돌아가기" hidden><img src="assets/ui/icon/back.webp" alt=""></button>';
+  sc.innerHTML='<div class="mr-portal-bg"></div><div class="mr-logo-stage"><i class="mr-logo-glow"></i><img class="mr-logo-body" src="assets/brand/logo_body.webp" alt="Merge &amp; Run La Mancha"><img class="mr-logo-blades" src="assets/brand/logo_blades.webp" alt=""></div><button type="button" class="lm-replay-back" aria-label="돌아가기" title="돌아가기" hidden><img src="assets/ui/icon/btn_back.webp" alt=""></button>';
   document.body.appendChild(sc);
   const bl=sc.querySelector('.mr-logo-blades'),st=sc.querySelector('.mr-logo-stage'),back=sc.querySelector('.lm-replay-back');
   // 처음 실행 때와 같은 '움직이려다 마는' 한 번 (t0초에 시작, peak°까지 밀렸다가 살짝 반대로 넘어가 제자리)
@@ -6212,13 +6212,13 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     P.querySelector('.fpReplay').hidden=!ended;P.classList.toggle('isPaused',playing&&paused);P.classList.toggle('isPlaying',playing);}
   function build(){if(P)return P;P=document.createElement('div');P.id='lmFxPlayer';P.setAttribute('role','dialog');P.setAttribute('aria-label','전투 연출 보기');
     const stars=n=>Array.from({length:3},(_,k)=>`<img class="fxSt${k<n?'':' off'}" src="assets/ui/card/star_g.webp" alt="">`).join('');
-    P.innerHTML=`<div class="fpTop"><button type="button" class="fpBack" aria-label="목록으로" title="목록으로 (Esc)"><img src="${IC}back.webp" alt=""></button>`+
+    P.innerHTML=`<div class="fpTop"><button type="button" class="fpBack" aria-label="목록으로" title="목록으로 (Esc)"><img src="${IC}btn_back.webp" alt=""></button>`+
       `<div class="fpTitle"><span class="fpIc"></span><span class="fpTx"><b></b><small></small></span></div>`+
       `<div class="fpStars" role="group" aria-label="등급">${[1,2,3].map(s=>`<button type="button" data-s="${s}" title="${s===1?'기본':s===2?'짧은 컷인':'긴 컷인'}"><span>${stars(s)}</span></button>`).join('')}</div></div>`+
       `<div class="fpHole"><button type="button" class="fpReplay" hidden><img src="${IC}btn_arrow_r.webp" alt=""><b>다시 보기</b></button><span class="fpPauseTag">일시정지</span><span class="fpLoad">연출 준비 중…</span></div>`+
-      `<div class="fpBar"><button type="button" class="fpPrev" aria-label="이전 연출" title="이전 (←)"><img src="${IC}arrow_l.webp" alt=""></button>`+
+      `<div class="fpBar"><button type="button" class="fpPrev" aria-label="이전 연출" title="이전 (←)"><img src="${IC}btn_arrow_l.webp" alt=""></button>`+
       `<button type="button" class="fpPlay"><img src="${IC}btn_pause.webp" alt=""></button>`+
-      `<button type="button" class="fpNext" aria-label="다음 연출" title="다음 (→)"><img src="${IC}arrow_r.webp" alt=""></button><span class="fpN"></span></div>`;
+      `<button type="button" class="fpNext" aria-label="다음 연출" title="다음 (→)"><img src="${IC}btn_arrow_r.webp" alt=""></button><span class="fpN"></span></div>`;
     P.querySelector('.fpBack').onclick=close;P.querySelector('.fpPrev').onclick=()=>go(-1);P.querySelector('.fpNext').onclick=()=>go(1);
     P.querySelector('.fpPlay').onclick=toggle;P.querySelector('.fpReplay').onclick=e=>{e.stopPropagation();play();};
     P.querySelector('.fpHole').onclick=e=>{if(e.target.closest('.fpReplay'))return;toggle();};
@@ -6379,13 +6379,13 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const sel=S.restSel&&L.find(x=>x[0]===S.restSel);
     let nfH='';try{if(armorOn()&&typeof nextFoeHTML==='function'){const nf=S.rd<2?S.foes[S.rd+1]:null;if(nf)nfH=`<div class="nextFoe nf2 cpNext"><small>다음 빌런 · ${S.jang}장 ${RD_KO[S.rd+1]}</small>${nextFoeHTML(nf)}</div>`;}}catch(e){}   /* (DHL 10-30) 야영에서도 다음 빌런 */
     showOv(`<div class="rest">${nfH}${header()}<div class="cpRow n${L.length}">`+L.map(([k,I,g])=>card(k,I,g)).join('')+`</div>`+desc(S.restSel)+
-      `<div class="cpFoot cpFoot3"><span class="cpL"></span><span class="cpC">`+(S.campLog.length?`<button class="cpLeave" onclick="restLeave(1)"><i></i>출발</button>`:`<button class="cpBack" onclick="restLeave(0)" aria-label="돌아가기"><img src="assets/ui/icon/btn_arrow_l.webp" alt=""></button>`)+`</span>`+
+      `<div class="cpFoot cpFoot3"><span class="cpL"></span><span class="cpC">`+(S.campLog.length?`<button class="cpLeave" onclick="restLeave(1)"><i></i>출발</button>`:`<button class="cpBack" onclick="restLeave(0)" aria-label="돌아가기"><img src="assets/ui/icon/btn_back.webp" alt=""></button>`)+`</span>`+
       `<span class="cpR"><button class="cpGo${sel&&!sel[1].off?'':' hid'}" onclick="restTap('${S.restSel||''}')"><img class="lmIcA" src="assets/ui/icon/check.webp" alt="">${S.restSel?(S.restSel==='guest'?GUESTS[S.campGuest.k].ko:NM[S.restSel]):''}</button></span></div></div>`);};   /* (DHL 10-30) 돌아가기 · 출발은 가운데, 확인은 오른쪽 */
   window.restLeave=go=>{S.inRest=false;S.restSel=null;if(go)return campFinish();startRound();};
   /* 정비 뒤 화면(이름 고르기 · 카드 고르기 · 손님 · 밤 산책)도 같은 숲 배경 안에 */
   const _so=showOv;showOv=function(h){
     if(S&&S.inRest&&typeof h==='string'&&h.indexOf('class="rest"')<0){
-      let a='';const pick=/packRow/.test(h);h=h.replace(/<button class="rsInfo" onclick="([^"]+)">← 뒤로<\/button>/g,'<button class="cpBack" onclick="$1" aria-label="뒤로"><img src="assets/ui/icon/back.webp" alt=""></button>');if(pick){}else if(S.walk&&S.walk.k&&h.indexOf('class="night"')>=0&&h.indexOf('wRow')<0)a=`<div class="cpEvArt">${wart(S.walk.k)}<i class="cpFr gold"></i><b class="cpNm">${WALK[S.walk.k].ko}</b></div>`;
+      let a='';const pick=/packRow/.test(h);h=h.replace(/<button class="rsInfo" onclick="([^"]+)">← (?:뒤로|돌아가기)<\/button>/g,'<button class="cpBack" onclick="$1" aria-label="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button>');if(pick){}else if(S.walk&&S.walk.k&&h.indexOf('class="night"')>=0&&h.indexOf('wRow')<0)a=`<div class="cpEvArt">${wart(S.walk.k)}<i class="cpFr gold"></i><b class="cpNm">${WALK[S.walk.k].ko}</b></div>`;
       else if(S.campK&&/campNames|packRow/.test(h)&&!S.walk)a=`<div class="cpEvArt">${art(S.campK)}<i class="cpFr"></i><b class="cpNm">${NM[S.campK]}</b></div>`;
       else if(S.campGuestUsing&&S.campGuest)a=`<div class="cpEvArt">${art(S.campGuest.k)}<i class="cpFr gold"></i><b class="cpNm">${GUESTS[S.campGuest.k].ko}</b></div>`;
       h=`<div class="rest sub">${header()}<div class="cpSub${a?' art':''}">${a}<div class="cpSubIn">${h}</div></div></div>`;}
@@ -6412,7 +6412,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   const optNo=(on,n,click)=>`<button class="mgOpt mgNoOpt${on?' on':''}" onclick="${click}"><em class="mgNo">${n}</em><span>번호 ${n}</span></button>`;
   /* (DHL 10-30) 머지 & 런(기사 이상) 중이면 '머지 하지 않음' — 이 짝은 합치지 않고 그대로 달림 */
   const skip=()=>S._chain?`<button class="mgSkip" onclick="hideOv();(S._skip=S._skip||new Set()).add(S._ma.uid+'_'+S._mb.uid);(S._skip).add(S._mb.uid+'_'+S._ma.uid);runChain()">머지 하지 않음</button>`:'';
-  const foot=ok=>`<div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
+  const foot=ok=>`<div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
   /* (DHL 10-30) 같은 카드 3장 이상을 함께 런: 합칠 두 장을 고름 (기본 = 세계 · 속성 · 번호가 같은 두 장, 없으면 번호 높은 두 장) */
   window.askPair=function(G){
     S._pg=G;let def=null;for(const a of G)for(const b of G)if(!def&&a!==b&&mrSame(a,b))def=[a,b];
@@ -6420,7 +6420,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const draw=()=>{const P=S._pp,t=TYPES[G[0].id];
       showOv(`<div class="mgPk"><h2>${t.ko} <i class="mgStar"></i>${G[0].star+1}</h2><p class="mgQ">합칠 두 장을 고르세요 <b>${P.length} / 2</b></p>
         <div class="mgPair">${G.map((c,i)=>`<button class="mgPc${P.includes(c)?' on':''}" onclick="S._ppT(${i})"><div class="mgCard card dz s${c.star}">${cardFace(c)}</div></button>`).join('')}</div>
-        <div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/back.webp" alt=""></button>
+        <div class="mgFoot"><button class="cpBack mgX" onclick="hideOv();mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>
         <button class="mgSkip" onclick="hideOv();S._skip=S._skip||new Set();S._pg.forEach(a=>S._pg.forEach(b=>{if(a!==b)S._skip.add(a.uid+'_'+b.uid);}));runChain()">머지 하지 않음</button>
         <button class="mgGo"${P.length===2?'':' disabled'} onclick="S._ppGo()"><img src="assets/ui/icon/check.webp" alt="">다음</button></div></div>`);};
     S._ppT=i=>{const c=G[i],P=S._pp;S._pp=P.includes(c)?P.filter(x=>x!==c):P.length<2?P.concat(c):[P[1],c];draw();};
@@ -7095,6 +7095,18 @@ html.lmB #ov:has(.ib) > .panel{width:min(880px,100%)!important;height:min(780px,
 <style id="lm-scrollbar-all">
 /* (DHL 10-29) 드래그바(스크롤바) 통일: 게임 안 모든 스크롤 칸을 원정 창과 같은 모양으로 — 어두운 바탕 · 황동 손잡이 (흰 기본 바 없앰) */
 html,html *{scrollbar-width:thin;scrollbar-color:#c9a24a88 transparent}
+</style>
+<style id="lm-ico-btn">
+/* (DHL 10-31 '뒤로 가기 2종 → 1번 금테 원판으로 통일') 아이콘 버튼 한 세트: 금테 원판 + 안 그림으로 뜻 구분
+   ◀ btn_arrow_l = 이전 페이지 · ▶ btn_arrow_r = 다음/재생 · ↩ btn_back = 뒤로(화면 나가기) · ✕ btn_close = 닫기(창 끄기) */
+html body button.lmIco.lmIco:not(#_){--s:40px;width:var(--s)!important;height:var(--s)!important;min-width:0!important;min-height:0!important;padding:0!important;margin:0;border:0!important;border-image:none!important;border-radius:50%!important;background:none!important;box-shadow:none!important;filter:drop-shadow(0 3px 4px #000c);cursor:pointer;flex:none;display:inline-flex;align-items:center;justify-content:center;transition:transform .1s,filter .1s}
+html body button.lmIco.lmIco:not(#_) img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+html body button.lmIco.lmIco:not(#_):hover{filter:drop-shadow(0 3px 4px #000c) brightness(1.15)}
+html body button.lmIco.lmIco:not(#_):active{transform:scale(.93)}
+html body button.lmIco.lmIco:not(#_):focus-visible{outline:2px solid #f6cf63;outline-offset:2px}
+html body button.lmIco.omX:not(#_){--s:34px}
+html body button.lmIco.ibBack:not(#_){--s:clamp(36px,6vh,48px);align-self:center;margin:6px auto 0}
+html body button.lmIco.lmIcoNav:not(#_){--s:36px}
 </style>
 <style id="lm-fxdemo2">/* (DHL 10-29) 전투 연출 보기 새 디자인 — 큰 글자 · 캐릭터 얼굴 · 별 이미지 · 세계 문장 */
 #lm-title .lt-card.fx2{width:min(860px,100%)!important;max-height:calc(100dvh - 24px);overflow:auto}
