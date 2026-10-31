@@ -424,13 +424,14 @@ button.elPick{flex:1;color:#fff;font-size:22px;padding:18px 0}
 .rb .btn:active{translate:0 3px;box-shadow:0 1px 0 color-mix(in srgb,var(--sun) 55%,#000)}
 .rb .legend{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:16px;align-items:center}
 .rb .pill{font-family:'Noto Sans KR',sans-serif;border-radius:10px;padding:1px 9px;background:var(--paper);white-space:nowrap}
-.rb .merge{display:flex;align-items:center;justify-content:center;gap:10px;min-height:150px}
+.rb .merge{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;min-height:150px}
 .rb .merge .plus{font-family:'Noto Sans KR',sans-serif;font-size:28px;color:var(--soft)}
 .rb .merge.done .cd.l{transform:translateX(44px) scale(.6);opacity:0}
 .rb .merge.done .cd.r{transform:translateX(-44px) scale(.6);opacity:0}
 .rb .merge.done .plus{opacity:0}
 .rb .merge .res{display:none}
-.rb .merge.done .res{display:block;animation:rbpop .45s cubic-bezier(.3,1.6,.5,1)}
+.rb .merge.done .res{display:block;position:absolute;left:50%;top:50%;translate:-50% -50%;animation:rbpop .45s cubic-bezier(.3,1.6,.5,1)}   /* (DHL 11-01) 머지 결과는 가운데 · 크기는 재료 카드에 맞춤 */
+.rb .merge.done .res .cd{width:var(--mgw,auto)!important;max-width:none}
 @keyframes rbpop{0%{transform:scale(.3)}100%{transform:none}}
 .rb .merge .cd{transition:transform .35s,opacity .35s}
 .rb .ring{display:block;width:100%;max-width:300px;margin:0 auto}
@@ -3719,7 +3720,7 @@ if(document.getElementById('rb_mg')){
 const mg=document.getElementById('rb_mg');mg.querySelector('.l-wrap').appendChild(Object.assign(card(C.a1),{}));mg.querySelector('.l-wrap').firstChild.classList.add('l');
 mg.querySelector('.r-wrap').appendChild(card(C.a2));mg.querySelector('.r-wrap').firstChild.classList.add('r');
 mg.querySelector('.res').appendChild(card({...C.a1,pw:25,star:2,big:true}));
-const mb=document.getElementById('rb_mgBtn');mb.onclick=()=>{const d=mg.classList.toggle('done');mb.textContent=d?'다시 보기':'머지!';};
+const mb=document.getElementById('rb_mgBtn');mb.onclick=()=>{const w=mg.querySelector('.cd.l')?.offsetWidth;if(w)mg.style.setProperty('--mgw',Math.round(w)+'px');const d=mg.classList.toggle('done');mb.textContent=d?'다시 보기':'머지!';};
 
 }
 if(document.getElementById('rb_ring')){
