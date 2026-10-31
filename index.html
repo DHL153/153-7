@@ -1652,7 +1652,7 @@ MR.toggleSound=function(){LM_SET.master=LM_SET.master>0?0:70;lmSetSave();lmSetAp
 let ltSetTab='game';
 function ltSetHTML(){
   const step=(k,label,vals)=>{const i=vals.findIndex(v=>v[0]===LM_SET[k]);return `<div class="ls-lbl">${label}</div><div class="ls-step"><button type="button" onclick="ltStep('${k}',-1)" aria-label="이전">&lt;</button><b>${vals[i][1]}<i>${vals.map((v,j)=>`<u class="${j===i?'on':''}"></u>`).join('')}</i></b><button type="button" onclick="ltStep('${k}',1)" aria-label="다음">&gt;</button></div>`;};
-  const sld=(k,label,note)=>`<div class="ls-lbl big">${label}</div><div class="ls-sld"><input type="range" min="0" max="100" step="5" value="${LM_SET[k]}" style="--p:${LM_SET[k]}%" oninput="ltSlide('${k}',this)" aria-label="${label}"><b>${LM_SET[k]}</b></div>${note?`<div class="ls-note">${note}</div>`:''}`;
+  const sld=(k,label,note)=>`<div class="ls-lbl big">${label}</div><div class="ls-sld"><input type="range" min="0" max="100" step="5" value="${LM_SET[k]}" style="--p:${LM_SET[k]}%;--pn:${LM_SET[k]/100}" oninput="ltSlide('${k}',this)" aria-label="${label}"><b>${LM_SET[k]}</b></div>${note?`<div class="ls-note">${note}</div>`:''}`;
   const chk=(k,label)=>`<label class="ls-chk"><span>${label}</span><input type="checkbox" ${LM_SET[k]?'checked':''} onchange="LM_SET.${k}=this.checked;lmSetSave();lmSetApply()"><i></i></label>`;
   const tab=(k,n)=>`<button type="button" class="ls-tab ${ltSetTab===k?'on':''}" onclick="ltSetTab='${k}';ltPop('set')">${n}</button>`;
   let h=`<div class="ls-tabs">${tab('game','게임')}${tab('gfx','그래픽')}${tab('audio','오디오')}</div><div class="ls-body">`;
@@ -1663,7 +1663,7 @@ function ltSetHTML(){
   return h+`</div>`;
 }
 function ltStep(k,d){const opts={btnpos:['pd','dp'],speed:[1,2,3,4],shadow:[true,false],motion:[true,false],tbl:[true,false]}[k];const i=opts.indexOf(LM_SET[k]);LM_SET[k]=opts[(i+d+opts.length)%opts.length];lmSetSave();lmSetApply();ltPop('set');}
-function ltSlide(k,el){LM_SET[k]=+el.value;el.style.setProperty('--p',el.value+'%');el.nextElementSibling.textContent=el.value;lmSetSave();lmSetApply();if(k!=='sfx'&&LM_SET.master>0&&LM_SET.music>0)unlockGameAudio();}
+function ltSlide(k,el){LM_SET[k]=+el.value;el.style.setProperty('--p',el.value+'%');el.style.setProperty('--pn',el.value/100);el.nextElementSibling.textContent=el.value;lmSetSave();lmSetApply();if(k!=='sfx'&&LM_SET.master>0&&LM_SET.music>0)unlockGameAudio();}
 lmSetApply();
 
 </script>
@@ -5266,6 +5266,10 @@ html.lmB #lm-title .ls-step b u.on{background:var(--brass-hi)!important}
 html.lmB #lm-title .ls-sld input{background:linear-gradient(90deg,var(--brass) var(--p),var(--nv-950) var(--p))!important;box-shadow:inset 0 0 0 1px #c9a24a66,0 2px 0 #050a14!important}
 html.lmB #lm-title .ls-sld input::-webkit-slider-thumb{border-color:var(--brass)!important;background:var(--cream)!important}
 html.lmB #lm-title .ls-sld input::-moz-range-thumb{border-color:var(--brass)!important;background:var(--cream)!important}
+/* (DHL 10-31 '음악 볼륨 게이지가 살짝 비어 있음') 채움 끝 = 손잡이 가운데: 손잡이(24px)는 양끝 12px 안쪽에서만 움직이므로 12px + (폭-24px)×값 */
+#lm-title .ls-sld input{--f:calc(12px + (100% - 24px) * var(--pn,0))}
+html body #lm-title .ls-sld input{background:linear-gradient(90deg,#fe4a3c var(--f),#1c262b var(--f))}
+html.lmB body #lm-title .ls-sld input{background:linear-gradient(90deg,var(--brass) var(--f),var(--nv-950) var(--f))!important}
 html.lmB #lm-title .ls-chk i{border-color:var(--cream)!important;background:var(--nv-950)!important}
 html.lmB #lm-title .ls-chk input:checked+i{background:var(--brass)!important;box-shadow:inset 0 0 0 3px var(--nv-950)!important}
 html.lmB #lm-title .pl-deck,html.lmB #lm-title .pl-stake{background:var(--nv-950)!important;box-shadow:inset 0 0 0 1px #ffffff10}
