@@ -5118,7 +5118,9 @@ html.lmB body #app.bl #orbs .orb.bump{animation:none}html.lmB body #app.bl #orbs
         await sleep(420);o.classList.add('ph5');
         await sleep(skip?900:2100);o.classList.add('out');await new Promise(r=>setTimeout(r,380));o.remove();
       }catch(e){console.warn('[패배 연출]',e);const o=document.getElementById('lmDefeat');if(o)o.remove();}
-      on=false;skip=null;if(S)S.busy=false;_lose();
+      on=false;skip=null;   /* (DHL 10-31) 패배 연출이 다 끝난 뒤 손패 카드 애니메이션 → 게임 오버 */
+      try{if(window.lmLoseCards)await window.lmLoseCards();}catch(e){}
+      if(S)S.busy=false;_lose();
     })();
   };
   if(typeof newGame==='function'){const _ng=newGame;newGame=function(){lmDefeatClear();return _ng.apply(this,arguments);};}
@@ -7937,9 +7939,12 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
       else if(seen){const nw=new Set([...now].filter(u=>!seen.has(u)));seen=now;if(nw.size){cur={t:T,big:false,u:nw,dur:620+nw.size*70};deal(cardsOf(nw),false);}}
     }}catch(e){}
     return r;};
+  /* (DHL 10-31) 승리 · 패배 카드 애니메이션은 전투 연출(타격 · 처치 컷신 · 패배 반격)이 모두 끝난 뒤 */
+  const stageIdle=()=>new Promise(res=>{const t0=performance.now();const tick=()=>{let b=false;try{const st=document.querySelector('#lmStage iframe')?.contentWindow?.MRStage;b=!!(st&&(st.busy?.()||st.queued?.()));}catch(e){}
+    if(document.getElementById('lmDefeat'))b=true;if(!b||performance.now()-t0>15000)return res();setTimeout(tick,120);};setTimeout(tick,150);});
   let ending=false;
-  const _w=win;win=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;winFx().finally(()=>{ending=false;_w.apply(t,a);});};
-  const _l=lose;lose=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;loseFx().finally(()=>{ending=false;_l.apply(t,a);});};
+  const _w=win;win=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;stageIdle().then(winFx).finally(()=>{ending=false;_w.apply(t,a);});};
+  window.lmLoseCards=()=>{seen=null;return loseFx();};   // 패배는 반격 연출 끝(lose 래퍼 안)에서 부름
 })();
 </script>
 </body></html>
