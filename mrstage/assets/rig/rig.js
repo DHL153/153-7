@@ -511,7 +511,8 @@
       if (b.punch) { const k = D && D.pK ? tr("pK") : 1; b.punch.ar = tr("pA"); b.punchSkin.asx = k; b.punchG.ax = (LG.skinLen || 0) * (k - 1) }
       if (LG.punchThick && rig.def.parts.punchSkin?.mesh && !rig.meshFx.punchSkin) { const T = LG.punchThick, W0 = LG.punchThin ?? .62, W1 = LG.punchThinEnd ?? .9;   // (DHL 10-31 25 스카이 바실, opt-in) 펀치 팔(어깨~손목) 두께 — 손목 쪽은 원래 두께로 줄여 건틀릿 입구 안에 들어가게
         rig.meshFx.punchSkin = (u, v, x, y) => { const q = clamp((u - W0) / (W1 - W0), 0, 1), t = T + (1 - T) * q * q * (3 - 2 * q); return [0, y * (t - 1)] } }
-      if (R.skirtRunW && b.skirt) b.skirt.asx = lerp(1, R.skirtRunW, A);   // (DHL 10-31, opt-in) 달릴 때 반바지 폭을 좁힘 — 걷는 다리 그림과 어울리게
+      if (R.skirtRunW && b.skirt) b.skirt.asx = lerp(1, R.skirtRunW, A);
+      if (R.skirtRunPart && rig.def.parts[R.skirtRunPart]) rig.swap.skirt = w ? R.skirtRunPart : null;   // (DHL 10-31 25 스카이 바실, opt-in) 달릴 때 좁은 반바지 그림(DHL 시트)으로 바꿈 — 다리 그림 바꿈과 같은 순간   // (DHL 10-31, opt-in) 달릴 때 반바지 폭을 좁힘 — 걷는 다리 그림과 어울리게
       b.armU.ax += tr("guardX"); b.armU.ay += tr("guardY");
       if (b.pony) { const pT = an.sP.step(hipY + accel * .01, dt) - hipY; b.pony.ar = clamp(-pT * .004 * (R.ponySway ?? .5) / .5, -.18, .18) }
       if (an.act && !an.act.hit && D.hitAt != null && at >= D.hitAt) { an.act.hit = true; if (D.hitStop) an.act.freeze = D.hitStop; rig.compute(); const p = rig.point(D.pOn ? "fistP" : "fistF"); an.events.push({ type: "hit", x: p[0], y: p[1] }) }
