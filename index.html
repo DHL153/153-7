@@ -7874,7 +7874,8 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 .lmDfFlash{position:fixed;pointer-events:none;z-index:400;border-radius:50%;background:radial-gradient(circle,#ffe9a8cc,#ffd36a33 45%,transparent 70%)}
 .lmDfVig{position:fixed;inset:0;pointer-events:none;z-index:390;background:radial-gradient(ellipse at 50% 60%,transparent 40%,#5a0a10b0 100%);opacity:0}
 #hand.lmDfBusy{pointer-events:none}
-#hand.lmDfWait .card{opacity:0}`;document.head.appendChild(st);
+#hand.lmDfWait .card{opacity:0}
+#hand .card.lmDfHold{opacity:0!important;pointer-events:none}`;document.head.appendChild(st);
   const ctr=el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};};
   const pile=()=>document.querySelector('.pile .pileCard');
   const cardsOf=uids=>[...document.querySelectorAll('#hand .card[data-uid]')].filter(d=>!uids||uids.has(+d.dataset.uid)||uids.has(d.dataset.uid));
@@ -7924,9 +7925,9 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   }
   window.lmDeckFx={deal,winFx,loseFx};
   // 라운드 시작 = 큰 연출, 그 뒤 손패 채우기 = 새 카드만
-  let seen=null,big=false,cur=null;
+  let seen=null,big=false,cur=null,hold=null,holdP=null;
   function smooth(){return new Promise(res=>{let last=performance.now(),good=0;const t0=last;const f=now=>{const dt=now-last;last=now;good=dt<34?good+1:0;if(good>=8||now-t0>2500)res();else requestAnimationFrame(f);};requestAnimationFrame(f);});}
-  const _br=beginRound;beginRound=function(){seen=null;big=true;return _br.apply(this,arguments);};
+  const _br=beginRound;beginRound=function(){seen=null;big=true;hold=null;return _br.apply(this,arguments);};
   const _rd=render;render=function(){const r=_rd.apply(this,arguments);
     try{if(S&&!S.selecting&&!S.practice&&S.hand&&document.getElementById('hand')){
       const now=new Set(S.hand.map(c=>c.uid));
@@ -7936,7 +7937,12 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
         if(!RM()){H.classList.add('lmDfWait');smooth().then(()=>{if(cur!==my)return;H.classList.remove('lmDfWait');my.t=performance.now();deal(cardsOf(my.u),true);});}}
       else if(cur&&cur.t===Infinity){}   // 시작 기다리는 중 (숨긴 채로)
       else if(cur&&T-cur.t<cur.dur){const u=new Set([...cur.u].filter(x=>now.has(x)));deal(cardsOf(u),cur.big,T-cur.t);seen=now;}   // 연출 중 다시 그려짐 → 같은 시점부터 이어서
-      else if(seen){const nw=new Set([...now].filter(u=>!seen.has(u)));seen=now;if(nw.size){cur={t:T,big:false,u:nw,dur:620+nw.size*70};deal(cardsOf(nw),false);}}
+      else if(seen){const nw=new Set([...now].filter(u=>!seen.has(u)));seen=now;
+        if(nw.size){   /* (DHL 11-01) 새로 채워지는 카드는 전투 연출이 끝난 뒤에 들어옴 — 그동안은 자리만 비워 둠 */
+          hold=hold||new Set();nw.forEach(u=>hold.add(u));
+          if(!holdP)holdP=stageIdle().then(()=>{const u=new Set([...hold].filter(x=>S&&S.hand&&S.hand.some(c=>c.uid==x)));hold=null;holdP=null;cardsOf(null).forEach(d=>d.classList.remove('lmDfHold'));
+            if(u.size){cur={t:performance.now(),big:false,u,dur:620+u.size*70};deal(cardsOf(u),false);}});}}
+      if(hold)cardsOf(hold).forEach(d=>d.classList.add('lmDfHold'));
     }}catch(e){}
     return r;};
   /* (DHL 10-31) 승리 · 패배 카드 애니메이션은 전투 연출(타격 · 처치 컷신 · 패배 반격)이 모두 끝난 뒤 */
