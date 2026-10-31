@@ -7333,7 +7333,7 @@ let isGameOver = false;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
-<script src="assets/rig/rig.js?v=b10"></script>
+<script src="assets/rig/rig.js?v=b11"></script>
 <script id="mr-rig-js">Element.prototype.__lmRect=function(){const r=this.getBoundingClientRect(),k=window.MRStageK||1;return {left:r.left/k,top:r.top/k,right:r.right/k,bottom:r.bottom/k,width:r.width/k,height:r.height/k,x:r.x/k,y:r.y/k};};/*손패: 확대 무대 좌표*/
 
 (()=>{
@@ -7824,7 +7824,7 @@ let isGameOver = false;
   function loadRigDef(num){
     const id=window.MRRig?.registry?.[num];if(!id)return Promise.resolve();
     if(window.MR_RIG_DEFS?.[id])return Promise.resolve();
-    return defLoads[id]=defLoads[id]||new Promise(res=>{const s=document.createElement('script');s.src=RIG_DIR+id+'/rig.def.js?v=b10';s.onload=s.onerror=()=>res();document.head.appendChild(s);});
+    return defLoads[id]=defLoads[id]||new Promise(res=>{const s=document.createElement('script');s.src=RIG_DIR+id+'/rig.def.js?v=b11';s.onload=s.onerror=()=>res();document.head.appendChild(s);});
   }
 
   // ★7 컷인 미리 데우기: 캐릭터마다 첫 컷인 때 리그 정지 그림을 만드느라 0.5초 멈춰 컷인이 통째로 안 보였음
