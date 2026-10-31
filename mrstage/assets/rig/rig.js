@@ -509,6 +509,8 @@
       rig.alpha.farUp = rig.alpha.foreF = 1 - pOn; rig.alpha.punchSkin = rig.alpha.punchG = pOn;
       if (rig.def.parts.torsoP) rig.swap.torso = pOn > .5 ? "torsoP" : null;   // v11: torso without the far-shoulder lump while the straight arm is out
       if (b.punch) { const k = D && D.pK ? tr("pK") : 1; b.punch.ar = tr("pA"); b.punchSkin.asx = k; b.punchG.ax = (LG.skinLen || 0) * (k - 1) }
+      if (LG.punchThick && b.punchSkin) b.punchSkin.asy = LG.punchThick;   // (DHL 10-31 25 스카이 바실, opt-in) 펀치 팔(어깨~손목) 두께
+      if (R.skirtRunW && b.skirt) b.skirt.asx = lerp(1, R.skirtRunW, A);   // (DHL 10-31, opt-in) 달릴 때 반바지 폭을 좁힘 — 걷는 다리 그림과 어울리게
       b.armU.ax += tr("guardX"); b.armU.ay += tr("guardY");
       if (b.pony) { const pT = an.sP.step(hipY + accel * .01, dt) - hipY; b.pony.ar = clamp(-pT * .004 * (R.ponySway ?? .5) / .5, -.18, .18) }
       if (an.act && !an.act.hit && D.hitAt != null && at >= D.hitAt) { an.act.hit = true; if (D.hitStop) an.act.freeze = D.hitStop; rig.compute(); const p = rig.point(D.pOn ? "fistP" : "fistF"); an.events.push({ type: "hit", x: p[0], y: p[1] }) }
