@@ -5951,7 +5951,8 @@ body:has(#ov:not([hidden]) .rest) #midZone,body:has(#ov:not([hidden]) .rest) #ha
   .rest{--sh:min(12cqh,20cqw);justify-content:center;gap:3cqh;padding:3cqh 12px}
   .cpRow,.cpRow.n6{flex-wrap:wrap;--cw:min(29cqw,24cqh);gap:3cqw 3cqw;max-width:96cqw}
   .cpGold{font-size:15px;padding:3px 10px}
-  .cpDesc{width:88cqw;height:calc(clamp(14px,4cqw,18px)*3.5);font-size:clamp(14px,4cqw,18px)}
+  .cpRow.n4{max-width:calc(var(--cw)*2 + 3cqw + 2px)}   /* (DHL 10-31) 정비 4개 = 2×2 */
+  .cpDesc{width:88cqw;height:auto;min-height:calc(clamp(14px,4cqw,18px)*3.3);font-size:clamp(14px,4cqw,18px);line-height:1.3;overflow:visible}   /* (DHL 10-31 '정비 2번 글씨 잘림') 높이 고정 → 글 만큼 늘어남 */
   .cpFoot{min-height:56px}
   .cpBack{width:28px;height:28px}
   .cpGo,.cpLeave{height:52px;font-size:17px}.cpLeave i{height:44px}
