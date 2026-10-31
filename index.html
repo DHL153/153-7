@@ -7122,6 +7122,27 @@ html,html *{scrollbar-width:thin;scrollbar-color:#c9a24a88 transparent}
 #lm-title .fx2 .fxIcs{display:flex;gap:2px;flex:none}#lm-title .fx2 .fxIcs img{width:38px;height:38px}#lm-title .fx2 .fxIcs .fxW{width:22px;height:22px}
 @media (max-width:620px){#lm-title .fx2 .fxBar{grid-template-columns:1fr}#lm-title .fx2 .fxGrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}#lm-title .fx2 .fxItem{padding:4px 2px 6px}#lm-title .fx2 .fxPor{width:44px;height:44px}#lm-title .fx2 .fxItem b{font-size:13px}#lm-title .fx2 .fxItem small{display:none}#lm-title .fx2 .fxSp{grid-template-columns:1fr}#lm-title .fx2 .last::after{display:none}}
 @media (max-height:520px){#lm-title .fx2 .fxPor{width:40px;height:40px}#lm-title .fx2 .fxSub{display:none}#lm-title .fx2 .fxSeg button{min-height:44px}}
+/* (DHL 10-31) 뒤로 버튼이 창 아래 테두리에 붙지 않게 + 휴대폰 세로는 스크롤 없이 화면에 딱 맞게 (높이에 따라 줄어듦) */
+#lm-title .lt-card.fx2{padding-bottom:16px!important}
+#lm-title .lt-card.fx2>.lt-mb.back{margin-bottom:2px}
+@media (orientation:portrait){
+  #lm-title .lt-card.fx2{max-height:calc(100dvh - 20px);overflow:hidden;display:flex;flex-direction:column}
+  #lm-title .fx2 .fxHead{margin:0 0 2px}#lm-title .fx2 .fxHead img{width:clamp(22px,3.6vh,34px);height:clamp(22px,3.6vh,34px)}
+  #lm-title .fx2 .fxHead h3{font-size:clamp(17px,3.2vh,26px)}
+  #lm-title .fx2 .fxSub{font-size:clamp(11px,1.7vh,14px);margin:0 0 clamp(4px,1.2vh,12px)}
+  #lm-title .fx2 .fxBar{gap:clamp(5px,1vh,10px);margin-bottom:clamp(5px,1.2vh,12px)}
+  #lm-title .fx2 .fxSeg button{min-height:clamp(36px,6.4vh,58px);padding:clamp(2px,.6vh,6px) 4px;gap:clamp(1px,.4vh,4px)}
+  #lm-title .fx2 .fxSt{width:clamp(13px,2.2vh,18px);height:clamp(13px,2.2vh,18px)}#lm-title .fx2 .fxW{width:clamp(19px,3.1vh,26px);height:clamp(19px,3.1vh,26px)}
+  #lm-title .fx2 .fxGrid{gap:clamp(4px,.8vh,8px);margin:0 0 clamp(5px,1vh,10px)}
+  #lm-title .fx2 .fxItem{padding:clamp(2px,.5vh,6px) 2px clamp(3px,.7vh,8px)}
+  #lm-title .fx2 .fxPor{width:clamp(30px,5.6vh,52px);height:clamp(30px,5.6vh,52px)}
+  #lm-title .fx2 .fxItem b{font-size:clamp(11.5px,1.8vh,14px)}
+  #lm-title .fx2 .fxSp{gap:clamp(5px,1vh,10px);margin-bottom:clamp(8px,1.6vh,14px)}
+  #lm-title .fx2 .fxBig{padding:clamp(5px,1vh,10px) 12px}#lm-title .fx2 .fxIcs img{width:clamp(28px,4.4vh,38px);height:clamp(28px,4.4vh,38px)}
+  #lm-title .fx2 .fxBig small{font-size:clamp(10.5px,1.6vh,13px)}
+  #lm-title .lt-card.fx2>.lt-mb.back{flex:none;min-height:clamp(40px,6.4vh,56px)!important;height:auto!important}
+}
+@media (orientation:portrait) and (max-height:700px){#lm-title .fx2 .fxSub{display:none}}
 /* (DHL 10-31) 오른쪽 스크롤바: 목록 · 연출 동안 뒤의 게임 화면(감춰짐)이 화면보다 길어 페이지가 스크롤됨 → 페이지 스크롤 막음 */
 html:has(body.lmFxMenu),html:has(body.lmFxDemo),body.lmFxMenu,body.lmFxDemo{overflow:hidden!important}
 /* (DHL 10-31) 연출 보기 플레이어 — 위: ↩ 목록 · 이름 · ★등급 / 가운데: 무대 / 아래: ◀ ⏸ ▶ */
