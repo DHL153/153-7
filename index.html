@@ -7810,4 +7810,89 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 .rb .lscS{margin:-2px 0 8px;font-size:12.5px;line-height:1.5;color:var(--soft)}.rb .lscS b{color:#fde047}
 .rb .lst .hb .hl{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:linear-gradient(#fde047 0 30%,transparent 30% 70%,#fde047 70%);filter:drop-shadow(0 0 2px #f59e0b);z-index:2}
 </style>
+<script id="lm-deck-fx">
+/* (DHL 10-31 '덱 연출' 시안 B·A·C) 덱 ↔ 손패 연출 — 카드 뒷면 = 지금 덱 뒷면(assets/ui/kit/card_back.webp)
+   · 라운드 시작(B): 덱에서 한 뭉치로 날아와 가운데서 번쩍 · 한꺼번에 뒤집힘 → 부채처럼 펼쳐 자리로
+   · 손패 채우기: 새로 들어온 카드만 덱에서 날아와 뒤집힘
+   · 이겼을 때(A): 금빛 물결 → 한 장씩 덱으로 회수 → 덱 번쩍 → 보상 화면
+   · 졌을 때(C): 붉은 그늘 → 차례로 뒤집혀 가라앉음 → 덱으로 돌아감 → 게임 오버 화면 */
+(()=>{
+  const BACK='assets/ui/kit/card_back.webp';
+  const RM=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
+  const st=document.createElement('style');st.textContent=`
+.lmDfBack{position:absolute;inset:0;border-radius:inherit;background:url(${BACK}) center/100% 100% no-repeat;pointer-events:none;z-index:50;opacity:0}
+.lmDfGlow{position:absolute;inset:-4px;border-radius:10px;border:2px solid #ffd36a;box-shadow:0 0 16px #ffc43a,inset 0 0 10px #ffd36a88;pointer-events:none;z-index:51;opacity:0}
+.lmDfFlash{position:fixed;pointer-events:none;z-index:400;border-radius:50%;background:radial-gradient(circle,#ffe9a8cc,#ffd36a33 45%,transparent 70%)}
+.lmDfVig{position:fixed;inset:0;pointer-events:none;z-index:390;background:radial-gradient(ellipse at 50% 60%,transparent 40%,#5a0a10b0 100%);opacity:0}
+#hand.lmDfBusy{pointer-events:none}
+#hand.lmDfWait .card{opacity:0}`;document.head.appendChild(st);
+  const ctr=el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};};
+  const pile=()=>document.querySelector('.pile .pileCard');
+  const cardsOf=uids=>[...document.querySelectorAll('#hand .card[data-uid]')].filter(d=>!uids||uids.has(+d.dataset.uid)||uids.has(d.dataset.uid));
+  const add=(d,cls)=>{const e=document.createElement('i');e.className=cls;d.appendChild(e);return e;};
+  const anim=(el,kf,o)=>{try{return el.animate(kf,o);}catch(e){return null;}};
+  const done=a=>a?a.finished.catch(()=>{}):Promise.resolve();
+  let busyT=0;function busy(ms){const h=document.getElementById('hand');if(!h)return;h.classList.add('lmDfBusy');clearTimeout(busyT);busyT=setTimeout(()=>h.classList.remove('lmDfBusy'),ms);}
+  /* 손에 들어오기 */
+  function deal(els,big,el0){
+    const P=pile(),h=document.getElementById('hand');if(!P||!h||!els.length||RM())return;
+    const pc=ctr(P),hc=ctr(h),dur=big?1150:620,t0=el0||0;if(!t0)busy(dur+60);
+    if(big&&!t0){const f=document.createElement('i');f.className='lmDfFlash';const w=Math.min(260,hc.w*.5);Object.assign(f.style,{left:(hc.x-w/2)+'px',top:(hc.y-w*.42)+'px',width:w+'px',height:(w*.84)+'px'});document.body.appendChild(f);
+      anim(f,[{opacity:0,transform:'scale(.6)'},{opacity:0,offset:.4},{opacity:1,transform:'scale(1)',offset:.5},{opacity:0,transform:'scale(1.4)'}],{duration:dur,easing:'ease-out',fill:'both'})?.finished.then(()=>f.remove(),()=>f.remove());
+      anim(P,[{transform:'scale(1)'},{transform:'scale(1.1)',offset:.08},{transform:'scale(1)',offset:.3}],{duration:dur});}
+    els.forEach((d,i)=>{
+      const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,cx=hc.x-c.x,k=(i-(els.length-1)/2),bk=add(d,'lmDfBack');
+      const kf=big?[{transform:`translate(${dx}px,${dy}px) rotate(14deg) scale(.55)`,opacity:0},{opacity:1,offset:.06},{transform:`translate(${cx}px,-24px) rotate(${k*1.5}deg) scale(1.04)`,offset:.32},{transform:`translate(${cx}px,-24px) rotate(${k*1.5}deg) scale(1.04)`,offset:.44},{transform:`translate(${cx*.1}px,-14px) rotate(${k*3}deg) scale(1)`,offset:.8},{transform:'none',opacity:1}]
+        :[{transform:`translate(${dx}px,${dy}px) rotate(16deg) scale(.55)`,opacity:0},{opacity:1,offset:.1},{transform:`translate(${dx*.45}px,${Math.min(dy,0)-40}px) rotate(-5deg) scale(1.04)`,offset:.5},{transform:'none',opacity:1}];
+      const a=anim(d,kf,{duration:dur,delay:big?0:i*70,easing:'cubic-bezier(.25,.8,.3,1)',fill:'backwards'});
+      const flipAt=big?.46:.38;   // 뒤집기: 반쯤 돌았을 때 뒷면을 걷어 냄
+      const b2=anim(bk,[{opacity:1},{opacity:1,offset:flipAt},{opacity:0,offset:flipAt+.02},{opacity:0}],{duration:dur,delay:big?0:i*70,fill:'both'});
+      if(t0){if(a)a.currentTime=t0;if(b2)b2.currentTime=t0;}   // 연출 중에 손패가 다시 그려져도 이어서
+      done(a).then(()=>bk.remove());
+    });
+  }
+  /* 이겼을 때 — 금빛 물결 → 덱으로 */
+  function winFx(){
+    const P=pile(),els=cardsOf();if(!P||!els.length||RM())return Promise.resolve();
+    const pc=ctr(P);busy(1500);
+    const all=els.map((d,i)=>{const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,g=add(d,'lmDfGlow'),bk=add(d,'lmDfBack'),dl=i*60;
+      anim(g,[{opacity:0},{opacity:1,offset:.15},{opacity:.8,offset:.4},{opacity:0,offset:.55},{opacity:0}],{duration:1300,delay:dl,fill:'both'});
+      anim(bk,[{opacity:0},{opacity:0,offset:.5},{opacity:1,offset:.56},{opacity:1}],{duration:1300,delay:dl,fill:'both'});
+      return done(anim(d,[{transform:'none'},{transform:'translateY(-14px) scale(1.06)',offset:.14},{transform:'none',offset:.26},{transform:'none',offset:.42},{transform:`translate(${dx*.5}px,${Math.min(dy,0)-50}px) rotate(-8deg) scale(.9)`,offset:.66},{transform:`translate(${dx}px,${dy}px) rotate(10deg) scale(.5)`,opacity:1,offset:.97},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:0}],{duration:1300,delay:dl,easing:'cubic-bezier(.4,0,.3,1)',fill:'forwards'}));});
+    setTimeout(()=>anim(P,[{transform:'none',filter:'none'},{transform:'scale(1.15)',filter:'drop-shadow(0 0 12px #ffd36a) brightness(1.3)',offset:.3},{transform:'none',filter:'drop-shadow(0 0 4px #ffd36a)'}],{duration:700}),900+els.length*60);
+    return Promise.all(all).then(()=>new Promise(r=>setTimeout(r,320)));
+  }
+  /* 졌을 때 — 붉은 그늘 · 차례로 뒤집혀 가라앉음 → 덱으로 */
+  function loseFx(){
+    const P=pile(),els=cardsOf();if(!P||!els.length||RM())return Promise.resolve();
+    const pc=ctr(P),v=document.createElement('i');v.className='lmDfVig';document.body.appendChild(v);busy(2000);
+    anim(v,[{opacity:0},{opacity:1,offset:.25},{opacity:1}],{duration:1900,fill:'forwards'});
+    const all=els.map((d,i)=>{const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,bk=add(d,'lmDfBack'),dl=i*110;bk.style.filter='grayscale(.8) brightness(.55)';
+      anim(bk,[{opacity:0},{opacity:0,offset:.17},{opacity:1,offset:.19},{opacity:1}],{duration:1500,delay:dl,fill:'both'});
+      return done(anim(d,[{transform:'none'},{transform:'translateY(6px) scaleX(0.04)',offset:.18},{transform:'translateY(12px) scale(.96)',offset:.34},{transform:'translateY(12px) scale(.96)',offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:1,offset:.96},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:0}],{duration:1500,delay:dl,easing:'cubic-bezier(.45,0,.4,1)',fill:'forwards'}));});
+    setTimeout(()=>anim(P,[{filter:'none'},{filter:'grayscale(1) brightness(.55)'}],{duration:600,fill:'forwards'}),400);
+    return Promise.all(all).then(()=>new Promise(r=>setTimeout(()=>{v.remove();const p=pile();if(p)p.getAnimations().forEach(a=>a.cancel());r();},250)));
+  }
+  window.lmDeckFx={deal,winFx,loseFx};
+  // 라운드 시작 = 큰 연출, 그 뒤 손패 채우기 = 새 카드만
+  let seen=null,big=false,cur=null;
+  function smooth(){return new Promise(res=>{let last=performance.now(),good=0;const t0=last;const f=now=>{const dt=now-last;last=now;good=dt<34?good+1:0;if(good>=8||now-t0>2500)res();else requestAnimationFrame(f);};requestAnimationFrame(f);});}
+  const _br=beginRound;beginRound=function(){seen=null;big=true;return _br.apply(this,arguments);};
+  const _rd=render;render=function(){const r=_rd.apply(this,arguments);
+    try{if(S&&!S.selecting&&!S.practice&&S.hand&&document.getElementById('hand')){
+      const now=new Set(S.hand.map(c=>c.uid));
+      const T=performance.now(),H=document.getElementById('hand');
+      if(big){big=false;seen=now;const my=cur={t:Infinity,big:true,u:now,dur:1150};
+        // 라운드 시작 직후엔 무대 준비로 화면이 잠깐 멈춤 → 그동안 카드를 숨겼다가, 프레임이 고르게 돌기 시작하면 연출 시작 (처음 절반이 건너뛰지 않게)
+        if(!RM()){H.classList.add('lmDfWait');smooth().then(()=>{if(cur!==my)return;H.classList.remove('lmDfWait');my.t=performance.now();deal(cardsOf(my.u),true);});}}
+      else if(cur&&cur.t===Infinity){}   // 시작 기다리는 중 (숨긴 채로)
+      else if(cur&&T-cur.t<cur.dur){const u=new Set([...cur.u].filter(x=>now.has(x)));deal(cardsOf(u),cur.big,T-cur.t);seen=now;}   // 연출 중 다시 그려짐 → 같은 시점부터 이어서
+      else if(seen){const nw=new Set([...now].filter(u=>!seen.has(u)));seen=now;if(nw.size){cur={t:T,big:false,u:nw,dur:620+nw.size*70};deal(cardsOf(nw),false);}}
+    }}catch(e){}
+    return r;};
+  let ending=false;
+  const _w=win;win=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;winFx().finally(()=>{ending=false;_w.apply(t,a);});};
+  const _l=lose;lose=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;loseFx().finally(()=>{ending=false;_l.apply(t,a);});};
+})();
+</script>
 </body></html>
