@@ -7888,7 +7888,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 .lmDfVig{position:fixed;inset:0;pointer-events:none;z-index:390;background:radial-gradient(ellipse at 50% 60%,transparent 40%,#5a0a10b0 100%);opacity:0}
 #hand.lmDfBusy{pointer-events:none}
 #hand.lmDfWait .card{opacity:0}
-#hand .card.lmDfHold{opacity:0!important;pointer-events:none}`;document.head.appendChild(st);
+#hand .card.lmDfHold{display:none!important}   /* (DHL 11-01) 전투 중엔 남은 카드만 그대로 — 끝난 뒤 자리가 생기며 새 카드가 들어옴 */`;document.head.appendChild(st);
   const ctr=el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};};
   const pile=()=>document.querySelector('.pile .pileCard');
   const cardsOf=uids=>[...document.querySelectorAll('#hand .card[data-uid]')].filter(d=>!uids||uids.has(+d.dataset.uid)||uids.has(d.dataset.uid));
