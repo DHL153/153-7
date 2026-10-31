@@ -4,8 +4,10 @@
 // custom[] 플립북: cols×rows 시트, frameStart~frameEnd, fps(0 = len 에 맞춤)·loops·pingpong, blend "screen"(검은 배경 지움) | "normal"(투명 PNG 그대로)
 // ms = 1/1000초, size = 기본 크기 배율, x·y = 캐릭터 그림 안 위치(0~1)
 // off = true 면 그 이펙트를 안 그림(그림 파일·값은 그대로) — trail.off: 2026-10-22 DHL 흰 칼 트레일을 전투에서 뺌 · custom[0](파란 칼 궤적).off: 2026-10-30 DHL '공격 파랑 이펙트 빼고 장난감 때 넣은 것(fx/route)으로'
+// route = 153-7 전투 동선 이펙트(맞는 순간 fx01~fx10 · 먼지 fx11 · 총 · 마법진 · 합동기) — 적힌 값만 stage.html RT_DEF 기본값을 덮음 (2026-10-31 조절실 153-7판)
 window.MR_FX_TUNING={
  "version":1,
+ "route":{},
  "trail":{"off":true,"lead":-60,"len":300,"imgDelay":60,"size":2.25,"opacity":1,"x":0.73,"y":0.53,"cw":true,"frameStart":3,"frameEnd":22,"rotStart":-105,"spin":0,"alphaCurve":[[0,0],[0.211,1],[0.833,1],[1,0]],"colorCurve":null},
  "hit":{"offset":0,"len":300,"size":1.5,"opacity":1,"spin":true,"syncRig":true,"alphaCurve":null,"colorCurve":null},
  "lightning":{"start":0.18,"span":0.52,"opacity":0.94,"alphaCurve":null,"colorCurve":null},

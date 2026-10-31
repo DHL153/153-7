@@ -5512,7 +5512,7 @@ function lmPortraitK(){try{const w=window.top||window;return w.matchMedia('(orie
   window.handleAssetImageLoad=window.handleAssetImageLoad||function(){};window.handleAssetImageError=window.handleAssetImageError||function(){};
 })();
 </script>
-<script src="assets/data/fx_tuning.js?v=20261030"></script>
+<script src="assets/data/fx_tuning.js?v=20261031"></script>
 <script src="assets/ui/presentation.js"></script>
 <script id="mr-battle-sprite-effects-player">
 /* Battle-only sprite playback. Original sheets stay lossless on disk.
@@ -8118,43 +8118,56 @@ let isGameOver = false;
   const hitQ=[];function hitRun(){const now=performance.now();while(hitQ.length&&now-hitQ[0].t>3000)hitQ.shift();const h=hitQ.shift();if(hitQ.length)hitCb=hitRun;if(h)impactFx(h.n);}
   const R=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
   function footOf(sl){const h=heroPt(sl);return {x:h.x,y:h.y+h.h*.55,h:h.h};}
+  // (DHL 10-31 '이펙트 조절실을 153-7 기준으로') 이펙트 값 = MR_FX_TUNING.route (조절실에서 맞춤). 없으면 아래 기본값(10-28~30 에 맞춘 값 그대로)
+  //   at: 'foot' = 적 발밑 · 'mid' = 적 몸 가운데 / dx·dy·size = 적 키(E.h) 배율 / from~to = 시트 칸 / shake = 흔들림 px · shakeAt = 늦게 흔들기 ms
+  const RT_DEF={
+    quake:{sheet:'fx01',from:0,to:7,at:'foot',dx:-.1,dy:0,size:2.1,fps:16,flipX:false,shake:6,shakeAt:0},
+    shock:{sheet:'fx02',from:0,to:7,at:'foot',dx:-.1,dy:0,size:1.7,fps:17,flipX:false,shake:9,shakeAt:0},
+    launch:{sheet:'fx03',from:0,to:7,at:'mid',dx:-.3,dy:-.1,size:1.45,fps:20,flipX:true,shake:4,shakeAt:0,lift:.18,liftMs:620},   // DHL 10-28 '공격 방향과 반대' → 좌우 반전 · lift = 적 띄우기(무대 높이 배율)
+    burst:{sheet:'fx04',from:8,to:11,at:'mid',dx:0,dy:0,size:1.25,fps:14,flipX:false,shake:3,shakeAt:0},
+    crater:{sheet:'fx05',from:1,to:7,at:'foot',dx:-.1,dy:0,size:1.7,fps:16,flipX:false,shake:10,shakeAt:0},
+    pillar:{sheet:'fx06',from:4,to:7,at:'mid',dx:0,dy:.22,size:1.5,fps:12,flipX:false,shake:5,shakeAt:0},   // (DHL 10-28 '카르덴 이펙트가 적 아래에서 터짐') 발밑 → 적 몸 아래쪽
+    knock:{sheet:'fx07',from:0,to:7,at:'mid',dx:-.3,dy:0,size:1.45,fps:18,flipX:false,shake:7,shakeAt:0,push:.35,pushMs:520},   // push = 적 밀기(적 키 배율)
+    pierce:{sheet:'fx08',from:0,to:7,at:'mid',dx:-.05,dy:0,size:1.9,fps:18,flipX:false,shake:4,shakeAt:0},
+    whirl:{sheet:'fx09',from:0,to:7,at:'mid',dx:-.15,dy:.05,size:1.7,fps:20,flipX:false,shake:6,shakeAt:0},
+    xcut:{sheet:'fx10',from:0,to:7,at:'mid',dx:0,dy:0,size:1.45,fps:18,flipX:false,shake:6,shakeAt:160},
+    dust:{sheet:'fx11',fps:14,dash:{from:0,to:3,dx:-.12,size:1.25},land:{from:4,to:7,dx:0,size:1.4375},leap:{from:8,to:11,dx:0,size:1.25}},   // 몸 키 배율
+    shot:{n:3,gap:90,gun:[.72,-.32],muzzle:{from:0,to:3,size:.95,fps:22},bullet:{from:4,to:7,size:.9,fps:24,ms:170},boom:{from:8,to:11,dx:-.15,size:.55,fps:20}},   // 총구 = 발에서 앞 .72h · 위 .32h · boom = 적 키 배율
+    circle:{sheet:'fx06',dy:.22,size:1.5,fps:11},
+    combo:{sheet:'fx12w',from:0,to:15,size:2.3,fps:22,shake:8}
+  };
+  window.MRRouteFxDefaults=RT_DEF;
+  const RT=k=>{const d=RT_DEF[k]||{},o=window.MR_FX_TUNING?.route?.[k];if(!o)return d;const m={...d,...o};for(const q in d)if(d[q]&&typeof d[q]==='object'&&!Array.isArray(d[q])&&o[q])m[q]={...d[q],...o[q]};return m;};
   // 이동 먼지 (fx11): 0 = 돌진 · 멈춤, 1 = 착지, 2 = 도약
-  function dust(sl,kind){const f=footOf(sl),sz=f.h*1.25;
-    if(kind===0)flip('fx11',R(0,3),f.x-sz*.12,f.y,sz,{fps:14});
-    else if(kind===1)flip('fx11',R(4,7),f.x,f.y,sz*1.15,{fps:14});
-    else flip('fx11',R(8,11),f.x,f.y,sz,{fps:14});}
+  function dust(sl,kind){const f=footOf(sl),D=RT('dust'),c=D[['dash','land','leap'][kind]||'dash'],sz=f.h*c.size;
+    flip(D.sheet,R(c.from,c.to),f.x+sz*(c.dx||0),f.y,sz,{fps:D.fps});}
   // 맞는 순간 효과 (계열마다 · fx01~fx10)
   function impactFx(num){
-    const E=enemyPt(),H=stage.clientHeight,k=HITFX[POS(num)];
-    if(k==='quake'){flip('fx01',R(0,7),E.x-E.h*.1,E.foot,E.h*2.1,{fps:16});shake(6);}
-    else if(k==='shock'){flip('fx02',R(0,7),E.x-E.h*.1,E.foot,E.h*1.7,{fps:17});shake(9);}
-    else if(k==='launch'){const en=$('enemy');try{en?.animate([{translate:'0 0'},{translate:`0 ${-H*.18}px`,offset:.35},{translate:'0 0'}],{duration:620,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}
-      flip('fx03',R(0,7),E.x-E.h*.3,E.y-E.h*.1,E.h*1.45,{fps:20,flipX:1})   /* DHL 10-28 '공격 방향과 반대' → 좌우 반전 */;shake(4);}
-    else if(k==='burst'){flip('fx04',R(8,11),E.x,E.y,E.h*1.25,{fps:14});shake(3);}
-    else if(k==='crater'){flip('fx05',R(1,7),E.x-E.h*.1,E.foot,E.h*1.7,{fps:16});shake(10);}
-    else if(k==='pillar'){flip('fx06',R(4,7),E.x,E.y+E.h*.22,E.h*1.5,{fps:12});shake(5);}   /* (DHL 10-28 '카르덴 이펙트가 적 아래에서 터짐') 발밑 → 적 몸 아래쪽 */
-    else if(k==='knock'){const en=$('enemy');try{en?.animate([{translate:'0 0'},{translate:`${E.h*.35}px 0`,offset:.25},{translate:'0 0'}],{duration:520,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}
-      flip('fx07',R(0,7),E.x-E.h*.3,E.y,E.h*1.45,{fps:18});shake(7);}
-    else if(k==='pierce'){flip('fx08',R(0,7),E.x-E.h*.05,E.y,E.h*1.9,{fps:18});shake(4);}
-    else if(k==='whirl'){flip('fx09',R(0,7),E.x-E.h*.15,E.y+E.h*.05,E.h*1.7,{fps:20});shake(6);}
-    else if(k==='xcut'){flip('fx10',R(0,7),E.x,E.y,E.h*1.45,{fps:18});setTimeout(()=>shake(6),160);}
+    const E=enemyPt(),H=stage.clientHeight,k=HITFX[POS(num)],c=RT(k);if(!c.sheet)return;
+    const en=$('enemy');
+    if(c.lift){try{en?.animate([{translate:'0 0'},{translate:`0 ${-H*c.lift}px`,offset:.35},{translate:'0 0'}],{duration:c.liftMs||620,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
+    if(c.push){try{en?.animate([{translate:'0 0'},{translate:`${E.h*c.push}px 0`,offset:.25},{translate:'0 0'}],{duration:c.pushMs||520,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
+    const y0=c.at==='foot'?E.foot:E.y;
+    flip(c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size,{fps:c.fps,flipX:c.flipX?1:0});
+    if(c.shake){if(c.shakeAt)setTimeout(()=>shake(c.shake),c.shakeAt);else shake(c.shake);}
   }
+
   const GUN={4:[.72,-.32],14:[.72,-.32],24:[.72,-.32]};   // 세 총 모두 총구 끝이 발에서 앞 .78h · 위 .32h — 화염 꼬리가 총구에 살짝 겹치게 .72h
   // 총 (fx04): 총구 화염 + 날아가는 탄환 + 닿을 때 작은 폭발, 3발
   function shot(sl,num){
     // 총구 위치 = 발 기준 (몸 높이 비율) — 로시 3명 총 끝을 화면에서 재서 맞춤 (DHL 10-28 '총구와 이펙트가 안 맞음')
-    const h=heroPt(sl),f=footOf(sl),E=enemyPt(),g=GUN[num]||GUN[4],mx=f.x+f.h*g[0],my=f.y+f.h*g[1];
-    for(let i=0;i<3;i++)setTimeout(()=>{
-      flip('fx04',R(0,3),mx,my,h.h*.95,{fps:22});
-      const sz=h.h*.9,b=flip('fx04',[4,5,6,7],mx+sz*.2,my,sz,{fps:24,loops:2});
+    const T=RT('shot'),h=heroPt(sl),f=footOf(sl),E=enemyPt(),g=T.gun||GUN[num]||GUN[4],mx=f.x+f.h*g[0],my=f.y+f.h*g[1],M=T.muzzle,B=T.bullet,X=T.boom;
+    for(let i=0;i<(T.n||3);i++)setTimeout(()=>{
+      flip('fx04',R(M.from,M.to),mx,my,h.h*M.size,{fps:M.fps});
+      const sz=h.h*B.size,b=flip('fx04',R(B.from,B.to),mx+sz*.2,my,sz,{fps:B.fps,loops:2});
       const ty=E.y+(i-1)*E.h*.08;
-      try{b&&b.animate([{translate:'0 0'},{translate:`${E.x-mx-sz*.2}px ${ty-my}px`}],{duration:170,easing:'linear',fill:'forwards'});}catch(e){}
-      setTimeout(()=>{b&&b.remove();flip('fx04',R(8,11),E.x-E.h*.15+(i-1)*E.h*.06,ty,E.h*.55,{fps:20});},170);
+      try{b&&b.animate([{translate:'0 0'},{translate:`${E.x-mx-sz*.2}px ${ty-my}px`}],{duration:B.ms,easing:'linear',fill:'forwards'});}catch(e){}
+      setTimeout(()=>{b&&b.remove();flip('fx04',R(X.from,X.to),E.x+E.h*X.dx+(i-1)*E.h*.06,ty,E.h*X.size,{fps:X.fps});},B.ms);
       actors[sl].off-=3;setTimeout(()=>{actors[sl].off+=3;},70);   // 반동
-    },i*90);
+    },i*(T.gap||90));
   }
   // 마법진 (fx06 1줄): 시전 동안 땅에 펼쳐짐 → 맞는 순간 빛기둥(2줄)
-  function circle(num,ms=700){const E=enemyPt();flip('fx06',[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),E.x,E.y+E.h*.22,E.h*1.5,{fps:11});}
+  function circle(num,ms=700){const E=enemyPt(),C=RT('circle');flip(C.sheet,[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),E.x,E.y+E.h*C.dy,E.h*C.size,{fps:C.fps});}
   function afterImg(sl,ms=360){   // 잔상: 이동 중 리그 그림을 몇 장 남김
     if(!CODE_FX)return;
     const e=window.MRRig?.live?.get?.(sl);if(!e||!e.cv)return;let n=0;
@@ -8247,7 +8260,7 @@ let isGameOver = false;
     if(ranged){slots.forEach((sl,i)=>setTimeout(()=>{try{rt==='shoot'?shot(sl,mem[i]):circle(mem[i],700);}catch(e){}},i*140));}
     cast.group=battleTeamEntries();cast.cutDur=1300;cast.slot=0;
     impact={dmg:o.dmg,final:true,mult:o.mult,hp:o.killed?Math.max(o.hp??0,Math.round(hp-(hp-(o.hp??0))*mem.length/(mem.length+1))):o.hp,killed:false,heavy:true,combo:true};   /* 막타(주인공) 몫을 조금 남김 */clearTimeout(impactT);impactT=setTimeout(land,2600);   // (DHL 10-28) 합동기로 쓰러뜨려도 막타는 주인공 → 여기선 쓰러뜨리지 않음
-    hitQ.length=0;const ccb=()=>{const E=enemyPt();flipTint('fx12w',R(0,15),E.x,E.y,E.h*2.3,mem,{fps:22});shake(8);mem.forEach((n,i)=>setTimeout(()=>impactFx(n),300+i*110));};   // 세 세계 합류 폭발(fx12) → 각자 계열 효과
+    hitQ.length=0;const ccb=()=>{const E=enemyPt(),C=RT('combo');flipTint(C.sheet,R(C.from,C.to),E.x,E.y,E.h*C.size,mem,{fps:C.fps});shake(C.shake);mem.forEach((n,i)=>setTimeout(()=>impactFx(n),300+i*110));};   // 세 세계 합류 폭발(fx12) → 각자 계열 효과
     hitCb=ccb;setTimeout(()=>{if(hitCb===ccb)hitCb=null;},5000);
     event({level:11,skill:true});
     await waitIdle(4000);cast.slot=null;cast.group=null;cast.cutDur=null;
