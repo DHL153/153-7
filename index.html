@@ -3816,7 +3816,7 @@ function ltShow(){
   setTimeout(()=>t.querySelector('.lt-play')?.focus({preventScroll:true}),400);
 }
 function gameOpt(){const t=$('lm-title');if(!t.hidden&&!t.classList.contains('ingame'))return;t.classList.add('ingame');t.hidden=false;ltPop('gopt');}
-window.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.getElementById('mr-story')||document.getElementById('game-startup-screen'))return;
+window.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.getElementById('mr-story')||document.getElementById('game-startup-screen')||document.body.classList.contains('lmFxPlay'))return;
   /* Esc = 한 단계 뒤로 · 취소 (2026-10-28 DHL): 옵션·설정은 한 단계씩 · 창은 '‹ 목록' → 뒤로/닫기/취소 순 · 고른 카드는 해제 · 아무것도 없으면 게임 중 옵션 */
   const t=$('lm-title'),pop=t.querySelector('.lt-pop'),ov=$('ov');
   const vis=b=>b&&!b.disabled&&b.offsetParent!==null;
@@ -4248,7 +4248,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r48" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r49" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -6179,36 +6179,85 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   let star=1,world=0;
   const stg=()=>{try{return document.querySelector('#lmStage iframe')?.contentWindow?.MRStage||null;}catch(e){return null;}};
   let last='';
-  function run(o,key){
-    if(key)last=key;const st=stg();ltHide();const B=document.body;B.classList.remove('lmFxOut','lmFxLive');B.classList.add('lmFxDemo');
-    if(!st){return;}
-    if(st.busy&&st.busy()){setTimeout(()=>run(o),400);return;}
-    // 실제 전투와 같게: 연출하는 동안 오른쪽 위 적 정보 숨김
-    const ov=document.getElementById('ov'),peek=ov&&!ov.hidden;if(peek)B.classList.add('lmFxPeek');   // (DHL 10-29) 보상 · 캠프 창이 무대를 가리면 연출 동안만 숨김
-    const box=document.getElementById('lmStage');
-    /* (DHL 10-29 '전투 후 다른 캐릭터 잔상') 무대는 연출이 시작된 뒤에만 보이고, 끝나면 먼저 감춘 다음 목록을 띄움
-       → 연출 앞뒤로 게임 속 원래 캐릭터가 비치지 않음. 무대는 화면 가운데 혼자 (나머지 화면은 가림) */
-    if(box)box.classList.add('lmHit');
-    setTimeout(()=>{
-      st.demo(o);
-      const t0=performance.now();let seen=false;
-      const ph=()=>{try{return st.demoPhase?st.demoPhase():'';}catch(e){return '';}};let hid=false;
-      const tk=setInterval(()=>{const b=!!(st.busy&&st.busy()),p=ph();
-        if(!seen&&(p==='live'||(!st.demoPhase&&b))){seen=true;B.classList.add('lmFxLive');}
-        if(p==='end'&&!hid){hid=true;B.classList.remove('lmFxLive');}   // 원래 캐릭터로 되돌리기 전에 감춤
-        if(performance.now()-t0<700||b)return;
-        clearInterval(tk);B.classList.remove('lmFxLive');
-        setTimeout(()=>{box&&box.classList.remove('lmHit');B.classList.remove('lmFxPeek');B.classList.add('lmFxOut');
-          try{ltShow();ltPop('fxdemo');}catch(e){}
-          setTimeout(()=>B.classList.remove('lmFxDemo','lmFxOut'),600);},260);
-      },80);
-    },180);   // 무대가 가운데 크기로 바뀐 뒤 시작
-  }
+  /* (DHL 10-31 '누르면 짧게 보고 바로 나옴 → 연출 화면에서 플레이 · 일시정지 · 뒤로 가기') 연출 보기 플레이어
+     목록에서 고르면 무대 화면이 열리고 그 자리에 머묾: ⏸/▶ 일시정지 · 계속 · 다시 보기, ◀ ▶ 이전/다음 연출, ★ 등급 바꾸기, ↩ 목록으로
+     무대를 누르거나 Space = 일시정지/계속 · ←/→ = 이전/다음 · Esc = 목록. 게임 상태(점수 · 체력 · 판)는 그대로 */
+  const ITEMS=[...NAMES.map(([p,ko,wp,rt])=>({k:'one'+p,t:ko,s:wp+' · '+rt,star:1,por:p,o:()=>{const n=world+p;return {hero:n,nums:[n],stars:{[n]:star}};}})),
+    {k:'combo',t:'세 세계 합동기',s:'세 세계 알론소 · 같은 이름 3장',por:1,o:()=>({hero:world+1,nums:[1,11,21],stars:{}})},
+    {k:'mates',t:'동료 합세',s:'4장 족보 · 동료 2명 → 주인공',ico:'handshake',o:()=>{const h=world+1;return {hero:h,nums:[h,world+4,world+5,world+10],stars:{[world+4]:1,[world+5]:2}};}},
+    {k:'kill',t:'처치 컷신',s:'쓰러뜨리는 한 방 · 필살기 이름',star:1,ico:'giant',o:()=>{const h=world+1;return {hero:h,nums:[h],stars:{[h]:star},killed:true};}}];
+  const IC='assets/ui/icon/';
+  let cur=0,tok=0,playing=false,paused=false,ended=false,P=null,rushing=null;
+  const B=()=>document.body,box=()=>document.getElementById('lmStage');
+  const porSrc=p=>{const WK=['rust','neon','sky'][world/10|0],KEY=['alonso','dulcine','sancho','rosi','gris','carden','lucia','nicole','palome','bruno'];return typeof MR_ART!=='undefined'&&MR_ART.idle[WK+'_'+KEY[p-1]]||'';};
+  // 남은 연출을 빨리 감아 끝냄 (무대는 감춘 채)
+  function rush(st){if(!st)return Promise.resolve();try{st.freeze(false);}catch(e){}
+    if(rushing)return rushing;
+    if(!(st.busy&&st.busy())){try{st.speed(1);}catch(e){}return Promise.resolve();}
+    try{st.speed(16);}catch(e){}
+    return rushing=new Promise(res=>{const t0=performance.now();const tk=setInterval(()=>{if(st.busy()&&performance.now()-t0<8000)return;clearInterval(tk);try{st.speed(1);}catch(e){}rushing=null;res();},60);});}
+  function ui(){if(!P)return;const it=ITEMS[cur];
+    const ic=it.ico?`<img src="assets/ui/lamancha/icons/${it.ico}.webp" alt="">`:(it.k==='combo'?['rust','neon','sky'].map(w=>`<span class="fxW" style="background:${WORLD_C[w]}">${ICO(w)}</span>`).join(''):`<img src="${porSrc(it.por)}" alt="">`);
+    P.querySelector('.fpIc').innerHTML=ic;P.querySelector('.fpTx b').textContent=it.t;P.querySelector('.fpTx small').textContent=it.s;
+    P.querySelector('.fpN').textContent=(cur+1)+' / '+ITEMS.length;
+    const ss=P.querySelector('.fpStars');ss.hidden=!it.star;ss.querySelectorAll('button').forEach((b,i)=>{b.classList.toggle('on',star===i+1);b.setAttribute('aria-pressed',star===i+1);});
+    const pb=P.querySelector('.fpPlay'),lbl=playing&&!paused?'일시정지':ended?'다시 보기':'계속';
+    pb.querySelector('img').src=IC+(playing&&!paused?'btn_pause.webp':'btn_arrow_r.webp');pb.setAttribute('aria-label',lbl);pb.title=lbl+' (Space)';
+    P.querySelector('.fpReplay').hidden=!ended;P.classList.toggle('isPaused',playing&&paused);P.classList.toggle('isPlaying',playing);}
+  function build(){if(P)return P;P=document.createElement('div');P.id='lmFxPlayer';P.setAttribute('role','dialog');P.setAttribute('aria-label','전투 연출 보기');
+    const stars=n=>Array.from({length:3},(_,k)=>`<img class="fxSt${k<n?'':' off'}" src="assets/ui/card/star_g.webp" alt="">`).join('');
+    P.innerHTML=`<div class="fpTop"><button type="button" class="fpBack" aria-label="목록으로" title="목록으로 (Esc)"><img src="${IC}back.webp" alt=""></button>`+
+      `<div class="fpTitle"><span class="fpIc"></span><span class="fpTx"><b></b><small></small></span></div>`+
+      `<div class="fpStars" role="group" aria-label="등급">${[1,2,3].map(s=>`<button type="button" data-s="${s}" title="${s===1?'기본':s===2?'짧은 컷인':'긴 컷인'}"><span>${stars(s)}</span></button>`).join('')}</div></div>`+
+      `<div class="fpHole"><button type="button" class="fpReplay" hidden><img src="${IC}btn_arrow_r.webp" alt=""><b>다시 보기</b></button><span class="fpPauseTag">일시정지</span><span class="fpLoad">연출 준비 중…</span></div>`+
+      `<div class="fpBar"><button type="button" class="fpPrev" aria-label="이전 연출" title="이전 (←)"><img src="${IC}arrow_l.webp" alt=""></button>`+
+      `<button type="button" class="fpPlay"><img src="${IC}btn_pause.webp" alt=""></button>`+
+      `<button type="button" class="fpNext" aria-label="다음 연출" title="다음 (→)"><img src="${IC}arrow_r.webp" alt=""></button><span class="fpN"></span></div>`;
+    P.querySelector('.fpBack').onclick=close;P.querySelector('.fpPrev').onclick=()=>go(-1);P.querySelector('.fpNext').onclick=()=>go(1);
+    P.querySelector('.fpPlay').onclick=toggle;P.querySelector('.fpReplay').onclick=e=>{e.stopPropagation();play();};
+    P.querySelector('.fpHole').onclick=e=>{if(e.target.closest('.fpReplay'))return;toggle();};
+    P.querySelectorAll('.fpStars button').forEach(b=>b.onclick=()=>{star=+b.dataset.s;play(true);});
+    document.body.appendChild(P);return P;}
+  function onKey(e){if(!P||P.hidden)return;const k=e.key;
+    if(k==='Escape'){close();}else if(k===' '||k==='Spacebar'){toggle();}else if(k==='ArrowLeft'){go(-1);}else if(k==='ArrowRight'){go(1);}else return;
+    e.preventDefault();e.stopImmediatePropagation();}
+  window.addEventListener('keydown',onKey,true);   // 창(window) 단계에서 먼저 받아 메뉴 단축키 · Esc 옵션 창보다 앞섬
+  function open(i){cur=i;build();P.hidden=false;
+    ltHide();const b=B();b.classList.remove('lmFxOut','lmFxLive');b.classList.add('lmFxDemo','lmFxPlay');
+    const ov=document.getElementById('ov');if(ov&&!ov.hidden)b.classList.add('lmFxPeek');   // (DHL 10-29) 보상 · 캠프 창이 무대를 가리면 연출 동안만 숨김
+    const bx=box();if(bx)bx.classList.add('lmHit');
+    play();}
+  async function play(restart){const st=stg(),my=++tok;
+    B().classList.remove('lmFxLive');P&&P.classList.remove('seen');paused=false;ended=false;playing=true;last=ITEMS[cur].k;ui();
+    if(!st){playing=false;ended=true;ui();return;}
+    await rush(st);if(my!==tok)return;
+    await new Promise(r=>setTimeout(r,180));if(my!==tok)return;   // 무대가 가운데 크기로 바뀐 뒤 시작
+    try{st.freeze(false);st.speed(1);}catch(e){}
+    st.demo(ITEMS[cur].o());
+    const t0=performance.now();let seen=false,hid=false;
+    const ph=()=>{try{return st.demoPhase?st.demoPhase():'';}catch(e){return '';}};
+    const tk=setInterval(()=>{if(my!==tok){clearInterval(tk);return;}
+      const b=!!(st.busy&&st.busy()),p=ph();
+      if(!seen&&(p==='live'||(!st.demoPhase&&b))){seen=true;B().classList.add('lmFxLive');P&&P.classList.add('seen');}
+      if(p==='end'&&!hid){hid=true;B().classList.remove('lmFxLive');}   // 원래 캐릭터로 되돌리기 전에 감춤 (다른 캐릭터 잔상 방지)
+      if(performance.now()-t0<700||b)return;
+      clearInterval(tk);B().classList.remove('lmFxLive');playing=false;ended=true;ui();
+    },80);}
+  function toggle(){const st=stg();if(!P)return;
+    if(ended||!playing){play();return;}
+    if(!paused){let p='';try{p=st&&st.demoPhase?st.demoPhase():'';}catch(e){}if(p==='end')return;}   // 끝나는 순간(무대 감춤 중)에는 멈추지 않고 그대로 끝냄
+    paused=!paused;try{st&&st.freeze(paused);}catch(e){}ui();}
+  function go(d){cur=(cur+d+ITEMS.length)%ITEMS.length;play();}
+  function close(){if(!P)return;tok++;P.hidden=true;playing=false;paused=false;ended=false;
+    const st=stg(),b=B();b.classList.remove('lmFxLive');rush(st);
+    const bx=box();if(bx)bx.classList.remove('lmHit');b.classList.remove('lmFxPeek','lmFxPlay');b.classList.add('lmFxOut');
+    try{ltShow();ltPop('fxdemo');}catch(e){}
+    setTimeout(()=>b.classList.remove('lmFxDemo','lmFxOut'),600);}
   window.lmFxDemo={
-    one(p){const n=world+p;run({hero:n,nums:[n],stars:{[n]:star}},'one'+p);},
-    combo(p){const n=world+p;run({hero:n,nums:[p,p+10,p+20],stars:{}},'combo');},
-    mates(){const h=world+1;run({hero:h,nums:[h,world+4,world+5,world+10],stars:{[world+4]:1,[world+5]:2}},'mates');},
-    kill(){const h=world+1;run({hero:h,nums:[h],stars:{[h]:star},killed:true},'kill');},
+    one(p){open(p-1);},
+    combo(){open(10);},
+    mates(){open(11);},
+    kill(){open(12);},
     star(s){star=s;ltPop('fxdemo');},
     world(w){world=w;ltPop('fxdemo');}
   };
@@ -6231,7 +6280,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const starImg=n=>Array.from({length:3},(_,k)=>`<img class="fxSt${k<n?'':' off'}" src="assets/ui/card/star_g.webp" alt="">`).join('');
     const wIco=w=>`<span class="fxW" style="background:${WORLD_C[w]}">${ICO(w)}</span>`;
     card.innerHTML=`<div class="fxHead"><img src="assets/ui/maple/icons/sword.webp" alt=""><h3>전투 연출 보기</h3></div>`+
-      `<p class="fxSub">누르면 무대에서 바로 재생되고, 끝나면 이 화면으로 돌아와요 · 점수와 체력은 바뀌지 않아요</p>`+
+      `<p class="fxSub">누르면 연출 화면이 열려요 · 일시정지 · 다시 보기 · 이전/다음 · 점수와 체력은 바뀌지 않아요</p>`+
       `<div class="fxBar"><div class="fxSeg" role="group" aria-label="세계">${W.map(([k,v],x)=>`<button type="button" class="${world===v?'on':''}" onclick="lmFxDemo.world(${v})">${wIco(['rust','neon','sky'][x])}<b>${k}</b></button>`).join('')}</div>`+
       `<div class="fxSeg" role="group" aria-label="등급">${[1,2,3].map(s=>`<button type="button" class="${star===s?'on':''}" onclick="lmFxDemo.star(${s})"><span class="fxStars">${starImg(s)}</span><b>${s===1?'기본':s===2?'짧은 컷인':'긴 컷인'}</b></button>`).join('')}</div></div>`+
       `<div class="fxGrid">${NAMES.map(([p,ko,wp,rt])=>`<button type="button" class="fxItem${last==='one'+p?' last':''}" onclick="lmFxDemo.one(${p})">${por(p)}<span class="fxTx"><b>${ko}</b><small>${wp}</small><small class="fxRt">${rt}</small></span></button>`).join('')}</div>`+
@@ -6484,7 +6533,7 @@ html.lmB body #app.bl #orbs .orb.hid{font-size:0!important}
     if(note&&!hasRun())note.remove();}
   const _lp=ltPop;
   ltPop=function(kind){const r=_lp.apply(this,arguments);if(kind==='gopt'&&onTitle())tweak();return r;};
-  addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.getElementById('mr-story')||document.getElementById('game-startup-screen'))return;
+  addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.getElementById('mr-story')||document.getElementById('game-startup-screen')||document.body.classList.contains('lmFxPlay'))return;
     if(!onTitle()||!document.getElementById('ov').hidden)return;const pop=T().querySelector('.lt-pop');if(pop&&!pop.hidden)return;   // 배우기 · 도감 창이 떠 있으면 그 창의 Esc(한 단계 뒤로)가 먼저   // 열린 창 닫기는 기존 Esc가 처리
     e.stopImmediatePropagation();e.preventDefault();ltPop('gopt');},true);
   const st=document.createElement('style');st.textContent='body.lmFxPeek #ov{visibility:hidden!important}';document.head.appendChild(st);
@@ -7073,6 +7122,50 @@ html,html *{scrollbar-width:thin;scrollbar-color:#c9a24a88 transparent}
 #lm-title .fx2 .fxIcs{display:flex;gap:2px;flex:none}#lm-title .fx2 .fxIcs img{width:38px;height:38px}#lm-title .fx2 .fxIcs .fxW{width:22px;height:22px}
 @media (max-width:620px){#lm-title .fx2 .fxBar{grid-template-columns:1fr}#lm-title .fx2 .fxGrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}#lm-title .fx2 .fxItem{padding:4px 2px 6px}#lm-title .fx2 .fxPor{width:44px;height:44px}#lm-title .fx2 .fxItem b{font-size:13px}#lm-title .fx2 .fxItem small{display:none}#lm-title .fx2 .fxSp{grid-template-columns:1fr}#lm-title .fx2 .last::after{display:none}}
 @media (max-height:520px){#lm-title .fx2 .fxPor{width:40px;height:40px}#lm-title .fx2 .fxSub{display:none}#lm-title .fx2 .fxSeg button{min-height:44px}}
+/* (DHL 10-31) 오른쪽 스크롤바: 목록 · 연출 동안 뒤의 게임 화면(감춰짐)이 화면보다 길어 페이지가 스크롤됨 → 페이지 스크롤 막음 */
+html:has(body.lmFxMenu),html:has(body.lmFxDemo),body.lmFxMenu,body.lmFxDemo{overflow:hidden!important}
+/* (DHL 10-31) 연출 보기 플레이어 — 위: ↩ 목록 · 이름 · ★등급 / 가운데: 무대 / 아래: ◀ ⏸ ▶ */
+body.lmFxPlay{--fpH:clamp(58px,11vh,84px)}
+html body.lmFxDemo.lmFxPlay #lmStage#lmStage{width:min(96vw,calc((100dvh - 2 * var(--fpH) - 40px) * 16 / 9))!important;height:calc(min(96vw,calc((100dvh - 2 * var(--fpH) - 40px) * 16 / 9)) * 9 / 16)!important;min-height:0!important;max-height:none!important}
+#lmFxPlayer{position:fixed;inset:0;z-index:905;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;font-family:'Noto Sans KR',sans-serif;color:#fff}
+#lmFxPlayer[hidden]{display:none}
+#lmFxPlayer button{pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#lmFxPlayer>div{width:min(96vw,calc((100dvh - 2 * var(--fpH) - 40px) * 16 / 9));min-width:min(96vw,340px)}
+#lmFxPlayer .fpTop,#lmFxPlayer .fpBar{height:var(--fpH);display:flex;align-items:center;gap:10px}
+#lmFxPlayer .fpHole{position:relative;aspect-ratio:16/9;width:min(96vw,calc((100dvh - 2 * var(--fpH) - 40px) * 16 / 9))!important;min-width:0!important;pointer-events:auto;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#lmFxPlayer .fpBack{flex:none;width:clamp(30px,5vh,40px);height:clamp(30px,5vh,40px);padding:0;border:0;background:none;filter:drop-shadow(0 3px 4px #000c)}
+#lmFxPlayer .fpBack img,#lmFxPlayer .fpBar img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+#lmFxPlayer .fpTitle{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+#lmFxPlayer .fpIc{flex:none;display:flex;gap:2px;align-items:center}
+#lmFxPlayer .fpIc img{width:clamp(38px,7vh,56px);height:clamp(38px,7vh,56px);object-fit:contain;filter:drop-shadow(0 3px 3px #000a)}
+#lmFxPlayer .fpIc .fxW{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}#lmFxPlayer .fpIc .fxW img{width:70%;height:70%;filter:none}
+#lmFxPlayer .fpTx{display:flex;flex-direction:column;gap:3px;min-width:0}
+#lmFxPlayer .fpTx b{font:900 clamp(16px,2.6vh,22px)/1.1 'Noto Sans KR',sans-serif;color:#f6cf63;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lmFxPlayer .fpTx small{font-size:clamp(11.5px,1.7vh,14px);color:#cfd6e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lmFxPlayer .fpStars{flex:none;display:flex;gap:3px;background:#0a1222;border-radius:12px;padding:3px;box-shadow:inset 0 0 0 1px #c9a24a66}
+#lmFxPlayer .fpStars[hidden]{display:none}
+#lmFxPlayer .fpStars button{border:0;border-radius:9px;background:transparent;padding:6px 6px;display:flex}
+#lmFxPlayer .fpStars button.on{background:linear-gradient(180deg,#f8edd0,#e9d29a);box-shadow:0 2px 0 #8a6a2e}
+#lmFxPlayer .fpStars span{display:flex}#lmFxPlayer .fxSt{width:clamp(13px,2.2vh,17px);height:clamp(13px,2.2vh,17px);margin:0 -1px}#lmFxPlayer .fxSt.off{filter:grayscale(1) brightness(.4);opacity:.7}
+#lmFxPlayer .fpBar{justify-content:center;gap:clamp(14px,4vw,34px);position:relative}
+#lmFxPlayer .fpBar button{padding:0;border:0;background:none;filter:drop-shadow(0 3px 4px #000c);transition:transform .1s,filter .1s}
+#lmFxPlayer .fpPrev,#lmFxPlayer .fpNext{width:calc(var(--fpH) * .5);height:calc(var(--fpH) * .5)}
+#lmFxPlayer .fpNext img{transform:none}
+#lmFxPlayer .fpPlay{width:calc(var(--fpH) * .86);height:calc(var(--fpH) * .86)}
+#lmFxPlayer .fpBar button:hover,#lmFxPlayer .fpBack:hover{filter:drop-shadow(0 3px 4px #000c) brightness(1.15)}
+#lmFxPlayer button:active{transform:scale(.93)}
+#lmFxPlayer button:focus{outline:none}#lmFxPlayer button:focus-visible{outline:2px solid #f6cf63;outline-offset:3px;border-radius:50%}
+#lmFxPlayer .fpN{position:absolute;right:4px;font:800 clamp(11px,1.7vh,13px)/1 'Noto Sans KR',sans-serif;color:#93a3bd}
+#lmFxPlayer .fpReplay{display:flex;flex-direction:column;align-items:center;gap:8px;border:0;background:none;padding:0;animation:fpIn .25s ease-out both}
+#lmFxPlayer .fpReplay[hidden]{display:none}
+#lmFxPlayer .fpReplay img{width:clamp(64px,13vh,96px);height:clamp(64px,13vh,96px);filter:drop-shadow(0 4px 6px #000c)}
+#lmFxPlayer .fpReplay b{font:900 clamp(14px,2.2vh,18px)/1 'Noto Sans KR',sans-serif;color:#f6cf63;text-shadow:0 2px 0 #000a}
+#lmFxPlayer .fpPauseTag{position:absolute;top:10px;left:50%;translate:-50% 0;padding:5px 12px;border-radius:99px;background:#000a;color:#f6cf63;font:900 13px/1 'Noto Sans KR',sans-serif;opacity:0;transition:opacity .15s;pointer-events:none}
+#lmFxPlayer.isPaused .fpPauseTag{opacity:1}
+#lmFxPlayer .fpLoad{position:absolute;font:800 clamp(13px,2vh,16px)/1 'Noto Sans KR',sans-serif;color:#93a3bd;opacity:0;transition:opacity .2s .25s;pointer-events:none}
+body.lmFxPlay:not(.lmFxLive) #lmFxPlayer.isPlaying:not(.seen) .fpLoad{opacity:1}
+@keyframes fpIn{from{opacity:0;scale:.85}}
+@media (max-width:520px){#lmFxPlayer .fpTx small{display:none}#lmFxPlayer .fpN{right:0}}
 </style><style id="lm-fxbar">/* (DHL 10-29) 컬렉션 아래 '전투 연출 보기' 버튼 바 — 남색 장식판 */
 #lm-title .lm-fxbar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;margin:12px 0 4px;cursor:pointer;color:#fff;background:none;
   border:solid transparent;border-width:12px 22px;border-image:url(assets/ui/ornament/plate_navy.webp) 32 64 32 64 fill / 12px 22px / 0 stretch;filter:drop-shadow(0 3px 0 #000a);transition:transform .1s,filter .12s}
