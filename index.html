@@ -2925,7 +2925,7 @@ function tick(now){
     if(st.orb)flashOrb(st.orb,st.pop);
     if(st.orbs)st.orbs.forEach(k=>flashOrb(k,''));}
   if(el>n*STEP&&!A.fin){A.fin=1;rollNum('tot',A.r.total,0,'',600);
-    if(A.r.capHit){const bl=A.r.sh?Math.max(0,A.r.sh.before-A.r.sh.after):A.r.rawTotal-A.r.total,kn=A.r.keys?A.r.keys.n:0;lmCapFx('cap',`🛡 ${bl.toLocaleString()}`,`방패 ${bl.toLocaleString()} 깎임 · 몸체 ${A.r.total.toLocaleString()} · 맞춤 ${kn}/3`);popMsg(`🛡 방패가 먼저 막았어요 — 방패 ${bl.toLocaleString()} 깎임 · 몸체 ${A.r.total.toLocaleString()} (세 가지를 다 맞추면 ${TD()})`);const kb=$('keyBar');if(kb){kb.classList.remove('capHit');void kb.offsetWidth;kb.classList.add('capHit');}}
+    if(A.r.capHit){const bl=A.r.sh?Math.max(0,A.r.sh.before-A.r.sh.after):A.r.rawTotal-A.r.total,kn=A.r.keys?A.r.keys.n:0;lmCapFx('cap',`🛡 ${bl.toLocaleString()}`,`방패 ${bl.toLocaleString()} 깎임 · 몸체 ${A.r.total.toLocaleString()} · 맞춤 ${kn}/3`);popMsg(`🛡 방패 ${bl.toLocaleString()} 깎임 · 몸체 ${A.r.total.toLocaleString()}`);const kb=$('keyBar');if(kb){kb.classList.remove('capHit');void kb.offsetWidth;kb.classList.add('capHit');}}
     // (DHL 10-30) 관통 글씨는 무대의 큰 '관통!' 하나만   // 총점이 굴러 오름
     if(A.r.total>=S.tgt*0.5){$('app').classList.remove('shake');void $('app').offsetWidth;$('app').classList.add('shake');}   // 큰 한 방 → 화면 흔들림
     if(A.r.total>S.best&&S.best>0)setTimeout(()=>popMsg('🏆 신기록! '+A.r.total.toLocaleString()),650);}
@@ -4210,7 +4210,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r58" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r59" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4335,7 +4335,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   const toast=document.createElement('div');toast.id='lmToast';toast.setAttribute('aria-live','polite');box.appendChild(toast);
   const toneOf=m=>/부상|상처|반격!|독안개|파괴|−1|버려짐|거인:/.test(m)?'bad':/피했|머지|합류|신기록|★|Lv|치료|돌아와|💰|기세/.test(m)?'good':'';
   const stageOn=()=>{const ov=document.getElementById('ov');if(ov&&!ov.hidden)return false;const r=box.getBoundingClientRect();return r.height>40&&r.bottom>0&&r.top<innerHeight;};
-  if(typeof popMsg==='function'){const _pm=popMsg;popMsg=function(m){const t=String(m||'');if(/^오버킬/.test(t))return;
+  if(typeof popMsg==='function'){const _pm=popMsg;popMsg=function(m){const t=String(m||'').replace(/\s+[—–-]\s+/g,' · ').replace(/…+$/,'');if(/^오버킬/.test(t))return;if(/^🛡 방패 [\d,]+ 깎임/.test(t)&&stageOn())return;   /* 무대가 보이면 '막힘! 방패 −n · 몸체 −n' 글자가 맞는 순간에 대신 나옴 (공격 전에 결과가 먼저 뜨던 것) */   /* (DHL 11-01) 전투 알림에 '—' · '…' 없이 */
     if(!stageOn())return _pm.apply(this,arguments);
     const d=document.createElement('div');d.className='lmT '+toneOf(t);d.textContent=t;toast.prepend(d);
     while(toast.children.length>2)toast.lastChild.remove();
@@ -5031,13 +5031,17 @@ html.lmB body #app.bl #orbs .orb.bump{animation:none}html.lmB body #app.bl #orbs
         if(fr)Object.assign(fx.style,{left:fr.left+'px',top:fr.top+'px',width:fr.width+'px',height:fr.height+'px'});
         o.addEventListener('pointerdown',()=>{if(skip)return;skip=1;t.forEach(clearTimeout);t=[];setTimeout(flushPend,0);o.className='ph2 ph3 ph4 ph5';if(a)a.classList.add('lmDown');if(se)se.hs.forEach(h=>h.classList.add('lm-down'));});
         document.body.appendChild(o);
-        // ① 적의 반격: 적이 덮치고 붉은 참격이 주인공을 가름
-        if(se&&se.en){se.en.classList.remove('lm-strike','lm-gloat');void se.en.offsetWidth;se.en.classList.add('lm-strike');}
-        await sleep(220);
-        o.querySelector('.dfSlash').classList.add('go');o.querySelector('.dfHitFlash').classList.add('go');boom(false);
+        // ① 적의 공격 (DHL 11-01): 무대 안에서 적이 덮치고 → 주인공 자리에 적 공격 이펙트(전투와 같은 시트) → 맞는 순간 빛 · 흔들림 · 주인공 휘청
+        let fs=null;try{fs=document.querySelector('#lmStage iframe').contentWindow.MRStage;}catch(e){}
+        const strike=fs&&fs.foeStrike?fs.foeStrike():null;
+        if(!strike&&se&&se.en){se.en.classList.remove('lm-strike','lm-gloat');void se.en.offsetWidth;se.en.classList.add('lm-strike');}
+        await sleep(strike?330:220);
+        if(!strike)o.querySelector('.dfSlash').classList.add('go');   // 무대 이펙트가 없을 때만 예전 붉은 참격
+        o.querySelector('.dfHitFlash').classList.add('go');boom(false);
         if(box){box.classList.remove('lmHurt');void box.offsetWidth;box.classList.add('lmHurt');}
         if(a){a.classList.remove('lmHitBack');void a.offsetWidth;a.classList.add('lmHitBack');}
         if(se)se.hs.forEach(h=>h.classList.add('lm-knock'));
+        if(strike)try{await strike;}catch(e){}
         // ② 주인공이 쓰러짐 · 적은 으쓱
         await sleep(330);if(se){se.hs.forEach(h=>{h.classList.remove('lm-knock');h.classList.add('lm-down');});}
         await sleep(450);if(se&&se.en){se.en.classList.remove('lm-strike');se.en.classList.add('lm-gloat');}
@@ -6936,7 +6940,7 @@ html.lmB body .card.dz .dzi[data-w] .dza:not(.rigOn) img{translate:0 -13%;scale:
 
 <script id="lm-capfx-js">/* (DHL 10-29) 피해 상한 연출 — 방패 아이콘(막힘) · 방패 깨지는 6프레임(한계 돌파). 무대가 보이면 무대 가운데, 아니면 화면 가운데 */
 (function(){[ 'cap_shield','cap_break'].forEach(n=>{const i=new Image();i.src='assets/ui/lamancha/'+n+'.webp';});
-window.lmCapFx=function(kind,txt,sub){try{const t=document.getElementById('lmToast'),host=t&&t.offsetParent?t.parentElement:document.body;
+window.lmCapFx=function(kind,txt,sub){try{const t=document.getElementById('lmToast'),host=t&&t.offsetParent?t.parentElement:document.body;if(kind==='cap'&&host!==document.body)return;   /* (DHL 11-01) 무대가 보이면 방패 결과는 무대의 '막힘!' 글자로 — 공격 전에 먼저 뜨고 컷인 위에 남던 것 */
   host.querySelectorAll('.lmCapFx').forEach(x=>x.remove());const d=document.createElement('div');d.className='lmCapFx '+kind+(host===document.body?' fixed':'');
   d.innerHTML=(kind==='brk'?'<i class="sp"></i>':'<img src="assets/ui/lamancha/cap_shield.webp" alt="">')+`<b>${txt}</b>`+(sub?`<small>${sub}</small>`:'');
   host.appendChild(d);setTimeout(()=>d.remove(),1500);}catch(e){}};})();</script></body></html>
@@ -7909,4 +7913,18 @@ html body button.lmIco.ibBack:not(#_),html body button.lmIco.lmIcoNav:not(#_),ht
 html.lmB body .card.dz.s3 .dzi[data-w] .dzb::before{display:none!important}
 #hand .card.dz.s2,#hand .card.dz.s3{z-index:1!important}
 </style>
+<style id="lm-toast-wrap">
+/* (DHL 11-01 '고정 … · 방패 — 삭제') 전투 알림: 길면 '…'로 자르지 않고 두 줄로 · 무대 폭 안 */
+html body #lmToast .lmT{white-space:normal!important;text-overflow:clip!important;overflow:visible!important;word-break:keep-all;overflow-wrap:anywhere;line-height:1.3;max-width:100%}
+</style>
+<script id="lm-toast-cine">
+/* (DHL 11-01 '전투 이펙트가 메시지 · 컷인 · 컷신과 겹침') 무대에 컷인 · 처치 컷신 · 큰 글자(막힘! · 방패 깨짐! · 고정 피해!)가 떠 있는 동안 왼쪽 아래 알림 줄을 잠깐 감춤 */
+(function(){
+  const st=document.createElement('style');st.textContent='#lmStage.lmCine #lmToast,#lmStage.lmCine .lmCapFx{opacity:0!important;transition:opacity .12s}#lmToast{transition:opacity .2s}';document.head.appendChild(st);
+  let doc=null;const tick=()=>{const box=document.getElementById('lmStage');if(!box)return;
+    try{const f=box.querySelector('iframe');doc=f&&f.contentDocument;}catch(e){doc=null;}
+    const on=!!(doc&&(doc.querySelector('#skill-cinematic.on')||doc.querySelector('.lm-big')));box.classList.toggle('lmCine',on);};
+  setInterval(tick,90);
+})();
+</script>
 </body></html>
