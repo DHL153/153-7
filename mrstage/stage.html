@@ -8106,14 +8106,14 @@ let isGameOver = false;
     const d=document.createElement('div');d.className='lmflip';
     d.style.width=d.style.height=size.toFixed(1)+'px';d.style.backgroundImage=`url(${FXP}${k}.webp)`;
     d.style.backgroundSize=`${m.c*100}% ${m.r*100}%`;if(m.blend==='screen')d.style.mixBlendMode='screen';
-    const put=f=>{const r=Math.floor(f/m.c),c=f%m.c,rw=m.rows[r]||{ax:.5,ay:.5};
+    let cf=seq[0];const put=f=>{cf=f;const r=Math.floor(f/m.c),c=f%m.c,rw=m.rows[r]||{ax:.5,ay:.5};if(o.track){const q=o.track();if(q){x=q.x;y=q.y;}}   // track: 적을 따라감 (DHL 11-02 카르덴 마법진)
       d.style.left=(x-(o.flipX?1-rw.ax:rw.ax)*size).toFixed(1)+'px';d.style.top=(y-rw.ay*size).toFixed(1)+'px';
       d.style.backgroundPosition=`${m.c>1?c/(m.c-1)*100:0}% ${m.r>1?r/(m.r-1)*100:0}%`;};
     if(o.flipX)d.style.transform='scaleX(-1)';
     put(seq[0]);stage.appendChild(d);
     // 타격 멈춤(히트스톱)으로 화면이 잠깐 멈춰도 칸을 건너뛰지 않음 — 한 번에 최대 한 칸씩
     const fps=o.fps||16,total=seq.length*(o.loops||1),step=1000/fps;let i=0,next=performance.now()+step;
-    const tick=now=>{if(!d.isConnected)return;if(now>=next){i++;if(i>=total){d.remove();return;}put(seq[i%seq.length]);next=Math.max(next+step,now+step*.5);}requestAnimationFrame(tick);};
+    const tick=now=>{if(!d.isConnected)return;if(now>=next){i++;if(i>=total){d.remove();return;}put(seq[i%seq.length]);next=Math.max(next+step,now+step*.5);}else if(o.track)put(cf);requestAnimationFrame(tick);};
     requestAnimationFrame(tick);return d;
   }
   // (DHL 10-28) 합동기 폭발 = 흰색 시트(fx12w)에 '실제로 나온 세계 색'만 입힘 — 러스트 주황 · 네온 분홍 · 스카이 파랑, 가운데는 흰 섬광
@@ -8170,7 +8170,8 @@ let isGameOver = false;
     if(c.lift){try{en?.animate([{translate:'0 0'},{translate:`0 ${-H*c.lift}px`,offset:.35},{translate:'0 0'}],{duration:c.liftMs||620,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
     if(c.push){try{en?.animate([{translate:'0 0'},{translate:`${E.h*c.push}px 0`,offset:.25},{translate:'0 0'}],{duration:c.pushMs||520,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
     const y0=c.at==='foot'?E.foot:E.y;
-    flip(c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size,{fps:c.fps,flipX:c.flipX?1:0});
+    if(k==='pillar'){const G=enemyGround();flip(c.sheet,R(c.from,c.to),G.x,G.y,G.h*c.size,{fps:c.fps,track:enemyGround});}   // 카르덴 빛기둥: 마법진(바닥 · 적 가운데)에서 솟음
+    else flip(c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size,{fps:c.fps,flipX:c.flipX?1:0});
     if(c.shake){if(c.shakeAt)setTimeout(()=>shake(c.shake),c.shakeAt);else shake(c.shake);}
   }
 
@@ -8189,7 +8190,12 @@ let isGameOver = false;
     },i*(T.gap||90));
   }
   // 마법진 (fx06 1줄): 시전 동안 땅에 펼쳐짐 → 맞는 순간 빛기둥(2줄)
-  function circle(num,ms=700){const E=enemyPt(),C=RT('circle');flip(C.sheet,[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),E.x,E.y+E.h*C.dy,E.h*C.size,{fps:C.fps});}
+  /* (DHL 11-02 '카르덴 이펙트를 바닥에 붙이고 적 가운데서 터지게') 적의 실제 가운데(#enemy 는 translate -50% 라 offsetLeft 가운데가 반 칸 오른쪽) · 바닥 = 주인공 발 줄 */
+  function enemyGround(){const en=$('enemy'),E=enemyPt();let cx=E.x;
+    try{const sr=stage.getBoundingClientRect(),k=sr.width/(stage.clientWidth||sr.width)||1,r=en.getBoundingClientRect();if(r.width>0)cx=(r.left+r.width/2-sr.left)/k;}catch(e){}
+    let gy=E.foot;try{const f=footOf(0);if(f&&f.y>0)gy=f.y;}catch(e){}
+    return {x:cx,y:gy,h:E.h};}
+  function circle(num,ms=700){const G=enemyGround(),C=RT('circle');flip(C.sheet,[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),G.x,G.y,G.h*C.size,{fps:C.fps,track:enemyGround});}
   function afterImg(sl,ms=360){   // 잔상: 이동 중 리그 그림을 몇 장 남김
     if(!CODE_FX)return;
     const e=window.MRRig?.live?.get?.(sl);if(!e||!e.cv)return;let n=0;
