@@ -5399,6 +5399,7 @@ html.mr-uikit body #app#app#app #battle-stage #boss-hp-track{height:5px!importan
 html.mr-uikit body #app#app#app #battle-stage #boss-hp-fill{border-radius:2px!important}
 html.mr-uikit body #app#app#app #battle-stage #boss-hp-text{position:static!important;display:block!important;margin:1px 0 0!important;font:800 6.5px/1 system-ui,sans-serif!important;color:#fff!important;text-align:center!important;text-shadow:0 0 2px #000,0 0 2px #000!important;transform:none!important}
 #battle-stage[data-team-skill="on"] .lm-dmg{visibility:hidden}
+#battle-stage.lm-demo .lm-dmg,#battle-stage.lm-demo #boss-hud,#battle-stage.lm-demo #normal-enemy-hp,#battle-stage.lm-demo #lm-gshield,#battle-stage.lm-demo #lm-sbar{display:none!important}   /* (DHL 11-02) 공격 연출 보기: 피해 숫자 · 적 체력 바 · 방패가 이펙트 · 공격을 가려서 숨김 */
 /* ★15 해·달·풍차를 왼쪽으로 (오른쪽 위는 적 정보 표 자리) */
 html body #battle-stage .sky-cel .cel-sun,html body #battle-stage .sky-cel .cel-moon{left:22%!important}
 html body #battle-stage .far-mill{left:5%}
@@ -8393,14 +8394,14 @@ let isGameOver = false;
     await sleep(420);
   }
   async function demo(o){
-    demoPh='prep';const before=[...activeBattleTeam];
+    demoPh='prep';const before=[...activeBattleTeam];clearTimeout(demo._t);stage.classList.add('lm-demo');
     // (DHL 10-29 '전투 연출 보기가 안 됨') 적을 쓰러뜨린 뒤(밤 · 적 치워짐)에 열면 빈 무대에서 허공을 침 → 연출 동안만 적 · 낮 하늘을 되살렸다가 끝나면 원래대로
     const cleared=stage.classList.contains('lm-cleared'),sky0=skyN,en0=$('enemy');
     if(cleared){stage.classList.remove('lm-cleared','lm-still','lm-foe-dead');if(en0)en0.className='character enemy'+(kind==='boss'?' boss-enemy':'');skyN=1;window.MRBattleSky?.setStage(1,true);}
     if(o.hero){const h=o.hero;await loadRigDef(h);show(ALL,false);applyTeam([h-1,null,null]);await waitRig([0],4000);offsetTeam(0);show([0],true);}
     if(o.stars)stars={...stars,...o.stars};
     const keep={hp,maxHp},gsKeep=[gsDead,gsBroken];demoPh='live';
-    try{await finale({final:true,nums:o.nums||[],stars:o.stars,dmg:o.dmg||1234,mult:o.mult||3,hp:null,killed:!!o.killed,demo:true});}finally{demoPh='end';}
+    try{await finale({final:true,nums:o.nums||[],stars:o.stars,dmg:o.dmg||1234,mult:o.mult||3,hp:null,killed:!!o.killed,demo:true});}finally{demoPh='end';demo._t=setTimeout(()=>stage.classList.remove('lm-demo'),1800);}
     await new Promise(r=>setTimeout(r,280));   // 바깥 화면이 무대를 감출 시간
     hp=keep.hp;maxHp=keep.maxHp;[gsDead,gsBroken]=gsKeep;setHud();stage.classList.remove('lm-foe-dead');try{drawGems();}catch(e){}
     const en=$('enemy');if(en&&/explode/.test(en.className))en.className='character enemy'+(kind==='boss'?' boss-enemy':'');
