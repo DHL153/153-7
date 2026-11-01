@@ -2625,7 +2625,7 @@ function cardFace(c){
   const nm=t.ko,nmc=nm.length>6?' xs':nm.length>4?' sm':'';
   const pl=typeof ICON_IMG!=='undefined'&&ICON_IMG['plate_'+w];
   const stars=Array(c.star).fill(ICO(c.star>=3?'star3':'star2')).join('');
-  return `<span class="dzi${d?' mood-'+d:''}" data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}" style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(STAR_W[c.star]-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${STAR_W[c.star]-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
+  return `<span class="dzi${d?' mood-'+d:''}" data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}" style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
     `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${TYPES[c.id].n}${c.aw==='B'?'_b':''}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
@@ -4118,8 +4118,9 @@ html body .sScoreBox .lmNameRow.lmPop{animation:lmNamePop .45s cubic-bezier(.3,1
 #lmSRow .lmTk.hit{transform:translateY(-6px) scale(1.12);box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #ffcf3f,0 0 16px #ffcf3faa;overflow:visible;z-index:2}
 #lmSRow .lmTk.done{box-shadow:inset 0 0 0 2px #ffffff99,0 0 0 1.5px #ffcf3f99}
 /* (DHL 10-31 시안 1-A) ★ 카드 = 족보에서 여러 장 → 뒤에 겹친 카드 뒷면으로 장수 표시 (★2 1겹 · ★3 3겹), 고르면 부채처럼 펼쳐짐 */
-.card.dz .dzStk{position:absolute;inset:0;border-radius:5cqw;background:url(assets/ui/kit/card_back.webp) center/100% 100% no-repeat;box-shadow:0 1px 3px #000a;pointer-events:none;transform:translate(calc(var(--k)*4.5cqw),calc(var(--k)*-4.5cqw));transition:transform .28s cubic-bezier(.3,1.4,.5,1)}
-.card.dz.sel .dzStk,.card.dz:hover .dzStk{transform:translate(calc(var(--k)*7cqw),calc(var(--k)*-7cqw)) rotate(calc(var(--k)*3deg))}
+/* (DHL 11-01) 겹친 장수 = ★ 수(★2 뒤 1장 · ★3 뒤 2장) · 옆 카드 번호를 가리지 않게 거의 위로만 펼침(가로 1.2cqw) */
+.card.dz .dzStk{position:absolute;inset:0;border-radius:5cqw;background:url(assets/ui/kit/card_back.webp) center/100% 100% no-repeat;box-shadow:0 1px 3px #000a;pointer-events:none;transform:translate(calc(var(--k)*1.2cqw),calc(var(--k)*-5cqw));transition:transform .28s cubic-bezier(.3,1.4,.5,1)}
+.card.dz.sel .dzStk,.card.dz:hover .dzStk{transform:translate(calc(var(--k)*2cqw),calc(var(--k)*-8.5cqw)) rotate(calc(var(--k)*1.2deg))}
 @media (prefers-reduced-motion:reduce){.card.dz .dzStk{transition:none}}
 /* (DHL 10-31 시안 2-A) 고른 ★ 카드 옆에 그림자 카드가 장수만큼 더 놓임 */
 #lmSRow .lmGh{position:relative;width:var(--tk,48px);aspect-ratio:3/4;border-radius:8px;flex:none;overflow:hidden;opacity:.62;filter:saturate(.3) brightness(1.15);outline:2px dashed #ffd36a;outline-offset:-2px;background:linear-gradient(170deg,color-mix(in srgb,var(--e) 75%,#fff 15%),color-mix(in srgb,var(--e) 60%,#000));transition:opacity .2s,filter .2s}
