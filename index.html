@@ -2204,11 +2204,11 @@ function score(cards,ctx){
 
 /* 목표 점수: 장(1~8) × 라운드(망령·수문장·거인) · 난이도별 x(전체 배수) · xg(장마다 추가 성장) */
 function tgtFor(j,r,dk){const D=DIFF[dk]||{};return Math.round(target(j,r)*(D.x||1)*Math.pow(D.xg||1,j-1)*(armorOn()?ARMOR_T:1)/10)*10;}
-/* 난이도: 추천(힌트)은 견습에서만 공짜. 기사부터는 원정 캠프의 '산초의 조언' 구슬로만 */
+/* 난이도 (산초의 조언 구슬은 없앰 · 11-01 흔적 정리) */
 const DIFF={
-  app:{ko:'견습 기사',d:'목표 점수 보통\n머지: 손패에서 언제든\n처음 하는 분께 추천',hint:false,shopAdvice:false,x:1,refill:false,mergeRun:false,preview:false,keyMark:true},   /* (DHL 10-29) 카드를 고를 때 점수를 미리 계산해 주지 않음 — 견습도 런해야 알 수 있음 */
-  knight:{xg:1.33,ko:'기사',d:'목표가 장마다 더 높아져요\n머지: 함께 내면 합체 (런 1번)\n4장부터 거인이 족보를 비틀어요',hint:false,shopAdvice:false,x:1,refill:true,mergeRun:true},
-  errant:{ko:'편력 기사',d:'목표 ×1.3 · 장마다 더 가파르게\n머지: 함께 내면 합체 (런 1번)\n1장부터 거인이 족보를 비틀어요',hint:false,shopAdvice:false,x:1.3,xg:1.45,refill:false,mergeRun:true}
+  app:{ko:'견습 기사',d:'목표 점수 보통\n머지: 손패에서 언제든\n처음 하는 분께 추천',hint:false,x:1,refill:false,mergeRun:false,preview:false,keyMark:true},   /* (DHL 10-29) 카드를 고를 때 점수를 미리 계산해 주지 않음 — 견습도 런해야 알 수 있음 */
+  knight:{xg:1.33,ko:'기사',d:'목표가 장마다 더 높아져요\n머지: 함께 내면 합체 (런 1번)\n4장부터 거인이 족보를 비틀어요',hint:false,x:1,refill:true,mergeRun:true},
+  errant:{ko:'편력 기사',d:'목표 ×1.3 · 장마다 더 가파르게\n머지: 함께 내면 합체 (런 1번)\n1장부터 거인이 족보를 비틀어요',hint:false,x:1.3,xg:1.45,refill:false,mergeRun:true}
 };
 /* ───────── 빌런 ─────────
    속성 고리: 물 > 불 > 바람 > 흙 > 전기 > 물  (왼쪽이 오른쪽을 이김)
@@ -2427,7 +2427,7 @@ function walkPick(t,el){if(S.walk.k)return;const k=rollWalk(t);S.walk.k=k;S.walk
   document.querySelectorAll('.wCard').forEach(x=>{if(x!==el)x.classList.add('fade');});
   el.querySelector('.wFront').innerHTML=`<span>${W.ic}</span><b>${W.ko}</b>`;el.classList.add('flip');setTimeout(()=>walkEv(),900);}
 function walkPrep(k){const w=S.walk;
-  if(k==='wagon'){const pool=Object.keys(ORBS).filter(o=>o!=='advice'&&!S.orbs.includes(o)&&ORBS[o].r!=='r');w.orb=pool[Math.random()*pool.length|0];}
+  if(k==='wagon'){const pool=Object.keys(ORBS).filter(o=>!S.orbs.includes(o)&&ORBS[o].r!=='r');w.orb=pool[Math.random()*pool.length|0];}
   if(k==='knight')w.cards=shuffle(TYPE_IDS.slice()).slice(0,2).map(id=>({id,el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:2,no:rndNo()}));
   if(k==='scroll'){const top=Object.entries(S.htCount||{}).filter(([h])=>h!=='solo').sort((a,b)=>b[1]-a[1]).map(x=>x[0])[0];w.hts=top?[top,shuffle(HT_ORDER.filter(h=>h!=='solo'&&h!==top))[0]]:shuffle(HT_ORDER.filter(h=>h!=='solo')).slice(0,2);}
   if(k==='trap'){const p=S.deck.filter(c=>c.star===1);w.lost=p[Math.random()*p.length|0];}}
@@ -2468,7 +2468,7 @@ const GUESTS={
   tavern:{ic:'🍺',ko:'주막',d:()=>`한숨 돌리며 💰${3+S.jang}`}
 };
 function rollGuest(sure){if(!sure&&Math.random()>=0.3)return null;const ks=Object.keys(GUESTS),k=ks[Math.random()*ks.length|0],g={k};
-  if(k==='merchant'){const pool=Object.keys(ORBS).filter(o=>o!=='advice'&&(!S.orbs.includes(o)||(S.ost[o]||1)<3));g.orb=pool[Math.random()*pool.length|0];g.cost=Math.ceil(ORBS[g.orb].cost/2);}
+  if(k==='merchant'){const pool=Object.keys(ORBS).filter(o=>!S.orbs.includes(o)||(S.ost[o]||1)<3);g.orb=pool[Math.random()*pool.length|0];g.cost=Math.ceil(ORBS[g.orb].cost/2);}
   if(k==='lost')g.cards=shuffle(TYPE_IDS.slice()).slice(0,3).map(id=>({id,el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],no:rndNo()}));
   if(k==='scholar')g.hts=shuffle(HT_ORDER.filter(h=>h!=='solo')).slice(0,3);
   return g;}
@@ -2477,7 +2477,7 @@ function guestGo(sub){const g=S.campGuest,G=GUESTS[g.k];S.campGuestUsing=true;
   if(g.k==='merchant'){if(!guestOK(g))return;S.gold-=g.cost;if(S.orbs.includes(g.orb))S.ost[g.orb]=(S.ost[g.orb]||1)+1;else S.orbs.push(g.orb);return campDone(`🧳 ${ORBS[g.orb].ko} 구슬을 샀어요 (💰${g.cost})`);}
   if(g.k==='lost'){if(sub==null)return showOv(`<h2>🤝 길 잃은 동료</h2><p class="omNote">한 명을 덱에 받아들여요</p><div class="packRow">`+g.cards.map((c,i)=>{const n=S.deck.filter(d=>d.id===c.id).length;return `<div class="card dz s1" style="border-color:${WORLD_C[TYPES[c.id].w]}" onclick="guestGo(${i})">${cardFace({id:c.id,el:c.el,star:1,no:c.no})}<span class="cnt">덱 ${n}→${n+1}</span></div>`;}).join('')+`</div><button class="rsInfo" onclick="campOpen()">← 뒤로</button>`);
     const c=g.cards[sub];S.deck.push({uid:S.uid++,id:c.id,star:1,el:c.el,no:c.no||rndNo()});return campDone(`🤝 ${TYPES[c.id].ko}(${c.el})이(가) 합류했어요 — 덱 ${S.deck.length}장`);}
-  if(g.k==='shady'){const own=S.orbs.filter(o=>(S.ost[o]||1)<3&&o!=='advice');
+  if(g.k==='shady'){const own=S.orbs.filter(o=>(S.ost[o]||1)<3);
     if(Math.random()<0.5&&own.length){const o=own[Math.random()*own.length|0];S.ost[o]=(S.ost[o]||1)+1;return campDone(`🔮 수상한 구슬이 빛났다! ${ORBS[o].ko} ◆+1`);}
     const l=Math.min(5,S.gold);S.gold-=l;return campDone(`🔮 수상한 구슬이 깨졌다… 💰${l} 잃음`);}
   if(g.k==='scholar'){if(sub==null)return showOv(`<h2>📜 떠돌이 학자</h2><p class="omNote">족보 하나를 배워요</p>`+g.hts.map((h,i)=>`<button class="campBtn" onclick="guestGo(${i})"><b>${HT[h][0]} Lv${S.lv[h]||1} → Lv${(S.lv[h]||1)+1}</b><small>${HT[h][3]}</small></button>`).join('')+`<button class="rsInfo" onclick="campOpen()">← 뒤로</button>`);
@@ -2671,7 +2671,7 @@ const sellPrice=k=>Math.max(1,ORBS[k].cost-1)*((S.ost&&S.ost[k])||1);
 const orbName=k=>ORBS[k].ko+((S.ost[k]||1)>1?' ★'+S.ost[k]:'');
 const orbKind=k=>ORB_MUL.includes(k)?'mul':ORB_ADD.includes(k)?'add':'card';
 const dia=s=>'◆'.repeat(s)+'◇'.repeat(3-s);   // 구슬 단계 ◆◇◇ (머지로 ◆◆◇ · ◆◆◆)
-const orbLabel=k=>`${orbKind(k)==='mul'?'<i class="ok mul">×</i>':orbKind(k)==='add'?'<i class="ok add">+</i>':''}${ORBS[k].ko}${k==='advice'?'':`<b class="ost">${dia(S.ost[k]||1)}</b>`}`;   // 팔 때 = 산 값 -1
+const orbLabel=k=>`${orbKind(k)==='mul'?'<i class="ok mul">×</i>':orbKind(k)==='add'?'<i class="ok add">+</i>':''}${ORBS[k].ko}<b class="ost">${dia(S.ost[k]||1)}</b>`;   // 팔 때 = 산 값 -1
 /* 구슬이 하나씩 발동: 튀어 오르며 숫자가 뜬다 */
 function flashOrb(k,txt){
   const o=document.querySelector(`.orb[data-k="${k}"]`);if(!o)return;
@@ -2993,7 +2993,7 @@ function tick(now){
   if(A.r.osUp&&!A.r.block){S.ostate=S.ostate||{};for(const k in A.r.osUp){S.ostate[k]=Math.round(((S.ostate[k]||0)+A.r.osUp[k])*100)/100;}}
   if(A.r.disUp){S.dis+=A.r.disUp;popMsg('🍞 산초의 도시락 — 버리기 +'+A.r.disUp);}
   for(let q=0;q<(A.r.promote||0);q++){const pool=S.deck.filter(c=>c.star===1);if(pool.length){const c=pool[Math.random()*pool.length|0];c.star=2;setTimeout(()=>popMsg('🐣 '+TYPES[c.id].ko+' ★2로!'),500);}}
-  for(let q=0;q<(A.r.orbUp||0);q++){if(Math.random()<0.25){const o=S.orbs.filter(k=>(S.ost[k]||1)<3&&k!=='advice');if(o.length){const k=o[Math.random()*o.length|0];S.ost[k]=(S.ost[k]||1)+1;setTimeout(()=>popMsg('🎲 운명술! '+ORBS[k].ko+' ◆+1'),700);}}}
+  for(let q=0;q<(A.r.orbUp||0);q++){if(Math.random()<0.25){const o=S.orbs.filter(k=>(S.ost[k]||1)<3);if(o.length){const k=o[Math.random()*o.length|0];S.ost[k]=(S.ost[k]||1)+1;setTimeout(()=>popMsg('🎲 운명술! '+ORBS[k].ko+' ◆+1'),700);}}}
   if(A.r.gold3){S.gold+=A.r.gold3;popMsg('🪙 충직한 종자 💰'+A.r.gold3);}
   if(A.r.lvUp&&!A.r.block){S.lv[A.r.lvUp]=(S.lv[A.r.lvUp]||1)+1;setTimeout(()=>popMsg('🔭 '+HT[A.r.lvUp][0]+' Lv'+S.lv[A.r.lvUp]),400);}
   if(S.practice)return practiceResult(A.r,A.cards);   // 해보기: 목표만 확인
@@ -3153,13 +3153,12 @@ function collect(){
 
 /* ② 원정 캠프 */
 function rollTop(){
-  const pick=()=>{const roll=Math.random(),O0=rarityOdds(S.jang),H=S.hone||1,O={r:Math.min(0.5,O0.r*H),u:Math.min(0.6,O0.u*Math.sqrt(H))},r=roll<O.r?'r':roll<O.r+O.u?'u':'c';const pool=Object.keys(ORBS).filter(k=>(!S.orbs.includes(k)||((S.ost[k]||1)<3&&k!=='advice'))&&ORBS[k].r===r&&!taken.includes(k)&&(k!=='advice'||DIFF[S.diff].shopAdvice));const k=pool.length?pool[Math.random()*pool.length|0]:Object.keys(ORBS).find(k=>!S.orbs.includes(k)&&!taken.includes(k)&&k!=='advice');taken.push(k);return k;};
+  const pick=()=>{const roll=Math.random(),O0=rarityOdds(S.jang),H=S.hone||1,O={r:Math.min(0.5,O0.r*H),u:Math.min(0.6,O0.u*Math.sqrt(H))},r=roll<O.r?'r':roll<O.r+O.u?'u':'c';const pool=Object.keys(ORBS).filter(k=>(!S.orbs.includes(k)||(S.ost[k]||1)<3)&&ORBS[k].r===r&&!taken.includes(k));const k=pool.length?pool[Math.random()*pool.length|0]:Object.keys(ORBS).find(k=>!S.orbs.includes(k)&&!taken.includes(k));taken.push(k);return k;};
   const taken=[],pool=Array.from({length:S.shopN||2},pick);
-  if(DIFF[S.diff].shopAdvice&&!S.orbs.includes('advice')&&!pool.includes('advice')&&Math.random()<0.3)pool[0]='advice'; // 기사: 산초의 조언은 원정 캠프의 30%에 등장
   const fav=Object.entries(S.htCount||{}).sort((a,b)=>b[1]-a[1])[0];
   const book=S.vouch.includes('scope')&&fav?fav[0]:HT_ORDER[Math.random()*HT_ORDER.length|0];
   // 머지된 구슬(◆◆)이 가끔 진열: 5% × 별빛 저울
-  S.top=pool.map(k=>{const pre=k!=='advice'&&Math.random()<0.05*(S.hone||1);return {kind:'orb',k,pre,cost:price(Math.ceil(ORBS[k].cost*(pre?1.6:1)))};}).concat([{kind:'book',k:book,cost:price(3)}]);
+  S.top=pool.map(k=>{const pre=Math.random()<0.05*(S.hone||1);return {kind:'orb',k,pre,cost:price(Math.ceil(ORBS[k].cost*(pre?1.6:1)))};}).concat([{kind:'book',k:book,cost:price(3)}]);
   if(S.vouch.includes('market')){const id=TYPE_IDS[Math.random()*TYPE_IDS.length|0];S.top.push({kind:'card',no:rndNo(),id,el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:S.vouch.includes('market2')&&Math.random()<0.3?2:1,cost:price(3)});}
   S.top.forEach(it=>{if(it.kind==='orb')codexMark('orb',it.k);});   // 도감: 원정 캠프에서 만난 구슬
 }
@@ -3209,23 +3208,22 @@ function moveOrb(i,d){const j=i+d;if(j<0||j>=S.orbs.length)return;[S.orbs[i],S.o
 function bestOrder(){const r={card:0,add:1,mul:2};return S.orbs.slice().sort((a,b)=>r[orbKind(a)]-r[orbKind(b)]);}
 /* 전투 중 구슬: 눌러서 설명 + 순서 바꾸기 (견습은 추천 순서 버튼) */
 /* 구슬 자세히 (단계별 효과 · 순서 바꾸기) — 단계 효과는 설명의 숫자를 머지 배율로 바꿔 보여줌 */
-function tierText(k,s){const d=ORBS[k].d;if(/한 번 더/.test(d))return d.replace('한 번 더',['한','두','세'][s-1]+' 번 더');if(s===1||/★/.test(d)||k==='advice')return s===1?d:'';
+function tierText(k,s){const d=ORBS[k].d;if(/한 번 더/.test(d))return d.replace('한 번 더',['한','두','세'][s-1]+' 번 더');if(s===1||/★/.test(d))return s===1?d:'';
   return d.replace(/×(\d+(?:\.\d+)?)/g,(m,x)=>'×'+Math.round(x*(1+0.5*(s-1))*100)/100).replace(/([+])(\d+)/g,(m,p,v)=>p+(v*s));}
 
 /* 🔮 구슬 지금 효과 (◆ 단계 반영) — 칸 · 설명창 공용 */
 function orbEffAt(k,st){const d=ORBS[k].d;const m=d.match(/\s*\(★2 ([^·]+) · ★3 ([^)]+)\)/);
   if(m){const base=d.replace(m[0],'');return st===1?base:base.replace(/[+×]\d+(?:\.\d+)?/,(st===2?m[1]:m[2]).trim());}
-  if(k==='advice')return d;return tierText(k,st)||d+' (더하기 ×'+st+' · 곱하기 ×'+(1+0.5*(st-1))+')';}
+  return tierText(k,st)||d+' (더하기 ×'+st+' · 곱하기 ×'+(1+0.5*(st-1))+')';}
 function orbSlotHTML(k){const st=S.ost[k]||1,kd=orbKind(k);
-  return `<span class="otx"><span class="otop">${kd==='mul'?'<i class="ok mul">×</i>':kd==='add'?'<i class="ok add">+</i>':''}<span class="onm">${ORBS[k].ko}</span>${k==='advice'?'':`<b class="ost">${dia(st)}</b>`}</span><small class="oef">${S.offOrb===k?'🌪 이번 판 꺼짐':orbEffAt(k,st)}</small></span>`;}
+  return `<span class="otx"><span class="otop">${kd==='mul'?'<i class="ok mul">×</i>':kd==='add'?'<i class="ok add">+</i>':''}<span class="onm">${ORBS[k].ko}</span><b class="ost">${dia(st)}</b></span><small class="oef">${S.offOrb===k?'🌪 이번 판 꺼짐':orbEffAt(k,st)}</small></span>`;}
 function orbModal(i){
   if(S.orbHidden&&!S.selecting){$('tip').textContent='⚙ 맷돌 — 구슬이 섞여 뒷면이 됐어요 (라운드가 끝나면 돌아와요)';return;}
   const k=S.orbs[i],st=S.ost[k]||1,kind=orbKind(k);
   let h=`<div class="omTop"><small>${kind==='mul'?'곱하기 구슬':kind==='add'?'더하기 구슬':'카드 순서 구슬'} · ${i+1}번째 칸</small><button class="omX lmIco" onclick="hideOv()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button></div>`+
     `<h2 class="omName">${kind==='mul'?'<i class="ok mul">×</i>':kind==='add'?'<i class="ok add">+</i>':''}${ORBS[k].ko}</h2>`;
-  if(k!=='advice'){h+='<div class="omTiers">'+[1,2,3].map(s=>{const t=tierText(k,s);return `<div class="omTier${s===st?' cur':''}"><b>${dia(s)}</b><span>${t||(s===2?'더하기 ×2 · 곱하기 ×1.5':'더하기 ×3 · 곱하기 ×2')}</span>${s===st?'<em>현재</em>':''}</div>`;}).join('')+'</div>'+
+  {h+='<div class="omTiers">'+[1,2,3].map(s=>{const t=tierText(k,s);return `<div class="omTier${s===st?' cur':''}"><b>${dia(s)}</b><span>${t||(s===2?'더하기 ×2 · 곱하기 ×1.5':'더하기 ×3 · 곱하기 ×2')}</span>${s===st?'<em>현재</em>':''}</div>`;}).join('')+'</div>'+
     `<p class="omNote">같은 구슬을 원정 캠프에서 또 사면 머지돼서 다음 단계로 올라가요.</p>`;}
-  else h+=`<p>${ORBS[k].d}</p>`;
   if(S.ostate&&S.ostate[k])h+=`<div class="skipGot">지금까지 쌓인 값: ${['pulse','marchsong','collector','monk'].includes(k)?'기세 ×'+Math.round((1+S.ostate[k])*100)/100:k==='diary'?'힘 +'+S.ostate[k]:'기세 +'+S.ostate[k]}</div>`;
   h+=`<p class="omNote">구슬은 <b>왼쪽부터</b> 발동해요. 더하기를 먼저, 곱하기를 나중에 두면 점수가 커져요.</p>`;
   if(DIFF[S.diff].hint&&S.orbs.length>1){const ok=bestOrder().join()===S.orbs.join();h+=`<div class="ordHelp">`+(ok?'✔ 지금 순서가 좋아요':`<button onclick="S.orbs=bestOrder();render();orbModal(S.orbs.indexOf('${k}'))">추천 순서로 ⇅</button>`)+`</div>`;}
@@ -3499,7 +3497,7 @@ function runInfoHTML(){
 /* 📚 도감 */
 const GIANT_LIST=()=>[['inj','🩹','부상'],['wban','🚫','세계 봉쇄'],['elban','🚱','속성 봉쇄']].map(([k,ic,ko])=>({k,ic,ko,d:'출전 불가'})).concat(Object.entries(ACT_RULES).map(([k,r])=>({k,...r}))).concat(Object.entries(FINAL_RULES).map(([k,r])=>({k,...r,fin:1})));
 function codexHTML(){
-  const orbKeys=Object.keys(ORBS).filter(k=>k!=='advice'),G=GIANT_LIST();
+  const orbKeys=Object.keys(ORBS),G=GIANT_LIST();
   const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length;
   const sub=[['orb',`구슬 ${nOrb}/${orbKeys.length}`],['mate','동료 30'],['giant',`거인 ${nG}/${G.length}`]];
   let h=`<div class="cSub">${sub.map(([k,n])=>`<button class="${k===codexSub?'on':''}" onclick="codexSub='${k}';codexSel=null;openInfo('codex')">${n}</button>`).join('')}</div>`;
@@ -3856,7 +3854,7 @@ function lmStatEnd(won){if(!S||S.practice||S.sandbox||S._statEnded)return;S._sta
   if(won){LM_ST.wins++;LM_ST.streak++;LM_ST.maxStreak=Math.max(LM_ST.maxStreak,LM_ST.streak);LM_ST.clears[S.diff]=1;}else LM_ST.streak=0;lmStSave();}
 function ltStatHTML(){
   const top=Object.entries(LM_ST.hands).sort((a,b)=>b[1]-a[1])[0];
-  const orbKeys=Object.keys(ORBS).filter(k=>k!=='advice'),G=GIANT_LIST();
+  const orbKeys=Object.keys(ORBS),G=GIANT_LIST();
   const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length;
   const nD=Object.keys(DIFF).length,nC=Object.keys(LM_ST.clears).length;
   const pc=(a,b)=>b?Math.floor(a/b*100):0;
@@ -3925,7 +3923,7 @@ function sandboxExit(){if(!S)return;S.sandbox=false;goMenu();}
 function ltCollection(){ltPop('col');}
 /* 컬렉션 = 도감 (발라트로 컬렉션 창 배치: 분류 버튼 + 모은 수) */
 function ltColHTML(){
-  const orbKeys=Object.keys(ORBS).filter(k=>k!=='advice'),G=GIANT_LIST();
+  const orbKeys=Object.keys(ORBS),G=GIANT_LIST();
   const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length;
   const C=(k,n,c,cls)=>`<button type="button" class="lt-cb ${cls||''}" onclick="ltPop();window._lmBack=()=>ltPop('col');codexSub='${k}';codexSel=null;openInfo('codex')"><b>${n}</b><small>${c}</small></button>`;
   return `<div class="lt-cgrid"><div>${C('mate','동료','30 / 30','tall')}</div><div>${C('orb','구슬',nOrb+' / '+orbKeys.length)}${C('giant','거인 규칙',nG+' / '+G.length)}</div></div>`;
@@ -4942,7 +4940,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
 <script>
 /* 🔮 구슬 설명창: 마우스를 올리면 칸 아래로 설명 · 누르면 고정(순서 바꾸기 · 자세히) — 발라트로 방식 */
 (function(){
-  var tip=null,cur=-1,pinned=false,TEAL=['even','odd','fourway','stepping','stage','advice'];
+  var tip=null,cur=-1,pinned=false,TEAL=['even','odd','fourway','stepping','stage'];
   function el(){if(!tip){tip=document.createElement('div');tip.id='lmOrbTip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);
     tip.addEventListener('click',function(e){e.stopPropagation();var b=e.target.closest('button');if(!b)return;var i=cur;
       if(b.dataset.mv){var j=i+(+b.dataset.mv);if(S.busy||j<0||j>=S.orbs.length)return;var t=S.orbs[i];S.orbs[i]=S.orbs[j];S.orbs[j]=t;render();show(j,true);}
@@ -4952,8 +4950,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   function html(i){var k=S.orbs[i];if(!k)return '';
     if(S.orbHidden)return '<div class="tName">⚙ 맷돌</div><div class="tNow">구슬이 섞여 뒷면이 됐어요<br>라운드가 끝나면 돌아와요</div>';
     var st=S.ost[k]||1,kd=kindOf(k),r=ORBS[k].r||'c',h='<div class="tTags"><span class="tTag r-'+r+'">'+({c:'일반',u:'고급',r:'희귀'})[r]+'</span><span class="tTag k-'+kd[0]+'">'+kd[1]+'</span><span class="tTag ord">'+(i+1)+'번째로 발동</span></div>';
-    h+='<div class="tName">'+ORBS[k].ko+(k==='advice'?'':'<b>'+dia(st)+'</b>')+'</div><div class="tNow">'+orbEffAt(k,st)+'</div>';
-    if(k!=='advice'&&st<3)h+='<div class="tNext"><b>'+dia(st+1)+'</b>'+orbEffAt(k,st+1)+'</div>';
+    h+='<div class="tName">'+ORBS[k].ko+'<b>'+dia(st)+'</b>'+'</div><div class="tNow">'+orbEffAt(k,st)+'</div>';
+    if(st<3)h+='<div class="tNext"><b>'+dia(st+1)+'</b>'+orbEffAt(k,st+1)+'</div>';
     if(S.ostate&&S.ostate[k])h+='<div class="tAcc">지금까지 쌓인 값: '+(['pulse','marchsong','collector','monk'].indexOf(k)>=0?'기세 ×'+Math.round((1+S.ostate[k])*100)/100:k==='diary'?'힘 +'+S.ostate[k]:'기세 +'+S.ostate[k])+'</div>';
     if(S.offOrb===k)h+='<div class="tOff">🌪 이번 판은 꺼져 있어요</div>';
     h+='<div class="tBtns"><button data-mv="-1"'+(i<=0?' disabled':'')+'>← 왼쪽</button><button data-mv="1"'+(i>=S.orbs.length-1?' disabled':'')+'>오른쪽 →</button><button class="tMore">자세히</button></div>';
@@ -6165,9 +6163,9 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
 /* 구슬 그림: 로딩 구슬(몸통) + 문양 + 등급 테 — 이름으로 구슬을 찾아 칸 · 원정 캠프 카드에 붙임 */
 (function(){
   if(typeof ORBS==='undefined')return;
-  var EMB=['advice','anvil','basil','bell','bignum','bull','chain','collector','crest','crown','dagger','dawn','delu','diary','diet','duel','dusk','echo','el_earth','el_elec','el_fire','el_water','el_wind','even','five','flag','four4','fourway','grow','guard','hammer','homeflag','horse','hunter','letter','map3','marchsong','mill','monk','noble','oathring','odd','parity','pilgrim','pulse','pureel','quix','rainbow','ring','roulette','shadow','small','spare','stage','starmap','stars','stepping','trader','trio','twin','w_neon','w_rust','w_sky','wcrest','wisdom']; // 받은 문양 (시트 A·B·C·E) — 없는 구슬은 몸통만
+  var EMB=['anvil','basil','bell','bignum','bull','chain','collector','crest','crown','dagger','dawn','delu','diary','diet','duel','dusk','echo','el_earth','el_elec','el_fire','el_water','el_wind','even','five','flag','four4','fourway','grow','guard','hammer','homeflag','horse','hunter','letter','map3','marchsong','mill','monk','noble','oathring','odd','parity','pilgrim','pulse','pureel','quix','rainbow','ring','roulette','shadow','small','spare','stage','starmap','stars','stepping','trader','trio','twin','w_neon','w_rust','w_sky','wcrest','wisdom']; // 받은 문양 (시트 A·B·C·E) — 없는 구슬은 몸통만
   var ELK={'el_물':'el_water','el_불':'el_fire','el_전기':'el_elec','el_흙':'el_earth','el_바람':'el_wind'};
-  var TEAL=['even','odd','fourway','stepping','stage','advice'];
+  var TEAL=['even','odd','fourway','stepping','stage'];
   function kind(k){var o=ORBS[k],d=o.d||'';
     if(TEAL.indexOf(k)>=0)return 'teal';
     if(o.g==='돈'&&d.indexOf('💰+')>=0)return 'gold';
@@ -6687,7 +6685,7 @@ html.lmB #lm-title .lt-cb.lc-t,#lm-title .lt-cb.lc-t{position:relative;flex:1;mi
 (function(){
   const A='mrstage/assets/art/';
   ltColHTML=function(){
-    const orbKeys=Object.keys(ORBS).filter(k=>k!=='advice'),G=GIANT_LIST();
+    const orbKeys=Object.keys(ORBS),G=GIANT_LIST();
     const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length,nM=30,tM=30;
     const all=nOrb+nG,tot=orbKeys.length+G.length,pc=Math.round(all/tot*100);   /* 동료는 처음부터 모두 주므로 수집률에서 뺌 (DHL 10-29) */
     const T=(k,cls,name,sub,n,t,art)=>{const p=t?Math.round(n/t*100):0,done=n>=t&&k!=='mate';
