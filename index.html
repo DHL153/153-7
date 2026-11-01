@@ -3046,22 +3046,42 @@ function cashOut(){
   cashTally();
 }
 function cashTally(){
-  /* (DHL 11-01 '보상 받기 숫자가 0에서 점수까지 올라가게') 줄마다 금화가 '짤랑' 떨어지는 동안 버튼 숫자가 그 줄 금액만큼 굴러 올라감 (0 → 최소 득점 몫 → 남은 런 → 이자 …).
-     예전엔 금화 그림(img) 수로 몫을 나눴는데, 이 순간엔 아직 💰 글자라 그림이 0개 → 마지막에 한 번에 뛰었음 → 줄 금액(data-n)으로 계산 */
+  /* (DHL 11-01 '슬롯머신처럼 재밌게 · 누르면 바로') 보상 숫자 = 슬롯머신 릴: 줄이 나올 때마다 자릿수마다 릴이 '드르륵' 돌다 왼쪽부터 '탁' 멈춤(살짝 튕김) + 짤랑 소리 · 마지막엔 잭팟 빛.
+     세는 중에 보상 받기를 누르면 → 바로 합계로 멈춤(줄 · 금화 한꺼번에) → 한 번 더 누르면 받기 */
   const box=document.querySelector('.cashFx');if(!box)return;const rows=[...box.querySelectorAll('.crow,.sep')];
-  const btn=$('cashBtn'),num=$('cashN');let shown=0,t=180;const total=S.cash,fast=typeof LM_SET!=='undefined'&&LM_SET.rm;
-  const bump=()=>{btn.classList.remove('cfBump');void btn.offsetWidth;btn.classList.add('cfBump');};
+  const btn=$('cashBtn'),num=$('cashN');const total=S.cash,fast=typeof LM_SET!=='undefined'&&LM_SET.rm;
   const amtOf=r=>{const c=r.querySelector('.coins');return c?(+c.dataset.n||0):0;};
-  let acc=0;
-  rows.forEach(r=>{const n=amtOf(r),k=Math.min(n,10),d=fast?40:Math.max(300,k*110+260);
-    setTimeout(()=>{r.classList.add('in');
-      const cs=[...r.querySelectorAll('.coins img')];cs.forEach((c,i)=>{setTimeout(()=>{c.classList.add('cfDrop');lmSfxTick();},fast?0:i*110);});
-      if(n>0){const from=acc,to=Math.min(total,acc+n),st=performance.now(),dur=fast?1:k*110+160;acc=to;
-        (function step(){const p=Math.min(1,(performance.now()-st)/dur);shown=Math.round(from+(to-from)*p);num.textContent=shown;if(p<1)requestAnimationFrame(step);else bump();})();}
-    },t);
-    t+=d;});
-  setTimeout(()=>{shown=total;num.textContent=total;btn.disabled=false;btn.classList.add('ready');},t+120);
+  const T=[];const later=(f,ms)=>T.push(setTimeout(f,ms));let done=false,acc=0,t=180;
+  btn.disabled=false;btn.removeAttribute('onclick');
+  btn.onclick=()=>{if(!done){finish(true);return;}cashCollect();};
+  function drop(r,quick){r.classList.add('in');[...r.querySelectorAll('.coins img')].forEach((c,i)=>{if(quick){c.classList.add('cfDrop');return;}later(()=>{c.classList.add('cfDrop');lmSfxTick();},i*90);});}
+  rows.forEach(r=>{const n=amtOf(r),k=Math.min(n,10),d=fast?40:Math.max(520,k*90+420);
+    later(()=>{drop(r,fast);if(n>0){acc=Math.min(total,acc+n);lmReel(num,acc,fast?1:Math.min(900,380+k*60));}},t);t+=d;});
+  later(()=>finish(false),t+260);
+  function finish(skip){if(done)return;done=true;T.forEach(clearTimeout);
+    if(skip){rows.forEach(r=>drop(r,true));lmReel(num,total,260);}
+    setTimeout(()=>{btn.classList.add('ready','cfJack');lmSfxChing(true);setTimeout(()=>btn.classList.remove('cfJack'),900);},skip?300:0);}
 }
+/* 슬롯 릴: el 안에 자릿수마다 0~9 띠 3바퀴 · 값이 바뀌면 띠가 아래로 돌다 멈춤 (왼쪽 자리부터 · 끝에 살짝 튕김) */
+function lmReel(el,val,ms){
+  const s=String(val);let rs=[...el.querySelectorAll('.rl')];
+  if(rs.length!==s.length){const old=el.textContent;el.textContent='';el.classList.add('reels');
+    for(let k=0;k<s.length;k++){const r=document.createElement('span');r.className='rl';r.innerHTML='<i>'+'0123456789'.repeat(3).split('').map(d=>'<b>'+d+'</b>').join('')+'</i>';r.dataset.d='0';el.appendChild(r);}
+    rs=[...el.querySelectorAll('.rl')];}
+  const n=rs.length;let left=n;
+  rs.forEach((r,k)=>{const d=+s[k],i=r.firstChild,cur=+(r.dataset.d||0);r.dataset.d=d;
+    const dur=Math.max(1,ms*(.62+.38*(n>1?k/(n-1):1)));
+    i.style.transition='none';i.style.transform=`translateY(${-cur}em)`;void i.offsetWidth;
+    i.style.transition=`transform ${dur}ms cubic-bezier(.2,.75,.3,1.18)`;i.style.transform=`translateY(${-(20+d)}em)`;
+    r.classList.add('spin');
+    const tk=ms>40?setInterval(lmSfxTick,75):0;
+    setTimeout(()=>{clearInterval(tk);r.classList.remove('spin');i.style.transition='none';i.style.transform=`translateY(${-d}em)`;
+      if(--left===0){const b=el.closest('button');if(b){b.classList.remove('cfBump');void b.offsetWidth;b.classList.add('cfBump');}lmSfxChing(false);}},dur);});
+}
+function lmSfxChing(big){try{if(typeof LM_SET==='undefined'||LM_SET.master<=0||LM_SET.sfx<=0)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  const c=window.__lmAC||(window.__lmAC=new AC()),v=.07*(LM_SET.master/100)*(LM_SET.sfx/100)*2,t0=c.currentTime;
+  (big?[1318,1661,1976,2637]:[1760,2349]).forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=f;const st=t0+i*(big?.07:.05);
+    g.gain.setValueAtTime(.0001,st);g.gain.exponentialRampToValueAtTime(v,st+.01);g.gain.exponentialRampToValueAtTime(.0001,st+(big?.35:.18));o.connect(g).connect(c.destination);o.start(st);o.stop(st+.4);});}catch(e){}}
 let lmTickT=0;function lmSfxTick(){const n=performance.now();if(n-lmTickT<70)return;lmTickT=n;
   try{if(typeof LM_SET==='undefined'||LM_SET.master<=0||LM_SET.sfx<=0)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
     const c=window.__lmAC||(window.__lmAC=new AC()),o=c.createOscillator(),g=c.createGain(),v=.06*(LM_SET.master/100)*(LM_SET.sfx/100)*2;
@@ -7927,4 +7947,18 @@ html body #lmToast .lmT{white-space:normal!important;text-overflow:clip!importan
   setInterval(tick,90);
 })();
 </script>
+<style id="lm-cash-slot">
+/* (DHL 11-01) 보상 받기 숫자 = 슬롯머신 릴 */
+.cashBtn #cashN.reels{display:inline-flex;gap:.02em;min-width:0;vertical-align:-.12em}
+.cashBtn #cashN .rl{display:inline-block;height:1em;line-height:1em;overflow:hidden;width:.62em;text-align:center;position:relative}
+.cashBtn #cashN .rl i{display:block;font-style:normal;will-change:transform}
+.cashBtn #cashN .rl b{display:block;height:1em;line-height:1em;font:inherit}
+.cashBtn #cashN .rl.spin{filter:blur(.6px) brightness(1.25)}
+.cashBtn.cfBump #cashN{animation:cfPop .28s cubic-bezier(.3,1.6,.5,1)}
+@keyframes cfPop{40%{scale:1.32;filter:drop-shadow(0 0 6px #fff6c8)}100%{scale:1}}
+.cashBtn.cfJack{animation:cfJack .9s ease-out!important}
+@keyframes cfJack{0%{filter:brightness(1)}15%{filter:brightness(1.6) drop-shadow(0 0 14px #ffe08a);scale:1.06}35%{scale:.98}55%{scale:1.03;filter:brightness(1.25)}100%{scale:1;filter:brightness(1)}}
+.cashBtn:not(:disabled){cursor:pointer}
+@media (prefers-reduced-motion:reduce){.cashBtn #cashN .rl i{transition:none!important}.cashBtn.cfJack{animation:none!important}}
+</style>
 </body></html>
