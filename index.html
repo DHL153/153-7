@@ -1515,40 +1515,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
   requestAnimationFrame(portalLoop);
  }
  if(!reduceMotion)requestAnimationFrame(portalLoop);
- // --- tips (Korean source; other languages use the game dictionary, else English) ---
- var TIPS=[
-  {"ko": "같은 숫자를 모을수록 족보가 커져요.\n알론소 3장 + 산초 2장이면 기사단!", "en": "Collect the same numbers for bigger hands.\n3 Alonso + 2 Sancho makes a Knight Order!"},
-  {"ko": "같은 동료 두 장을 머지하면 별이 하나 늘어요.\n별이 늘면 힘이 훨씬 세져요.", "en": "Merge two of the same companion to add a star.\nMore stars, much more power."},
-  {"ko": "적이 약한 속성으로 공격하면 힘 ×2!\n물 → 불 → 바람 → 흙 → 전기 → 물", "en": "Hit the enemy's weak element for ×2 power!\nWater → Fire → Wind → Earth → Electric → Water"},
-  {"ko": "버리기로 필요 없는 카드를 바꿀 수 있어요.\n버리기 횟수는 라운드마다 정해져 있어요.", "en": "Discard to swap out cards you don't need.\nDiscards are limited each round."},
-  {"ko": "거인 규칙은 미리 볼 수 있어요.\n망령 · 수문장 라운드에서 미리 준비하세요.", "en": "You can preview the Giant's rule.\nPrepare during the Wraith and Warden rounds."}
- ];
- var MIDNIGHT={ko:'자정',en:'midnight',fr:'minuit',it:'a mezzanotte',de:'Mitternacht',es:'a medianoche',ru:'полночь','pt-BR':'à meia-noite','zh-CN':'午夜0点','zh-TW':'午夜0點',ja:'午前0時',pl:'północy'};
- var TIME_PREFIX={it:'alle ',es:'a las ','pt-BR':'às '};
- function curLang(){var c=(window.MRLocale&&window.MRLocale.language)||lang||'ko';return TIPS[0][c]?c:'en';}
- function resetTimeLabel(){
-  // Today the daily reset is the player's local midnight. When the Steam server time (UTC 00:00) is
-  // introduced, set window.MR_DAILY_RESET_UTC_HOUR=0 and this shows the player's local time automatically.
-  var h=window.MR_DAILY_RESET_UTC_HOUR,c=curLang();
-  if(typeof h==='number'){
-   var d=new Date();d.setUTCHours(h,0,0,0);
-   var t;try{t=new Intl.DateTimeFormat(c,{hour:'numeric',minute:'2-digit'}).format(d);}catch(e){t=d.toLocaleTimeString();}
-   return (TIME_PREFIX[c]||'')+t;
-  }
-  return MIDNIGHT[c]||MIDNIGHT.en;
- }
- function tipText(i){
-  var c=curLang();
-  return (TIPS[i][c]||TIPS[i].en).replace('{time}',resetTimeLabel());
- }
- var tipIndex=Math.floor(Math.random()*TIPS.length),tipTimer=0;
- function showTip(){
-  tip.classList.remove('is-in');void tip.offsetWidth;
-  tip.textContent=tipText(tipIndex);tip.classList.add('is-in');
-  tipIndex=(tipIndex+1)%TIPS.length;
- }
- function startTips(){if(tipTimer)return;showTip();tipTimer=setInterval(showTip,2800);}
- window.MRBoot={
+   window.MRBoot={
   set:function(p){target=Math.max(target,Math.min(100,p));kick();},
   // Counts real image loads (Resource Timing) between two progress values.
   trackImages:function(expected,from,to){
@@ -1562,7 +1529,6 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
   },
   finish:function(){
    done=true;target=100;kick();
-   clearInterval(tipTimer);
    if(reduceMotion||screen.style.display==='none'){
     setTimeout(function(){screen.classList.add('is-leaving');setTimeout(function(){screen.remove();},280);},180);
     return;
@@ -2580,16 +2546,6 @@ function targets(){
   if(k==='fog')return sel.map(c=>c.uid);
   return [];}
 /* 의도 실행 — 이긴 런에도 적용, 피해는 잠잘 때까지 이어짐 */
-function woundC(cs){cs.forEach(c=>{c.out=true;});S.hand=S.hand.filter(c=>!c.out);}
-function scarC(c,p){c.st=c.st||{};c.st.hit=(c.st.hit||0)+Math.max(1,Math.round(power(c)*p));}
-function foeStrike(played){
-  const f=S.foe;if(!f||!f.atype)return;const k=f.atype,n=f.atk,nm=cs=>cs.map(c=>TYPES[c.id].ko).join(' · '),bp=(a,b)=>battlePower(b,f)-battlePower(a,f)||b.uid-a.uid;
-  let hit=[];
-  if(k==='counter'){if(wsumU(played)>=5){hit=played.filter(c=>S.deck.includes(c)).sort((a,b)=>power(b)-power(a)).slice(0,n);woundC(hit);}popMsg(hit.length?'⚔ 반격! '+nm(hit)+' 부상':'⚔ 반격을 피했다!');}
-  if(k==='mark'){hit=(S.marks||[]).map(u=>S.deck.find(c=>c.uid===u)).filter(c=>c&&!played.includes(c));woundC(hit);popMsg(hit.length?'🎯 표식! '+nm(hit)+' 부상':'🎯 표식을 모두 피했다!');}
-  if(k==='slash'){hit=S.hand.slice().sort(bp).slice(0,n);hit.forEach(c=>scarC(c,SCAR.slash));if(hit.length)popMsg('🗡 베기! '+nm(hit)+' 상처');}
-  if(k==='fog'){hit=played.filter(c=>S.deck.includes(c));hit.forEach(c=>scarC(c,SCAR.fog));if(hit.length)popMsg('☠ 독안개! '+hit.length+'장 상처');}
-  S.marks=[];}
 const hurtCount=()=>({w:S.deck.filter(c=>c.out).length,s:S.deck.filter(c=>c.st&&c.st.hit).length});
 const selCards=()=>S.sel.map(u=>S.hand.find(c=>c.uid===u)).filter(Boolean);
 const MK_KO={up:'순수',mix:'혼합'};
@@ -2599,7 +2555,6 @@ function canMerge(){if(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge')return null;i
 const c=selCards();return c.length===2&&!c[0].fog&&!c[1].fog?mergeKind(c[0],c[1]):null;}
 function twinKind(c){if(c.fog)return null;let k=null;S.hand.forEach(o=>{if(o.fog)return;const m=mergeKind(c,o);if(m==='up'||(m&&!k))k=m;});return k;}
 
-function mxMark(c){if(!S||!S.foe)return '';if(paralyzed(c,S.foe))return ' ✕';const m=matchX(c.el,S.foe);return m===2?' ▲':m===0.5?' ▼':'';}
 /* 카드 = 트럼프처럼: 왼쪽 위 번호(=동료의 기본 힘) + 속성 문양, 오른쪽 위 지금 힘, 가운데 ★, 아래 이름 · 세계(테두리 색) */
 const EL_SYM={'물':'💧','불':'🔥','전기':'⚡','흙':'🪨','바람':'🌀'};
 const ART_FIT={"rust_alonso":[4.1,1.18,6.2],"rust_dulcine":[8.8,0.97,6.2],"rust_sancho":[8.1,0.98,6.2],"rust_rosi":[11.3,0.88,6.2],"rust_gris":[-2.3,1.01,6.2],"rust_carden":[7.9,0.89,4.4],"rust_lucia":[4.2,0.88,18.5],"rust_nicole":[12.9,1.0,6.2],"rust_palome":[8.9,0.97,19.7],"rust_bruno":[14.4,0.93,2.9],"neon_alonso":[5.4,1.14,27.4],"neon_dulcine":[-1.1,1.1,10.7],"neon_sancho":[-2.8,1.11,27.6],"neon_rosi":[-3.4,1.07,6.2],"neon_gris":[0.2,0.94,6.2],"neon_carden":[8.9,1.09,6.2],"neon_lucia":[-8.7,0.88,5.4],"neon_nicole":[14.9,1.05,6.2],"neon_palome":[10.4,1.0,6.2],"neon_bruno":[11.9,1.04,6.2],"sky_alonso":[0.7,1.07,6.2],"sky_dulcine":[-4.6,1.05,8.5],"sky_sancho":[1.2,1.13,6.2],"sky_rosi":[-1.2,0.98,6.2],"sky_gris":[-3.2,0.92,6.2],"sky_carden":[3.9,0.99,7.3],"sky_lucia":[18.1,0.97,22.7],"sky_nicole":[13.9,1.07,6.2],"sky_palome":[5.9,0.92,6.2],"sky_bruno":[0.5,0.89,5.7]};   // 카드 그림 맞춤: [가로 이동 %, 크기, 발 내리기 %] — 몸통 무게중심을 가운데로, 발을 바닥에
@@ -2655,18 +2610,6 @@ function nextFoeHTML(f){
 function ruleState(){const R=S.foe&&S.foe.rule;if(!R)return '';if(R.k==='eye'&&S.usedHT.length)return ` · <span class="dim">낸 족보: ${S.usedHT.map(k=>HT[k][0]).join(', ')}</span>`;if(R.k==='mouth'&&S.lockHT)return ` · <span class="dim">고정: ${HT[S.lockHT][0]}</span>`;return '';}
 function renderFoe(){$('foe').innerHTML=foeLine(S.foe)+ruleState()+(()=>{const h=hurtCount();return h.w||h.s?` · <span class="dim">🩹 부상 ${h.w} · 🗡 상처 ${h.s}</span>`:'';})();}
 /* 카드를 누르면: 힘 = 기본 × ★ × 상성 × 고향 − 상처 */
-function powerFormula(c){const x=ab3(c),ab=x?` · ★3 ${x.ic} ${x.ko}: ${x.d}`:'';return powerFormula0(c)+ab;}
-function powerFormula0(c){
-  const t=TYPES[c.id],f=S.foe,parts=[`기본 ${cardNo(c)}`];
-  if(c.star>1)parts.push(`★${c.star}${c.mixed?'혼합':''} ×${(c.mixed?MIX_X:STAR_X)[c.star]}`);
-  if(f){
-    const m=matchX(c.el,f);if(m===2)parts.push('약점 ×2');if(m===0.5)parts.push('내성 ×½');
-    if(!armorOn()&&f.home===cardW(c))parts.push(WORLD_KO[f.home]+' ×1.5');
-  }
-  if(hurtOf(c))parts.push(`상처 -${hurtOf(c)}`);
-  const now=f?battlePower(c,f):power(c);
-  return `${t.ko} · ${WORLD_KO[cardW(c)]} · ${EL_SYM[c.el]}${c.el} — 힘 ${now} = ${parts.join(' × ').replace(/ × 상처/,' − 상처')}`+(c.star>1?` · 족보 ${STAR_W[c.star]}장`:'');
-}
 const sellPrice=k=>Math.max(1,ORBS[k].cost-1)*((S.ost&&S.ost[k])||1);
 const orbName=k=>ORBS[k].ko+((S.ost[k]||1)>1?' ★'+S.ost[k]:'');
 const orbKind=k=>ORB_MUL.includes(k)?'mul':ORB_ADD.includes(k)?'add':'card';
@@ -3230,17 +3173,6 @@ function orbModal(i){
   if(S.foe&&S.foe.rule&&S.foe.rule.k==='leaf'&&S.foe.rule.on)h+=`<button class="omSell" onclick="leafSell(${i})">🍂 이 구슬 팔기 💰${sellPrice(k)} — 녹슨 잎 풀기</button>`;
   h+=`<div class="omBtns"><button onclick="bMoveOrb(${i},-1)" ${i<=0?'disabled':''}>← 왼쪽</button><button onclick="bMoveOrb(${i},1)" ${i>=S.orbs.length-1?'disabled':''}>오른쪽 →</button><button class="omOk" onclick="hideOv()">확인</button></div>`;
   showOv(h);
-}
-function battleOrbTip(i){
-  const k=S.orbs[i],st=S.ost[k]||1;
-  let h=`<div class="bOrbTip"><div><b>${orbName(k)}</b> — ${ORBS[k].d}${st>1?` (★${st}: 더하기 ×${st} · 곱하기 ×${1+0.5*(st-1)})`:''}</div>`;
-  if(S.orbs.length>1){
-    h+=`<div class="ordRow"><button onclick="bMoveOrb(${i},-1)" ${i<=0?'disabled':''}><img class="lmIcA" src="assets/ui/icon/arrow_l.webp" alt="">앞으로</button><span class="ordNote">왼쪽부터 터져요</span><button onclick="bMoveOrb(${i},1)" ${i>=S.orbs.length-1?'disabled':''}>뒤로<img class="lmIcA" src="assets/ui/icon/arrow_r.webp" alt=""></button></div>`;
-    if(DIFF[S.diff].hint){const ok=bestOrder().join()===S.orbs.join();
-      h+=`<div class="ordHelp">추천: <i class="ok add">+</i> 더하기 먼저 → <i class="ok mul">×</i> 곱하기 나중 `+(ok?'✔ 지금 순서가 좋아요':`<button onclick="S.orbs=bestOrder();S.bOrb=S.orbs.indexOf('${k}');render()">추천 순서로 ⇅</button>`)+`</div>`;}
-  }
-  h+=`<div class="ordNote">같은 구슬을 원정 캠프에서 또 사면 머지(★) 돼요</div></div>`;
-  return h;
 }
 function leafSell(i){const k=S.orbs[i];S.gold+=sellPrice(k);delete S.ost[k];S.orbs.splice(i,1);S.foe.rule.on=false;hideOv();popMsg('🍂 녹슨 잎이 걷혔다! 카드 힘이 돌아와요');render();}
 function bMoveOrb(i,d){const j=i+d;if(S.busy||j<0||j>=S.orbs.length)return;[S.orbs[i],S.orbs[j]]=[S.orbs[j],S.orbs[i]];render();orbModal(j);}
@@ -3911,7 +3843,6 @@ function ltCont(){const pk=_ovPark;ltHide();if(!S)return;
   if(pk&&pk.S===S){const o=$('ov');o.className=pk.cls;o.replaceChildren(...pk.kids);o.hidden=false;render();return;}
   render();if($('ov').hidden){if(S.selecting&&!S.practice&&!S.sandbox)startRound();else if(S.inShop)openShop();}}
 function ltLearn(i){ltPop();openInfo('learn','page',i);}
-function ltPractice(i){ltHide();practiceStart(i);}
 /* 🧪 연습장 (2026-10-29 DHL): 추천이 켜진 연습용 — 런 · 버리기 무한, 적 체력 무한(쓰러지지 않음), 의도 · 거인 규칙 없음, 보상 · 캠프 없음 */
 function sandboxFoeMake(){const w=WORLDS[Math.random()*3|0],f=makeFoes(w,1+(Math.random()*8|0),S.diff)[0];f.ints=[];f.atype=null;f.rule=null;f.hero=NAMES[Math.random()*NAMES.length|0][0];f.no=1+(Math.random()*10|0);return f;}
 function sandboxStart(mode){ltHide();firstGame=false;newGame(mode);hideOv();S.sandbox=true;S.hintOn=true;S._statEnded=1;
@@ -4630,15 +4561,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
           for(let y=0;y<N;y+=2)for(let x=0;x<N;x+=2)if(d[(y*N+x)*4+3]>40){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;}
           return HEAD[rid]=x1>x0?{cx:(x0+x1)/2-N/2,t:N*.85-y0}:null;}catch(e){return HEAD[rid]=null;}}
       const FIT={};
-      function fitOf(r){if(FIT[r.rid])return FIT[r.rid];
-        const N=1400,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d');
-        const rig=new CharacterRig(r.rig.def,ready[r.rid].images),an=new RunAnimator(rig,{runSpeed:620});an.facing=1;an.update(.016,{vx:0,facing:1});
-        rig.draw(g,N/2,N*.85,1,1);
-        const d=g.getImageData(0,0,N,N).data;let x0=N,x1=0,y0=N,y1=0;
-        for(let y=0;y<N;y+=2)for(let x=0;x<N;x+=2)if(d[(y*N+x)*4+3]>40){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
-        const bh=r.rig.def.metrics?.bodyHeight||718;
-        return FIT[r.rid]=x1>x0?{w:x1-x0,h:N*.85-y0,cx:(x0+x1)/2-N/2}:{w:bh*.7,h:bh,cx:0};}
-      function hrLoop(){if(hrRaf)return;
+            function hrLoop(){if(hrRaf)return;
         const tick=()=>{hrRaf=0;const live=[...HR.values()].filter(r=>r.anim&&r.cv.isConnected);if(!live.length)return;hrRaf=requestAnimationFrame(tick);
           const now=performance.now(),dpr=Math.min(2,devicePixelRatio||1);
           for(const r of live){const dt=Math.min(.05,Math.max(0,(now-r.last)/1000));r.last=now;r.anim.update(dt,{vx:0,facing:1});draw(r,dpr);}};
