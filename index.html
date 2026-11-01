@@ -3086,7 +3086,7 @@ function lose(){
 }
 
 /* ① 보상 받기 */
-const coins=n=>'<span class="coins">'+'💰'.repeat(Math.min(n,10))+(n>10?'+':'')+'</span>';
+const coins=n=>'<span class="coins" data-n="'+n+'">'+'💰'.repeat(Math.min(n,10))+(n>10?'+':'')+'</span>';
 function cashOut(){
   S.orbHidden=false;S.offOrb=null;S.forced=null;
   const dbl=!!S.dblReward,base=REWARD[S.rd]*(dbl?2:1),left=S.runs,intr=Math.min(S.interestMax,Math.floor(S.gold/5)),sum=base+left+intr;
@@ -3103,24 +3103,21 @@ function cashOut(){
   cashTally();
 }
 function cashTally(){
+  /* (DHL 11-01 '보상 받기 숫자가 0에서 점수까지 올라가게') 줄마다 금화가 '짤랑' 떨어지는 동안 버튼 숫자가 그 줄 금액만큼 굴러 올라감 (0 → 최소 득점 몫 → 남은 런 → 이자 …).
+     예전엔 금화 그림(img) 수로 몫을 나눴는데, 이 순간엔 아직 💰 글자라 그림이 0개 → 마지막에 한 번에 뛰었음 → 줄 금액(data-n)으로 계산 */
   const box=document.querySelector('.cashFx');if(!box)return;const rows=[...box.querySelectorAll('.crow,.sep')];
   const btn=$('cashBtn'),num=$('cashN');let shown=0,t=180;const total=S.cash,fast=typeof LM_SET!=='undefined'&&LM_SET.rm;
-  const bump=()=>{num.textContent=shown;btn.classList.remove('cfBump');void btn.offsetWidth;btn.classList.add('cfBump');};
-  rows.forEach(r=>{
+  const bump=()=>{btn.classList.remove('cfBump');void btn.offsetWidth;btn.classList.add('cfBump');};
+  const amtOf=r=>{const c=r.querySelector('.coins');return c?(+c.dataset.n||0):0;};
+  let acc=0;
+  rows.forEach(r=>{const n=amtOf(r),k=Math.min(n,10),d=fast?40:Math.max(300,k*110+260);
     setTimeout(()=>{r.classList.add('in');
-      const cs=[...r.querySelectorAll('.coins img.emi, .coins')].filter(x=>x.tagName==='IMG');
-      cs.forEach((c,i)=>{setTimeout(()=>{c.classList.add('cfDrop');lmSfxTick();},fast?0:i*90);});
+      const cs=[...r.querySelectorAll('.coins img')];cs.forEach((c,i)=>{setTimeout(()=>{c.classList.add('cfDrop');lmSfxTick();},fast?0:i*110);});
+      if(n>0){const from=acc,to=Math.min(total,acc+n),st=performance.now(),dur=fast?1:k*110+160;acc=to;
+        (function step(){const p=Math.min(1,(performance.now()-st)/dur);shown=Math.round(from+(to-from)*p);num.textContent=shown;if(p<1)requestAnimationFrame(step);else bump();})();}
     },t);
-    t+=fast?40:Math.max(260,(r.querySelectorAll('.coins img').length)*90+220);
-  });
-  // 숫자 굴리기: 줄이 끝날 때마다 그 줄 몫만큼 올라감
-  let acc=0;const shares=rows.filter(r=>r.classList.contains('crow')&&r.querySelector('.coins')).map(r=>r.querySelectorAll('.coins img').length);
-  const sumImg=shares.reduce((a,b)=>a+b,0)||1;let tt=180;
-  rows.forEach(r=>{const k=r.querySelectorAll('.coins img').length;const d=fast?40:Math.max(260,k*90+220);
-    if(k){const target=Math.round(total*(acc+k)/sumImg);acc+=k;setTimeout(()=>{const from=shown,st=performance.now(),dur=fast?1:k*90+120;
-      (function step(){const p=Math.min(1,(performance.now()-st)/dur);shown=Math.round(from+(target-from)*p);num.textContent=shown;if(p<1)requestAnimationFrame(step);else bump();})();},tt);}
-    tt+=d;});
-  setTimeout(()=>{shown=total;num.textContent=total;btn.disabled=false;btn.classList.add('ready');},tt+120);
+    t+=d;});
+  setTimeout(()=>{shown=total;num.textContent=total;btn.disabled=false;btn.classList.add('ready');},t+120);
 }
 let lmTickT=0;function lmSfxTick(){const n=performance.now();if(n-lmTickT<70)return;lmTickT=n;
   try{if(typeof LM_SET==='undefined'||LM_SET.master<=0||LM_SET.sfx<=0)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
