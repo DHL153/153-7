@@ -1926,7 +1926,7 @@ function applyMerge(a,b,keepEl,keepW,keepNo){ // a에 b를 겹친다. 남길 속
   delete a.st;delete a.out;              // 머지하면 상처 · 부상 치료
   return k;
 }
-const STAR_W=[0,1,2,4];                 // 족보에서 세는 장수 = 쌓인 재료 장수
+const STAR_W=[0,1,2,3];   // (DHL 11-01) ★3 = 3장 (그림 겹침과 같게, 예전 4)                 // 족보에서 세는 장수 = 쌓인 재료 장수
 /* 덱 60장: 같은 동료(이름+세계) 2장은 속성이 서로 다르다. 속성마다 12장 (봇 테스트 2026-10-27: 120·60·30 중 60이 머지가 가장 잘 삶) */
 const DECK_N=60;
 function makeDeck(){let uid=0;const d=[];WORLDS.forEach((w,wi)=>NAMES.forEach(([n],ni)=>{const id=w+'_'+n,o=(ni+wi*2)%5;[1,3].forEach(k=>d.push({uid:uid++,id,star:1,el:ELS[(o+k)%5]}));}));
@@ -2940,12 +2940,12 @@ function runChain(){
     return askFuse(a,b,want);}}   // 머지 & 런: 짝마다 고르기 창 (세계 · 속성 · 번호 + 머지 하지 않음)
   S._chain=null;S._skip=null;S._snap=null;S.sel=L.map(c=>c.uid);render();doPlay('chain');     // 더 합칠 짝이 없으면 달린다 (합친 뒤의 카드로 동작 · 족보 밖 표시) (DHL 10-30)
 }
-/* 다섯의 맹세: 고른 카드의 족보 인정 장수(★2=2 · ★3=4)가 5 이상이어야 함 — 손패 전체가 5 미만이면 면제 */
+/* 다섯의 맹세: 고른 카드의 족보 인정 장수(★2=2 · ★3=3)가 5 이상이어야 함 — 손패 전체가 5 미만이면 면제 */
 const wsum=cs=>cs.reduce((s,c)=>s+weight(c),0);
 function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(selCards())<5&&wsum(S.hand)>=5;}
 function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
-  if(!merged&&psyShort()){$('tip').textContent='🎯 다섯의 맹세 — 카드 5장 이상 내야 런할 수 있어요 (★2는 2장 · ★3은 4장 · 족보 밖 카드도 세요)';return;}
+  if(!merged&&psyShort()){$('tip').textContent='🎯 다섯의 맹세 — 카드 5장 이상 내야 런할 수 있어요 (★2는 2장 · ★3은 3장 · 족보 밖 카드도 세요)';return;}
   if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();S._snap=mrSnap();return runChain();}
   S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
@@ -3484,7 +3484,7 @@ function runInfoHTML(){
   const used=S.htCount||{};
   h+=`<p class="iSub">족보 · 레벨</p><div class="rHt">`+HT_ORDER.slice().reverse().map(k=>{const L=(S.lv[k]||1)-1;
     return `<div class="${used[k]?'':'zero'}"><span><b>${HT[k][0]}</b><small>${HT[k][3].split(' — ')[0]}</small></span><i class="${L?'lv up':'lv'}">Lv${L+1}</i><span class="cm"><b class="cnum">${HT[k][1]+LVUP[k][0]*L}</b> × <b class="mnum">${HT[k][2]+LVUP[k][1]*L}</b></span><small class="ct">${used[k]||0}번</small></div>`;}).join('')+`</div>`+
-    `<p class="iNote">걸린 족보는 모두 더해집니다. ★2는 2장, ★3은 4장으로 셉니다.</p>`;
+    `<p class="iNote">걸린 족보는 모두 더해집니다. ★2는 2장, ★3은 3장으로 셉니다.</p>`;
   h+=`<p class="iSub">내 구슬 ${S.orbs.length}/${S.maxOrb}</p><div class="rOrbs">`+(S.orbs.length?S.orbs.map(k=>`<div><b>${ORBS[k].ko} <i>${dia(S.ost[k]||1)}</i></b><small>${ORBS[k].d}</small></div>`).join(''):`<p class="iNote">아직 구슬이 없습니다. 원정 캠프에서 살 수 있습니다.</p>`)+`</div>`;
   const hc=hurtCount(),wc=WORLDS.map(w=>S.deck.filter(c=>cardW(c)===w).length);
   h+=`<div class="rDeck"><div><b>덱 ${S.deck.length}장</b><span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
@@ -7988,4 +7988,10 @@ html body button.lmIco.ibBack:not(#_),html body button.lmIco.lmIcoNav:not(#_),ht
   start();addEventListener('resize',()=>{rowH=0;go();});addEventListener('orientationchange',()=>{rowH=0;go();});
 })();
 </script>
+<style id="lm-star3-stack">
+/* (DHL 11-01) ★3 카드: 금빛 테두리 빛(glow_s3)이 카드보다 크게 왼쪽 위로 삐져나와 '한 장 더' 겹친 것처럼 보임 → 끔 (★3은 뒤 겹친 2장 · 별 3개로 표시)
+   겹친 카드가 있는 ★2 · ★3 카드는 옆 카드보다 아래에 그림 → 고르지 않은 옆 카드도 번호가 늘 보임 (겹친 뒷장이 옆 카드 밑으로) */
+html.lmB body .card.dz.s3 .dzi[data-w] .dzb::before{display:none!important}
+#hand .card.dz.s2,#hand .card.dz.s3{z-index:1!important}
+</style>
 </body></html>
