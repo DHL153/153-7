@@ -5352,6 +5352,12 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
 /* (DHL 10-29) 전투 배경만 한 톤 어둡게 · 채도 낮춤 — 캐릭터 · 빌런 · 효과는 원래 색 (전에는 무대 전체에 걸려 캐릭터도 칙칙했음) */
 #battle-stage:not(.skill-cutscene) #battle-sky{filter:saturate(.56) brightness(.84)!important}
 #battle-panorama{filter:saturate(.56) brightness(.84)!important}
+/* (DHL 11-01) 뒤 배경 레이어(::before)도 앞 땅과 같은 톤 — 전에는 필터가 없어 하늘이 저녁·밤으로 바뀌어도 밝은 채로 남았음. 하늘과 같이 1.8초 동안 천천히 */
+#battle-stage::before{filter:saturate(.56) brightness(.84)!important;transition:filter 1.8s ease,opacity .1s ease!important}
+#battle-stage[data-sky="0"]::before{filter:saturate(.56) brightness(.84) brightness(.86) saturate(.8) hue-rotate(-6deg)!important}
+#battle-stage[data-sky="2"]::before{filter:saturate(.56) brightness(.84) sepia(.18) saturate(1.12) brightness(.9) hue-rotate(-10deg)!important}
+#battle-stage[data-sky="3"]::before{filter:saturate(.56) brightness(.84) brightness(.55) saturate(.7) contrast(1.05)!important}
+#battle-stage[data-sky="4"]::before{filter:saturate(.56) brightness(.84) brightness(.82) saturate(.85) hue-rotate(-18deg)!important}
 </style>
 <style id="mr-desat-bg">
 /* 2026-10-19 DHL: 캐릭터는 그대로, 배경·소품 채도 -30% (눈 피로 줄이기)
