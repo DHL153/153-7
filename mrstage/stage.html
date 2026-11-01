@@ -8369,8 +8369,8 @@ let isGameOver = false;
         await sleep(80);await waitIdle(4000);cast.finish=false;
         await exit();
       }else{
-        if(o.killed&&o.demo){cast.finish=true;origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;}
-        await goHome(0,res);
+        if(o.killed&&o.demo){cast.finish=true;origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;demoPh='end';}   // (DHL 11-01) 처치 컷신 보기는 컷신이 끝나면 그대로 끝 — 전투 화면으로 돌아가지 않음 (무대는 바깥에서 감춘 뒤 원래대로)
+        else await goHome(0,res);
       }
     }else{
       // 주인공은 치지 않고 다시 걸어 들어와 제자리
