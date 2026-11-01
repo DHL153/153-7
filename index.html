@@ -7973,4 +7973,21 @@ html body .cpBack.cpBack:not(#_),html body .cpFoot3 .cpBack:not(#_),html body .m
 html body #game-startup-screen.lm-replay .lm-replay-back:not(#_),html body #lmFxPlayer .fpBack:not(#_){width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;flex:none}
 html body button.lmIco.ibBack:not(#_),html body button.lmIco.lmIcoNav:not(#_),html body button.lmIco.omX:not(#_),html body button.lmIco.iClose:not(#_){--s:44px}
 </style>
+<script id="lm-hand-reserve">
+/* (DHL 11-01 '모바일 세로: 손패가 줄면 자리가 확확 이동') 세로 화면 손패(4장씩 줄)는 카드 수만큼만 높이를 차지해서
+   8장(2줄) → 4장 이하(1줄)로 줄면 손패 칸이 줄어 화면 전체가 위아래로 움직였음 → 손패 칸 높이를 '손패 최대 장수'만큼의 줄로 고정 (카드는 위에서부터, 빈 줄은 빈 자리로 남김) */
+(function(){
+  const H=()=>document.getElementById('hand');let rowH=0,q=0;
+  const portrait=()=>matchMedia('(orientation:portrait)').matches;
+  function fit(){q=0;const h=H();if(!h)return;
+    if(!portrait()||!document.getElementById('app')?.classList.contains('bl')){h.style.minHeight='';h.style.alignContent='';return;}
+    const c=h.querySelector('.card');if(c&&c.offsetHeight>0)rowH=c.offsetHeight;if(!rowH)return;
+    const n=typeof S!=='undefined'&&S?Math.max(S.handNow||S.handN||8,(S.hand||[]).length):8,cols=4,rows=Math.max(1,Math.ceil(n/cols));
+    const cs=getComputedStyle(h),gap=parseFloat(cs.rowGap)||0,pad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+    h.style.minHeight=Math.ceil(rows*rowH+(rows-1)*gap+pad)+'px';h.style.alignContent='start';}
+  const go=()=>{if(!q)q=requestAnimationFrame(fit);};
+  const start=()=>{const h=H();if(!h)return setTimeout(start,300);new MutationObserver(go).observe(h,{childList:true});go();};
+  start();addEventListener('resize',()=>{rowH=0;go();});addEventListener('orientationchange',()=>{rowH=0;go();});
+})();
+</script>
 </body></html>
