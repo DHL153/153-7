@@ -7957,7 +7957,7 @@ let isGameOver = false;
   const SHI='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg>';
   function sbarSet(v,max){const b=$('lm-sbar');if(!b)return;b.querySelector('.f').style.width=Math.max(0,Math.min(100,v/Math.max(1,max)*100))+'%';b.querySelector('.t').innerHTML=SHI+fmt(v);}
   function sbarDraw(show){const b=$('lm-sbar');if(!b)return;if(b._lock)return;b.classList.toggle('on',!!show);if(show&&capO)sbarSet(capO.cap,capO.max||capO.cap);}   /* (DHL 10-30) 방패 바 = 방패 에너지 (먼저 깎임 · 다시 차지 않음) */
-  function bigText(txt,cls,sub){const d=document.createElement('div');d.className='lm-big '+cls;d.innerHTML=`<b>${txt}</b>`+(sub?`<small>${sub}</small>`:'');const en=$('enemy');if(en){d.style.left=(en.offsetLeft-en.offsetWidth*1.15)+'px';d.style.top=Math.max(4,en.offsetTop*.25)+'px';}stage.appendChild(d);setTimeout(()=>d.remove(),1500);}   // 빌런 위 (무대 가운데는 화면에 따라 잘릴 수 있음)
+  function bigText(txt,cls,sub){const d=document.createElement('div');d.className='lm-big '+cls;d.innerHTML=`<b>${txt}</b>`+(sub?`<small>${sub}</small>`:'');const en=$('enemy');if(en){d.style.left=(en.offsetLeft-en.offsetWidth*1.15)+'px';d.style.top=Math.max(4,en.offsetTop*.25)+'px';}stage.appendChild(d);if(en){const w=d.offsetWidth*1.2,lim=en.offsetLeft-en.offsetWidth*.35-8;let cx=Math.min(en.offsetLeft-en.offsetWidth*1.15,lim-w/2);cx=Math.max(w/2+4,cx);d.style.left=cx+'px';d.style.top=Math.max(4,en.offsetTop*.25,(stage.clientHeight||145)*.26)+'px';}   /* 왼쪽 위 공격 숫자(⚡) 아래 */   /* (DHL 11-01 '이펙트가 메시지와 겹침') 글자 전체가 피해 숫자(적 바로 앞) 왼쪽에 */setTimeout(()=>d.remove(),1500);}   // 빌런 위 (무대 가운데는 화면에 따라 잘릴 수 있음)
   function paintGems(gems,n){const g=gsEl();g.querySelector('.gems').innerHTML=(gems||[]).map((x,i)=>`<i class="gm g${x.st}" style="left:${[30,50.6,71.1][i]}%;background:${x.bg}">${x.img?`<img src="${x.img}" alt="">`:(x.txt||'')}</i>`).join('');g.classList.toggle('n2',n===2);g.classList.toggle('n3',n>=3);}
   function drawGems(){const o=capO,g=gsEl();
     const show=!!(o&&o.gems)&&!gsBroken&&!gsDead&&!stage.classList.contains('lm-cleared')&&(o.cap>0||(finPend>0&&!!gsSh&&gsSh.before>0));   /* (DHL 10-31) 방패 에너지가 0이면 연출 중에도 다시 나오지 않음 — 이번 런 시작에 방패가 남아 있었을 때만 */   // (DHL 10-30) 방패 에너지가 남아 있으면 계속 보임 — 0이 되거나 관통일 때만 사라짐   // 연출 중엔 체력이 줄어도 방패를 유지 (막는 장면을 보여 줘야 함)   // 남은 체력이 한 번 최대 피해 이하면 방패가 막지 못함 → 숨김
@@ -8381,6 +8381,17 @@ let isGameOver = false;
   }
   // 미리보기(게임 상태를 바꾸지 않음): 처치해도 퇴장·보상 없이 제자리로
   let demoPh='';   // (DHL 10-29 '연출 앞뒤 다른 캐릭터 잔상') 바깥 화면이 무대를 보여줄 때만 알 수 있게: live = 연출 캐릭터 준비됨 · end = 연출 끝(원래 캐릭터로 되돌리기 전)
+  /* (DHL 11-01 '패배: 적이 공격 → 적 공격 이펙트 → 화면 전환 → 패배 메시지') 적의 마지막 공격 — 적이 주인공 쪽으로 덮치고, 주인공 자리에 적 공격 이펙트(전투와 같은 시트 · 좌우 반전) + 흔들림
+     (적 #enemy 의 translate 는 다른 규칙이 !important 로 잡고 있어 CSS 애니메이션이 안 먹음 → transform 으로 직접 움직임) */
+  async function foeStrike(){
+    const en=$('enemy'),E=enemyPt(),h=heroPt(0),dx=Math.max(20,(E.x-h.x)*.55);
+    if(en){try{en.animate([{transform:'translateX(0)'},{transform:`translateX(${-dx*.15}px) scale(1.04)`,offset:.25},{transform:`translateX(${-dx}px) scale(1.12)`,offset:.55},{transform:'translateX(0)'}],{duration:620,easing:'cubic-bezier(.3,0,.3,1)'});}catch(e){}}
+    await sleep(330);
+    const T=(window.MR_FX_TUNING&&window.MR_FX_TUNING.route&&window.MR_FX_TUNING.route.xcut)||RT_DEF.xcut;
+    flip(T.sheet||'fx10',R(T.from??0,T.to??7),h.x,h.y,h.h*(T.size||1.45)*1.1,{fps:T.fps||18,flipX:true});
+    shake(10);
+    await sleep(420);
+  }
   async function demo(o){
     demoPh='prep';const before=[...activeBattleTeam];
     // (DHL 10-29 '전투 연출 보기가 안 됨') 적을 쓰러뜨린 뒤(밤 · 적 치워짐)에 열면 빈 무대에서 허공을 침 → 연출 동안만 적 · 낮 하늘을 되살렸다가 끝나면 원래대로
@@ -8537,7 +8548,8 @@ let isGameOver = false;
     joinRun(){return Promise.resolve();},   // ★11 동료는 마지막에 치고 빠지기만
     hit(o={}){if(o.final){finPend++;stage.classList.add('lm-fin');return seq(async()=>{try{await finale(o);}finally{finPend--;gsBlock=null;if(finPend<=0)stage.classList.remove('lm-fin');if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}try{drawGems();}catch(e){}}});}quick(o);return Promise.resolve();},
     demo(o={}){return ready.then(()=>seq(()=>demo(o)));},
-    demoPhase(){return demoPh;},   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
+    demoPhase(){return demoPh;},
+    foeStrike(){return ready.then(()=>foeStrike());},   // (DHL 11-01) 패배 연출: 적의 마지막 공격   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
     routes(){return {ROUTE,ROUTE_KO};},
     busy(){return pending>0||!idle()||!!document.querySelector('.mrfc');},
     queued(){return pending;},
