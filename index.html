@@ -7860,7 +7860,7 @@ function lmEndless(){hideOv();S.endless=true;S._statEnded=1;cashOut();}
 /* (DHL 10-30) 설정 › 스토리 다시 보기: 컬렉션처럼 3개 묶음 카드 */
 #lm-title .lc-story .lc-art img{inset:0;width:100%;height:100%;object-fit:cover;filter:sepia(.15) contrast(1.05)}
 #lm-title .lc-story .lc-art::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,#111c33)}
-#lm-title .lc-s1{--glow:#c98a3a66}#lm-title .lc-s2{--glow:#b8453a77}#lm-title .lc-s3{--glow:#e0b84a66}
+#lm-title .lc-s1{--glow:#c98a3a66}#lm-title .lc-s4{--glow:#c8453a66}#lm-title .lc-s2{--glow:#b8453a77}#lm-title .lc-s3{--glow:#e0b84a66}
 @media (max-height:500px){#lm-title .lc-story.lt-cb.lc-t{min-height:0!important;height:72px;flex:none}#lm-title .lc-story .lc-txt b{font-size:17px!important}#lm-title .lc-story .lc-txt em{font-size:13px}html.lmB #lm-title .lt-card.wide:has(.lc-story){min-height:0}#lm-title .lt-card:has(.lc-story) .lc-head{padding:0}#lm-title .lt-card:has(.lc-story) .lc-wrap{gap:6px}#lm-title .lt-card:has(.lc-story) .lc-list{gap:6px}#lm-title .lt-card:has(.lc-story) .lt-mb.back{margin-top:6px;min-height:36px}}
 #lm-title .lt-cb.lc-t.lock{filter:grayscale(1) brightness(.6);pointer-events:none}
 #lm-title .lc-t.lock .lc-art::before{content:"";position:absolute;inset:0;z-index:1;background:url(assets/ui/maple/icons/lock.webp) center/34% no-repeat}
@@ -7870,6 +7870,12 @@ function lmEndless(){hideOv();S.endless=true;S._statEnded=1;cashOut();}
 var LM_STORY_ALL=true;
 const LM_STORY=[
   {k:'open',cls:'lc-s1',ko:'여정의 시작',sub:'녹슨 기사, 구슬을 줍다',img:'assets/art/story/story_02.webp?v=2',n:8,seen:()=>window.MRStory&&MRStory.seen(),play:()=>MRStory.play({mode:'replay'})},
+  /* (DHL 11-02) 견습 · 기사 8장 클리어 복선 2컷 — 본 컷만 (견습 → 1컷, 기사까지 → 2컷) */
+  {k:'omen',cls:'lc-s4',ko:'붉은 풍차',sub:'날개가 거꾸로 돈다',img:'assets/art/story/clear_a.webp',n:2,
+    cuts:()=>{const sn=k=>{try{return localStorage.getItem('lm.scene.clear_'+k+'.v1')==='1'}catch(e){return false}};return LM_STORY_ALL?['a','b']:['a','b'].filter(sn);},
+    seen(){return this.cuts().length>0;},
+    play(){const c=this.cuts();if(!c.length)return;window.LM_LIVE=window.LM_LIVE||{};c.forEach((k,i)=>{LM_LIVE['omen_'+String(i+1).padStart(2,'0')]=LM_LIVE['clear_'+k+'_01'];});
+      return MRStory.play({mode:'replay',set:{n:c.length,live:'omen',key:'lm.scene.omen.v1',src:i=>'assets/art/story/clear_'+c[i-1]+'.webp'}});}},
   {k:'reveal',cls:'lc-s2',ko:'풍차의 진실',sub:'스카이아크 알론소의 고백',img:'assets/art/story/reveal_04.webp',n:4,seen:()=>{try{return localStorage.getItem('lm.scene.reveal.v1')==='1'}catch(e){return false}},play:()=>MRStory.play({mode:'replay',set:LM_SCENES.reveal})},
   {k:'ending',cls:'lc-s3',ko:'다시, 라만차',sub:'풍차가 멈춘 뒤의 이야기',img:'assets/art/story/ending_04.webp',n:4,seen:()=>{try{return localStorage.getItem('lm.scene.ending.v1')==='1'}catch(e){return false}},play:()=>MRStory.play({mode:'replay',set:LM_SCENES.ending})}
 ];
@@ -7880,7 +7886,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
     if(kind!=='story')return _lp.apply(this,arguments);
     _lp('set');const card=document.querySelector('#lm-title .lt-pop .lt-card');
     const T=(S,i)=>{const open=LM_STORY_ALL||S.seen();
-      return `<button type="button" class="lt-cb lc-t lc-story ${S.cls}${open?'':' lock'}" ${open?`onclick="ltStoryPlay(${i})"`:'disabled'}><span class="lc-art"><img src="${S.img}" alt=""></span><span class="lc-txt"><b>${open?S.ko:'???'}</b><small>${open?S.sub:'아직 보지 못한 이야기'}</small><em>${S.n}<u>컷</u></em></span></button>`;};
+      return `<button type="button" class="lt-cb lc-t lc-story ${S.cls}${open?'':' lock'}" ${open?`onclick="ltStoryPlay(${i})"`:'disabled'}><span class="lc-art"><img src="${S.img}" alt=""></span><span class="lc-txt"><b>${open?S.ko:'???'}</b><small>${open?S.sub:'아직 보지 못한 이야기'}</small><em>${S.cuts&&open?S.cuts().length+(S.cuts().length<S.n?'/'+S.n:''):S.n}<u>컷</u></em></span></button>`;};
     card.innerHTML=`<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">스토리</div></div><div class="lc-list">${LM_STORY.map(T).join('')}</div></div><button type="button" class="lt-mb back" onclick="ltPop('set')">뒤로</button>`;
     card.classList.add('wide');
   };
