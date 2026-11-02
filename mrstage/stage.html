@@ -8287,7 +8287,8 @@ let isGameOver = false;
       const nearX=Math.max(-W*.5,E.front-home-hh*.55);
       const to=ranged?rangedAt(home,hh,nearX,W):Math.max(-W*.5,E.front-home-hh*(.55+i*.25));show([sl],true);await dash(-W*.9,to,ranged?460:560,'out',[sl],ranged?2.2:2.6);}));
     if(ranged){slots.forEach((sl,i)=>setTimeout(()=>{try{rt==='shoot'?shot(sl,mem[i]):circle(mem[i],700);}catch(e){}},i*140));}
-    cast.group=battleTeamEntries();cast.cutDur=1300;cast.slot=0;
+    cast.group=[...battleTeamEntries()].sort((x,y)=>y.slot-x.slot);cast.cutDur=1300;   // (DHL 11-02) 컷인 왼→오 순서 = 전투 화면에 선 순서(뒷자리 왼쪽 · 1번 자리 오른쪽)
+    cast.slot=0;
     impact={dmg:o.dmg,final:true,mult:o.mult,hp:o.killed?Math.max(o.hp??0,Math.round(hp-(hp-(o.hp??0))*mem.length/(mem.length+1))):o.hp,killed:false,heavy:true,combo:true};   /* 막타(주인공) 몫을 조금 남김 */clearTimeout(impactT);impactT=setTimeout(land,2600);   // (DHL 10-28) 합동기로 쓰러뜨려도 막타는 주인공 → 여기선 쓰러뜨리지 않음
     hitQ.length=0;const ccb=()=>{const E=enemyPt(),C=RT('combo');flipTint(C.sheet,R(C.from,C.to),E.x,E.y,E.h*C.size,mem,{fps:C.fps});shake(C.shake);mem.forEach((n,i)=>setTimeout(()=>impactFx(n),300+i*110));};   // 세 세계 합류 폭발(fx12) → 각자 계열 효과
     hitCb=ccb;setTimeout(()=>{if(hitCb===ccb)hitCb=null;},5000);
