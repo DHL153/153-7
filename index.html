@@ -3039,7 +3039,7 @@ function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes
 function win(){
   const last=S.jang===8&&S.rd===2&&!S.endless;
   if(last&&S.diff==='errant'&&!S.finale){lmFinale();return;}   /* (DHL 10-30) 편력: 스카이아크 알론소 → 반전 씬 → 풍차 거인 (저장 없음 — 지면 처음부터) */
-  if(last){try{S._clearNew=!(LM_ST.clears||{})[S.diff];}catch(e){}try{lmStatEnd(true)}catch(e){}}
+  if(last){try{if(!S._statEnded)S._clearNew=!(LM_ST.clears||{})[S.diff];}catch(e){}try{lmStatEnd(true)}catch(e){}}
   if(last){if(S.finale){lmEnding();return;}
     /* (DHL 11-02) 견습 · 기사 8장 클리어: 복선 한 컷 → 결과표 */
     if((S.diff==='app'||S.diff==='knight')&&typeof lmClearCut==='function'){const k=S.diff==='app'?'a':'b';lmClearCut(k).then(()=>showOv(runEndHTML(true)));return;}
@@ -8266,4 +8266,18 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 @media (max-height:460px){#lm-title .pl-medals{margin:2px auto 6px}#lm-title .pl-md{flex-direction:row;justify-content:center;gap:5px;padding:0 0 7px!important;min-height:36px!important}#lm-title .pl-md .m{width:28px}#lm-title .pl-md b{font-size:11px}}
 @media (prefers-reduced-motion:reduce){#lm-title .pl-md.on.got .m{animation:none}}
 </style>
+<script id="lm-test8">
+/* (DHL 11-02 '8장 끝나고 플로우를 해보고 싶음') 테스트 주소: ?test8=app | knight | errant
+   → 그 난이도로 새 판 · 8장 거인 라운드부터(라운드 고르기 창) · 거인 체력 아주 낮게 → 런 한두 번이면 처치 → 실제 클리어 흐름(복선 컷 · 훈장 · 다음 난이도 열림 · 판 끝 화면)
+   ⚠ 실제 기록(클리어 훈장 · 통계)에 남음 */
+(function(){
+  let q='';try{q=new URLSearchParams(location.search).get('test8')||'';}catch(e){}
+  if(!q||typeof DIFF==='undefined'||!DIFF[q])return;
+  let fired=false;
+  const go=()=>{if(fired)return;fired=true;
+    try{ltHide();firstGame=false;newGame(q);hideOv();S._test8=1;S.jang=8;S.rd=2;S.foes=null;S.foesNext=null;startRound();}catch(e){console.warn('[test8]',e);}};
+  const _br=beginRound;beginRound=function(){const r=_br.apply(this,arguments);try{if(S&&S._test8&&S.jang===8&&S.rd===2){S.tgt=Math.min(S.tgt,40);render();}}catch(e){}return r;};
+  const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);if(!fired)setTimeout(go,300);return r;};
+})();
+</script>
 </body></html>
