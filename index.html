@@ -8346,4 +8346,41 @@ function lmResetRecord(btn){
   location.replace(location.pathname);
 }
 </script>
+<style id="lm-pc-breathe">
+/* (DHL 11-02 PC 'A 숨 쉬는 여백') 너무 꽉 차서 답답 → 바깥 · 칸 사이 여백 + 전투 무대 90% 가운데 + 카드 172px · 카드 사이 띄움. 배치는 그대로 · PC(가로 1000px 이상)만 */
+@media (min-width:1400px) and (orientation:landscape) and (min-height:860px){   /* 큰 PC 화면만 (1920×1080 브라우저 등) — 낮은 화면은 여백을 더하면 전투가 눌려서 지금 그대로 */
+  html body #app.bl{--pcw:min(200px,17.7vh)}   /* 카드 폭: 화면 높이 970에서 172px, 낮은 화면은 같이 줄어 무대가 눌리지 않게 */
+  html body #app.bl #mainArea{padding:18px 26px 16px 22px!important;gap:14px!important;grid-template-rows:72px 1fr calc(var(--pcw) * 1.45 + 46px) 108px!important}
+  html body #app.bl #side{padding:16px 14px!important;gap:12px!important}
+  html body #app.bl #orbs{gap:16px!important}
+  html body #app.bl .midZone{align-items:center!important}
+  html body #app.bl #lmStage{width:90%!important;height:100%!important;margin:0 auto!important}
+  html body #app.bl #keyBar{left:calc(5% + 20px)!important;top:16px!important}
+  html body #app.bl .handZone{align-items:center!important;justify-content:center!important}
+  html body #app.bl #hand{gap:12px!important;padding-top:10px!important}
+  html.lmB body #app.bl #hand .card.dz.dz{--cwid:var(--pcw);width:var(--pcw)!important;max-width:none!important;flex:none!important;margin:0!important}
+  html body #app.bl .btmRow{padding-bottom:4px}
+}
+</style>
+<script id="lm-portrait-peek">
+/* (DHL 11-02 모바일 세로 '카드를 고르려면 아래로 내려야 해서 어떤 족보가 됐는지 안 보임') — 간단한 해결:
+   위 족보 · 점수판이 화면 밖으로 나가 있을 때만, 화면 위에 얇은 족보 줄(족보 이름 · 힘 × 기세)을 띄움. 판이 보이면 숨김. 세로 화면만 */
+(function(){
+  const bar=document.createElement('div');bar.id='lmPeek';bar.setAttribute('aria-live','polite');bar.hidden=true;
+  bar.innerHTML='<b class="pkN"></b><span class="pkS"><em class="pkC">0</em><i>×</i><em class="pkM">0</em></span>';document.body.appendChild(bar);
+  const st=document.createElement('style');st.textContent=`#lmPeek{position:fixed;left:50%;top:max(6px,env(safe-area-inset-top));translate:-50% 0;z-index:30;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 20px);padding:6px 14px;border-radius:999px;background:#0a1120ee;border:1.5px solid #c9a24a;box-shadow:0 4px 14px #000a;font:900 14px/1.2 'Noto Sans KR',sans-serif;color:#f3e6c8;pointer-events:none;animation:pkIn .2s ease-out}
+#lmPeek[hidden]{display:none}#lmPeek .pkN{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;color:#f6cf63}
+#lmPeek .pkS{display:flex;align-items:center;gap:3px;flex:none}#lmPeek em{font-style:normal;padding:1px 7px;border-radius:6px;color:#fff}#lmPeek .pkC{background:#2f6fd6}#lmPeek .pkM{background:#d6453a}#lmPeek i{font-style:normal;color:#c9a24a}
+@keyframes pkIn{from{opacity:0;translate:-50% -6px}}`;document.head.appendChild(st);
+  let out=false;
+  const sync=()=>{const on=out&&matchMedia('(orientation:portrait)').matches&&typeof S!=='undefined'&&S&&S.sel&&S.sel.length>0&&document.getElementById('ov')?.hidden!==false&&document.getElementById('lm-title')?.hidden!==false;
+    if(on){const n=document.getElementById('htName'),c=document.getElementById('vC'),m=document.getElementById('vM');
+      bar.querySelector('.pkN').textContent=(n&&n.textContent||'').replace(/\s+/g,' ').trim();bar.querySelector('.pkC').textContent=c?c.textContent:'0';bar.querySelector('.pkM').textContent=m?m.textContent:'0';}
+    bar.hidden=!on;};
+  const hook=()=>{const box=document.querySelector('.sScoreBox');if(!box)return setTimeout(hook,500);
+    new IntersectionObserver(es=>{out=!es[0].isIntersecting;sync();},{threshold:0.25}).observe(box);
+    const mo=new MutationObserver(sync);['htName','vC','vM','hand'].forEach(id=>{const e=document.getElementById(id);if(e)mo.observe(e,{childList:true,subtree:true,characterData:true,attributes:true});});};
+  hook();addEventListener('resize',sync);
+})();
+</script>
 </body></html>
