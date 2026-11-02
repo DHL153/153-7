@@ -2365,7 +2365,7 @@ function ensureFoes(){if(!S.foes||S.foesJang!==S.jang){S.foes=S.foesNext||makeFo
 const scoutCost=()=>5+S.jang;
 const CAMP={
   /* (DHL 10-29) 잠자기 삭제 — 적 공격(부상 · 상처)이 없어져 할 일이 없음 */
-  merge:{ic:'🔨',ko:'모닥불 머지',d:'덱에서 같은 동료 ★1 두 장을 골라 머지 (먼저 고른 카드의 속성 · 세계가 남아요)'},
+  merge:{ic:'🔨',ko:'모닥불 머지',d:'같은 동료 · 같은 ★ 두 장을 머지 — 세계만 고르고 번호 · 속성은 랜덤 (★2 💰2 · ★3 💰3)'},   /* (DHL 11-02) 돈 · 랜덤 굴리기 · ★3도 */
   leave:{ic:'🚪',ko:'동료 떠나보내기',d:'덱에서 1장 빼기'},
   scout:{ic:'🗺',ko:'정찰',d:'이번 장 거인 규칙을 다시 뽑기 (비용 💰5+장)'},
   walk:{ic:'🌙',ko:'밤 산책',d:'먼저 💰를 내고 갈림길 셋 중 하나로 — 무엇이 나올지 몰라요'}
@@ -2453,27 +2453,67 @@ function guestGo(sub){const g=S.campGuest,G=GUESTS[g.k];S.campGuestUsing=true;
 function campOpen(){if(S.rd>=2)return;S.campSel=[];if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];}
   const g=S.campGuest,gHTML=g?`<button class="campBtn guest" ${guestOK(g)?'':'disabled'} onclick="guestGo()"><b>${GUESTS[g.k].ic} 손님 · ${GUESTS[g.k].ko}</b><small>${GUESTS[g.k].d(g)}${g.k==='merchant'&&!guestOK(g)?(S.gold<g.cost?' — 돈이 부족해요':' — 구슬칸이 가득'):''}</small></button>`:'';
   showOv(`<h2>🏕 야영 <small style="font-size:13px;color:var(--gold)">정비 ${(S.campMax||2)-S.campLeft+1}/${S.campMax||2}</small></h2><p class="omNote">라운드를 치르지 않고 쉬어요. 정비 ${S.campMax||2}개를 하고 다음 라운드로 가요 (원정 캠프 없음). 같은 정비를 두 번 해도 돼요.</p>`+(S.campLog.length?`<div class="skipGot">${S.campLog.join('<br>')}</div>`:'')+
-    Object.entries(CAMP).map(([k,c])=>{const cost=k==='scout'?scoutCost():k==='walk'?walkCost():0,poor=cost&&S.gold<cost;return `<button class="campBtn${k==='walk'?' walk':''}" ${poor?'disabled':''} onclick="campPick('${k}')"><b>${c.ic} ${c.ko}${cost?` · 💰${cost}`:''}</b><small>${c.d}${poor?' — 돈이 부족해요':''}</small></button>`;}).join('')+(S.campGuest&&!S.campGuest.used?gHTML:'')+
+    Object.entries(CAMP).map(([k,c])=>{const cost=k==='scout'?scoutCost():k==='walk'?walkCost():k==='merge'?CAMP_MC[2]:0,poor=cost&&S.gold<cost;return `<button class="campBtn${k==='walk'?' walk':''}" ${poor?'disabled':''} onclick="campPick('${k}')"><b>${c.ic} ${c.ko}${cost?` · 💰${cost}`:''}</b><small>${c.d}${poor?' — 돈이 부족해요':''}</small></button>`;}).join('')+(S.campGuest&&!S.campGuest.used?gHTML:'')+
     (S.campLog.length?`<button class="campOk" onclick="campFinish()">이대로 출발 →</button>`:`<button class="rsInfo" onclick="startRound()">← 돌아가기</button>`));}
 function campPick(k,name){S.campSel=[];
   if(k==='sleep'){const h=hurtCount();S.deck.forEach(c=>{delete c.out;delete c.st;});return campDone(`😴 푹 잤어요 — 부상 ${h.w}장 · 상처 ${h.s}장 회복`);}
   if(k==='walk')return walkStart();
   if(k==='scout'){if(S.gold<scoutCost())return;S.gold-=scoutCost();S.foes[2].rule=bossRule(S.jang,S.diff);return campDone('🗺 정찰 — 새 거인 규칙: '+S.foes[2].rule.ic+' '+S.foes[2].rule.ko);}
-  const pool=k==='merge'?S.deck.filter(c=>c.star===1):S.deck, by={};pool.forEach(c=>{const n=TYPES[c.id].n;(by[n]=by[n]||[]).push(c);});
-  if(!name){const ns=NAMES.map(x=>x[0]).filter(n=>by[n]&&(k!=='merge'||by[n].length>=2));
-    return showOv(`<h2>${CAMP[k].ic} ${CAMP[k].ko}</h2><p class="omNote">${k==='merge'?'머지할 동료를 고르세요 (★1만)':'떠나보낼 동료를 고르세요'}</p><div class="campNames">`+
+  const pool=k==='merge'?S.deck.filter(c=>c.star<3):S.deck, by={};pool.forEach(c=>{const n=TYPES[c.id].n;(by[n]=by[n]||[]).push(c);});
+  const twin=n=>[1,2].some(st=>(by[n]||[]).filter(c=>c.star===st).length>=2);   // 같은 ★가 2장 이상
+  if(!name){const ns=NAMES.map(x=>x[0]).filter(n=>by[n]&&(k!=='merge'||twin(n)));
+    return showOv(`<h2>${CAMP[k].ic} ${CAMP[k].ko}</h2><p class="omNote">${k==='merge'?'머지할 동료를 고르세요':'떠나보낼 동료를 고르세요'}</p><div class="campNames">`+
       ns.map(n=>`<button onclick="campPick('${k}','${n}')">${NAMES.find(x=>x[0]===n)[1]} <small>${by[n].length}장</small></button>`).join('')+`</div><button class="rsInfo" onclick="campOpen()">← 뒤로</button>`);}
   S.campK=k;S.campN=name;campCards();}
-function campCards(){const k=S.campK,n=S.campN,list=S.deck.filter(c=>TYPES[c.id].n===n&&(k!=='merge'||c.star===1));
+function campCards(){const k=S.campK,n=S.campN,list=S.deck.filter(c=>TYPES[c.id].n===n&&(k!=='merge'||c.star<3)).sort((a,b)=>a.star-b.star);
   const sel=S.campSel||[];
+  if(k==='merge'){const [a,b]=sel.map(u=>S.deck.find(c=>c.uid===u)),ok=a&&b&&mergeKind(a,b),cost=a?CAMP_MC[a.star+1]:CAMP_MC[2],ws=ok?[...new Set([cardW(a),cardW(b)])]:[];
+    if(!ws.includes(S.campW))S.campW=ws[0];
+    return showOv(`<h2>${CAMP[k].ic} ${CAMP[k].ko} · ${NAMES.find(x=>x[0]===n)[1]}</h2><p class="omNote">같은 ★ 2장 · 번호와 속성은 랜덤</p><div class="packRow campPick">`+
+      list.map(c=>{const o=sel.indexOf(c.uid);return `<div class="card dz s${c.star}${o>=0?' sel':''}" style="border-color:${WORLD_C[cardW(c)]}" onclick="campTap(${c.uid})">${cardFace(c)}${o>=0?`<span class="ord">${o+1}</span>`:''}</div>`;}).join('')+`</div>`+
+      (ws.length>1?`<div class="campW"><small>남길 세계</small>${ws.map(w=>`<button class="${w===S.campW?'on':''}" style="--wc:${WORLD_C[w]}" onclick="S.campW='${w}';campCards()">${WORLD_KO[w]}</button>`).join('')}</div>`:'')+
+      `<button class="campOk" ${ok&&S.gold>=cost?'':'disabled'} onclick="campApply()">머지하기 💰${cost}${ok&&S.gold<cost?' — 돈이 부족해요':''}</button><button class="rsInfo" onclick="campPick('${k}')">← 뒤로</button>`);}
   showOv(`<h2>${CAMP[k].ic} ${CAMP[k].ko} · ${NAMES.find(x=>x[0]===n)[1]}</h2><p class="omNote">${k==='merge'?'카드 2장을 고르세요 — 먼저 고른 카드가 남아요':'떠나보낼 카드 1장을 고르세요'}</p><div class="packRow">`+
     list.map(c=>{const o=sel.indexOf(c.uid);return `<div class="card dz s${c.star}${o>=0?' sel':''}" style="border-color:${WORLD_C[cardW(c)]}" onclick="campTap(${c.uid})">${cardFace(c)}${o>=0?`<span class="ord">${o+1}</span>`:''}</div>`;}).join('')+
     `</div><button class="campOk" ${(k==='merge'?sel.length===2:sel.length===1)?'':'disabled'} onclick="campApply()">${k==='merge'?'머지하기':'떠나보내기'}</button><button class="rsInfo" onclick="campPick('${k}')">← 뒤로</button>`);}
-function campTap(uid){const s=S.campSel,i=s.indexOf(uid),max=S.campK==='merge'?2:1;if(i>=0)s.splice(i,1);else{if(s.length>=max)s.shift();s.push(uid);}campCards();}
+function campTap(uid){const s=S.campSel,i=s.indexOf(uid),max=S.campK==='merge'?2:1;if(i>=0)s.splice(i,1);else{if(s.length>=max)s.shift();
+  if(S.campK==='merge'&&s.length){const a=S.deck.find(c=>c.uid===s[0]),b=S.deck.find(c=>c.uid===uid);if(a&&b&&a.star!==b.star)s.length=0;}   // ★가 다르면 새로 고름
+  s.push(uid);}campCards();}
 function campApply(){const s=S.campSel.map(u=>S.deck.find(c=>c.uid===u));
-  if(S.campK==='merge'){const [a,b]=s;if(!a||!b||!mergeKind(a,b))return;const k=applyMerge(a,b);S.deck.splice(S.deck.indexOf(b),1);S.merges++;
-    return campDone(`🔨 모닥불 머지 — ${TYPES[a.id].ko} ★2${k==='mix'?' 혼합':''} (${WORLD_KO[cardW(a)]} · ${a.el})`);}
+  if(S.campK==='merge'){const [a,b]=s;if(!a||!b||!mergeKind(a,b))return;const cost=CAMP_MC[a.star+1];if(S.gold<cost)return;
+    const w=[cardW(a),cardW(b)].includes(S.campW)?S.campW:cardW(a);S.gold-=cost;
+    const k=applyMerge(a,b,ELS[Math.random()*5|0],w,1+(Math.random()*10|0));S.deck.splice(S.deck.indexOf(b),1);S.merges++;
+    S.campRoll={uid:a.uid,k,re:1};return campRoll();}
   const c=s[0];if(!c)return;S.deck.splice(S.deck.indexOf(c),1);return campDone(`🚪 ${TYPES[c.id].ko} (${WORLD_KO[cardW(c)]} · ${c.el})이(가) 떠났어요 — 덱 ${S.deck.length}장`);}
+/* (DHL 11-02 시안 B) 모닥불 머지 굴리기 — 카드 위 번호 → 속성 → 힘이 하나씩 탁 멈춤 · 💰1 내고 한 번 다시 */
+const CAMP_MC={2:2,3:3};
+function campFaceNF(c){const f=S.foe;S.foe=null;try{return cardFace(c);}finally{S.foe=f;}}   // 굴리기 화면은 적 보정 없이 기본 힘
+function campRoll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a)return campOpen();
+  showOv(`<h2>🔨 모닥불 머지 · ${TYPES[a.id].ko} ★${a.star}${R.k==='mix'?' 혼합':''}</h2><div class="packRow campRollRow"><div></div><div class="card dz s${a.star}" id="campRC" style="border-color:${WORLD_C[cardW(a)]}">${campFaceNF(a)}</div><div></div></div>`+
+    `<p class="campRes" id="campRes">&nbsp;</p><button class="campOk" id="campRO" disabled onclick="campRollOk()">확인</button><button class="rsInfo campRe" id="campRR" hidden onclick="campReroll()">다시 굴리기 💰1 (1번)</button>`);
+  campSpin(a);}
+async function campSpin(a){const R=S.campRoll,my=R.tk=(R.tk||0)+1;R.busy=true;
+  const C=document.getElementById('campRC');if(!C)return;const I=C.querySelector('.dzi'),no=C.querySelector('.dzno'),pw=C.querySelector('.dzpw'),el=C.querySelector('.dzel');
+  const X=(a.mixed?MIX_X:STAR_X)[a.star],pwOf=n=>Math.round(n*X),rn=()=>1+(Math.random()*10|0);
+  const setEl=e=>{if(!I)return;I.dataset.el=EL_KEY[e];I.style.setProperty('--ec',EL_C[e]);if(el){el.title=e;el.innerHTML=ICO(EL_KEY[e]);}};
+  const tx=(x,v)=>{if(!x)return;delete x.dataset.dg;x.textContent=v;};   // 그림 숫자 다시 그리게
+  const pop=x=>{if(!x)return;x.classList.remove('crPop');void x.offsetWidth;x.classList.add('crPop');};
+  [no,pw,el].forEach(x=>x&&x.classList.add('crSpin'));C.classList.remove('crFlash');
+  const t0=performance.now(),stop={no:900,el:1450,pw:2000},on={no:1,el:1,pw:1};
+  while(on.no||on.el||on.pw){if(my!==R.tk||!document.getElementById('campRC'))return;const t=performance.now()-t0;
+    if(on.no){if(t>stop.no){on.no=0;tx(no,cardNo(a));no.classList.remove('crSpin');pop(no);}else tx(no,rn());}
+    if(on.el){if(t>stop.el){on.el=0;setEl(a.el);el&&el.classList.remove('crSpin');pop(el);}else setEl(ELS[Math.random()*5|0]);}
+    if(on.pw){if(t>stop.pw){on.pw=0;tx(pw,power(a));pw.classList.remove('crSpin');pop(pw);}else tx(pw,pwOf(rn()));}
+    await new Promise(r=>setTimeout(r,55+Math.min(140,t/16)));}
+  C.classList.add('crFlash');R.busy=false;
+  const res=document.getElementById('campRes');if(res)res.innerHTML=`번호 <b>${cardNo(a)}</b> · <b style="color:${EL_C[a.el]}">${a.el}</b> · 힘 <b>${power(a)}</b>`;
+  const ok=document.getElementById('campRO'),rr=document.getElementById('campRR');if(ok)ok.disabled=false;
+  if(rr){rr.hidden=!(R.re>0);rr.disabled=S.gold<1;if(S.gold<1)rr.textContent='다시 굴리기 💰1 — 돈이 부족해요';}}
+function campReroll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a||R.busy||R.re<1||S.gold<1)return;
+  S.gold-=1;R.re--;a.no=1+(Math.random()*10|0);a.el=ELS[Math.random()*5|0];
+  const ok=document.getElementById('campRO'),rr=document.getElementById('campRR');if(ok)ok.disabled=true;if(rr)rr.hidden=true;try{render();}catch(e){}campSpin(a);}
+function campRollOk(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a||R.busy)return;S.campRoll=null;
+  campDone(`🔨 모닥불 머지 — ${TYPES[a.id].ko} ★${a.star}${R.k==='mix'?' 혼합':''} (${WORLD_KO[cardW(a)]} · ${cardNo(a)} · ${a.el})`);}
 function campDone(msg){S.campLog.push(msg);S.campLeft--;if(S.campGuest&&S.campGuestUsing){S.campGuest.used=true;S.campGuestUsing=false;}popMsg('🏕 '+msg.split(' — ')[0]);if(S.campLeft>0)return campOpen();campFinish();}
 function campFinish(){const f=S.foes[S.rd];f.camped=true;S.campMsg=S.campLog.join(' · ');S.rd++;startRound();}   // 원정 캠프 없이 바로 다음 라운드
 /* 라운드 고르기 화면 (발라트로의 블라인드 선택) */
@@ -8028,4 +8068,19 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
   addEventListener('resize',()=>requestAnimationFrame(run));
 })();
 </script>
+<style id="lm-camp-roll">/* (DHL 11-02) 모닥불 머지 굴리기 · 세계 고르기 */
+.campRollRow{grid-template-columns:1fr 1.5fr 1fr}.campRollRow .card{transform:scale(1.12);transform-origin:50% 0;margin-bottom:10%}
+.campRes{text-align:center;font-size:14px;color:#cfd6e4;min-height:1.5em;margin:6px 0 4px;font-variant-numeric:tabular-nums}.campRes b{color:#f8edd0}
+.crSpin{filter:brightness(1.12)}
+.crPop{animation:crPop .32s cubic-bezier(.2,1.6,.4,1)}
+@keyframes crPop{0%{scale:1.35}100%{scale:1}}
+.card.crFlash::after{content:"";position:absolute;inset:-3px;border-radius:10px;box-shadow:0 0 0 2px #f6cf63,0 0 24px 6px #f6cf6399;animation:crFl .7s ease-out forwards;pointer-events:none;z-index:9}
+@keyframes crFl{from{opacity:1}to{opacity:0}}
+.campW{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 2px}.campW small{color:#93a3bd;font-size:12px;margin-right:2px}
+.campW button{border:1.5px solid #ffffff22;background:#0a1222;color:#cfd6e4;font-weight:800;font-size:13px;border-radius:999px;padding:6px 14px;cursor:pointer}
+.campW button.on{border-color:var(--wc);color:#fff;background:color-mix(in srgb,var(--wc) 35%,#0a1222)}
+.campRe{display:block;margin:8px auto 0}
+.packRow.campPick{margin-top:14px}   /* 고른 순서 번호(1 · 2)가 안내 글과 겹치지 않게 */
+@media (prefers-reduced-motion:reduce){.crPop,.card.crFlash::after{animation:none}}
+</style>
 </body></html>
