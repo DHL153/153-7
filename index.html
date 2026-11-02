@@ -3039,7 +3039,7 @@ function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes
 function win(){
   const last=S.jang===8&&S.rd===2&&!S.endless;
   if(last&&S.diff==='errant'&&!S.finale){lmFinale();return;}   /* (DHL 10-30) 편력: 스카이아크 알론소 → 반전 씬 → 풍차 거인 (저장 없음 — 지면 처음부터) */
-  if(last)try{lmStatEnd(true)}catch(e){}
+  if(last){try{S._clearNew=!(LM_ST.clears||{})[S.diff];}catch(e){}try{lmStatEnd(true)}catch(e){}}
   if(last){if(S.finale){lmEnding();return;}
     /* (DHL 11-02) 견습 · 기사 8장 클리어: 복선 한 컷 → 결과표 */
     if((S.diff==='app'||S.diff==='knight')&&typeof lmClearCut==='function'){const k=S.diff==='app'?'a':'b';lmClearCut(k).then(()=>showOv(runEndHTML(true)));return;}
@@ -3884,7 +3884,7 @@ function ltPlayHTML(){
     const i=keys.indexOf(ltDiff),d=DIFF[ltDiff],TK=['diff_app','diff_knight','diff_errant'];   // 난이도 아이콘 (DHL 10-30 새 시트: 견습 나무 칼·방패 · 기사 투구·창 · 편력 이발사 대야 투구·풍차) — 라운드 토큰과 같은 청동 리벳 테
     h+=`<div class="pl-wrap"><div class="pl-deck"><img src="assets/ui/lamancha/card_back.webp" alt=""><div class="pl-info"><b>라만차 덱</b><div class="pl-white">`+
       `<p><span>덱</span>: <em class="b">60장</em></p><p><span>동료</span>: <em class="b">30명 · 세계 3</em></p><p><span>최고 장</span>: <em class="r">${LM_ST.bestJang||'—'}</em></p><p><span>최고 한 방</span>: <em class="r">${LM_ST.best?LM_ST.best.toLocaleString():'—'}</em></p></div></div></div>`+
-      `<div class="pl-stake"><span class="pl-vert">난이도</span><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt=""><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}${LM_ST.clears[ltDiff]?' ✔':''}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div><div class="pl-white small">${d.d}</div></div></div></div>`+
+      `<div class="pl-stake"><span class="pl-vert">난이도</span><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt=""><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}${LM_ST.clears[ltDiff]?'<span class="lmClrOk" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div><div class="pl-white small">${d.d}</div></div></div></div>`+
       `<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`;
   }
   if(ltPlayTab==='cont'){
@@ -8128,6 +8128,101 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
     o.addEventListener('click',end);
     addEventListener('keydown',function k(e){if(e.key==='Escape'||e.key===' '||e.key==='Enter'){e.preventDefault();removeEventListener('keydown',k,true);end();}},true);
   });};
+})();
+</script>
+<style id="lm-clear-medal">
+/* (DHL 11-02 시안 B + C) 견습 · 기사 클리어: 판 끝 화면 훈장 수여 + 다음 난이도 열림 · 숫자는 슬롯 릴로 올라감 · 아무 데나 누르면 끝 상태로 */
+.goMedal{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;margin:-2px 0 2px}
+.goMedal .rays{position:absolute;left:50%;top:clamp(46px,8vh,66px);width:clamp(180px,30vh,260px);aspect-ratio:1;translate:-50% -50%;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,#ffd36a33 0 8deg,transparent 8deg 22deg);-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);animation:gmRot 14s linear infinite,gmFade .6s .5s both}
+.goMedal .md{position:relative;width:clamp(74px,13vh,108px);aspect-ratio:200/251;background:url(assets/ui/kit/badge_chapter.webp) center/contain no-repeat;filter:drop-shadow(0 6px 6px #000b);animation:gmDrop .7s .15s cubic-bezier(.3,1.5,.5,1) both}
+.goMedal .md img{position:absolute;left:16%;top:9.5%;width:68%}
+.goMedal .fl{position:absolute;left:50%;top:clamp(46px,8vh,66px);width:clamp(140px,24vh,200px);aspect-ratio:1;translate:-50% -50%;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#fff6d0,#ffd36a66 35%,transparent 65%);animation:gmFlash .8s .5s ease-out both}
+.goMedal b{position:relative;font:900 clamp(17px,3vh,23px)/1 "Noto Sans KR",sans-serif;color:#ffe9a8;text-shadow:0 2px 0 #3a2200;animation:gmFade .4s .7s both}
+.goUnlock{display:flex;align-items:center;gap:12px;background:#13203c;border:2px solid #c9a24a;border-radius:12px;padding:8px 12px;animation:gmUp .45s 1s both}
+.goUnlock .ic{position:relative;width:clamp(48px,8vh,64px);aspect-ratio:1;flex:none}
+.goUnlock .ic img{width:100%;height:100%;animation:gmColor .5s 1.5s both}
+.goUnlock .ic svg{position:absolute;top:30%;width:56%}
+.goUnlock .ic .cl{left:-12%;animation:gmChainL .5s 1.4s ease-in both}.goUnlock .ic .cr{right:-12%;animation:gmChainR .5s 1.4s ease-in both}
+.goUnlock .tx{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.goUnlock .tx b{font:900 clamp(17px,3vh,22px)/1 "Noto Sans KR",sans-serif;color:#fff}
+.goUnlock .tx em{font:900 13px/1 "Noto Sans KR",sans-serif;font-style:normal;color:#fff;background:#e8483d;border-radius:999px;padding:4px 12px;animation:gmPop .45s 1.7s cubic-bezier(.3,1.6,.5,1) both}
+.goBtn.goNext{background:linear-gradient(180deg,#f08a2a,#d4600f)!important;box-shadow:0 4px 0 #7a3305!important}
+@keyframes gmRot{to{rotate:360deg}}
+@keyframes gmFade{from{opacity:0}to{opacity:1}}
+@keyframes gmDrop{from{opacity:0;transform:translateY(-90px) rotate(-18deg) scale(.7)}to{opacity:1;transform:none}}
+@keyframes gmFlash{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.4)}}
+@keyframes gmUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes gmChainL{to{opacity:0;transform:translate(-20px,24px) rotate(-40deg)}}
+@keyframes gmChainR{to{opacity:0;transform:translate(20px,24px) rotate(40deg)}}
+@keyframes gmColor{from{filter:grayscale(1) brightness(.5)}to{filter:drop-shadow(0 0 8px #ff8a5a)}}
+@keyframes gmPop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+/* 아무 데나 누르면 바로 끝 상태 */
+.goB.goDone .goMedal *,.goB.goDone .goUnlock,.goB.goDone .goUnlock *,.goB.goDone .goPanel{animation-delay:0s!important;animation-duration:.01s!important}
+.goB.goDone .goMedal .rays{animation:gmRot 14s linear infinite!important}
+/* 판 끝 숫자 = 슬롯 릴 (보상 받기와 같은 릴) */
+.goRoll .rl{display:inline-block;height:1em;line-height:1em;overflow:hidden;width:.62em;text-align:center;vertical-align:-.1em}
+.goRoll .rl i{display:block;font-style:normal;will-change:transform}.goRoll .rl i b{display:block;height:1em;line-height:1em;font:inherit;color:inherit}
+.goRoll .rl.spin{filter:blur(.6px) brightness(1.25)}
+.goRoll.pop{animation:cfPop .28s cubic-bezier(.3,1.6,.5,1)}
+@media (prefers-reduced-motion:reduce){.goMedal *,.goUnlock,.goUnlock *{animation:none!important}.goRoll .rl i{transition:none!important}}
+/* 타이틀 왼쪽 위: 클리어 훈장 3칸 (시안 C) */
+#lmClearStrip{position:absolute;right:12px;top:12px;z-index:5;display:flex;gap:4px;padding:5px 8px 3px;border-radius:12px;background:#0a1124b3;border:1px solid #c9a24a99;box-shadow:0 3px 8px #0008;pointer-events:none}
+#lmClearStrip .md{position:relative;width:30px;aspect-ratio:200/251;background:url(assets/ui/kit/badge_chapter.webp) center/contain no-repeat;filter:drop-shadow(0 2px 2px #000a)}
+#lmClearStrip .md img{position:absolute;left:16%;top:9.5%;width:68%}
+#lmClearStrip .em{width:30px;height:38px;display:flex;justify-content:center}
+#lmClearStrip .em i{width:24px;height:24px;margin-top:2px;border-radius:50%;border:2px dashed #c9a24a88;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
+#lmClearStrip .em img{width:18px;filter:grayscale(1) brightness(.35)}
+#lm-title.ingame #lmClearStrip{display:none}
+/* 난이도 고르기: 클리어한 난이도 이름 옆 초록 체크(똑바로) */
+.lmClrOk{display:inline-flex;align-items:center;justify-content:center;width:1.05em;height:1.05em;margin-left:.3em;vertical-align:-.12em;border-radius:50%;background:linear-gradient(180deg,#3fbf5a,#1f8a3a);border:2px solid #fff3d0;box-shadow:0 1px 3px #000a}.lmClrOk svg{width:70%;height:70%}
+</style>
+<script id="lm-clear-medal-js">
+(function(){
+  const DK=['app','knight','errant'],IC={app:'diff_app',knight:'diff_knight',errant:'diff_errant'};
+  /* 숫자 슬롯 릴: 자릿수마다 릴, 쉼표 · 기호는 그대로 */
+  function reel(el,txt,ms){el.classList.add('goRoll');el.textContent='';const rs=[];
+    for(const ch of txt){if(/\d/.test(ch)){const r=document.createElement('span');r.className='rl';r.innerHTML='<i>'+'0123456789'.repeat(3).split('').map(d=>'<b>'+d+'</b>').join('')+'</i>';r.dataset.d=ch;el.appendChild(r);rs.push(r);}else el.appendChild(document.createTextNode(ch));}
+    const n=rs.length;let left=n;const T=[];
+    rs.forEach((r,k)=>{const d=+r.dataset.d,i=r.firstChild,dur=Math.max(1,ms*(.62+.38*(n>1?k/(n-1):1)));
+      i.style.transform='translateY(0)';void i.offsetWidth;i.style.transition=`transform ${dur}ms cubic-bezier(.2,.75,.3,1.18)`;i.style.transform=`translateY(${-(20+d)}em)`;r.classList.add('spin');
+      const tk=ms>40&&typeof lmSfxTick==='function'?setInterval(lmSfxTick,75):0;
+      T.push(setTimeout(()=>{clearInterval(tk);r.classList.remove('spin');i.style.transition='none';i.style.transform=`translateY(${-d}em)`;
+        if(--left===0){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');try{lmSfxChing(false);}catch(e){}}},dur));});
+    return ()=>{T.forEach(clearTimeout);rs.forEach(r=>{const i=r.firstChild;r.classList.remove('spin');i.style.transition='none';i.style.transform=`translateY(${-(+r.dataset.d)}em)`;});};}
+  function startRoll(){
+    const box=document.querySelector('#panel .goB');if(!box||box.dataset.roll)return;box.dataset.roll='1';
+    const fast=typeof LM_SET!=='undefined'&&LM_SET.rm;
+    const els=[...box.querySelectorAll('.goWide>b,.goC>b')].filter(b=>/\d/.test(b.textContent)&&!b.querySelector('small:not(:last-child)'));
+    const items=els.map(b=>{const sm=b.querySelector('small');const tail=sm?sm.outerHTML:'';const raw=(sm?b.firstChild&&b.firstChild.nodeType===3?b.firstChild.nodeValue:'':b.textContent).trim();return {b,raw,tail};}).filter(x=>/^\d[\d,]*$/.test(x.raw));
+    items.forEach(x=>{x.b.innerHTML='<span class="goRv"></span>'+x.tail;x.v=x.b.firstChild;x.v.textContent=x.raw.replace(/\d/g,'0');});
+    const T=[],stops=[];let t=box.querySelector('.goMedal')?2000:450,done=false;
+    items.forEach((x,k)=>{const ms=fast?1:(k===0?1100:650);T.push(setTimeout(()=>stops.push(reel(x.v,x.raw,ms)),t));t+=fast?0:(k===0?520:220);});
+    const finish=()=>{if(done)return;done=true;T.forEach(clearTimeout);stops.forEach(f=>f());
+      items.forEach(x=>{if(!x.v.querySelector('.rl')){x.v.textContent=x.raw;}else{x.v.querySelectorAll('.rl').forEach(r=>{const i=r.firstChild;i.style.transition='none';i.style.transform=`translateY(${-(+r.dataset.d)}em)`;});}});
+      box.classList.add('goDone');document.removeEventListener('pointerdown',tap,true);};
+    function tap(e){if(done)return;if(!e.target.closest('#ov'))return;e.preventDefault();e.stopPropagation();finish();}   /* 연출 중 첫 누름 = 완료 (버튼도 이 한 번은 막음) */
+    document.addEventListener('pointerdown',tap,true);
+    T.push(setTimeout(finish,t+1200));}
+  const _so=showOv;showOv=function(){const r=_so.apply(this,arguments);try{if(document.querySelector('#panel .goB'))requestAnimationFrame(startRoll);}catch(e){}return r;};
+  /* 판 끝 화면에 훈장 · 다음 난이도 넣기 */
+  const _re=runEndHTML;runEndHTML=function(won){let h=_re.apply(this,arguments);
+    try{if(won&&S&&!S.finale&&!S.endless&&(S.diff==='app'||S.diff==='knight')){
+      const nx=DK[DK.indexOf(S.diff)+1],D=DIFF[S.diff].ko,N=DIFF[nx].ko;
+      const chain='<svg aria-hidden="true" viewBox="0 0 44 30"><rect x="2" y="8" width="20" height="14" rx="7" fill="none" stroke="#b9c2d0" stroke-width="4"/><rect x="18" y="8" width="20" height="14" rx="7" fill="none" stroke="#8d97a8" stroke-width="4"/></svg>';
+      const med=`<div class="goMedal" role="img" aria-label="${D} 클리어"><i class="rays"></i><i class="fl"></i><div class="md"><img src="assets/ui/lamancha/${IC[S.diff]}.webp?v=2" alt=""></div><b>${D} 클리어</b></div>`+
+        `<div class="goUnlock"><div class="ic"><img src="assets/ui/lamancha/${IC[nx]}.webp?v=2" alt="">${S._clearNew?chain.replace('<svg','<svg class="cl"')+chain.replace('<svg','<svg class="cr"'):''}</div><div class="tx"><b>${N}</b>${S._clearNew?'<em>열림!</em>':''}</div></div>`;
+      h=h.replace(/(<div class="goPanel"><h1>[^<]*<\/h1>)/,'$1'+med);
+      h=h.replace('<div class="goBtns">',`<div class="goBtns"><button class="goBtn goNext" onclick="hideOv();firstGame=false;try{lsSet('lm_last_diff','${nx}');ltDiff='${nx}';}catch(e){}newGame('${nx}')">${N} 도전</button>`);}}catch(e){console.warn('[클리어 훈장]',e);}
+    return h;};
+  /* 타이틀 훈장 3칸 */
+  function strip(){const t=document.getElementById('lm-title');if(!t||typeof LM_ST==='undefined')return;const C=LM_ST.clears||{};
+    let s=document.getElementById('lmClearStrip');if(!DK.some(k=>C[k])){if(s)s.remove();return;}
+    if(!s){s=document.createElement('div');s.id='lmClearStrip';t.appendChild(s);}
+    s.setAttribute('role','img');s.setAttribute('aria-label','클리어: '+DK.filter(k=>C[k]).map(k=>DIFF[k].ko).join(', '));
+    s.innerHTML=DK.map(k=>C[k]?`<div class="md"><img src="assets/ui/lamancha/${IC[k]}.webp?v=2" alt=""></div>`:`<div class="em"><i><img src="assets/ui/lamancha/${IC[k]}.webp?v=2" alt=""></i></div>`).join('');}
+  const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);try{strip();}catch(e){}return r;};
+  try{strip();}catch(e){}
 })();
 </script>
 </body></html>
