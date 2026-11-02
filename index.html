@@ -1069,7 +1069,7 @@ body:has(#ov:not([hidden]) .shop) #midZone,body:has(#ov:not([hidden]) .shop) #ha
 .goSide{display:flex;flex-direction:column;align-items:center;gap:8px;animation:goIn .5s .2s both}
 .goPal{width:clamp(90px,16vw,170px);aspect-ratio:1;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 6px 0 #0005)}
 .goPal img{max-width:100%;max-height:100%;object-fit:contain;animation:dzBob 1.6s ease-in-out infinite}
-.goQuip{background:#fff;color:#22252a;border-radius:12px;padding:8px 12px;font:900 clamp(13px,2.4vh,17px)/1.45 "Noto Sans KR",sans-serif;box-shadow:0 4px 0 #0004;position:relative;text-align:left}
+.goQuip{word-break:keep-all;overflow-wrap:break-word;background:#fff;color:#22252a;border-radius:12px;padding:8px 12px;font:900 clamp(13px,2.4vh,17px)/1.45 "Noto Sans KR",sans-serif;box-shadow:0 4px 0 #0004;position:relative;text-align:left}
 .goQuip::before{content:"";position:absolute;top:-9px;left:50%;border:9px solid transparent;border-top:0;border-bottom-color:#fff;transform:translateX(-50%)}
 .goPanel{width:min(560px,100%);background:#34444b;border:4px solid #c9d3d6;border-radius:16px;padding:clamp(10px,1.8vh,16px);display:flex;flex-direction:column;gap:clamp(6px,1.1vh,10px);box-shadow:0 10px 0 #0e161c,0 20px 50px #0009;animation:goIn .45s cubic-bezier(.2,1.3,.4,1) both}
 @keyframes goIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
@@ -1090,7 +1090,7 @@ body:has(#ov:not([hidden]) .shop) #midZone,body:has(#ov:not([hidden]) .shop) #ha
 .goBtn{display:block;width:72%;margin:2px auto 0;min-height:clamp(36px,6vh,48px);border:0;border-radius:10px;background:#fe4a3c!important;color:#fff;font:900 clamp(16px,2.8vh,21px)/1 "Noto Sans KR",sans-serif;box-shadow:0 5px 0 #a82a20;text-shadow:0 2px 0 #0005}
 .goBtn:active{transform:translateY(4px);box-shadow:0 1px 0 #a82a20}
 @media (max-height:460px){.goBtns{display:flex;gap:8px}.goBtns .goBtn{width:auto;flex:1;margin:2px 0 0}.goPanel{max-height:96vh;overflow:auto}.goWide>b,.goC>b{font-size:14px}.goWide>b.red{font-size:20px}.goPanel h1{font-size:30px}.goC{min-height:24px}.goWide{min-height:28px}.goPanel{gap:4px;padding:8px}.goBtn{min-height:30px;font-size:15px}.goFoe img{width:36px}.goPal{width:80px}.goQuip{font-size:12px}}
-@media (orientation:portrait){.goB{flex-direction:column-reverse;gap:10px;justify-content:flex-start;padding-top:12px}.goSide{flex-direction:row}.goPal{width:72px}.goQuip br{display:none}}
+@media (orientation:portrait){.goB{flex-direction:column-reverse;gap:10px;justify-content:flex-start;padding-top:12px}.goSide{flex-direction:row}.goPal{width:72px}.goQuip br:not(.hard){display:none}}
 /* 🎨 DHL 그림 1차 (2026-10-27): 테이블 배경 3장 · 카드 뒷면 · 라운드 토큰 3장
    ⚠ 메모: 거인 토큰 · 카드 뒷면은 '더미' — DHL이 마음에 들지 않아 추후 교체 (파일 이름만 바꿔 끼우면 됨) */
 body[data-tbl] #mainArea{background:#0e1a17 center/cover no-repeat;box-shadow:inset 0 0 0 7px #6b3c1d,inset 0 0 0 9px #2a1408,inset 0 0 0 10px #a8693a55,inset 0 0 70px 18px #000a}
@@ -3047,13 +3047,15 @@ function win(){
 /* 🏁 판 끝 화면 — 발라트로 '게임 오버'처럼 (2026-10-28): 큰 제목 · 이번 판 기록 표 · 쓰러뜨린/막힌 상대 · 산초 한마디 · [새로운 런] [메인 메뉴] */
 const END_QUIP={lose:['괜찮아요 나리,\n진짜 기사는\n다시 일어나요!','풍차가 오늘은\n조금 셌네요.\n빵 먹고 다시 가요!','나리, 다음엔\n약점부터\n노려 봐요!','넘어진 김에\n잠깐 쉬었다\n가는 거예요!'],
   win:['나리! 라만차가\n나리 이름을\n노래해요!','거인도 풍차도\n전부 쓰러뜨렸어요!\n역시 나리예요!']};
+/* (DHL 11-02 '역시부터 엔터') 말풍선 줄바꿈: 문장 끝(! ? .) = 늘 줄바꿈(세로 화면에서도) · 나머지 \n = 가로 화면 말풍선 모양용(세로에선 이어 씀) · 낱말 중간에선 안 끊음 */
+function lmQuipHTML(q){return String(q).replace(/([!?.])[ \n]+(?=\S)|(,)\n(?=\S)/g,(m,a,b)=>(a||b)+'\u0001').split('\u0001').map(x=>x.replace(/ (?=[^ \n]+$)/,'\u00a0').replace(/\n/g,' <br>')).join('<br class="hard">');}   /* 마지막 낱말은 앞 낱말과 붙여 한 낱말만 다음 줄로 떨어지지 않게 */
 function runEndHTML(won){
   const rs=S.rs||{play:0,dis:0,buy:0,rr:0},f=S.foe||(S.foes&&S.foes[S.rd]),TK=['token_minion','token_knight','token_giant'];
   const top=Object.entries(S.htCount||{}).sort((a,b)=>b[1]-a[1])[0];
   const q=END_QUIP[won?'win':'lose'];const quip=q[Math.random()*q.length|0];
   const img=typeof HAS_ART!=='undefined'&&HAS_ART&&MR_ART.idle&&(MR_ART.idle[JANG_WORLD(S.jang)+'_sancho']||MR_ART.idle.rust_sancho);
   const C=(k,v,c)=>`<div class="goC"><span>${k}</span><b class="${c||''}">${v}</b></div>`;
-  return `<div class="goB${won?' win':''}"><div class="goSide"><div class="goPal">${img?`<img src="${img}" alt="">`:''}</div><div class="goQuip">${quip.replace(/\n/g,' <br>')}</div></div>`+
+  return `<div class="goB${won?' win':''}"><div class="goSide"><div class="goPal">${img?`<img src="${img}" alt="">`:''}</div><div class="goQuip">${lmQuipHTML(quip)}</div></div>`+
    `<div class="goPanel"><h1>${won?(S.finale?'풍차 거인 격파!':'라만차 정복!'):'게임 오버'}</h1>`+
    `<div class="goWide"><span>최고 한 방</span><b class="red">${(S.best||0).toLocaleString()}</b></div>`+
    `<div class="goWide"><span>가장 많이 낸 족보</span><b>${top&&HT[top[0]]?HT[top[0]][0]+` <small>(${top[1]})</small>`:'—'}</b></div>`+
