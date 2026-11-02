@@ -7863,7 +7863,8 @@ let isGameOver = false;
   startBattleTeamSkill=function(p){if(p&&p.kind!=='finish'&&(cast.cutDur||cast.group))p.duration=cast.cutDur||1100;return origSkill.apply(this,arguments);};
   // ★14 처치 컷신은 늘 라운드 주인공 (합동기로 무대 팀이 바뀌어도)
   const origFinishCut=startBattleFinishCutscene;
-  startBattleFinishCutscene=function(){if(cast.leader!=null&&activeBattleTeam[0]!==cast.leader){const keep=activeBattleTeam[0];activeBattleTeam[0]=cast.leader;try{return origFinishCut.apply(this,arguments);}finally{activeBattleTeam[0]=keep;}}return origFinishCut.apply(this,arguments);};
+  startBattleFinishCutscene=function(){finishCutTurn=0;   /* (DHL 11-02) 처치 컷신 = 늘 1번 자리(라운드 주인공) — 동료 카드를 함께 내도 돌아가며 고르지 않음 */
+    if(cast.leader!=null&&activeBattleTeam[0]!==cast.leader){const keep=activeBattleTeam[0];activeBattleTeam[0]=cast.leader;try{return origFinishCut.apply(this,arguments);}finally{activeBattleTeam[0]=keep;}}return origFinishCut.apply(this,arguments);};
   // ★1 공격·컷인 출연진
   const origAttacker=chooseBattleAttacker;
   chooseBattleAttacker=function(){if(cast.slot!=null&&activeBattleTeam[cast.slot]!=null)return cast.slot;return origAttacker.apply(this,arguments);};
