@@ -3050,13 +3050,26 @@ function win(){
 /* 🏁 판 끝 화면 — 발라트로 '게임 오버'처럼 (2026-10-28): 큰 제목 · 이번 판 기록 표 · 쓰러뜨린/막힌 상대 · 산초 한마디 · [새로운 런] [메인 메뉴] */
 const END_QUIP={lose:['괜찮아요 나리,\n진짜 기사는\n다시 일어나요!','풍차가 오늘은\n조금 셌네요.\n빵 먹고 다시 가요!','나리, 다음엔\n약점부터\n노려 봐요!','넘어진 김에\n잠깐 쉬었다\n가는 거예요!'],
   win:['나리! 라만차가\n나리 이름을\n노래해요!','거인도 풍차도\n전부 쓰러뜨렸어요!\n역시 나리예요!']};
+/* (DHL 11-02) 판 끝 한마디: 산초만 → 동료 10명 중 무작위 (말투도 캐릭터마다) */
+const END_QUIP_BY={sancho:END_QUIP,
+  alonso:{win:['이 검이 닿는 곳이\n곧 라만차다!','풍차여, 보았느냐!\n기사의 길은\n끝나지 않는다!'],lose:['쓰러져도 좋다.\n기사는 다시\n일어나는 법!','오늘의 패배는\n내일의 무용담이\n될 것이다!']},
+  dulcine:{win:['멋져요, 나리!\n오늘 밤 노래는\n나리 거예요!','망치보다 단단한\n마음이었어요!'],lose:['괜찮아요.\n제가 기다릴게요.\n다시 와요!','다음엔 제 망치가\n먼저 나갈게요!']},
+  rosi:{win:['탄창 비웠습니다!\n하나도 안\n남기고요!','명중, 명중,\n또 명중!\n오늘도 감사해요!'],lose:['재장전 중이에요.\n조금만\n기다려요!','총열이 식으면\n다시 쏩니다!']},
+  gris:{win:['한 방이면\n충분했지!\n주먹이 근질근질해!','거인? 내 주먹보다\n작던데!'],lose:['아직 주먹은\n쥐어져 있어!','넘어지면 더 세게\n일어나면 되지!']},
+  carden:{win:['어느 세계로 가도\n오늘 얘기는\n전해질 거예요.','긴 길이었지만\n끝이 좋네요.'],lose:['길은 또 있어요.\n지도부터\n다시 펴요.','돌아가는 길도\n여정이에요.']},
+  lucia:{win:['빛이 나리\n편이었어요!','어둠이 다\n걷혔어요!\n수고했어요!'],lose:['등불은 아직\n꺼지지 않았어요.','잠깐 어두워졌을\n뿐이에요.\n다시 가요!']},
+  nicole:{win:['약점을 정확히\n찔렀어요!\n완벽해요!','불도 물도 번개도\n전부 우리\n편이었어요!'],lose:['상성을 다시\n읽어 볼게요!','다음엔 창끝으로\n약점만 노려요!']},
+  palome:{win:['우와! 저도\n영웅이 된 것\n같아요!','작아도 해냈어요!\n우리 진짜\n멋져요!'],lose:['울지 않을게요!\n다시 해요,\n나리!','저 아직\n안 지쳤어요!']},
+  bruno:{win:['잘 두드린 쇠는\n안 부러지는\n법이지!','오늘 일 끝!\n망치 내려놓고\n쉬자고!'],lose:['쇠는 식혀서\n다시 두드리면\n돼.','부러진 건\n다시 벼리면\n그만이야!']}};
 /* (DHL 11-02 '역시부터 엔터') 말풍선 줄바꿈: 문장 끝(! ? .) = 늘 줄바꿈(세로 화면에서도) · 나머지 \n = 가로 화면 말풍선 모양용(세로에선 이어 씀) · 낱말 중간에선 안 끊음 */
 function lmQuipHTML(q){return String(q).replace(/([!?.])[ \n]+(?=\S)|(,)\n(?=\S)/g,(m,a,b)=>(a||b)+'\u0001').split('\u0001').map(x=>x.replace(/ (?=[^ \n]+$)/,'\u00a0').replace(/\n/g,' <br>')).join('<br class="hard">');}   /* 마지막 낱말은 앞 낱말과 붙여 한 낱말만 다음 줄로 떨어지지 않게 */
 function runEndHTML(won){
   const rs=S.rs||{play:0,dis:0,buy:0,rr:0},f=S.foe||(S.foes&&S.foes[S.rd]),TK=['token_minion','token_knight','token_giant'];
   const top=Object.entries(S.htCount||{}).sort((a,b)=>b[1]-a[1])[0];
-  const q=END_QUIP[won?'win':'lose'];const quip=q[Math.random()*q.length|0];
-  const img=typeof HAS_ART!=='undefined'&&HAS_ART&&MR_ART.idle&&(MR_ART.idle[JANG_WORLD(S.jang)+'_sancho']||MR_ART.idle.rust_sancho);
+  const art=k=>typeof HAS_ART!=='undefined'&&HAS_ART&&MR_ART.idle&&(MR_ART.idle[JANG_WORLD(S.jang)+'_'+k]||MR_ART.idle['rust_'+k]);
+  const ks=Object.keys(END_QUIP_BY).filter(k=>art(k)),who=ks.length?ks[Math.random()*ks.length|0]:'sancho';
+  const q=END_QUIP_BY[who][won?'win':'lose'];const quip=q[Math.random()*q.length|0];
+  const img=art(who);
   const C=(k,v,c)=>`<div class="goC"><span>${k}</span><b class="${c||''}">${v}</b></div>`;
   return `<div class="goB${won?' win':''}"><div class="goSide"><div class="goPal">${img?`<img src="${img}" alt="">`:''}</div><div class="goQuip">${lmQuipHTML(quip)}</div></div>`+
    `<div class="goPanel"><h1>${won?(S.finale?'풍차 거인 격파!':'라만차 정복!'):'게임 오버'}</h1>`+
