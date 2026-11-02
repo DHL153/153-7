@@ -3882,9 +3882,11 @@ function ltPlayHTML(){
   let h=`<div class="ls-tabs">${tab('new','새로운 런')}${tab('cont','계속하기')}${tab('try','배우기')}</div><div class="ls-body">`;
   if(ltPlayTab==='new'){
     const i=keys.indexOf(ltDiff),d=DIFF[ltDiff],TK=['diff_app','diff_knight','diff_errant'];   // 난이도 아이콘 (DHL 10-30 새 시트: 견습 나무 칼·방패 · 기사 투구·창 · 편력 이발사 대야 투구·풍차) — 라운드 토큰과 같은 청동 리벳 테
+    /* (DHL 11-02 시안 A) 위 훈장 3칸: 깬 난이도 = 금 훈장 · 안 깬 = 점선 빈칸 · 누르면 그 난이도 고르기 */
+    h+=`<div class="pl-medals" role="group" aria-label="난이도 클리어">`+keys.map((k,j)=>`<button type="button" class="pl-md${k===ltDiff?' on':''}${LM_ST.clears[k]?' got':''}" onclick="ltDiff='${k}';ltPop('play')" aria-label="${DIFF[k].ko}${LM_ST.clears[k]?' 클리어':''}"><span class="m"><img src="assets/ui/lamancha/${TK[j]}.webp?v=2" alt=""></span><b>${DIFF[k].ko}</b></button>`).join('')+`</div>`;
     h+=`<div class="pl-wrap"><div class="pl-deck"><img src="assets/ui/lamancha/card_back.webp" alt=""><div class="pl-info"><b>라만차 덱</b><div class="pl-white">`+
       `<p><span>덱</span>: <em class="b">60장</em></p><p><span>동료</span>: <em class="b">30명 · 세계 3</em></p><p><span>최고 장</span>: <em class="r">${LM_ST.bestJang||'—'}</em></p><p><span>최고 한 방</span>: <em class="r">${LM_ST.best?LM_ST.best.toLocaleString():'—'}</em></p></div></div></div>`+
-      `<div class="pl-stake"><span class="pl-vert">난이도</span><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt=""><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}${LM_ST.clears[ltDiff]?'<span class="lmClrOk" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div><div class="pl-white small">${d.d}</div></div></div></div>`+
+      `<div class="pl-stake"><span class="pl-vert">난이도</span><span class="pl-ic"><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt="">${LM_ST.clears[ltDiff]?'<span class="lmClrOk big" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</span><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div>${LM_ST.clears[ltDiff]?'<span class="pl-clr">8장 클리어</span>':''}<div class="pl-white small">${d.d}</div></div></div></div>`+
       `<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`;
   }
   if(ltPlayTab==='cont'){
@@ -8225,4 +8227,25 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
   try{strip();}catch(e){}
 })();
 </script>
+<style id="lm-diff-medals">
+/* (DHL 11-02 시안 A) 난이도 고르기 훈장 */
+#lm-title .pl-medals{display:flex;justify-content:center;gap:clamp(8px,2vw,18px);margin:-4px auto 6px;max-width:440px}
+@media (orientation:landscape) and (max-height:820px){#lm-title .pl-md{flex-direction:row;gap:5px}#lm-title .pl-md .m{width:34px}}
+#lm-title .pl-md{display:flex;flex-direction:column;align-items:center;gap:3px;background:none!important;border:0!important;box-shadow:none!important;padding:2px 4px!important;min-width:0!important;min-height:0!important;cursor:pointer;color:#c8d3ea;border-radius:10px}
+#lm-title .pl-md .m{position:relative;width:clamp(38px,5.6vh,64px);aspect-ratio:200/251;display:flex;justify-content:center}
+#lm-title .pl-md.got .m{background:url(assets/ui/kit/badge_chapter.webp) center/contain no-repeat;filter:drop-shadow(0 3px 3px #000a)}
+#lm-title .pl-md.got .m img{position:absolute;left:16%;top:9.5%;width:68%}
+#lm-title .pl-md:not(.got) .m img{width:78%;height:auto;align-self:flex-start;margin-top:4%;border-radius:50%;outline:2px dashed #c9a24a99;outline-offset:2px;filter:grayscale(.6) brightness(.6)}
+#lm-title .pl-md b{font:700 clamp(11px,1.7vh,13px)/1.1 'Noto Sans KR',sans-serif;white-space:nowrap}
+#lm-title .pl-md.got b{color:#ffd36a}
+#lm-title .pl-md.on{background:#ffffff14!important;box-shadow:inset 0 0 0 2px #c9a24a!important}
+#lm-title .pl-md.on.got .m{animation:plMdShine 3s ease-in-out infinite}
+@keyframes plMdShine{0%,100%{filter:drop-shadow(0 3px 3px #000a)}50%{filter:drop-shadow(0 0 10px #ffd36a) drop-shadow(0 3px 3px #000a)}}
+#lm-title .pl-ic{position:relative;flex:none;display:inline-flex}
+#lm-title .pl-ic>img{width:58px;height:58px}
+#lm-title .pl-ic .lmClrOk.big{position:absolute;right:-6px;top:-6px;width:24px;height:24px;margin:0;font-size:24px}
+#lm-title .pl-clr{display:inline-block;align-self:flex-start;margin:2px 0 4px;padding:2px 10px;border-radius:999px;background:#1f8a3a;color:#fff;font:900 12px/1.4 'Noto Sans KR',sans-serif;white-space:nowrap}
+@media (max-height:460px){#lm-title .pl-medals{margin-bottom:4px}#lm-title .pl-md .m{width:40px}#lm-title .pl-md b{display:none}}
+@media (prefers-reduced-motion:reduce){#lm-title .pl-md.on.got .m{animation:none}}
+</style>
 </body></html>
