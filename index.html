@@ -3042,7 +3042,9 @@ function win(){
   if(last){try{if(!S._statEnded)S._clearNew=!(LM_ST.clears||{})[S.diff];}catch(e){}try{lmStatEnd(true)}catch(e){}}
   if(last){if(S.finale){lmEnding();return;}
     /* (DHL 11-02) 견습 · 기사 8장 클리어: 복선 한 컷 → 결과표 */
-    if((S.diff==='app'||S.diff==='knight')&&typeof lmClearCut==='function'){const k=S.diff==='app'?'a':'b';lmClearCut(k).then(()=>showOv(runEndHTML(true)));return;}
+    if((S.diff==='app'||S.diff==='knight')&&typeof lmClearCut==='function'){if(S._clearCut)return;S._clearCut=1;const k=S.diff==='app'?'a':'b';   /* win()이 두 번 불려도 컷 · 결과는 한 번만 */
+      /* (DHL 11-02 '컷 뒤 전투 화면이 잠깐 보였다가 결과로 = 버그 같음') 결과 화면을 컷 뒤에 미리 깔아 두고(멈춤) → 컷이 닫히면 바로 결과 연출 시작 */
+      S._holdEnd=1;showOv(runEndHTML(true));lmClearCut(k).then(()=>{S._holdEnd=0;if(window.lmEndStart)lmEndStart();});return;}
     showOv(runEndHTML(true));return;}
   cashOut();
 }
@@ -8112,42 +8114,29 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 .packRow.campPick{margin-top:14px}   /* 고른 순서 번호(1 · 2)가 안내 글과 겹치지 않게 */
 @media (prefers-reduced-motion:reduce){.crPop,.card.crFlash::after{animation:none}}
 </style>
-<style id="lm-clear-cut">
-/* (DHL 11-02) 8장 거인 처치 뒤 복선 한 컷 — 견습 = 붉게 거꾸로 도는 풍차(clear_a) · 기사 = 풍차 앞 스카이아크 알론소 유령(clear_b_bg + 날개 · 유령 · 효과 조각). 글자 없음, 누르면 넘김 */
-#lmClearCut{position:fixed;inset:0;z-index:420;background:#05070d;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .5s;cursor:pointer}
-#lmClearCut.on{opacity:1}
-#lmClearCut .cc{position:relative;width:min(100vw,calc(100vh * 1448 / 1086));aspect-ratio:1448/1086;overflow:hidden;animation:ccPush 4.6s ease-out both}
-#lmClearCut .cc>img{position:absolute;display:block;pointer-events:none}
-#lmClearCut .bg{left:0;top:0;width:100%;height:100%}
-#lmClearCut .ring{left:55.46%;top:17.5%;width:20.7%;mix-blend-mode:screen;animation:ccPulse 1.6s ease-in-out infinite}
-#lmClearCut .bl{left:56.97%;top:19.89%;width:17.82%;transform-origin:49.6% 49.8%;animation:ccSpin 5s linear infinite;filter:drop-shadow(0 0 6px #ff4a1a)}
-#lmClearCut .gh{left:44.4%;top:31.31%;width:15.95%;opacity:0;filter:drop-shadow(0 0 4px #7ff6ff) drop-shadow(0 0 10px #3fd8e8);animation:ccGhost 4.6s ease-in-out both}
-#lmClearCut .sm{mix-blend-mode:screen;opacity:0;animation:ccSmoke 4.6s ease-in-out both}
-#lmClearCut .s1{left:42.1%;top:33.1%;width:5.5%;animation-delay:.2s}#lmClearCut .s2{left:40.7%;top:47.9%;width:13%;animation-delay:.4s}
-#lmClearCut .s3{left:58%;top:31.3%;width:5%;animation-delay:.3s}#lmClearCut .s4{left:44.9%;top:51.6%;width:11%;animation-delay:.5s}
-@keyframes ccPush{from{transform:scale(1)}to{transform:scale(1.06)}}
-@keyframes ccSpin{to{transform:rotate(-360deg)}}
-@keyframes ccPulse{0%,100%{opacity:.45;transform:scale(.97)}50%{opacity:1;transform:scale(1.04)}}
-@keyframes ccGhost{0%,18%{opacity:0;transform:translateY(8px)}42%{opacity:.88;transform:none}62%{opacity:.6}70%{opacity:.9}88%{opacity:.85}100%{opacity:.85}}
-@keyframes ccSmoke{0%,20%{opacity:0;transform:translateY(10px)}45%{opacity:.9}100%{opacity:.7;transform:translateY(-12px)}}
-@media (prefers-reduced-motion:reduce){#lmClearCut .cc,#lmClearCut .bl,#lmClearCut .ring{animation:none}#lmClearCut .gh{animation:none;opacity:.85}#lmClearCut .sm{animation:none;opacity:.7}}
-</style>
 <script id="lm-clear-cut-js">
+/* (DHL 11-02 '인트로 · 엔딩과 같은 양식으로') 복선 컷 = 스토리 만화 뷰어(MRStory scene) 한 장 + Live(원본 위 움직이는 조각) — 처음엔 '계속'으로 넘김, 본 뒤로는 건너뛰기 */
 (function(){
-  const D='assets/art/story/';
-  window.lmClearCut=function(kind){return new Promise(res=>{
-    const o=document.createElement('div');o.id='lmClearCut';o.setAttribute('role','img');o.setAttribute('aria-label',kind==='b'?'풍차 앞에 선 스카이아크 알론소':'붉게 거꾸로 도는 풍차');
-    const I=(c,f)=>`<img class="${c}" src="${D}${f}.webp" alt="">`;
-    o.innerHTML='<div class="cc">'+(kind==='b'
-      ?I('bg','clear_b_bg')+I('ring','clear_ring')+I('bl','clear_blades')+I('gh','clear_ghost')+I('sm s1','clear_smoke1')+I('sm s2','clear_smoke2')+I('sm s3','clear_smoke3')+I('sm s4','clear_smoke4')
-      :I('bg','clear_a')+I('ring','clear_ring'))+'</div>';
-    document.body.appendChild(o);let done=false;
-    const end=()=>{if(done)return;done=true;o.classList.remove('on');setTimeout(()=>{o.remove();res();},500);};
-    const imgs=[...o.querySelectorAll('img')];
-    Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r;setTimeout(r,2500);}))).then(()=>{requestAnimationFrame(()=>o.classList.add('on'));setTimeout(end,kind==='b'?4600:3800);});
-    o.addEventListener('click',end);
-    addEventListener('keydown',function k(e){if(e.key==='Escape'||e.key===' '||e.key==='Enter'){e.preventDefault();removeEventListener('keydown',k,true);end();}},true);
-  });};
+  window.LM_LIVE=window.LM_LIVE||{};
+  LM_LIVE.clear_a_01={img:'../clear_a.webp',cam:{z:1.06,x:64,y:38,d:10},
+    move:[{t:'flag',x:250,y:640,rx:120,ry:110,an:330,a:3,f:.35},{t:'breathe',x:330,y:700,rx:160,ry:230,an:910,a:.004,f:.22},
+          {t:'hair',x:330,y:520,rx:90,ry:70,an:590,a:1.8,f:.3}],
+    fx:[{i:'../clear_ring.webp',x:803,y:190,w:300,k:'pulse',v:{d:'1.6s',lo:.35,hi:1}}],
+    emit:[{i:['dot_c.webp'],n:10,a:[880,240,1060,460],w:[5,11],k:'rise',d:[2.4,4],dy:-120,dx:40,hi:.7}]};
+  LM_LIVE.clear_b_01={img:'../clear_b_bg.webp',cam:{z:1.06,x:58,y:38,d:10},
+    move:[{t:'flag',x:300,y:620,rx:120,ry:100,an:360,a:3,f:.35},{t:'breathe',x:380,y:700,rx:160,ry:230,an:910,a:.004,f:.22}],
+    fx:[{i:'../clear_ring.webp',x:803,y:190,w:300,k:'pulse',v:{d:'1.6s',lo:.35,hi:1}},
+        {i:'../clear_blades.webp',x:825,y:216,w:258,k:'spin',v:{d:'5s',a:'-360deg'},b:'n'},
+        {i:'../clear_ghost.webp',x:643,y:340,w:231,k:'pulse',v:{d:'3.4s',lo:.6,hi:.92},b:'n'},
+        {i:'../clear_smoke1.webp',x:610,y:340,w:80,k:'rise',v:{d:'3.6s',dy:'-40px',hi:.9}},
+        {i:'../clear_smoke2.webp',x:589,y:500,w:188,k:'rise',v:{d:'4.2s',dl:'-1.2s',dy:'-30px',hi:.85}},
+        {i:'../clear_smoke3.webp',x:840,y:330,w:72,k:'rise',v:{d:'3.2s',dl:'-2s',dy:'-40px',hi:.9}},
+        {i:'../clear_smoke4.webp',x:650,y:560,w:159,k:'rise',v:{d:'4.6s',dl:'-.6s',dy:'-25px',hi:.8}}],
+    emit:[{i:['dot_c.webp'],n:12,a:[640,330,900,600],w:[5,11],k:'rise',d:[2.6,4.2],dy:-140,dx:30,hi:.8}]};
+  window.lmClearCut=function(kind){const k=kind==='b'?'b':'a';
+    const set={n:1,live:'clear_'+k,key:'lm.scene.clear_'+k+'.v1',src:()=>'assets/art/story/clear_'+k+'.webp'};
+    return new Promise(res=>{if(!window.MRStory)return res(false);const im=new Image();
+      im.onload=()=>MRStory.play({mode:'scene',set}).then(()=>res(true),()=>res(false));im.onerror=()=>res(false);im.src=set.src(1);});};
 })();
 </script>
 <style id="lm-clear-medal">
@@ -8180,6 +8169,7 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 /* 아무 데나 누르면 바로 끝 상태 */
 .goB.goDone .goMedal *,.goB.goDone .goUnlock,.goB.goDone .goUnlock *,.goB.goDone .goPanel{animation-delay:0s!important;animation-duration:.01s!important}
 .goB.goDone .goMedal .rays{animation:gmRot 14s linear infinite!important}
+.goB.goWait,.goB.goWait *,.goB.goWait .goPanel{animation-play-state:paused!important}   /* 복선 컷 뒤에 미리 깔린 결과 화면: 컷이 닫힐 때까지 멈춤 */
 /* 판 끝 숫자 = 슬롯 릴 (보상 받기와 같은 릴) */
 .goRoll .rl{display:inline-block;height:1em;line-height:1em;overflow:hidden;width:.62em;text-align:center;vertical-align:-.1em}
 .goRoll .rl i{display:block;font-style:normal;will-change:transform}.goRoll .rl i b{display:block;height:1em;line-height:1em;font:inherit;color:inherit}
@@ -8225,7 +8215,8 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
     function tap(e){if(done)return;if(!e.target.closest('#ov'))return;e.preventDefault();e.stopPropagation();finish();}   /* 연출 중 첫 누름 = 완료 (버튼도 이 한 번은 막음) */
     document.addEventListener('pointerdown',tap,true);
     T.push(setTimeout(finish,t+1200));}
-  const _so=showOv;showOv=function(){const r=_so.apply(this,arguments);try{if(document.querySelector('#panel .goB'))requestAnimationFrame(startRoll);}catch(e){}return r;};
+  const _so=showOv;showOv=function(){const r=_so.apply(this,arguments);try{const g=document.querySelector('#panel .goB');if(g){if(S&&S._holdEnd)g.classList.add('goWait');else requestAnimationFrame(startRoll);}}catch(e){}return r;};
+  window.lmEndStart=()=>{const g=document.querySelector('#panel .goB');if(!g)return;g.classList.remove('goWait');requestAnimationFrame(startRoll);};
   /* 판 끝 화면에 훈장 · 다음 난이도 넣기 */
   const _re=runEndHTML;runEndHTML=function(won){let h=_re.apply(this,arguments);
     try{if(won&&S&&!S.finale&&!S.endless&&(S.diff==='app'||S.diff==='knight')){
