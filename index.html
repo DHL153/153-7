@@ -3933,7 +3933,7 @@ function ltPlayHTML(){
 function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k.length)%k.length];ltPop('play');}
 /* (DHL 11-02) 테스트 버전: 견습 · 기사 · 편력 모두 고를 수 있음. 정식판(LM_TEST=false)은 앞 난이도를 깨야 열림 */
 /* (DHL 11-02) 타이틀 '테스터' 버튼으로 켜고 끔 — 켬: 난이도·스토리·배우기 전부 열림 / 끔: 이 브라우저에 저장된 기록만큼만 열림. 기본 켬 */
-window.LM_TEST=(()=>{try{return localStorage.getItem('lm_tester')!=='0';}catch(e){return true;}})();
+window.LM_TEST=(()=>{try{return localStorage.getItem('lm_tester')==='1';}catch(e){return false;}})();   /* (DHL 11-02) 기본 = 테스터 OFF · 타이틀 버튼으로 켜면 ON 저장 */
 function ltDiffOpen(k){if(window.LM_TEST)return true;const K=Object.keys(DIFF),i=K.indexOf(k);return i<=0||!!(LM_ST.clears||{})[K[i-1]];}
 function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length&&!(S&&S.tut))openInfo('learn','page',0);}
 /* 계속하기 (2026-10-29 버그): 라운드 선택 · 원정 캠프 중에 메인 메뉴로 갔다 오면 창이 사라져 손패 0장 판이 열리던 문제 → 그 단계 창을 다시 띄움 */
