@@ -950,7 +950,7 @@ body.lm-notbl[data-tbl] #mainArea{background-image:none!important}
 #lm-title .st-row>b.red{color:#fe4a3c}#lm-title .st-row>b.gold{color:#ff9a00}#lm-title .st-row>b.big{font-size:clamp(18px,3.6vh,26px)}
 #lm-title .st-row>b.bar{background:linear-gradient(90deg,#0f6aa8 var(--p),#1c262b var(--p))}
 #lm-title .st-row.head{background:#1c262b}#lm-title .st-row.head>span{color:#fff}
-#lm-title .st-hand{width:100%;margin-top:4px}
+#lm-title .st-hand{display:block;width:min(60%,320px);margin:14px auto 0}
 #lm-title .st-hands{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
 @media (max-height:460px){#lm-title .st-row{min-height:30px}#lm-title .st-grid>div{gap:5px}#lm-title .pl-deck>img{width:60px}#lm-title .pl-deck,#lm-title .pl-stake{margin-bottom:6px;padding:5px}#lm-title .pl-white{font-size:11px;line-height:1.4}#lm-title .pl-go{min-height:44px}#lm-title .pl-stake>img{width:44px;height:44px}}
 @media (max-height:460px){#lm-title .pl-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px}#lm-title .pl-wrap>div{margin:0;max-width:none}#lm-title .pl-stake{flex-wrap:wrap}#lm-title .pl-vert{display:none}#lm-title .pl-go{margin-top:8px}}
@@ -3885,7 +3885,7 @@ function ltStatHTML(){
     L('최고 골드',LM_ST.maxGold?'💰'+LM_ST.maxGold:'—','gold')+
     L('최다 연승',`${LM_ST.maxStreak} <small>(${LM_ST.streak})</small>`)+
     `</div><div><div class="st-row head"><span>진행 내용</span><b class="bar" style="--p:${all}%">${all}%</b></div>`+parts.map(R).join('')+
-    `<button type="button" class="lt-mb st-hand" onclick="ltPop('hands')">족보 통계</button></div></div>`;
+    `</div></div><button type="button" class="lt-mb st-hand" onclick="ltPop('hands')">족보 통계</button>`;
 }
 function ltHandsHTML(){
   const rows=Object.keys(HT).map(k=>[k,LM_ST.hands[k]||0]).sort((a,b)=>b[1]-a[1]);
@@ -7883,6 +7883,10 @@ function lmEndless(){hideOv();S.endless=true;S._statEnded=1;cashOut();}
 #lm-title .lt-card.wide:has(.lc-story){max-height:92vh;max-height:92dvh}
 #lm-title .lc-story.lt-cb.lc-t{flex:none!important;min-height:0!important;height:clamp(56px,calc((92vh - 222px)/4),118px);height:clamp(56px,calc((92dvh - 222px)/4),118px)}
 @media (max-height:500px){#lm-title .lt-card.wide:has(.lc-story){max-height:96vh;max-height:96dvh}#lm-title .lc-story.lt-cb.lc-t{height:clamp(44px,calc((96dvh - 150px)/4),72px)!important}}
+/* (DHL 11-02) 컬렉션 목록도 같은 방식 — 노트북(높이 760 이하)에서 뒤로 버튼이 판 밖으로 나가지 않게 */
+#lm-title .lt-card.wide:has(.lc-sum){max-height:92vh;max-height:92dvh}
+#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{flex:none!important;min-height:0!important;height:clamp(56px,calc((92vh - 250px)/4),118px);height:clamp(56px,calc((92dvh - 250px)/4),118px)}
+@media (max-height:500px){#lm-title .lt-card.wide:has(.lc-sum){min-height:0!important;max-height:96vh;max-height:96dvh}#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{height:clamp(40px,calc((96dvh - 175px)/4),72px)!important}#lm-title .lt-card:has(.lc-sum) .lc-head{padding:0}#lm-title .lt-card:has(.lc-sum) .lc-wrap,#lm-title .lt-card:has(.lc-sum) .lc-list{gap:6px}#lm-title .lt-card:has(.lc-sum) .lt-mb.back{margin-top:6px;min-height:36px}}
 #lm-title .lt-cb.lc-t.lock{pointer-events:none}
 #lm-title .lc-t.lock .lc-art img{filter:grayscale(1) brightness(.4) blur(.5px)}
 #lm-title .lc-t.lock .lc-txt{opacity:.55}
