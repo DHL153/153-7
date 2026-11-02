@@ -3900,11 +3900,11 @@ function ltPlayHTML(){
   if(ltPlayTab==='new'){
     const i=keys.indexOf(ltDiff),d=DIFF[ltDiff],TK=['diff_app','diff_knight','diff_errant'];   // 난이도 아이콘 (DHL 10-30 새 시트: 견습 나무 칼·방패 · 기사 투구·창 · 편력 이발사 대야 투구·풍차) — 라운드 토큰과 같은 청동 리벳 테
     /* (DHL 11-02 시안 A) 위 훈장 3칸: 깬 난이도 = 금 훈장 · 안 깬 = 점선 빈칸 · 누르면 그 난이도 고르기 */
-    h+=`<div class="pl-medals" role="group" aria-label="난이도 클리어">`+keys.map((k,j)=>`<button type="button" class="pl-md${k===ltDiff?' on':''}${LM_ST.clears[k]?' got':''}" onclick="ltDiff='${k}';ltPop('play')" aria-label="${DIFF[k].ko}${LM_ST.clears[k]?' 클리어':''}"><span class="m"><img src="assets/ui/lamancha/${TK[j]}.webp?v=2" alt=""></span><b>${DIFF[k].ko}</b></button>`).join('')+`</div>`;
+    h+=`<div class="pl-medals" role="group" aria-label="난이도 클리어">`+keys.map((k,j)=>`<button type="button" class="pl-md${k===ltDiff?' on':''}${LM_ST.clears[k]?' got':''}${ltDiffOpen(k)?'':' lock'}" onclick="ltDiff='${k}';ltPop('play')" aria-label="${DIFF[k].ko}${LM_ST.clears[k]?' 클리어':''}"><span class="m"><img src="assets/ui/lamancha/${TK[j]}.webp?v=2" alt=""></span><b>${DIFF[k].ko}</b></button>`).join('')+`</div>`;
     h+=`<div class="pl-wrap"><div class="pl-deck"><img src="assets/ui/lamancha/card_back.webp" alt=""><div class="pl-info"><b>라만차 덱</b><div class="pl-white">`+
       `<p><span>덱</span>: <em class="b">60장</em></p><p><span>동료</span>: <em class="b">30명 · 세계 3</em></p><p><span>최고 장</span>: <em class="r">${LM_ST.bestJang||'—'}</em></p><p><span>최고 한 방</span>: <em class="r">${LM_ST.best?LM_ST.best.toLocaleString():'—'}</em></p></div></div></div>`+
-      `<div class="pl-stake"><span class="pl-vert">난이도</span><span class="pl-ic"><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt="">${LM_ST.clears[ltDiff]?'<span class="lmClrOk big" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</span><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div>${LM_ST.clears[ltDiff]?'<span class="pl-clr">8장 클리어</span>':''}<div class="pl-white small">${d.d}</div></div></div></div>`+
-      (ltDiffOpen(ltDiff)?`<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`:`<button type="button" class="pl-go" disabled>🔒 ${DIFF[keys[Math.max(0,i-1)]].ko}을(를) 깨면 열려요</button>`);
+      `<div class="pl-stake${ltDiffOpen(ltDiff)?'':' lock'}"><span class="pl-vert">난이도</span><span class="pl-ic"><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt="">${LM_ST.clears[ltDiff]?'<span class="lmClrOk big" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':ltDiffOpen(ltDiff)?'':'<span class="pl-lkb" role="img" aria-label="잠김"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg></span>'}</span><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div>${LM_ST.clears[ltDiff]?'<span class="pl-clr">8장 클리어</span>':ltDiffOpen(ltDiff)?'':`<span class="pl-lkt"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg>${DIFF[keys[Math.max(0,i-1)]].ko}를 깨면 열려요</span>`}<div class="pl-white small">${d.d}</div></div></div></div>`+
+      (ltDiffOpen(ltDiff)?`<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`:`<button type="button" class="pl-go lock" disabled aria-label="플레이 (잠김)"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg>플레이</button>`);
   }
   if(ltPlayTab==='cont'){
     const live=S&&!S.practice&&!S._statEnded;
@@ -8313,6 +8313,22 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 #lm-title .pl-clr{display:inline-block;align-self:flex-start;margin:2px 0 4px;padding:2px 10px;border-radius:999px;background:#1f8a3a;color:#fff;font:900 12px/1.4 'Noto Sans KR',sans-serif;white-space:nowrap}
 @media (max-height:460px){#lm-title .pl-medals{margin:2px auto 6px}#lm-title .pl-md{flex-direction:row;justify-content:center;gap:5px;padding:0 0 7px!important;min-height:36px!important}#lm-title .pl-md .m{width:28px}#lm-title .pl-md b{font-size:11px}}
 @media (prefers-reduced-motion:reduce){#lm-title .pl-md.on.got .m{animation:none}}
+/* (DHL 11-02) 잠긴 난이도: 패널은 음영(글씨는 읽힘) · 아이콘 자물쇠 배지 · 이름 아래 안내 · 플레이 버튼은 같은 크기로 잠김 */
+#lm-title .pl-stake.lock .pl-ic>img{filter:grayscale(1) brightness(.5)}
+#lm-title .pl-stake.lock .pl-white{filter:brightness(.66) saturate(.4)}
+#lm-title .pl-stake.lock .pl-name b{color:#aab4c8}
+#lm-title .pl-lkb{position:absolute;right:-5px;bottom:-4px;width:26px;height:26px;border-radius:50%;background:#1b2440;border:2px solid #c9a24a;box-shadow:0 2px 3px #000a;display:flex;align-items:center;justify-content:center;color:#e8c26a}
+#lm-title .pl-lkb .plLk{width:15px;height:15px}
+#lm-title .pl-sel{position:relative}
+html.lmB #lm-title .pl-sel .pl-white{height:auto!important;min-height:calc(1.5em * 3 + 14px)!important}
+html.lmB #lm-title .pl-stake.lock .pl-sel .pl-white{padding-top:16px!important}
+#lm-title .pl-lkt{position:relative;z-index:1;display:inline-flex;align-items:center;gap:5px;align-self:center;margin:-2px 0 -17px;box-shadow:0 2px 4px #000a;padding:3px 10px 3px 8px;border-radius:999px;background:#0b1226;border:1px solid #c9a24a88;color:#f1d48a;font:800 12px/1.3 'Noto Sans KR',sans-serif;white-space:nowrap}
+#lm-title .pl-lkt .plLk{width:13px;height:13px;flex:none}
+#lm-title .pl-go.lock{display:flex;align-items:center;justify-content:center;gap:.3em;cursor:not-allowed;filter:grayscale(1) brightness(.62)!important;transform:none!important;color:#dfe5ee!important}
+#lm-title .pl-go.lock .plLk{width:.85em;height:.85em;flex:none;margin-top:-.05em}
+#lm-title .pl-go.lock:hover,#lm-title .pl-go.lock:active{filter:grayscale(1) brightness(.62)!important;transform:none!important}
+#lm-title .pl-md.lock .m{opacity:.75}
+#lm-title .pl-md.lock .m::after{content:'';position:absolute;right:2%;bottom:6%;width:42%;aspect-ratio:1;border-radius:50%;background:#1b2440 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9' fill='none' stroke='%23e8c26a' stroke-width='2.2' stroke-linecap='round'/%3E%3Crect x='4' y='9' width='12' height='9' rx='2.2' fill='%23e8c26a'/%3E%3C/svg%3E") center/62% no-repeat;border:1.5px solid #c9a24a;box-shadow:0 1px 2px #000a}
 </style>
 <script id="lm-test8">
 /* (DHL 11-02 '8장 끝나고 플로우를 해보고 싶음') 테스트 주소: ?test8=app | knight | errant
