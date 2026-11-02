@@ -3955,7 +3955,7 @@ function ltPop(kind){
   const B=(t,fn,cls)=>`<button type="button" class="lt-mb ${cls||''}" onclick="${fn}">${t}</button>`,back=B('뒤로',ig?"ltPop('gopt')":"ltPop('opt')",'back'),close=B('뒤로','ltPop()','back');
   const on=gameSettings.masterVolume>0;
   // 발라트로 옵션 창 배치: 가운데 판 · 빨간 버튼 세로 · 맨 아래 넓은 주황 '뒤로'
-  if(kind==='opt')card.innerHTML=`<div class="lt-mlist">${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('덱 사용자 지정',"ltPop('deck')")}${B('크레딧',"ltPop('credit')")}</div>${close}`;
+  if(kind==='opt')card.innerHTML=`<div class="lt-mlist">${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${window.LM_DECK_CUSTOM?B('덱 사용자 지정',"ltPop('deck')"):''}${B('크레딧',"ltPop('credit')")}</div>${close}`;
   if(kind==='gopt')card.innerHTML=`<div class="lt-mlist">${B('계속하기','ltPop()','go')}${B('설정',"ltPop('set')")}${B('통계',"ltPop('stat')")}${B('배우기',"ltPop();window._lmBack=()=>gameOpt();openInfo('learn')")}${B('메인 메뉴로',"ltExit()",'exit')}</div><p class="lt-note" style="text-align:center;margin:-6px 0 0">진행 중인 판은 그대로 남아요 · 타이틀의 플레이 → 계속하기</p>`;   /* 나가기(2026-10-28 DHL): 판을 끝내지 않고 타이틀로 — goMenu는 판을 끝냄(_statEnded)이라 쓰지 않음 */
   if(kind==='set')card.innerHTML=ltSetHTML()+back;
   if(kind==='col')card.innerHTML=ltColHTML()+close;
@@ -6781,6 +6781,17 @@ html.lmPtr #lm-title .ls-tab:focus-visible,html.lmPtr #lm-title .lt-mb:focus-vis
 /* 설정 › 저장 슬롯 */
 #lm-title .ltv-slotBtn{display:flex;justify-content:space-between;align-items:center;width:100%;margin:10px 0 2px;padding:11px 14px;border-radius:10px;border:1px solid #c9a24a99;background:#ffffff08;color:#f3e6c8;font:800 14px/1 "Noto Sans KR",sans-serif;cursor:pointer}
 #lm-title .ltv-slotBtn b{color:#f1d48a}
+#lm-title .ltv-slotBtn.reset{border-color:#e8483d77}#lm-title .ltv-slotBtn.reset span{color:#ffb4a8}#lm-title .ltv-slotBtn.reset b{color:#ffb4a8}
+#lm-title .ltv-rs{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}
+#lm-title .ltv-rs p{margin:0;padding:10px 12px;border-radius:10px;background:#ffffff08;border:1px solid #c9a24a44;color:#f3e6c8;font:600 14px/1.45 "Noto Sans KR",sans-serif}
+#lm-title .ltv-rs p b{display:block;margin-bottom:2px;color:#f1d48a;font-weight:900}
+#lm-title .ltv-rs p:first-child b{color:#ff9a8a}
+#lm-title .ltv-rsBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+#lm-title .ltv-rsBtns .lt-mb{width:100%!important;max-width:none!important;margin:0!important;min-height:52px;padding:0 4px!important;white-space:nowrap;font-size:clamp(15px,2.6vh,19px)!important}
+html.lmB #lm-title .lt-mb.ltv-rsGo{border-width:12px 15px!important;border-image:url(assets/ui/kit/btn_red.webp) 40 46 40 46 fill / 12px 15px / 0 stretch!important;color:#fff!important;text-shadow:0 2px 0 #0009!important}
+html.lmB #lm-title .lt-mb.ltv-rsGo:active{border-image-source:url(assets/ui/kit/btn_red_pressed.webp)!important}
+#lm-title .ltv-rsGo.arm{animation:lmRsArm .45s ease-in-out infinite alternate}
+@keyframes lmRsArm{to{filter:brightness(1.3) drop-shadow(0 0 8px #ff5a4a)}}
 #lm-title .ltv-slots{display:flex;flex-direction:column;gap:8px;margin:4px 0 8px}
 #lm-title .ltv-slot{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:10px;background:#ffffff08;border:1px solid #ffffff1a;font:800 15px/1.2 "Noto Sans KR",sans-serif;color:#f3e6c8}
 #lm-title .ltv-slot.on{border-color:#f1d48a;box-shadow:inset 0 0 0 1px #f1d48a55}
@@ -6892,7 +6903,12 @@ html.lmPtr #lm-title .ls-tab:focus-visible,html.lmPtr #lm-title .lt-mb:focus-vis
     const card=t.querySelector('.lt-pop .lt-card');if(!card)return r;
     if(kind==='set'&&typeof ltSetTab!=='undefined'&&ltSetTab==='game'){
       const body=card.querySelector('.ls-body');
-      if(body&&!body.querySelector('.ltv-slotBtn')){const b=document.createElement('button');b.type='button';b.className='ltv-slotBtn';b.innerHTML='<span>💾 저장 슬롯</span><b>슬롯 1 ›</b>';b.onclick=()=>ltPop('prof');body.appendChild(b);}
+      /* (DHL 11-02) 저장 슬롯은 스팀 연결 때 다시 판단 — LM_SAVE_SLOTS=true면 다시 보임. 그 자리엔 기록 초기화 */
+      if(body&&window.LM_SAVE_SLOTS&&!body.querySelector('.ltv-slotBtn[data-k=slot]')){const b=document.createElement('button');b.type='button';b.className='ltv-slotBtn';b.dataset.k='slot';b.innerHTML='<span>💾 저장 슬롯</span><b>슬롯 1 ›</b>';b.onclick=()=>ltPop('prof');body.appendChild(b);}
+      if(body&&!body.querySelector('.ltv-slotBtn[data-k=reset]')){const b=document.createElement('button');b.type='button';b.className='ltv-slotBtn reset';b.dataset.k='reset';b.innerHTML='<span>기록 초기화</span><b>›</b>';b.onclick=()=>ltPop('reset');body.appendChild(b);}
+    }
+    if(kind==='reset'){
+      card.innerHTML=`<h3>기록 초기화</h3><div class="ltv-rs"><p><b>지워지는 것</b>훈장 · 스토리 · 도감 · 통계 · 배우기 진행</p><p><b>남는 것</b>언어 · 소리 · 게임 설정</p></div><p class="lt-note">지운 기록은 되돌릴 수 없어요.</p><div class="ltv-rsBtns"><button type="button" class="lt-mb" onclick="ltPop('set')">취소</button><button type="button" class="lt-mb ltv-rsGo" onclick="lmResetRecord(this)">지우기</button></div>`;
     }
     if(kind==='prof'){
       const row=(n,on)=>`<div class="ltv-slot${on?' on':''}"><span>슬롯 ${n}</span><small>${on?'사용 중':'비어 있음'}</small></div>`;
@@ -8304,5 +8320,16 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
   if(!/^(none|app|knight)$/.test(q))return;
   try{LM_STORY_ALL=false;const set=(k,v)=>v?localStorage.setItem('lm.scene.clear_'+k+'.v1','1'):localStorage.removeItem('lm.scene.clear_'+k+'.v1');set('a',q!=='none');set('b',q==='knight');}catch(e){}
   let done=false;const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);if(!done){done=true;setTimeout(()=>{try{ltPop('story');}catch(e){}},400);}return r;};})();
+</script>
+<script id="lm-reset-record">
+/* (DHL 11-02) 기록 초기화 — 두 번 눌러야 지워짐. 설정(lm_settings · lm_sound · lm.fxRate · lm_brand)은 남김 */
+var LM_SAVE_SLOTS=false;
+var LM_DECK_CUSTOM=false; /* 덱 사용자 지정(카드 뒷면 고르기) — 준비되면 true */
+function lmResetRecord(btn){
+  if(!btn.classList.contains('arm')){btn.classList.add('arm');btn.textContent='한 번 더!';clearTimeout(btn._t);btn._t=setTimeout(()=>{btn.classList.remove('arm');btn.textContent='지우기';},4000);return;}
+  const keep=new Set(['lm_settings','lm_sound','lm.fxRate','lm_brand']);
+  try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^(lm[_.]|mergeRoll\.)/.test(k)&&!keep.has(k))ks.push(k);}ks.forEach(k=>localStorage.removeItem(k));}catch(e){}
+  location.replace(location.pathname);
+}
 </script>
 </body></html>
