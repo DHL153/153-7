@@ -3450,7 +3450,7 @@ function cmTap(ev){
 }
 /* 📖 배우기 */
 function learnHTML(){
-  const J=S?S.jang:1;
+  const J=window.LM_TEST?99:(S?S.jang:1);
   if(learnView==='dict')return `<div class="lNav"><button class="lmIco lmIcoNav" onclick="openInfo('learn','list')" aria-label="목록으로" title="목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><b>기호 사전</b><span></span></div>`+dictHTML();
   if(learnView==='page'){
     const i=Math.max(0,Math.min(LEARN.length-1,learnIdx));learnIdx=i;
@@ -3913,12 +3913,13 @@ function ltPlayHTML(){
       `<button type="button" class="pl-go" onclick="ltCont()">계속하기</button>`
       :`<p class="lt-note" style="text-align:center;font-size:14px;margin:40px 0">이어서 할 판이 없습니다.<br>(판 저장은 저장 기능을 붙일 때 추가합니다)</p>`;
   }
-  if(ltPlayTab==='try'){const J=Math.max(1,LM_ST.bestJang||1),next=LEARN.findIndex((_,k)=>!LEARN_SEEN.includes(k));h+=`<div class="pl-learn"><div class="lList"><button type="button" class="lRow now" onclick="sandboxStart('app')"><span class="n">🧪</span><span class="tx"><b>연습장 · 견습 머지</b><small>추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button><button type="button" class="lRow now" onclick="sandboxStart('knight')"><span class="n">🧪</span><span class="tx"><b>연습장 · 머지 & 런</b><small>기사 방식 · 추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button>`+LEARN.map((L,k)=>{const lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;const tag=lock?`${L.at}장에서 열림`:PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';return `<button type="button" class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="ltLearn(${k})"><span class="n">${k+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('')+`</div></div>`;}
+  if(ltPlayTab==='try'){const J=window.LM_TEST?99:Math.max(1,LM_ST.bestJang||1),next=LEARN.findIndex((_,k)=>!LEARN_SEEN.includes(k));h+=`<div class="pl-learn"><div class="lList"><button type="button" class="lRow now" onclick="sandboxStart('app')"><span class="n">🧪</span><span class="tx"><b>연습장 · 견습 머지</b><small>추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button><button type="button" class="lRow now" onclick="sandboxStart('knight')"><span class="n">🧪</span><span class="tx"><b>연습장 · 머지 & 런</b><small>기사 방식 · 추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button>`+LEARN.map((L,k)=>{const lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;const tag=lock?`${L.at}장에서 열림`:PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';return `<button type="button" class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="ltLearn(${k})"><span class="n">${k+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('')+`</div></div>`;}
   return h+`</div>`;
 }
 function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k.length)%k.length];ltPop('play');}
 /* (DHL 11-02) 테스트 버전: 견습 · 기사 · 편력 모두 고를 수 있음. 정식판(LM_TEST=false)은 앞 난이도를 깨야 열림 */
-window.LM_TEST=true;
+/* (DHL 11-02) 타이틀 '테스터' 버튼으로 켜고 끔 — 켬: 난이도·스토리·배우기 전부 열림 / 끔: 이 브라우저에 저장된 기록만큼만 열림. 기본 켬 */
+window.LM_TEST=(()=>{try{return localStorage.getItem('lm_tester')!=='0';}catch(e){return true;}})();
 function ltDiffOpen(k){if(window.LM_TEST)return true;const K=Object.keys(DIFF),i=K.indexOf(k);return i<=0||!!(LM_ST.clears||{})[K[i-1]];}
 function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length)openInfo('learn','page',0);}
 /* 계속하기 (2026-10-29 버그): 라운드 선택 · 원정 캠프 중에 메인 메뉴로 갔다 오면 창이 사라져 손패 0장 판이 열리던 문제 → 그 단계 창을 다시 띄움 */
@@ -7894,7 +7895,7 @@ function lmEndless(){hideOv();S.endless=true;S._statEnded=1;cashOut();}
 </style>
 <script id="lm-story-list">
 /* 스토리 묶음 — 이름 · 설명 · 그림은 여기서만 바꾸면 됨. 출시 때 LM_STORY_ALL=false로 하면 본 것만 열림 */
-var LM_STORY_ALL=true;
+var LM_STORY_ALL=!!window.LM_TEST;
 const LM_STORY=[
   {k:'open',cls:'lc-s1',ko:'여정의 시작',sub:'녹슨 기사, 구슬을 줍다',img:'assets/art/story/story_02.webp?v=2',n:8,seen:()=>window.MRStory&&MRStory.seen(),play:()=>MRStory.play({mode:'replay'})},
   /* (DHL 11-02) 견습 · 기사 8장 클리어 복선 2컷 — 본 컷만 (견습 → 1컷, 기사까지 → 2컷) */
@@ -8271,12 +8272,21 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 })();
 </script>
 <style id="lm-test-build">/* (DHL 11-02) 타이틀 언어 버튼 아래 '테스트 버전' 표시 */
-#lmTestTag{position:absolute;top:calc(max(12px,env(safe-area-inset-top)) + 48px);left:12px;z-index:3;padding:5px 12px;border-radius:999px;background:#e8483d;color:#fff;font:900 12px/1 "Noto Sans KR",sans-serif;letter-spacing:.04em;border:1px solid #ffb4a8;box-shadow:0 2px 0 #5a120c;pointer-events:none}
+#lmTestTag{position:absolute;top:calc(max(12px,env(safe-area-inset-top)) + 48px);left:12px;z-index:3;display:flex;align-items:center;gap:8px;padding:4px 5px 4px 12px;border-radius:999px;background:#2a1a1a;color:#fff;font:900 12px/1 "Noto Sans KR",sans-serif;letter-spacing:.02em;border:1px solid #ffb4a8;box-shadow:0 2px 0 #5a120c;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#lmTestTag.on{background:#e8483d}
+#lmTestTag i{position:relative;width:46px;height:20px;border-radius:999px;background:#0006;box-shadow:inset 0 0 0 1px #fff5;font:900 10px/20px "Noto Sans KR",sans-serif;font-style:normal;text-align:right;padding-right:7px;box-sizing:border-box;color:#ffd0c8;transition:background .15s}
+#lmTestTag i::before{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#bbb;transition:left .15s,background .15s}
+#lmTestTag.on i{background:#fff;color:#c0392b;text-align:left;padding:0 0 0 7px}
+#lmTestTag.on i::before{left:28px;background:#e8483d}
+#lmTestTag:active{transform:translateY(1px)}
 #lm-title:not(.ltv2) #lmTestTag{top:58px}
 </style>
 <script id="lm-test-build-js">
-(function(){function put(){const t=document.getElementById('lm-title');if(!t||!window.LM_TEST){const o=document.getElementById('lmTestTag');if(o)o.remove();return;}
-  if(!document.getElementById('lmTestTag')){const b=document.createElement('div');b.id='lmTestTag';b.textContent='테스트 버전';b.setAttribute('data-no-i18n','');t.appendChild(b);}}
+(function(){function put(){const t=document.getElementById('lm-title');if(!t)return;
+  if(!document.getElementById('lmTestTag')){const on=!!window.LM_TEST,b=document.createElement('button');b.type='button';b.id='lmTestTag';b.className=on?'on':'';b.setAttribute('data-no-i18n','');b.setAttribute('aria-pressed',on);
+    b.title=on?'테스터 켬: 모두 열림 (누르면 저장된 기록대로)':'테스터 끔: 저장된 기록만큼 열림 (누르면 모두 열림)';
+    b.innerHTML='<span>테스터</span><i>'+(on?'ON':'OFF')+'</i>';
+    b.onclick=e=>{e.stopPropagation();try{localStorage.setItem('lm_tester',on?'0':'1');}catch(_){}location.replace(location.pathname);};t.appendChild(b);}}
   const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);try{put();}catch(e){}return r;};try{put();}catch(e){}})();
 </script>
 <style id="lm-diff-medals">
@@ -8331,7 +8341,7 @@ var LM_SAVE_SLOTS=false;
 var LM_DECK_CUSTOM=false; /* 덱 사용자 지정(카드 뒷면 고르기) — 준비되면 true */
 function lmResetRecord(btn){
   if(!btn.classList.contains('arm')){btn.classList.add('arm');btn.textContent='한 번 더!';clearTimeout(btn._t);btn._t=setTimeout(()=>{btn.classList.remove('arm');btn.textContent='지우기';},4000);return;}
-  const keep=new Set(['lm_settings','lm_sound','lm.fxRate','lm_brand']);
+  const keep=new Set(['lm_settings','lm_sound','lm.fxRate','lm_brand','lm_tester']);
   try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^(lm[_.]|mergeRoll\.)/.test(k)&&!keep.has(k))ks.push(k);}ks.forEach(k=>localStorage.removeItem(k));}catch(e){}
   location.replace(location.pathname);
 }
