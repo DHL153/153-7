@@ -7863,6 +7863,10 @@ function lmEndless(){hideOv();S.endless=true;S._statEnded=1;cashOut();}
 #lm-title .lc-s1{--glow:#c98a3a66}#lm-title .lc-s4{--glow:#c8453a66}#lm-title .lc-s2{--glow:#b8453a77}#lm-title .lc-s3{--glow:#e0b84a66}
 @media (max-height:500px){#lm-title .lc-story.lt-cb.lc-t{min-height:0!important;height:72px;flex:none}#lm-title .lc-story .lc-txt b{font-size:17px!important}#lm-title .lc-story .lc-txt em{font-size:13px}html.lmB #lm-title .lt-card.wide:has(.lc-story){min-height:0}#lm-title .lt-card:has(.lc-story) .lc-head{padding:0}#lm-title .lt-card:has(.lc-story) .lc-wrap{gap:6px}#lm-title .lt-card:has(.lc-story) .lc-list{gap:6px}#lm-title .lt-card:has(.lc-story) .lt-mb.back{margin-top:6px;min-height:36px}}
 /* (DHL 11-02) 잠긴 스토리 = 붉은 봉랍 + 풍차 문양 — 회색은 그림에만, 금 테두리는 유지 */
+/* (DHL 11-02) 스토리 목록: 화면 높이에 맞춰 칸 높이를 줄여서 뒤로 버튼이 항상 판 안에 들어오게 */
+#lm-title .lt-card.wide:has(.lc-story){max-height:92vh;max-height:92dvh}
+#lm-title .lc-story.lt-cb.lc-t{flex:none!important;min-height:0!important;height:clamp(56px,calc((92vh - 222px)/4),118px);height:clamp(56px,calc((92dvh - 222px)/4),118px)}
+@media (max-height:500px){#lm-title .lt-card.wide:has(.lc-story){max-height:96vh;max-height:96dvh}#lm-title .lc-story.lt-cb.lc-t{height:clamp(44px,calc((96dvh - 150px)/4),72px)!important}}
 #lm-title .lt-cb.lc-t.lock{pointer-events:none}
 #lm-title .lc-t.lock .lc-art img{filter:grayscale(1) brightness(.4) blur(.5px)}
 #lm-title .lc-t.lock .lc-txt{opacity:.55}
