@@ -2195,7 +2195,7 @@ const ARMOR_CAP=[0.2,0.35,0.6,Infinity], ARMOR_T=0.75, ARMOR_HIT=0.6, ARMOR_SH=2
 /* 예전: */   /* (DHL 10-29 추천안) 목표 ×0.75 · 한 번 공격은 적 체력의 55%까지 — 세 가지 다 맞추면 한계 돌파(무제한). 봇 300판: 첫 공격 처치 12% · 아슬아슬 57% · 클리어 38% (예전 관통 9 · 51 · 35) */
 function lmGems(k,ka){const f=S&&S.foe;if(!f)return null;k=k||{w:false,e:false,h:false,n:0};ka=ka||k;const abs=u=>{try{return new URL(u,document.baseURI).href;}catch(e){return u;}},im=h=>{const m=/src="([^"]+)"/.exec(h||'');return m?abs(m[1]):null;},wk=weakTo(f.el);
   return [{t:'w',st:k.w?1:ka.w?2:0,bg:WORLD_C[f.home],img:im(ICO(f.home))},{t:'e',st:k.e?1:ka.e?2:0,bg:EL_C[wk],img:im(ICO(EL_KEY[wk]))},{t:'h',st:k.h?1:ka.h?2:0,bg:'#3a2a10',txt:f.no?String(f.no):'★'}];}   /* 방패 보석 3개 상태 · 1 켜짐 · 2 족보 밖 · 0 꺼짐 */
-function lmCapSync(r,show){try{const st=window.lmStageCall;if(!st)return;const on=armorOn()&&S&&!S.practice&&!S.sandbox&&S.tgt&&S.foe;   /* (DHL 10-29) 적 체력 바에 🛡 선(이번 런 최대 피해 지점) + 견습은 예상 피해 미리보기 · 3개 맞추면 선에 금 → 관통 */
+function lmCapSync(r,show){try{const st=window.lmStageCall;if(!st)return;const on=armorOn()&&S&&!S.practice&&!S.sandbox&&S.tgt&&S.foe&&!lmTutNoArmor();   /* (DHL 10-29) 적 체력 바에 🛡 선(이번 런 최대 피해 지점) + 견습은 예상 피해 미리보기 · 3개 맞추면 선에 금 → 관통 */
   const f=S.foe,k=r&&r.keys||{w:false,e:false,h:false,n:0},ka=r&&S.keyAll||k;
   const gems=on&&f?lmGems(k,ka):null;   /* (DHL 10-29) 적 앞 방패의 보석 3개 = 맞춤 */
   const o=on?{cap:shNow(),max:shMax(),hit:hitMax(),dmg:show&&r&&!r.block?r.total:0,brk:!!(r&&r.keys&&r.keys.n>=3),gems,n:k.n||0}:null;const key=JSON.stringify(o);if(key===lmCapSync._k)return;lmCapSync._k=key;st(x=>x.setCap&&x.setCap(o));}catch(e){}}
@@ -2203,7 +2203,7 @@ function lmCapSync(r,show){try{const st=window.lmStageCall;if(!st)return;const o
 const shMax=()=>Math.max(10,Math.floor((S&&S.tgt||0)*ARMOR_SH/10)*10);
 const hitMax=()=>Math.max(10,Math.floor((S&&S.tgt||0)*ARMOR_HIT/10)*10);   // 방패가 있는 동안 한 번에 몸체로 들어가는 최대
 const shNow=()=>S.sh==null?shMax():S.sh;
-function hitCap(r){if(!r||!armorOn()||!S||S.practice||S.sandbox||!S.tgt)return null;const sh=shNow(),n=r.keys?r.keys.n:0;if(sh<=0)return null;
+function hitCap(r){if(!r||!armorOn()||!S||S.practice||S.sandbox||!S.tgt||lmTutNoArmor())return null;const sh=shNow(),n=r.keys?r.keys.n:0;if(sh<=0)return null;
   if(n>=3)return {cap:r.total,raw:r.total,brk:true,absorb:0,before:sh,after:0};
   const d=Math.min(r.total,hitMax()),ab=Math.min(sh,r.total-d);return {cap:d,raw:r.total,brk:false,absorb:r.total-d,before:sh,after:sh-ab};}   // 몸체는 한 번 최대 60% · 넘친 만큼 방패가 막으며 깎임 (방패가 깨지는 그 공격까지는 막음)
 /* 이전 주석: */   /* (DHL 10-29) 최대 피해 제한 폐지 → 아래 ARMOR_BON으로 (목표 배율도 ×0.57 → ×1) */
@@ -3477,8 +3477,8 @@ function learnHTML(){
       (last?`<button class="arrowBtn next" aria-label="목록으로" title="목록으로" onclick="openInfo('learn','list')"></button>`:`<button class="arrowBtn next" aria-label="다음" title="다음" onclick="openInfo('learn','page',${nxt})"></button>`)+`</div>`;
   }
   const next=lNext();
-  const rows=LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;
-    const tag=lock?`${L.at}장에서 열림`:PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
+  const rows=LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J||lmTutLock(k),seen=LEARN_SEEN.includes(k),now=k===next;
+    const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
     return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
   return `<p class="iLead">한 장씩 넘기며 배웁니다.</p><div class="lList">${rows}</div>`+
     `<div class="lBot two"><button onclick="openInfo('learn','dict')">기호 사전</button><button class="go" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':'이어서 보기 · '+(lPos(next)+1)}</button></div>`;
@@ -3927,7 +3927,7 @@ function ltPlayHTML(){
       `<button type="button" class="pl-go" onclick="ltCont()">계속하기</button>`
       :`<p class="lt-note" style="text-align:center;font-size:14px;margin:40px 0">이어서 할 판이 없습니다.<br>(판 저장은 저장 기능을 붙일 때 추가합니다)</p>`;
   }
-  if(ltPlayTab==='try'){const J=window.LM_TEST?99:Math.max(1,LM_ST.bestJang||1),next=lNext();h+=`<div class="pl-learn"><div class="lList"><button type="button" class="lRow now" onclick="sandboxStart('app')"><span class="n">🧪</span><span class="tx"><b>연습장 · 견습 머지</b><small>추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button><button type="button" class="lRow now" onclick="sandboxStart('knight')"><span class="n">🧪</span><span class="tx"><b>연습장 · 머지 & 런</b><small>기사 방식 · 추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button>`+LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;const tag=lock?`${L.at}장에서 열림`:PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';return `<button type="button" class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="ltLearn(${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('')+`</div></div>`;}
+  if(ltPlayTab==='try'){const J=window.LM_TEST?99:Math.max(1,LM_ST.bestJang||1),next=lNext();h+=`<div class="pl-learn"><div class="lList"><button type="button" class="lRow now" onclick="sandboxStart('app')"><span class="n">🧪</span><span class="tx"><b>연습장 · 견습 머지</b><small>추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button><button type="button" class="lRow now" onclick="sandboxStart('knight')"><span class="n">🧪</span><span class="tx"><b>연습장 · 머지 & 런</b><small>기사 방식 · 추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button>`+LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J||lmTutLock(k),seen=LEARN_SEEN.includes(k),now=k===next;const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';return `<button type="button" class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="ltLearn(${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('')+`</div></div>`;}
   return h+`</div>`;
 }
 function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k.length)%k.length];ltPop('play');}
@@ -3935,7 +3935,7 @@ function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k
 /* (DHL 11-02) 타이틀 '테스터' 버튼으로 켜고 끔 — 켬: 난이도·스토리·배우기 전부 열림 / 끔: 이 브라우저에 저장된 기록만큼만 열림. 기본 켬 */
 window.LM_TEST=(()=>{try{return localStorage.getItem('lm_tester')!=='0';}catch(e){return true;}})();
 function ltDiffOpen(k){if(window.LM_TEST)return true;const K=Object.keys(DIFF),i=K.indexOf(k);return i<=0||!!(LM_ST.clears||{})[K[i-1]];}
-function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length)openInfo('learn','page',0);}
+function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length&&!(S&&S.tut))openInfo('learn','page',0);}
 /* 계속하기 (2026-10-29 버그): 라운드 선택 · 원정 캠프 중에 메인 메뉴로 갔다 오면 창이 사라져 손패 0장 판이 열리던 문제 → 그 단계 창을 다시 띄움 */
 /* 메인 메뉴로 (2026-11-01 DHL 버그): 라운드 선택 · 상점 · 캠프 창(#ov)이 타이틀보다 위(z 60)라 타이틀이 안 보이던 문제
    → 나갈 때 그 창을 통째로 보관(이벤트 그대로)하고 숨김, 계속하기에서 그대로 되돌림 */
@@ -8504,5 +8504,123 @@ function lxMount(i){
     const A=STAR3.alonso,B=STAR3B.alonso;ab.innerHTML=[['A',A],['B',B]].map(([k,x])=>`<div><i>${k}</i><b>${x.ic} ${x.ko}</b><small>${x.d}</small></div>`).join('');}
 }
 (function(){const _o=openInfo;openInfo=function(){const r=_o.apply(this,arguments);try{if(infoTab==='learn'&&learnView==='page'&&learnIdx>=7)lxMount(learnIdx);}catch(e){console.warn('[배우기 새 쪽]',e);}return r;};})();
+</script>
+<style id="lm-tut">
+/* (DHL 11-02 A+B) 첫 판 안내 — 러스트 니콜 · 견습 1~3장 중 1장 (1-1 런 · 1-2 버리기 · 1-3 머지). 첫 판 한 번만 */
+body.lmTutNoDis #bDis,body.lmTutNoMerge #bMerge,body.lmTutNoKey #keyBar,body.lmTutNoOrb #orbs{visibility:hidden!important;pointer-events:none!important}
+#lmNic{position:fixed;z-index:880;pointer-events:none;display:none}
+#lmNic.on{display:block}
+#lmNic canvas{position:absolute;left:0;bottom:0;pointer-events:none;filter:drop-shadow(0 4px 4px #000a)}
+#lmNic .bub{position:absolute;pointer-events:auto;cursor:pointer;background:#fff;color:#1d2433;border-radius:16px;padding:10px 14px;font:800 clamp(14px,2.1vh,17px)/1.4 'Noto Sans KR',sans-serif;box-shadow:0 4px 0 #0007;overflow-wrap:anywhere;animation:tutPop .3s ease-out both}
+#lmNic .bub::before{content:"";position:absolute;left:-9px;top:18px;border:9px solid transparent;border-left:0;border-right-color:#fff}
+#lmNic .bub b{color:#b8362c}
+@keyframes tutPop{from{opacity:0;scale:.8}}
+.lmTutRg{position:fixed;z-index:870;pointer-events:none;border-radius:12px;box-shadow:0 0 0 3px #f6cf63,0 0 22px 6px #f6cf63aa;animation:tutRing 1.1s ease-in-out infinite}
+@keyframes tutRing{50%{box-shadow:0 0 0 3px #f6cf63,0 0 34px 12px #f6cf63cc}}
+.lmTutNew{position:fixed;z-index:881;background:#e8483d;color:#fff;font:900 12px/1 'Noto Sans KR',sans-serif;padding:4px 8px;border-radius:999px;border:1px solid #ffb4a8;box-shadow:0 2px 0 #5a120c;animation:tutPop .45s cubic-bezier(.3,1.6,.5,1) both;pointer-events:none}
+.lmTutShow{animation:tutShow .5s ease-out both}
+@keyframes tutShow{from{opacity:0;scale:.6}}
+@media (prefers-reduced-motion:reduce){.lmTutRg{animation:none}#lmNic .bub{animation:none}}
+</style>
+<script id="lm-tut-js">
+/* 첫 판 안내 (DHL 11-02) — 대본 · 규칙: 프로젝트 문서 claude/first-run-flow.md
+   켜지는 조건: 견습 · 아직 안내를 끝낸 적 없음 · 판 기록 없음 (주소에 ?tut=1 이면 강제로 다시)
+   첫 판이 끝나면(지거나 · 이기거나 · 새 판) 저장값 lm_tut_done=1 → 그다음부터는 지금과 같은 완전한 게임 */
+const TUT_TERM={run:'런',discard:'버리기',merge:'머지',title:'기사님'};
+const TUT_TXT={'tut.1_1.start':'같은 번호 카드를 골라 {run}!','tut.1_1.done':'잘했어요, {title}! 족보가 클수록 세게 쳐요.',
+  'tut.1_2.start':'별로인 카드는 {discard}로 바꿔요.','tut.1_3.start':'같은 동료 두 장이면 {merge}!','tut.save':'괜찮아요, {title}! 한 번 일으켜 드릴게요.'};
+const tutLine=k=>{let t=TUT_TXT[k]||'';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}
+  return t.replace(/\{(\w+)\}/g,(m,w)=>{let v=TUT_TERM[w]||w;try{v=(window.MRLocale&&MRLocale.t&&MRLocale.t(v))||v;}catch(e){}return w==='title'?v:'<b>'+v+'</b>';});};
+function lmTutOn(){return !!(S&&S.tut&&!S.tut.fin);}
+function lmTutCh1(){return lmTutOn()&&S.jang===1;}
+function lmTutNoArmor(){return lmTutCh1();}
+function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
+(function(){
+  let force=false;try{force=new URLSearchParams(location.search).get('tut')==='1';if(force)localStorage.removeItem('lm_tut_done');}catch(e){}
+  const done=()=>{try{return localStorage.getItem('lm_tut_done')==='1';}catch(e){return false;}};
+  const finish=()=>{if(!S||!S.tut||S.tut.fin)return;S.tut.fin=1;try{localStorage.setItem('lm_tut_done','1');}catch(e){}cls();hideNic();};
+  const cls=()=>{const b=document.body,T=S&&S.tut,on=T&&!T.fin&&S.jang===1;
+    b.classList.toggle('lmTutNoDis',!!(on&&!T.seen['tut.1_2.start']));b.classList.toggle('lmTutNoMerge',!!(on&&!T.seen['tut.1_3.start']));
+    b.classList.toggle('lmTutNoKey',!!on);b.classList.toggle('lmTutNoOrb',!!on);};
+  /* 새 판: 조건이 맞으면 안내 켜기 · 안내 중이던 판이 끝나면 다시는 안 나옴 */
+  const _ng=newGame;newGame=function(diff){if(S&&S.tut)finish();const r=_ng.apply(this,arguments);
+    try{const first=(LM_ST.runs||0)===0&&(LM_ST.bestRound||0)<=1;
+      if(S&&S.diff==='app'&&!S.practice&&!S.sandbox&&!done()&&(first||force)){S.tut={learn:[0,1],seen:{}};force=false;}}catch(e){}
+    cls();return r;};
+  const _re=runEndHTML;runEndHTML=function(){try{finish();}catch(e){}return _re.apply(this,arguments);};
+  /* 손패 맞춤: 1-1 같은 번호 2장 · 1-3 같은 동료(★1) 2장 */
+  const _br=beginRound;beginRound=function(){const r=_br.apply(this,arguments);
+    try{if(lmTutCh1()&&S.hand.length>=4){const H=S.hand;
+      if(S.rd===0&&!H.some((c,i)=>H.some((d,j)=>j>i&&cardNo(d)===cardNo(c)))){H[1].no=cardNo(H[0]);}
+      if(S.rd===2){const ok=H.some((c,i)=>H.some((d,j)=>j>i&&c.star===1&&d.star===1&&TYPES[d.id].n===TYPES[c.id].n));
+        if(!ok){const a=H.find(c=>c.star===1),b=H.find(c=>c!==a&&c.star===1);if(a&&b){b.id=cardW(b)+'_'+TYPES[a.id].n;}}}
+      render();}
+      if(S.jang>=2&&S.tut&&!S.tut.fin){S.tut.learn=LEARN_ORDER.slice();}   /* 2~3장 안내는 다음 작업 — 그때까지 2장부터는 전부 열림 */
+    }catch(e){console.warn('[안내]',e);}cls();return r;};
+  /* 1장에서는 지지 않음: 런이 다 떨어져도 니콜이 런 1번을 돌려줌 */
+  const _lose=lose;lose=function(){if(lmTutCh1()&&S.runs<=0&&S.score<S.tgt){S.runs=1;try{fill();}catch(e){}render();say('tut.save',{face:'sad',face2:'happy',seq:['nod','nod'],force:1});return;}
+    return _lose.apply(this,arguments);};
+  /* ── 니콜 ── */
+  let box,cv,bub,rig=null,an=null,last=0,raf=0,hopT=-1,nodT=-1,cur=null,ringSel=[],ringT=null;
+  const loadJs=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  let ready=null;
+  function load(){if(ready)return ready;ready=(window.CharacterRig?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b13'))
+    .then(()=>window.MR_RIG_DEFS&&window.MR_RIG_DEFS['rust-fork-girl']?0:loadJs('mrstage/assets/rig/rust-fork-girl/rig.def.js?v=b13'))
+    .then(()=>{const def=window.MR_RIG_DEFS['rust-fork-girl'];return Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(res=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=()=>res([k,im]);im.src=p.src;})))
+      .then(pr=>{rig=new CharacterRig(def,Object.fromEntries(pr));an=new RunAnimator(rig,{runSpeed:620});an.facing=1;});}).catch(e=>{console.warn('[니콜]',e);});return ready;}
+  function mk(){if(box)return;box=document.createElement('div');box.id='lmNic';box.setAttribute('aria-live','polite');cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');bub=document.createElement('div');bub.className='bub';bub.setAttribute('role','button');bub.tabIndex=0;
+    bub.onclick=()=>hideNic();box.append(cv,bub);document.body.appendChild(box);}
+  function anchor(){const o=document.getElementById('orbs');let r=o&&o.getBoundingClientRect();
+    if(!r||r.width<40||r.bottom<0){const h=document.getElementById('hand');r=h&&h.getBoundingClientRect();if(r)r={left:r.left,width:r.width,top:r.top-70,bottom:r.top+4,height:74};}
+    return r;}
+  function place(){let r=anchor();if(!r)return;let H=Math.max(130,Math.min(190,r.height*2.4));
+    if(r.bottom-H<2){const st=document.getElementById('lmStage'),q=st&&st.getBoundingClientRect();   /* 가로 화면: 위쪽 칸이 얇으면 전투 화면 왼쪽 안에 섬 */
+      if(q&&q.height>80){H=Math.min(q.height-8,220);r={left:q.left+6,width:q.width*.72,bottom:q.bottom-4};}}
+    const nw=H*.7;box.style.left=r.left+'px';box.style.top=(r.bottom-H)+'px';box.style.width=r.width+'px';box.style.height=H+'px';
+    const dpr=Math.min(2,devicePixelRatio||1);cv.style.width=nw+'px';cv.style.height=H+'px';if(cv.width!==Math.round(nw*dpr)){cv.width=Math.round(nw*dpr);cv.height=Math.round(H*dpr);}
+    bub.style.left=(nw*.86)+'px';bub.style.maxWidth=Math.max(160,r.width-nw*.86-6)+'px';bub.style.top=Math.max(0,H*.18)+'px';}
+  function tick(now){raf=requestAnimationFrame(tick);if(!box||!box.classList.contains('on')){if(newOn)fx();return;}place();const dt=Math.min(.05,(now-last)/1000);last=now;
+    const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);if(!an)return;an.update(dt,{vx:0,facing:1});
+    const bh=rig.def.metrics?.bodyHeight||718,H=cv.height,sc=H*.74/bh;let dy=0;const th=(now-hopT)/1000;if(th>=0&&th<.5)dy=-Math.sin(th/.5*Math.PI)*H*.14;const tn=(now-nodT)/1000;if(tn>=0&&tn<.6)dy+=Math.sin(tn/.6*Math.PI)*H*.04;
+    rig.draw(g,cv.width*.46,H*.98+dy,sc,an.facingScale);fx();}
+  function act(n){if(!an)return;if(n==='hop')hopT=performance.now();else if(n==='nod')nodT=performance.now();
+    else{const nm=n==='point'?'thrust':n,o=n==='point'?{speed:.7}:{};if(!an.attack(nm,o)){an.act=null;an.attack(nm,o);}}}
+  function ring(els){ringSel=(els||[]).filter(Boolean);}
+  const rgs=[];let newOn=null;
+  function fx(){for(let i=0;i<Math.max(rgs.length,ringSel.length);i++){let d=rgs[i];const e=ringSel[i];
+      if(!e){if(d)d.style.display='none';continue;}if(!d){d=document.createElement('div');d.className='lmTutRg';document.body.appendChild(d);rgs[i]=d;}
+      const r=e.getBoundingClientRect();d.style.display=r.width?'block':'none';d.style.left=(r.left-3)+'px';d.style.top=(r.top-3)+'px';d.style.width=(r.width+6)+'px';d.style.height=(r.height+6)+'px';}
+    if(newOn){const e=document.getElementById(newOn.id),r=e&&e.getBoundingClientRect();if(!r||performance.now()>newOn.until){newOn.el.remove();newOn=null;}else{newOn.el.style.left=(r.right-30)+'px';newOn.el.style.top=(r.top-12)+'px';}}}
+  function hideNic(){if(box)box.classList.remove('on');cur=null;ring([]);clearTimeout(ringT);rgs.forEach(d=>d.style.display='none');}
+  function badge(id){const b=document.getElementById(id);if(!b)return;b.classList.add('lmTutShow');setTimeout(()=>b.classList.remove('lmTutShow'),700);
+    if(newOn)newOn.el.remove();const n=document.createElement('span');n.className='lmTutNew';let t='새로!';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}n.textContent=t;document.body.appendChild(n);newOn={id,el:n,until:performance.now()+7000};}
+  function say(k,o){if(!S||!S.tut)return;if(!o.force&&S.tut.seen[k])return;S.tut.seen[k]=1;mk();cls();cur={k,o,t:performance.now()};
+    bub.innerHTML=tutLine(k);box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
+    load().then(()=>{if(!an||!cur||cur.k!==k)return;an.setExpression(o.face||'happy');(o.seq||[]).forEach((a,j)=>setTimeout(()=>act(a),150+j*1500));
+      if(o.face2)setTimeout(()=>an&&an.setExpression(o.face2),1500);});
+    if(o.learn)o.learn.forEach(x=>{if(!S.tut.learn.includes(x))S.tut.learn.push(x);});
+    if(o.badge)badge(o.badge);
+    if(o.auto)setTimeout(()=>{if(cur&&cur.k===k)hideNic();},o.auto);}
+  window.lmTutSay=say;
+  /* ── 언제 무엇을: 화면이 한가할 때(창 없음 · 연출 끝) 한 번씩 ── */
+  const idle=()=>{try{if(!$('ov').hidden||S.busy)return false;const f=document.querySelector('#lmStage iframe'),st=f&&f.contentWindow&&f.contentWindow.MRStage;return !st||!((st.busy&&st.busy())||(st.queued&&st.queued()));}catch(e){return true;}};
+  const pairEls=()=>{const H=S.hand;for(let i=0;i<H.length;i++)for(let j=i+1;j<H.length;j++)if(cardNo(H[i])===cardNo(H[j]))return [H[i],H[j]].map(c=>document.querySelector(`#hand .card[data-uid="${c.uid}"]`));return [];};
+  setInterval(()=>{try{
+    if(!lmTutOn()){if(box&&box.classList.contains('on')&&!(cur&&cur.o.force))hideNic();return;}
+    cls();if(!idle()){if(cur&&!cur.o.force&&!$('ov').hidden)hideNic();return;}
+    const T=S.tut,ch1=S.jang===1,played=(S.rs&&S.rs.play)||0;
+    if(ch1&&S.rd===0&&!T.seen['tut.1_1.start']&&S.hand.length){T.p0=played;say('tut.1_1.start',{face:'happy',seq:['wave','point'],learn:[0,1]});}
+    else if(ch1&&S.rd===0&&T.seen['tut.1_1.start']&&!T.seen['tut.1_1.done']&&played>(T.p0||0)){say('tut.1_1.done',{face:'shout',seq:['thrust'],auto:4500});}
+    else if(ch1&&S.rd===1&&!T.seen['tut.1_2.start']&&S.hand.length){say('tut.1_2.start',{face:'relaxed',seq:['point'],learn:[7],badge:'bDis'});}
+    else if(ch1&&S.rd===2&&!T.seen['tut.1_3.start']&&S.hand.length){say('tut.1_3.start',{face:'happy',seq:['hop','hop'],learn:[2],badge:'bMerge'});}
+    if(S.jang>=2&&T.learn.length<LEARN_ORDER.length)T.learn=LEARN_ORDER.slice();
+    /* 빛 표시: 1-1 같은 번호 2장 → 2장 이상 고르면 런 버튼 · 1-2 버리기 · 1-3 머지 */
+    if(cur&&!cur.o.force){const k=cur.k;
+      if(k==='tut.1_1.start')ring((S.sel||[]).length>=2?[$('bPlay')]:pairEls());
+      else if(k==='tut.1_2.start')ring([$('bDis')]);else if(k==='tut.1_3.start')ring([$('bMerge')]);else ring([]);
+      if(k!=='tut.1_1.done'&&played>(cur.p||(cur.p=played)))hideNic();}
+  }catch(e){}},300);
+  addEventListener('click',e=>{if(!cur||cur.o.force)return;const t=e.target.closest&&e.target.closest('#bDis,#bMerge');if(t&&(cur.k==='tut.1_2.start'&&t.id==='bDis'||cur.k==='tut.1_3.start'&&t.id==='bMerge'))setTimeout(hideNic,200);},true);
+})();
 </script>
 </body></html>
