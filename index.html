@@ -8291,4 +8291,11 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
   const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);if(!fired)setTimeout(go,300);return r;};
 })();
 </script>
+<script id="lm-story-test">
+/* (DHL 11-02) 스토리 잠금 테스트 주소: ?story=none | app | knight — 출시 잠금(LM_STORY_ALL=false)으로 바꾸고 복선 컷 본 상태를 그렇게 맞춘 뒤 스토리 목록을 엶 (이 브라우저 기록만 바뀜) */
+(function(){let q='';try{q=new URLSearchParams(location.search).get('story')||'';}catch(e){}
+  if(!/^(none|app|knight)$/.test(q))return;
+  try{LM_STORY_ALL=false;const set=(k,v)=>v?localStorage.setItem('lm.scene.clear_'+k+'.v1','1'):localStorage.removeItem('lm.scene.clear_'+k+'.v1');set('a',q!=='none');set('b',q==='knight');}catch(e){}
+  let done=false;const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);if(!done){done=true;setTimeout(()=>{try{ltPop('story');}catch(e){}},400);}return r;};})();
+</script>
 </body></html>
