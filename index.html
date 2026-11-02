@@ -3396,8 +3396,15 @@ const LEARN=[
   {t:'세 가지를 맞춰 방패 뚫기',s:'몸체 60%까지 · 넘친 피해는 방패 · 고정 피해',at:1},
   {t:'거인은 맞추기를 방해합니다',s:'반격 · 약점 바꾸기 · 갑옷 회복',at:1},
   {t:'거인을 물리치면 다음 장',s:'망령 · 수문장 · 거인 · 구슬',at:1},
-  {t:'기사 · 편력 기사',s:'난이도마다 달라지는 것',at:1}
+  {t:'기사 · 편력 기사',s:'난이도마다 달라지는 것',at:1},
+  /* (DHL 11-02) 니콜이 알려주는 것과 1:1 — 버리기 · 원정 캠프 · 야영 · ★3 각성 (저장 번호는 뒤에 이어 붙이고, 보이는 순서는 LEARN_ORDER) */
+  {t:'별로인 카드는 버리기',s:'새 카드로 바꾸기',at:1},
+  {t:'이기면 원정 캠프',s:'구슬 · 동료 팩 · 족보서 · 증서',at:1},
+  {t:'야영에서 정비하기',s:'모닥불 머지 · 떠나보내기 · 정찰 · 밤 산책',at:1},
+  {t:'별 3개 · 각성',s:'능력 둘 중 하나',at:1}
 ];
+const LEARN_ORDER=[0,1,7,2,5,3,8,4,9,10,6];   /* 보이는 순서 = 첫 판에서 니콜이 알려주는 순서 */
+const lPos=k=>Math.max(0,LEARN_ORDER.indexOf(k)),lNext=()=>LEARN_ORDER.find(k=>!LEARN_SEEN.includes(k));
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 let LEARN_SEEN=lsGet('lm_learn_seen',[]);
@@ -3461,19 +3468,20 @@ function learnHTML(){
   if(learnView==='page'){
     const i=Math.max(0,Math.min(LEARN.length-1,learnIdx));learnIdx=i;
     if(!LEARN_SEEN.includes(i)){LEARN_SEEN.push(i);lsSet('lm_learn_seen',LEARN_SEEN);}
-    const dots=LEARN.map((_,k)=>`<span class="${k===i?'on':LEARN_SEEN.includes(k)?'seen':''}"></span>`).join('');
-    const last=i===LEARN.length-1;
-    return `<div class="lNav"><span class="lNavL" aria-hidden="true"></span><span class="lDots" aria-label="${LEARN.length}개 중 ${i+1}번째">${dots}</span><span class="lNo">${i+1} / ${LEARN.length}</span></div>`+
-      `<div class="rb"><div class="wrap">${i===3?RB_KEY_PAGE:RB_PAGES[i]}</div></div>`+
-      `<div class="lBot lbArrows"><button class="arrowBtn prev" aria-label="이전" title="이전" ${i?'':'disabled'} onclick="openInfo('learn','page',${i-1})"></button>${practiceOf(i)?`<button class="try on" onclick="practiceStart(${i})">해보기${PRACTICE_DONE.includes(i)?'<small class="lbDone">완료</small>':''}</button>`:`<button class="try" disabled>해보기 · 준비 중</button>`}`+
-      (last?`<button class="arrowBtn next" aria-label="목록으로" title="목록으로" onclick="openInfo('learn','list')"></button>`:`<button class="arrowBtn next" aria-label="다음" title="다음" onclick="openInfo('learn','page',${i+1})"></button>`)+`</div>`;
+    const pos=lPos(i),N=LEARN_ORDER.length,prv=LEARN_ORDER[pos-1],nxt=LEARN_ORDER[pos+1];
+    const dots=LEARN_ORDER.map(k=>`<span class="${k===i?'on':LEARN_SEEN.includes(k)?'seen':''}"></span>`).join('');
+    const last=pos===N-1,pg=(i>=7?LX_PAGES[i-7]:i===3?RB_KEY_PAGE:RB_PAGES[i]).replace(/<span class="no">\d+<\/span>/,`<span class="no">${pos+1}</span>`);
+    return `<div class="lNav"><span class="lNavL" aria-hidden="true"></span><span class="lDots" aria-label="${N}개 중 ${pos+1}번째">${dots}</span><span class="lNo">${pos+1} / ${N}</span></div>`+
+      `<div class="rb"><div class="wrap">${pg}</div></div>`+
+      `<div class="lBot lbArrows"><button class="arrowBtn prev" aria-label="이전" title="이전" ${pos?'':'disabled'} onclick="openInfo('learn','page',${prv})"></button>${i>=7?'<span class="try lxNoTry" aria-hidden="true"></span>':practiceOf(i)?`<button class="try on" onclick="practiceStart(${i})">해보기${PRACTICE_DONE.includes(i)?'<small class="lbDone">완료</small>':''}</button>`:`<button class="try" disabled>해보기 · 준비 중</button>`}`+
+      (last?`<button class="arrowBtn next" aria-label="목록으로" title="목록으로" onclick="openInfo('learn','list')"></button>`:`<button class="arrowBtn next" aria-label="다음" title="다음" onclick="openInfo('learn','page',${nxt})"></button>`)+`</div>`;
   }
-  const next=LEARN.findIndex((_,k)=>!LEARN_SEEN.includes(k));
-  const rows=LEARN.map((L,k)=>{const lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;
+  const next=lNext();
+  const rows=LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;
     const tag=lock?`${L.at}장에서 열림`:PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
-    return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${k+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
+    return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
   return `<p class="iLead">한 장씩 넘기며 배웁니다.</p><div class="lList">${rows}</div>`+
-    `<div class="lBot two"><button onclick="openInfo('learn','dict')">기호 사전</button><button class="go" onclick="openInfo('learn','page',${next<0?0:next})">${next<0?'처음부터 다시':'이어서 보기 · '+(next+1)}</button></div>`;
+    `<div class="lBot two"><button onclick="openInfo('learn','dict')">기호 사전</button><button class="go" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':'이어서 보기 · '+(lPos(next)+1)}</button></div>`;
 }
 /* 기호 사전 (예전 '카드' 탭) */
 function dictHTML(){   /* (DHL 10-29) 가독성 + 지금 규칙(번호 · 맞춤 · 방패)으로 다시 씀 — 예전 약점 ×2 · 내성 · 고향 줄은 규칙에서 빠져 삭제 */
@@ -3674,7 +3682,7 @@ function renderPractice(bar){const P=practiceOf(S.practice.i);
 const practiceHL=c=>{if(!(S&&S.practice&&S.practice.tries>0))return false;const h=practiceOf(S.practice.i).hl;return typeof h==='function'?!!h(c):(h||[]).includes(TYPES[c.id].n);};
 
 const RB_KEY_PAGE="<section class=\"pg\">\n  <h2><span class=\"no\">4</span>세 가지를 맞춰 방패 뚫기</h2>\n  <p class=\"say\">족보 카드로 적의 <b class=\"k\">세계 · 약점 · 번호</b>를 맞춰요</p>\n  <div class=\"keys3\" id=\"rb_k3\"></div>\n  <p class=\"tip p4tap\">카드를 눌러 보세요 ↓</p>\n  <div class=\"row\" id=\"rb_p4k\"></div>\n  <div class=\"gsLive\" id=\"rb_cap\"><span class=\"gsArt\" id=\"rb_gs\"><span class=\"gm w\"><i style=\"background:var(--sky)\"></i></span><span class=\"gm e\"><i style=\"background:#2563eb\"></i></span><span class=\"gm h\"><em>9</em></span></span>\n    <div class=\"gsSide\"><div class=\"board\"><span class=\"hn\" id=\"rb_k4hn\">맞춤 0 / 3</span><span class=\"sc\" id=\"rb_k4sc\">막힘</span></div></div><div class=\"armor4\" id=\"rb_k4ar\"></div></div>\n  <div class=\"lscs\"><p class=\"lscT\">적 체력 <b>1,000</b> · 방패 <b>2,000</b> <small>공격 1,000일 때</small></p><p class=\"lscS\">방패가 있는 동안 몸체는 한 번에 <b>60%</b>까지만 맞아요.<br>넘친 피해는 <b>방패</b>가 받아요. 방패가 0이 되면 깨져요.</p><div class=\"lscRow\"><figure class=\"lsc s0\"><div class=\"lst\"><img class=\"bg\" src=\"mrstage/assets/art/backgrounds/battle/bg_battle_0001.png\" alt=\"\"><img class=\"he\" src=\"mrstage/assets/art/battle_characters/battle_char_0001_Idle.png\" alt=\"\"><img class=\"fo\" src=\"mrstage/assets/art/villains/villain_0008.png\" alt=\"\"><div class=\"g\"><span class=\"gs\"><i class=\"gm w on\"></i><i class=\"gm e on\"></i><i class=\"gm h\"></i></span><div class=\"sb\"><span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z\" fill=\"currentColor\"/></svg>2,000</span></div><div class=\"hb\"><i style=\"width:100%\"></i><u class=\"hl\" style=\"left:40%\"></u><span>1,000 / 1,000</span></div></div></div><figcaption>① 런 전 · 맞춤 2/3</figcaption></figure><figure class=\"lsc s1 se\"><div class=\"lst\"><img class=\"bg\" src=\"mrstage/assets/art/backgrounds/battle/bg_battle_0001.png\" alt=\"\"><img class=\"he\" src=\"mrstage/assets/art/battle_characters/battle_char_0001_Idle.png\" alt=\"\"><img class=\"fo\" src=\"mrstage/assets/art/villains/villain_0008.png\" alt=\"\"><div class=\"g\"><span class=\"gs\"><i class=\"gm w on\"></i><i class=\"gm e on\"></i><i class=\"gm h\"></i></span><div class=\"sb\"><span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z\" fill=\"currentColor\"/></svg>1,600</span></div><div class=\"hb\"><i style=\"width:40%\"></i><b class=\"lost\" style=\"left:40%;width:60%\"></b><span>400 / 1,000</span></div></div><i class=\"spk\"></i><p class=\"big blk\"><b>막힘!</b><small>방패 −400 · 몸체 −600</small></p></div><figcaption>② 몸체는 600까지 · 넘친 400은 방패</figcaption></figure><figure class=\"lsc s2\"><div class=\"lst\"><img class=\"bg\" src=\"mrstage/assets/art/backgrounds/battle/bg_battle_0001.png\" alt=\"\"><img class=\"he\" src=\"mrstage/assets/art/battle_characters/battle_char_0001_Idle.png\" alt=\"\"><img class=\"fo\" src=\"mrstage/assets/art/villains/villain_0008.png\" alt=\"\"><div class=\"g\"><span class=\"gs\"><i class=\"gm w on\"></i><i class=\"gm e on\"></i><i class=\"gm h on\"></i></span><div class=\"sb\"><span></span></div><div class=\"hb\"><i style=\"width:0%\"></i><b class=\"lost gold\" style=\"left:0;width:100%\"></b><span>0 / 1,000</span></div></div><i class=\"brst\"></i><p class=\"big prc\"><b>고정 피해!</b><small>1,750</small></p></div><figcaption>③ 고정 피해 · 3/3</figcaption></figure></div></div>\n  <svg class=\"ring\" id=\"rb_ring\" viewBox=\"0 0 300 260\" role=\"img\" aria-label=\"약점 속성: 물은 불을, 불은 바람을, 바람은 흙을, 흙은 전기를, 전기는 물을 이깁니다\"></svg>\n  <p class=\"tip\">약점 = 적을 이기는 색</p>\n</section>";
-const RB_PAGES=["<section class=\"pg\">\n  <h2><span class=\"no\">1</span>당신은 기사단 대장!</h2>\n  <div class=\"row\" id=\"rb_p1\"></div>\n  <p class=\"say\">손에 <b class=\"k\">동료 카드 8장</b>을 듭니다.<br>왼쪽 위 숫자가 클수록 <b class=\"k\">기본 힘이 셉니다.</b><br>오른쪽 위 숫자는 <b class=\"k\">지금 힘</b>입니다.</p>\n  <p class=\"tip\">왼쪽 위 번호는 <b class=\"k\">판마다 새로 정해집니다</b> (1~10, 번호마다 6장).<br>지금 힘은 별<img src=\"assets/ui/card/star_g.webp\" alt=\"\" style=\"height:1.1em;width:auto;vertical-align:-.15em;margin:0 1px\">이 늘면 세집니다.<br>카드 테두리 색은 동료가 사는 세계입니다.<br>주황 러스트, 보라 네온, 파랑 스카이.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">2</span>골라서 “런!”</h2>\n  <p class=\"say\">카드를 눌러 골라 보세요.<br><b class=\"k\">같은 숫자</b>를 모을수록 점수가 커집니다.</p>\n  <div class=\"hand\" id=\"rb_p2\"></div>\n  <div class=\"board\"><span class=\"hn\" id=\"rb_hn\">카드를 골라 보세요 (최대 5장)</span><span class=\"sc\" id=\"rb_sc\"></span></div>\n  <div class=\"meter\" aria-hidden=\"true\"><i id=\"rb_mt\"></i><u title=\"목표\"></u></div>\n  <div class=\"found\" id=\"rb_found\"></div>\n  <p class=\"tip\">위 족보를 모두 찾아보세요.<br>걸린 족보가 여러 개면 <b class=\"k\">모두 더해집니다.</b><br>족보에 들어가지 않은 카드는 흐리게 보이고, 힘이 더해지지 않습니다.<br>빨간 줄(목표 300점)을 넘기면 이깁니다.<br>런은 4번까지 할 수 있습니다.</p>\n  <button class=\"btn sm\" id=\"rb_p2r\" type=\"button\">다시 고르기</button>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">3</span>같은 동료 둘이면 머지!</h2>\n  <div class=\"merge\" id=\"rb_mg\">\n    <span class=\"l-wrap\"></span><span class=\"plus\">+</span><span class=\"r-wrap\"></span><span class=\"res\"></span>\n  </div>\n  <button class=\"btn\" id=\"rb_mgBtn\" type=\"button\">머지!</button>\n  <p class=\"say\">이름이 같은 동료 두 장을 겹치면<br><b class=\"k\">한 장으로 합쳐지고 별이 하나 늘어납니다.</b><br>별이 늘면 힘이 훨씬 세집니다.</p>\n  <p class=\"tip\">견습 기사는 머지 버튼으로 언제든 합칩니다.<br>기사부터는 7번을 보세요.</p>\n</section>", "", "<section class=\"pg\">\n  <h2><span class=\"no\">5</span>거인은 맞추기를 방해합니다</h2>\n  <p class=\"say\">거인은 <b class=\"k\">규칙</b> 하나를 가지고 나옵니다.<br>망령 라운드부터 미리 볼 수 있습니다.</p>\n  <div class=\"legend\">\n    <span class=\"pill\">⚔ 반격</span><span><b class=\"k\">1가지 이하</b>로 맞춰 런하면 남은 런 −1</span>\n    <span class=\"pill\">⚔ 약점 바꾸기</span><span>런할 때마다 세계 · 약점 속성 중 하나가 바뀜</span>\n    <span class=\"pill\">✚ 갑옷 회복</span><span>런할 때마다 체력이 최대 체력의 10%만큼 다시 참</span>\n  </div>\n  <p class=\"tip\">세 규칙 모두 많이 맞춰 한 번에 크게 칠수록 덜 아픕니다.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">6</span>거인을 물리치면 다음 장으로!</h2>\n  <div class=\"road\">\n    <div class=\"stop\"><span class=\"d tk\"><img src=\"assets/ui/lamancha/token_minion.webp\" alt=\"\"></span>망령</div><span class=\"ln\"></span>\n    <div class=\"stop\"><span class=\"d tk\"><img src=\"assets/ui/lamancha/token_knight.webp\" alt=\"\"></span>수문장</div><span class=\"ln\"></span>\n    <div class=\"stop g\"><span class=\"d tk\"><img src=\"assets/ui/lamancha/token_giant.webp\" alt=\"\"></span>거인</div>\n  </div>\n  <p class=\"say\">한 장에서 세 번 싸웁니다.<br>이기면 원정 캠프에서 <b class=\"k\">구슬</b>을 사서 점수를 더 키웁니다.</p>\n  <p class=\"tip\">구슬은 런할 때마다 점수를 더하거나 곱해 주는 특별한 힘입니다.</p>\n  <p class=\"end\">8장 마지막 거인을 물리치면 승리!</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">7</span>다음은 기사,<br>그다음은 편력 기사</h2>\n  <p class=\"say\">견습 기사를 깨면 <b class=\"k\">기사</b>, 기사를 깨면 <b class=\"k\">편력 기사</b>가 열립니다.<br>규칙은 같고, 목표와 거인이 세집니다.</p>\n  <div class=\"cmp\" role=\"table\" aria-label=\"난이도별 차이\">\n    <div class=\"h\" role=\"row\"><span role=\"columnheader\"></span><span role=\"columnheader\">견습 기사</span><span role=\"columnheader\">기사</span><span role=\"columnheader\">편력 기사</span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🔗</i>머지</span><span class=\"y\">버튼으로<small>언제든</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🎯</i>목표</span><span class=\"y\">보통</span><span>장마다 더 높아짐</span><span class=\"x\">처음부터 높음<small>더 빨리 오름</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>👹</i>거인<br>규칙</span><span class=\"y\">쉬운 것만</span><span>4장부터 족보 규칙<small>같은 족보 금지 · 처음 족보만</small></span><span class=\"x\">1장부터 족보 규칙</span></div>\n  </div>\n  <p class=\"tip\">장마다 세계 · 적 · 주인공이 무작위로 나옵니다.<br><b class=\"k\">편력 기사</b>를 깨야 엔딩을 볼 수 있습니다.</p>\n</section>"];
+const RB_PAGES=["<section class=\"pg\">\n  <h2><span class=\"no\">1</span>당신은 기사단 대장!</h2>\n  <div class=\"row\" id=\"rb_p1\"></div>\n  <p class=\"say\">손에 <b class=\"k\">동료 카드 8장</b>을 듭니다.<br>왼쪽 위 숫자가 클수록 <b class=\"k\">기본 힘이 셉니다.</b><br>오른쪽 위 숫자는 <b class=\"k\">지금 힘</b>입니다.</p>\n  <p class=\"tip\">왼쪽 위 번호는 <b class=\"k\">판마다 새로 정해집니다</b> (1~10, 번호마다 6장).<br>지금 힘은 별<img src=\"assets/ui/card/star_g.webp\" alt=\"\" style=\"height:1.1em;width:auto;vertical-align:-.15em;margin:0 1px\">이 늘면 세집니다.<br>카드 테두리 색은 동료가 사는 세계입니다.<br>주황 러스트, 보라 네온, 파랑 스카이.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">2</span>골라서 “런!”</h2>\n  <p class=\"say\">카드를 눌러 골라 보세요.<br><b class=\"k\">같은 숫자</b>를 모을수록 점수가 커집니다.</p>\n  <div class=\"hand\" id=\"rb_p2\"></div>\n  <div class=\"board\"><span class=\"hn\" id=\"rb_hn\">카드를 골라 보세요 (최대 5장)</span><span class=\"sc\" id=\"rb_sc\"></span></div>\n  <div class=\"meter\" aria-hidden=\"true\"><i id=\"rb_mt\"></i><u title=\"목표\"></u></div>\n  <div class=\"found\" id=\"rb_found\"></div>\n  <p class=\"tip\">위 족보를 모두 찾아보세요.<br>걸린 족보가 여러 개면 <b class=\"k\">모두 더해집니다.</b><br>족보에 들어가지 않은 카드는 흐리게 보이고, 힘이 더해지지 않습니다.<br>빨간 줄(목표 300점)을 넘기면 이깁니다.<br>런은 4번까지 할 수 있습니다.</p>\n  <button class=\"btn sm\" id=\"rb_p2r\" type=\"button\">다시 고르기</button>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">3</span>같은 동료 둘이면 머지!</h2>\n  <div class=\"merge\" id=\"rb_mg\">\n    <span class=\"l-wrap\"></span><span class=\"plus\">+</span><span class=\"r-wrap\"></span><span class=\"res\"></span>\n  </div>\n  <button class=\"btn\" id=\"rb_mgBtn\" type=\"button\">머지!</button>\n  <p class=\"say\">이름이 같은 동료 두 장을 겹치면<br><b class=\"k\">한 장으로 합쳐지고 별이 하나 늘어납니다.</b><br>별이 늘면 힘이 훨씬 세집니다.</p>\n  <p class=\"tip\">견습 기사는 머지 버튼으로 언제든 합칩니다.<br>기사부터는 마지막 쪽을 보세요.</p>\n</section>", "", "<section class=\"pg\">\n  <h2><span class=\"no\">5</span>거인은 맞추기를 방해합니다</h2>\n  <p class=\"say\">거인은 <b class=\"k\">규칙</b> 하나를 가지고 나옵니다.<br>망령 라운드부터 미리 볼 수 있습니다.</p>\n  <div class=\"legend\">\n    <span class=\"pill\">⚔ 반격</span><span><b class=\"k\">1가지 이하</b>로 맞춰 런하면 남은 런 −1</span>\n    <span class=\"pill\">⚔ 약점 바꾸기</span><span>런할 때마다 세계 · 약점 속성 중 하나가 바뀜</span>\n    <span class=\"pill\">✚ 갑옷 회복</span><span>런할 때마다 체력이 최대 체력의 10%만큼 다시 참</span>\n  </div>\n  <p class=\"tip\">세 규칙 모두 많이 맞춰 한 번에 크게 칠수록 덜 아픕니다.</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">6</span>거인을 물리치면 다음 장으로!</h2>\n  <div class=\"road\">\n    <div class=\"stop\"><span class=\"d tk\"><img src=\"assets/ui/lamancha/token_minion.webp\" alt=\"\"></span>망령</div><span class=\"ln\"></span>\n    <div class=\"stop\"><span class=\"d tk\"><img src=\"assets/ui/lamancha/token_knight.webp\" alt=\"\"></span>수문장</div><span class=\"ln\"></span>\n    <div class=\"stop g\"><span class=\"d tk\"><img src=\"assets/ui/lamancha/token_giant.webp\" alt=\"\"></span>거인</div>\n  </div>\n  <p class=\"say\">한 장에서 세 번 싸웁니다.<br>이기면 원정 캠프에서 <b class=\"k\">구슬</b>을 사서 점수를 더 키웁니다.</p>\n  <p class=\"tip\">구슬은 런할 때마다 점수를 더하거나 곱해 주는 특별한 힘입니다.</p>\n  <p class=\"end\">8장 마지막 거인을 물리치면 승리!</p>\n</section>", "<section class=\"pg\">\n  <h2><span class=\"no\">7</span>다음은 기사,<br>그다음은 편력 기사</h2>\n  <p class=\"say\">견습 기사를 깨면 <b class=\"k\">기사</b>, 기사를 깨면 <b class=\"k\">편력 기사</b>가 열립니다.<br>규칙은 같고, 목표와 거인이 세집니다.</p>\n  <div class=\"cmp\" role=\"table\" aria-label=\"난이도별 차이\">\n    <div class=\"h\" role=\"row\"><span role=\"columnheader\"></span><span role=\"columnheader\">견습 기사</span><span role=\"columnheader\">기사</span><span role=\"columnheader\">편력 기사</span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🔗</i>머지</span><span class=\"y\">버튼으로<small>언제든</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span><span>같이 내면<small>런할 때 합쳐짐<br>(안 합치기도 가능)</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>🎯</i>목표</span><span class=\"y\">보통</span><span>장마다 더 높아짐</span><span class=\"x\">처음부터 높음<small>더 빨리 오름</small></span></div>\n    <div role=\"row\"><span class=\"q\" role=\"rowheader\"><i>👹</i>거인<br>규칙</span><span class=\"y\">쉬운 것만</span><span>4장부터 족보 규칙<small>같은 족보 금지 · 처음 족보만</small></span><span class=\"x\">1장부터 족보 규칙</span></div>\n  </div>\n  <p class=\"tip\">장마다 세계 · 적 · 주인공이 무작위로 나옵니다.<br><b class=\"k\">편력 기사</b>를 깨야 엔딩을 볼 수 있습니다.</p>\n</section>"];
 function rbMount(){
 
 const A={art:MR_ART.idle,ico:ICON_IMG};
@@ -3919,7 +3927,7 @@ function ltPlayHTML(){
       `<button type="button" class="pl-go" onclick="ltCont()">계속하기</button>`
       :`<p class="lt-note" style="text-align:center;font-size:14px;margin:40px 0">이어서 할 판이 없습니다.<br>(판 저장은 저장 기능을 붙일 때 추가합니다)</p>`;
   }
-  if(ltPlayTab==='try'){const J=window.LM_TEST?99:Math.max(1,LM_ST.bestJang||1),next=LEARN.findIndex((_,k)=>!LEARN_SEEN.includes(k));h+=`<div class="pl-learn"><div class="lList"><button type="button" class="lRow now" onclick="sandboxStart('app')"><span class="n">🧪</span><span class="tx"><b>연습장 · 견습 머지</b><small>추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button><button type="button" class="lRow now" onclick="sandboxStart('knight')"><span class="n">🧪</span><span class="tx"><b>연습장 · 머지 & 런</b><small>기사 방식 · 추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button>`+LEARN.map((L,k)=>{const lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;const tag=lock?`${L.at}장에서 열림`:PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';return `<button type="button" class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="ltLearn(${k})"><span class="n">${k+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('')+`</div></div>`;}
+  if(ltPlayTab==='try'){const J=window.LM_TEST?99:Math.max(1,LM_ST.bestJang||1),next=lNext();h+=`<div class="pl-learn"><div class="lList"><button type="button" class="lRow now" onclick="sandboxStart('app')"><span class="n">🧪</span><span class="tx"><b>연습장 · 견습 머지</b><small>추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button><button type="button" class="lRow now" onclick="sandboxStart('knight')"><span class="n">🧪</span><span class="tx"><b>연습장 · 머지 & 런</b><small>기사 방식 · 추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button>`+LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J,seen=LEARN_SEEN.includes(k),now=k===next;const tag=lock?`${L.at}장에서 열림`:PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';return `<button type="button" class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="ltLearn(${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('')+`</div></div>`;}
   return h+`</div>`;
 }
 function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k.length)%k.length];ltPop('play');}
@@ -8410,5 +8418,91 @@ function lmResetRecord(btn){
     const mo=new MutationObserver(sync);['htName','vC','vM','hand'].forEach(id=>{const e=document.getElementById(id);if(e)mo.observe(e,{childList:true,subtree:true,characterData:true,attributes:true});});};
   hook();addEventListener('resize',sync);
 })();
+</script>
+<style id="lm-learn4">
+/* (DHL 11-02) 배우기 새 4쪽 — 버리기 · 원정 캠프 · 야영 · ★3 각성. 글자는 짧은 문장만(13개 언어), 넘치면 줄바꿈 · 카드/그림 칸은 글자 없이 */
+.rb .lxHand{display:grid;grid-template-columns:repeat(3,auto);justify-content:center;gap:6px;margin:14px 0 10px;min-height:120px}
+.rb .lxHand .cd.card.dz{width:min(19vw,82px);cursor:pointer;transition:transform .18s,opacity .25s,translate .35s}
+.rb .lxHand .cd.card.dz.sel{transform:translateY(-10px)}
+.rb .lxHand .cd.card.dz.sel .dzi{filter:drop-shadow(0 0 3px #ffd36a) drop-shadow(0 0 8px #f2c14ecc)}
+.rb .lxHand .cd.card.dz.gone{opacity:0;translate:0 40px}
+.rb .lxHand .cd.card.dz.inn{animation:lxIn .38s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes lxIn{from{opacity:0;translate:60px -20px;rotate:8deg}}
+.rb .lxBar{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:4px 0 12px}
+.rb .lxBar .btn{background:linear-gradient(180deg,#e05a4a,#b8362c);color:#fff;border:0;border-radius:12px;padding:10px 22px;font-size:16px;box-shadow:0 3px 0 #6e1d16;cursor:pointer}
+.rb .lxBar .btn:disabled{opacity:.45;cursor:default}
+.rb .lxLeft{display:inline-flex;align-items:center;gap:6px;color:var(--soft);font-size:14px}
+.rb .lxLeft b{display:inline-grid;place-items:center;min-width:30px;height:30px;border-radius:50%;background:#2a1418;border:2px solid #e05a4a;color:#fff;font-size:15px;font-variant-numeric:tabular-nums}
+.rb .lxGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+.rb .lxIt{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;background:#0f1a30;border:1px solid #c9a24a55;border-radius:14px;padding:12px 8px 12px;min-width:0}
+.rb .lxIt .pic{height:74px;display:flex;align-items:center;justify-content:center}
+.rb .lxIt .pic img{max-height:74px;max-width:88px;filter:drop-shadow(0 3px 3px #000a)}
+.rb .lxIt b{font-size:15px;color:var(--sun,#ffd36a);line-height:1.25;overflow-wrap:anywhere}
+.rb .lxIt small{font-size:13px;color:var(--soft);line-height:1.45;overflow-wrap:anywhere}
+.rb .lxIt .art{width:84px;aspect-ratio:3/4;border-radius:8px;border:2px solid #c9a24a;background:url(assets/ui/rest/rest_cards.webp) var(--ax) 0/500% 200% no-repeat;box-shadow:0 3px 6px #000a}
+.rb .lxAw{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px 0 6px}
+.rb .lxAw .cd.card.dz{width:min(20vw,84px)}
+.rb .lxAw .cd.card.dz.big{width:min(27vw,112px)}
+.rb .lxAw .op{font:900 22px/1 'Noto Sans KR',sans-serif;color:var(--soft)}
+.rb .lxAB{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}
+.rb .lxAB>div{background:#0f1a30;border:1px solid #c9a24a55;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.rb .lxAB i{font-style:normal;font:900 12px/1 'Noto Sans KR',sans-serif;color:#0f1a30;background:var(--sun,#ffd36a);border-radius:999px;padding:3px 9px;align-self:flex-start}
+.rb .lxAB b{font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.rb .lxAB small{font-size:13px;color:var(--soft);line-height:1.45;overflow-wrap:anywhere}
+.rb .lxSt{height:1em;width:auto;vertical-align:-.12em;margin-right:1px;filter:drop-shadow(0 1px 1px #000a)}
+.rb h2 .lxSt:last-of-type{margin-right:8px}
+@media (min-width:700px) and (orientation:landscape){.rb .lxGrid{grid-template-columns:repeat(4,minmax(0,1fr))}.rb .lxHand{grid-template-columns:repeat(6,auto)}}
+.lBot .lxNoTry{visibility:hidden;flex:1}
+@media (prefers-reduced-motion:reduce){.rb .lxHand .cd.card.dz{transition:none}.rb .lxHand .cd.card.dz.inn{animation:none}}
+</style>
+<script id="lm-learn4-js">
+const LX_PAGES=[
+`<section class="pg"><h2><span class="no">3</span>별로인 카드는 버리기</h2>
+<p class="say">족보에 안 맞는 카드를 골라 <b class="k">버리기</b>를 누르세요.<br>버린 만큼 새 카드가 들어옵니다.</p>
+<div class="lxHand" id="lx_dh"></div>
+<div class="lxBar"><button class="btn" id="lx_db" type="button" disabled>버리기</button><span class="lxLeft">남은 버리기 <b id="lx_dn">4</b></span></div>
+<p class="tip">버린 카드는 점수가 되지 않습니다.<br>남은 횟수는 버리기 버튼에 보입니다.</p></section>`,
+`<section class="pg"><h2><span class="no">7</span>이기면 원정 캠프</h2>
+<p class="say">라운드를 이기면 받은 돈으로 <b class="k">원정 캠프</b>에서 물건을 삽니다.</p>
+<div class="lxGrid">
+<div class="lxIt"><span class="pic"><img src="assets/ui/lamancha/icons/rainbow_orb.webp" alt=""></span><b>구슬</b><small>런할 때마다 점수를 더하거나 곱합니다.</small></div>
+<div class="lxIt"><span class="pic"><img src="assets/ui/kit/pack2.webp" alt=""></span><b>동료 팩</b><small>새 동료를 덱에 넣습니다.</small></div>
+<div class="lxIt"><span class="pic"><img src="assets/ui/kit/book.webp" alt=""></span><b>족보서</b><small>족보 하나의 레벨을 올립니다.</small></div>
+<div class="lxIt"><span class="pic"><img src="assets/ui/kit/deed2.webp" alt=""></span><b>증서</b><small>판 내내 남는 혜택을 얻습니다.</small></div>
+</div>
+<p class="tip">남긴 돈에는 이자가 붙습니다.<br>💰5마다 💰1, 최대 💰5입니다.</p></section>`,
+`<section class="pg"><h2><span class="no">9</span>야영에서 정비하기</h2>
+<p class="say">야영에서는 싸우지 않고 <b class="k">정비 2번</b>을 합니다.</p>
+<div class="lxGrid">
+<div class="lxIt"><span class="art" style="--ax:25%"></span><b>모닥불 머지</b><small>돈을 내고 같은 동료 두 장을 합칩니다.</small></div>
+<div class="lxIt"><span class="art" style="--ax:50%"></span><b>동료 떠나보내기</b><small>덱에서 카드 1장을 뺍니다.</small></div>
+<div class="lxIt"><span class="art" style="--ax:75%"></span><b>정찰</b><small>거인 규칙을 다시 뽑습니다.</small></div>
+<div class="lxIt"><span class="art" style="--ax:100%"></span><b>밤 산책</b><small>무엇이 나올지 모르는 길을 고릅니다.</small></div>
+</div>
+<p class="tip">같은 정비를 두 번 해도 됩니다.</p></section>`,
+`<section class="pg"><h2><span class="no">10</span><img src="assets/ui/card/star_g.webp" alt="" class="lxSt"><img src="assets/ui/card/star_g.webp" alt="" class="lxSt"><img src="assets/ui/card/star_g.webp" alt="" class="lxSt">각성</h2>
+<div class="lxAw" id="lx_aw"></div>
+<p class="say">별 2개인 같은 동료 <b class="k">두 장</b>을 머지하면 별 3개가 됩니다.<br>그때 <b class="k">능력 하나</b>를 고릅니다.</p>
+<div class="lxAB" id="lx_ab"></div>
+<p class="tip">능력은 동료마다 다릅니다.<br>도감에서 미리 볼 수 있습니다.</p></section>`];
+function lxCard(o){const el=document.createElement('div');el.className='cd card dz s'+(o.star||1)+(o.big?' big':'');
+  let f='';try{const fo=S&&S.foe;if(S)S.foe=null;f=cardFace({id:o.id,el:o.e,star:o.star||1,no:o.n,uid:-1,aw:o.aw});if(S)S.foe=fo;}catch(e){}
+  el.innerHTML=f;el.querySelectorAll('.chips').forEach(x=>x.remove());return el;}
+function lxMount(i){
+  if(i===7){const box=document.getElementById('lx_dh'),btn=document.getElementById('lx_db'),left=document.getElementById('lx_dn');if(!box)return;
+    const IDS=['rust_alonso','neon_rosi','sky_lucia','rust_bruno','neon_carden','sky_palome','rust_gris','neon_nicole'],ELS5=['불','물','바람','흙','전기'];
+    let hand=[7,2,7,9,4,7].map((n,k)=>({n,id:IDS[k],e:ELS5[k%5]})),feed=[7,5,7,3,8,7,1,7],fi=0,sel=new Set(),n=4;
+    const draw=(fresh)=>{box.innerHTML='';hand.forEach((c,k)=>{const el=lxCard(c);if(fresh&&fresh.has(k))el.classList.add('inn');if(sel.has(k))el.classList.add('sel');el.setAttribute('role','button');el.tabIndex=0;el.setAttribute('aria-label',c.n);
+      el.onclick=()=>{if(sel.has(k))sel.delete(k);else if(sel.size<5)sel.add(k);draw();};box.appendChild(el);});btn.disabled=!sel.size||n<1;left.textContent=n;};
+    btn.onclick=()=>{if(!sel.size||n<1)return;const els=[...box.children];sel.forEach(k=>els[k]&&els[k].classList.add('gone'));btn.disabled=true;
+      setTimeout(()=>{const fresh=new Set();sel.forEach(k=>{hand[k]={n:feed[fi%feed.length],id:IDS[(fi+3)%IDS.length],e:ELS5[(fi+2)%5]};fi++;fresh.add(k);});sel.clear();n--;if(n<1)setTimeout(()=>{n=4;left.textContent=n;btn.disabled=!sel.size;},2200);draw(fresh);},380);};
+    draw();}
+  if(i===10){const aw=document.getElementById('lx_aw'),ab=document.getElementById('lx_ab');if(!aw)return;
+    aw.append(lxCard({id:'rust_alonso',star:2,n:6,e:'불'}));const p=document.createElement('span');p.className='op';p.textContent='+';aw.append(p);
+    aw.append(lxCard({id:'sky_alonso',star:2,n:9,e:'바람'}));const q=document.createElement('span');q.className='op';q.textContent='→';aw.append(q);
+    aw.append(lxCard({id:'rust_alonso',star:3,n:9,e:'불',big:1}));
+    const A=STAR3.alonso,B=STAR3B.alonso;ab.innerHTML=[['A',A],['B',B]].map(([k,x])=>`<div><i>${k}</i><b>${x.ic} ${x.ko}</b><small>${x.d}</small></div>`).join('');}
+}
+(function(){const _o=openInfo;openInfo=function(){const r=_o.apply(this,arguments);try{if(infoTab==='learn'&&learnView==='page'&&learnIdx>=7)lxMount(learnIdx);}catch(e){console.warn('[배우기 새 쪽]',e);}return r;};})();
 </script>
 </body></html>
