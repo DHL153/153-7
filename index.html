@@ -6569,6 +6569,8 @@ html.lmB body #app.bl #orbs .orb.lmHasOrb .lmOrbIc{left:50%!important;top:50%!im
 html.lmB body #app.bl #orbs .orb .otx,html.lmB body #app.bl #orbs .orb>.ost{display:none!important}
 html.lmB body #app.bl #orbs .orb:not(.on)::after{content:none!important;display:none!important}
 html.lmB body #app.bl #orbs .orb.hid{font-size:0!important}
+/* (DHL 11-02) 빈 칸의 남색 네모 배경 제거 — 링 밖은 투명(초록 바탕), 링 안만 어둡게 */
+html.lmB body #app.bl #orbs .orb:not(.on),html.lmB body #app.bl #orbs .orb.on{background:radial-gradient(circle,#0d1528 0 58%,transparent 60%)!important;box-shadow:none!important}
 }
 </style>
 
