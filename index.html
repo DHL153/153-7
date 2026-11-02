@@ -8230,23 +8230,27 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 </script>
 <style id="lm-diff-medals">
 /* (DHL 11-02 시안 A) 난이도 고르기 훈장 */
-#lm-title .pl-medals{display:flex;justify-content:center;gap:clamp(8px,2vw,18px);margin:4px auto 8px;padding-top:2px;max-width:440px}
-@media (orientation:landscape) and (max-height:820px){#lm-title .pl-md{flex-direction:row;gap:5px}#lm-title .pl-md .m{width:34px}}
-#lm-title .pl-md{display:flex;flex-direction:column;align-items:center;gap:3px;background:none!important;border:0!important;box-shadow:none!important;padding:2px 4px!important;min-width:0!important;min-height:0!important;cursor:pointer;color:#c8d3ea;border-radius:10px}
+#lm-title .pl-medals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:6px auto 10px;padding:2px 0 0;width:min(360px,100%)}
+
+#lm-title .pl-md{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;background:none!important;border:0!important;box-shadow:none!important;padding:0 0 9px!important;min-width:0!important;min-height:44px!important;cursor:pointer;color:#c8d3ea;opacity:.62;transition:opacity .2s,transform .2s}
+#lm-title .pl-md:hover{opacity:.9}
+#lm-title .pl-md.on{opacity:1}
+#lm-title .pl-md::after{content:'';position:absolute;left:50%;bottom:0;width:26px;height:3px;border-radius:2px;translate:-50% 0;background:#ffd36a;box-shadow:0 0 6px #ffd36a;opacity:0;transition:opacity .2s}
+#lm-title .pl-md.on::after{opacity:1}
 #lm-title .pl-md .m{position:relative;width:clamp(38px,5.6vh,64px);aspect-ratio:200/251;display:flex;justify-content:center}
 #lm-title .pl-md.got .m{background:url(assets/ui/kit/badge_chapter.webp) center/contain no-repeat;filter:drop-shadow(0 3px 3px #000a)}
 #lm-title .pl-md.got .m img{position:absolute;left:16%;top:9.5%;width:68%}
-#lm-title .pl-md:not(.got) .m img{width:78%;height:auto;align-self:flex-start;margin-top:4%;border-radius:50%;outline:2px dashed #c9a24a99;outline-offset:2px;filter:grayscale(.6) brightness(.6)}
-#lm-title .pl-md b{font:700 clamp(11px,1.7vh,13px)/1.1 'Noto Sans KR',sans-serif;white-space:nowrap}
+#lm-title .pl-md:not(.got) .m img{width:68%;height:auto;align-self:flex-start;margin-top:9.5%;border-radius:50%;outline:2px dashed #c9a24a99;outline-offset:2px;filter:grayscale(.6) brightness(.6)}
+#lm-title .pl-md b{font:700 clamp(11px,1.7vh,13px)/1.1 'Noto Sans KR',sans-serif;white-space:nowrap;letter-spacing:-.2px}
 #lm-title .pl-md.got b{color:#ffd36a}
-#lm-title .pl-md.on{background:#ffffff14!important;box-shadow:inset 0 0 0 2px #c9a24a!important}
+
 #lm-title .pl-md.on.got .m{animation:plMdShine 3s ease-in-out infinite}
 @keyframes plMdShine{0%,100%{filter:drop-shadow(0 3px 3px #000a)}50%{filter:drop-shadow(0 0 10px #ffd36a) drop-shadow(0 3px 3px #000a)}}
 #lm-title .pl-ic{position:relative;flex:none;display:inline-flex}
 #lm-title .pl-ic>img{width:58px;height:58px}
 #lm-title .pl-ic .lmClrOk.big{position:absolute;right:-6px;top:-6px;width:24px;height:24px;margin:0;font-size:24px}
 #lm-title .pl-clr{display:inline-block;align-self:flex-start;margin:2px 0 4px;padding:2px 10px;border-radius:999px;background:#1f8a3a;color:#fff;font:900 12px/1.4 'Noto Sans KR',sans-serif;white-space:nowrap}
-@media (max-height:460px){#lm-title .pl-medals{margin:2px auto 4px}#lm-title .pl-md{flex-direction:row;gap:4px}#lm-title .pl-md .m{width:30px}#lm-title .pl-md b{font-size:11px}}
+@media (max-height:460px){#lm-title .pl-medals{margin:2px auto 6px}#lm-title .pl-md{flex-direction:row;justify-content:center;gap:5px;padding:0 0 7px!important;min-height:36px!important}#lm-title .pl-md .m{width:28px}#lm-title .pl-md b{font-size:11px}}
 @media (prefers-reduced-motion:reduce){#lm-title .pl-md.on.got .m{animation:none}}
 </style>
 </body></html>
