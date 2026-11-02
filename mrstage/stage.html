@@ -8052,7 +8052,12 @@ let isGameOver = false;
     auraEl.style.left=h.x+'px';auraEl.style.top=h.y+'px';auraEl.style.setProperty('--s',(h.h*1.5).toFixed(1)+'px');
     chargeEl.style.left=h.x+'px';chargeEl.style.top=(h.y-h.h*.75)+'px';
   }
-  function resetCharge(){charge=0;if(auraEl){auraEl.classList.remove('on');auraEl.style.setProperty('--k','0');}if(chargeEl){chargeEl.classList.remove('on');chargeEl.textContent='';}}
+  /* (DHL 11-02) 모은 힘 숫자: 쌓이는 것까지만 보이고, 캐릭터가 공격하러 들어가면 위로 살짝 떠오르며 사라짐 (컷인 · 컷신 위에 남지 않게) */
+  let chargeGone=false;
+  function hideCharge(){chargeGone=true;if(!chargeEl||!chargeEl.classList.contains('on')||chargeEl._fading)return;chargeEl._fading=true;
+    const a=chargeEl.animate([{opacity:1,transform:'translateY(0) scale(1)'},{opacity:0,transform:'translateY(-14px) scale(1.15)'}],{duration:320,easing:'ease-in',fill:'forwards'});
+    a.onfinish=()=>{chargeEl._fading=false;chargeEl.classList.remove('on');chargeEl.textContent='';a.cancel();};}
+  function resetCharge(){charge=0;chargeGone=false;if(auraEl){auraEl.classList.remove('on');auraEl.style.setProperty('--k','0');}if(chargeEl){chargeEl.classList.remove('on');chargeEl.textContent='';}}
   function quick(o){
     const cs=o.num?activeBattleTeam.findIndex(id=>id===o.num-1):-1;const h=heroPt(cs>0?cs:0),W=stage.clientWidth,H=stage.clientHeight;placeCharge();
     const orb=document.createElement('i');orb.className='lm-orb'+(o.crit?' '+o.crit:'');
@@ -8063,7 +8068,7 @@ let isGameOver = false;
       orb.remove();charge+=Math.max(0,o.dmg||0);
       auraEl.classList.add('on');auraEl.style.setProperty('--k',Math.min(1,(o.combo||1)/5).toFixed(2));auraEl.style.setProperty('--c',c);
       auraEl.animate([{scale:'1.25'},{scale:'1'}],{duration:220,easing:'ease-out'});
-      chargeEl.classList.add('on');chargeEl.innerHTML=`<b>${fmt(charge)}</b>`;chargeEl.animate([{scale:'1.4'},{scale:'1'}],{duration:200,easing:'ease-out'});
+      if(!chargeGone){chargeEl.classList.add('on');chargeEl.innerHTML=`<b>${fmt(charge)}</b>`;}chargeEl.animate([{scale:'1.4'},{scale:'1'}],{duration:200,easing:'ease-out'});
     };
   }
   function hitStop(ms){
@@ -8223,7 +8228,7 @@ let isGameOver = false;
     const near=Math.max(-W*.5,E.front-home-hh*.55);
     const st=o.star??starOf(num),enter=!!o.enter,start=enter?-W*.9:actors[sl].off;
     const hits=st>=3?2:1;
-    let at=0;
+    let at=0;hideCharge();
     if(enter){offsetTeam(start,[sl]);show([sl],true);}
     const doStrikes=async()=>{for(let i=0;i<hits;i++){const last=i===hits-1;await strike(sl,num,{star:i===0?st:1,impact:last?o.impact:null,level:last?(o.level??8):6,noCut:i>0,group:o.group});}};
     if(r==='dash'||r==='bash'){at=near;if(r==='bash'){actors[sl].rot=-7;afterImg(sl,420);}
@@ -8275,7 +8280,7 @@ let isGameOver = false;
 
   const NAME_KO={1:'알론소',2:'둘시네',3:'산초',4:'로시',5:'바실',6:'카르덴',7:'루시아',8:'니콜',9:'팔로메',10:'브루노'};
   async function comboFinale(o,mem){
-    const W=stage.clientWidth||400,hero=activeBattleTeam[0];
+    const W=stage.clientWidth||400,hero=activeBattleTeam[0];hideCharge();
     if(actors[0].vis&&!mem.includes((hero??-2)+1)){setMul([0],0);await walk(actors[0].off,-W*.9,600,'in',[0]);setMul([0],null);show([0],false);}
     show(ALL,false);offsetTeam(-W*.9);
     await Promise.all(mem.map(loadRigDef));applyTeam([0,1,2].map(i=>mem[i]!=null?mem[i]-1:null));await waitRig(ALL,4000);   // 리그 데이터를 먼저 받고 배치 (반대면 '리그 없음'으로 굳음)
@@ -8353,6 +8358,7 @@ let isGameOver = false;
     if(guests.length){
       const occ=[hero,null,null];
       show([1,2],false);setMul([1,2],null);offsetTeam(-W*.9,[1,2]);
+      hideCharge();   // 주인공이 빠지며 동료가 들어올 때 모은 힘 숫자도 같이 사라짐
       const out=(async()=>{setMul([0],0);await walk(actors[0].off,-W*.9,650,'in',[0]);setMul([0],null);show([0],false);})();
       occ[1]=guests[0]-1;if(guests[1]!=null)occ[2]=guests[1]-1;applyTeam(occ.slice());
       await Promise.all([out,waitRig([1,2],3000)]);heroOut=true;
