@@ -2501,7 +2501,7 @@ function campApply(){const s=S.campSel.map(u=>S.deck.find(c=>c.uid===u));
 const CAMP_MC={2:2,3:3};
 function campFaceNF(c){const f=S.foe;S.foe=null;try{return cardFace(c);}finally{S.foe=f;}}   // 굴리기 화면은 적 보정 없이 기본 힘
 function campRoll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a)return campOpen();
-  showOv(`<h2>🔨 모닥불 머지 · ${TYPES[a.id].ko} ★${a.star}${R.k==='mix'?' 혼합':''}</h2><div class="packRow campRollRow"><div></div><div class="card dz s${a.star}" id="campRC" style="border-color:${WORLD_C[cardW(a)]}">${campFaceNF(a)}</div><div></div></div>`+
+  showOv(`<h2>🔨 모닥불 머지 · ${TYPES[a.id].ko} <span class="crStars">${'<img src="assets/ui/card/star_g.webp" alt="">'.repeat(a.star)}</span>${R.k==='mix'?' 혼합':''}</h2><div class="packRow campRollRow"><div></div><div class="card dz s${a.star}" id="campRC" style="border-color:${WORLD_C[cardW(a)]}">${campFaceNF(a)}</div><div></div></div>`+
     `<p class="campRes" id="campRes">&nbsp;</p><button class="campOk" id="campRO" disabled onclick="campRollOk()">확인</button><button class="rsInfo campRe" id="campRR" hidden onclick="campReroll()">다시 굴리기 💰1 (1번)</button>`);
   campSpin(a);}
 async function campSpin(a){const R=S.campRoll,my=R.tk=(R.tk||0)+1;R.busy=true;
@@ -7697,7 +7697,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 .nf2 .nfPl b{font:900 15px/1 "Noto Sans KR",sans-serif;color:#fff1cf;white-space:nowrap}
 .nf2 .nfc{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;box-shadow:inset 0 0 0 2px #0004;flex:none}
 .nf2 .nfc img,.nf2 .nfc svg{width:66%;height:66%;object-fit:contain}
-.nf2 .nfKeys{display:flex;gap:8px;padding:4px 10px;border-radius:999px;background:#120e20;border:1.5px solid #c9a24a99}
+.nf2 .nfKeys{display:flex;gap:8px;padding:4px 10px;border-radius:14px;   /* (DHL 11-03) 바깥 틀: 알약 → 살짝 둥근 네모 */background:#120e20;border:1.5px solid #c9a24a99}
 .nf2 .nfK{display:flex;flex-direction:column;align-items:center;gap:2px}
 .nf2 .nfKi{display:inline-flex;width:30px;height:30px;border-radius:50%;box-shadow:0 0 0 2px #f0c24b,0 0 8px #f0c24b88}
 .nf2 .nfKi em{display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center}
@@ -8165,6 +8165,7 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 .campRollRow{grid-template-columns:1fr 1.5fr 1fr}.campRollRow .card{transform:scale(1.12);transform-origin:50% 0;margin-bottom:10%}
 .campRes{text-align:center;font-size:14px;color:#cfd6e4;min-height:1.5em;margin:6px 0 4px;font-variant-numeric:tabular-nums}.campRes b{color:#f8edd0}
 .crSpin{filter:brightness(1.12)}
+.crStars{display:inline-flex;gap:1px;vertical-align:-.12em;white-space:nowrap}.crStars img{height:.95em;width:auto;filter:drop-shadow(0 1px 1px #000a)}   /* (DHL 11-03) ★ 글자가 그림 바꾸기로 깨져 보여 별 그림으로 */
 .crPop{animation:crPop .32s cubic-bezier(.2,1.6,.4,1)}
 @keyframes crPop{0%{scale:1.35}100%{scale:1}}
 .card.crFlash::after{content:"";position:absolute;inset:-3px;border-radius:10px;box-shadow:0 0 0 2px #f6cf63,0 0 24px 6px #f6cf6399;animation:crFl .7s ease-out forwards;pointer-events:none;z-index:9}
