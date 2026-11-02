@@ -8565,6 +8565,10 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
       if(S.rd===2){const ok=H.some((c,i)=>H.some((d,j)=>j>i&&c.star===1&&d.star===1&&TYPES[d.id].n===TYPES[c.id].n));
         if(!ok){const a=H.find(c=>c.star===1),b=H.find(c=>c!==a&&c.star===1);if(a&&b){b.id=cardW(b)+'_'+TYPES[a.id].n;}}}
       render();}
+      /* (DHL 11-02 '같은 2성 2개가 있어야') 3장 첫 라운드: 머지할 수 있는 같은 동료 별 2개 두 장을 손패에 */
+      if(lmTutOn()&&S.jang>=3&&!S.tut.seen['tut.3_2.awaken']&&S.hand.length>=4){const H=S.hand.filter(c=>!c.fog&&c.star<3);
+        const ok=H.some((c,i)=>H.some((d,j)=>j>i&&c.star===2&&mergeKind(c,d)));
+        if(!ok&&H.length>=2){const a=H.find(c=>c.star===2)||H[0],b=H.find(c=>c!==a&&c.star<=2);if(b){a.star=2;b.star=2;b.mixed=a.mixed=false;b.w=cardW(a);b.id=a.id;delete b.aw;render();}}}
       /* (DHL 11-02) 2장 첫 라운드: 열쇠 3개(세계 · 약점 속성 · 번호)를 한 번에 맞출 짝을 손패에 — 니콜이 그 두 장을 빛으로 */
       if(lmTutOn()&&S.jang>=2&&!S.tut.seen['tut.2_1.start']&&S.foe&&S.hand.length>=4){const f=S.foe,H=S.hand.filter(c=>c.star===1&&!c.fog);
         if(H.length>=2){const a=H[0],b=H[1],n=f.no||cardNo(a);a.no=n;b.no=n;a.w=f.home;a.id=f.home+'_'+TYPES[a.id].n;b.el=weakTo(f.el);S.tut.kp=[a.uid,b.uid];sortHand&&sortHand();render();}}
@@ -8642,7 +8646,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     else if(S.jang>=2&&!T.seen['tut.2_1.start']&&hasHand&&!cur){say('tut.2_1.start',{face:'focus',seq:['point'],learn:[5,3],badge:'keyBar'});}
     else if(S.jang>=2&&T.seen['tut.2_1.start']&&!T.seen['tut.2_1.key']&&!cur&&(S.sel||[]).length>0){say('tut.2_1.key',{face:'focus',seq:['nod'],auto:5000});}
     else if(S.jang>=2&&S.rd===2&&!T.seen['tut.2_3.rule']&&S.foe&&S.foe.rule&&hasHand&&!cur){say('tut.2_3.rule',{face:'angry',seq:['thrust'],learn:[4]});}
-    else if(S.jang>=3&&!T.seen['tut.3_2.awaken']&&hasHand&&!cur&&(star2Pair()||S.rd>=2)){say('tut.3_2.awaken',{face:'happy',seq:['point'],learn:[10]});}
+    else if(S.jang>=3&&!T.seen['tut.3_2.awaken']&&hasHand&&!cur&&star2Pair()){say('tut.3_2.awaken',{face:'happy',seq:['point'],learn:[10]});}
     else if(S.jang>=4&&!T.seen['tut.3_3.grad']&&!cur){say('tut.3_3.grad',{face:'happy',seq:['wave'],force:1});T.learn=LEARN_ORDER.slice();setTimeout(()=>{hideNic();finish();},5200);}
     if(!cur&&ch1&&hasHand&&!S.busy&&!lmTutOff1())ring(pickEls());else if(!cur)ring([]);
     /* 빛 표시 */
