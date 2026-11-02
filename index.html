@@ -8565,6 +8565,9 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
       if(S.rd===2){const ok=H.some((c,i)=>H.some((d,j)=>j>i&&c.star===1&&d.star===1&&TYPES[d.id].n===TYPES[c.id].n));
         if(!ok){const a=H.find(c=>c.star===1),b=H.find(c=>c!==a&&c.star===1);if(a&&b){b.id=cardW(b)+'_'+TYPES[a.id].n;}}}
       render();}
+      /* (DHL 11-02) 2장 첫 라운드: 열쇠 3개(세계 · 약점 속성 · 번호)를 한 번에 맞출 짝을 손패에 — 니콜이 그 두 장을 빛으로 */
+      if(lmTutOn()&&S.jang>=2&&!S.tut.seen['tut.2_1.start']&&S.foe&&S.hand.length>=4){const f=S.foe,H=S.hand.filter(c=>c.star===1&&!c.fog);
+        if(H.length>=2){const a=H[0],b=H[1],n=f.no||cardNo(a);a.no=n;b.no=n;a.w=f.home;a.id=f.home+'_'+TYPES[a.id].n;b.el=weakTo(f.el);S.tut.kp=[a.uid,b.uid];sortHand&&sortHand();render();}}
     }catch(e){console.warn('[안내]',e);}cls();return r;};
   /* 1장에서는 지지 않음: 런이 다 떨어져도 니콜이 런 1번을 돌려줌 */
   const _lose=lose;lose=function(){if(lmTutCh1()&&S.runs<=0&&S.score<S.tgt){S.runs=1;try{fill();}catch(e){}render();say('tut.save',{face:'sad',face2:'happy',seq:['nod','nod'],force:1});return;}
@@ -8646,7 +8649,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(cur&&!cur.o.force){const k=cur.k;
       if(k==='tut.1_1.start')ring(pickEls());
       else if(k==='tut.1_2.start')ring([$('bDis')]);else if(k==='tut.1_3.start'){const pr=star2Pair(1),sel=S.sel||[];ring(!pr?[$('bMerge')]:pr.every(c=>sel.includes(c.uid))?[$('bMerge')]:pr.filter(c=>!sel.includes(c.uid)).map(cardEl));}   /* (DHL 11-02) 머지도 카드부터: 같은 동료 두 장 빛 → 다 고르면 머지 버튼 */
-      else if(k==='tut.2_1.start'||k==='tut.2_1.key')ring([$('keyBar')]);else if(k==='tut.2_3.rule')ring([$('lmFoeTag')]);
+      else if(k==='tut.2_1.start'||k==='tut.2_1.key'){const kp=(T.kp||[]).filter(u=>S.hand.some(c=>c.uid===u)),sel=S.sel||[];ring(kp.length<2?[$('keyBar')]:kp.every(u=>sel.includes(u))?[$('bPlay')]:[$('keyBar')].concat(kp.filter(u=>!sel.includes(u)).map(u=>q(`#hand .card[data-uid="${u}"]`))));}else if(k==='tut.2_3.rule')ring([$('lmFoeTag')]);
       else if(k==='tut.3_2.awaken'){const pr=star2Pair(),sel=S.sel||[];ring(!pr?[]:pr.every(c=>sel.includes(c.uid))?[$('bMerge')]:pr.filter(c=>!sel.includes(c.uid)).map(cardEl));}else ring([]);   /* (DHL 11-02) 같은 동료 별 2개 두 장 → 다 고르면 머지 버튼 */
       if(!cur.o.anchor&&k!=='tut.1_1.done'&&k!=='tut.2_1.key'&&played>(cur.p??(cur.p=played)))hideNic();}
   }catch(e){}},300);
