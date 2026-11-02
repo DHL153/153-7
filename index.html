@@ -7634,7 +7634,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     const gp=navigator.getGamepads?[...navigator.getGamepads()].find(g=>g&&g.connected):null;
     const A=LM_SET.padSwap?'B':'A',B=LM_SET.padSwap?'A':'B';
     const body=`<div class="ls-lbl big">키보드</div><div class="ls-keys">`+ACT.map(([a,n,d])=>`<div class="ls-krow"><span>${n}<small>${d}</small></span><button type="button" class="ls-kbtn" data-a="${a}" onclick="lmKeyWait('${a}')">${kName(LM_SET.keys[a])}</button></div>`).join('')+`</div>`+
-      `<div class="ls-kfix"><b>1</b>~<b>8</b> 카드 고르기 · <b>←</b><b>→</b><b>↑</b><b>↓</b> 버튼 · 카드 옮겨 다니기 · <b>Space</b> 누르기 · <b>Esc</b> 뒤로 · 메뉴</div>`+
+      `<div class="ls-kfix"><b>1</b>~<b>8</b> 카드 고르기 · <b>←</b><b>→</b><b>↑</b><b>↓</b> 버튼 · 카드 옮겨 다니기<br><b>Space</b> 누르기 · <b>Esc</b> 뒤로 · 메뉴</div>`+
       `<div class="ls-pair"><button type="button" class="ls-small" onclick="lmKeyReset()">키 기본값으로</button></div>`+
       `<div class="ls-lbl big">조이패드</div><div class="ls-pad"><div class="st${gp?'':' off'}">${gp?'🎮 연결됨 · '+String(gp.id).replace(/\s*\(.*$/,'').slice(0,40):'연결 안 됨 — 조이패드를 연결하고 아무 버튼이나 누르세요'}</div>`+
       `<ul><li><b>✚</b>버튼 · 카드 옮겨 다니기</li><li><b class="a">${A}</b>고르기 · 누르기</li><li><b class="b">${B}</b>뒤로 · 해제</li><li><b class="x">X</b>런!</li><li><b class="y">Y</b>버리기</li><li><b>LB</b>정렬</li><li><b>RB</b>머지 (견습)</li><li><b>☰</b>게임 메뉴</li></ul></div>`+
