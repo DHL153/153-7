@@ -966,6 +966,12 @@ body:has(#ov:not([hidden]) .rsB) #midZone,body:has(#ov:not([hidden]) .rsB) #hand
 .rbHead .rbOpt svg{width:22px;height:22px;transition:rotate .3s}.rbHead .rbOpt:hover svg{rotate:60deg}
 .rbHead .rbOpt::before{content:"";position:absolute;inset:-6px}
 .rbHead .rbOpt:focus-visible{outline:2px solid var(--gold,#f6cf63);outline-offset:2px}
+.nextFoe .nfHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+@media (orientation:portrait){.nextFoe .nfHead{min-height:30px}}
+@media not (orientation:portrait){.nextFoe .shOpt{display:none!important}} /* 가로·PC는 왼쪽 판에 이미 톱니가 있음 */
+.nextFoe .shOpt{position:relative;flex:none;width:32px;height:32px;padding:0!important;min-height:0!important;border:0!important;border-radius:50%!important;background:#0007!important;color:var(--brass-hi,#fde9c4)!important;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1.5px #c9a24a99,0 2px 0 #0008!important;cursor:pointer}
+.nextFoe .shOpt svg{width:20px;height:20px;transition:rotate .3s}.nextFoe .shOpt:hover svg{rotate:60deg}
+.nextFoe .shOpt::before{content:"";position:absolute;inset:-6px}
 .rbHead .rbMsg{color:#86efac}.rbInfo{background:#2a3640!important;border:1px solid #4b5b66!important;border-radius:99px!important;padding:4px 10px!important;font-size:12px!important}
 .rbRow{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,1.6vw,22px);width:100%;flex:1;min-height:0}
 .rb3{position:relative;width:min(30%,clamp(200px,15vw,300px));display:flex;flex-direction:column;align-items:stretch;gap:clamp(4px,1vh,9px);background:#25313a;border:4px solid #33424c;border-bottom:0;border-radius:16px 16px 0 0;padding:clamp(6px,1.2vh,12px) clamp(6px,.8vw,10px) clamp(8px,1.6vh,14px);height:88%;box-shadow:0 0 0 2px #0b1218;transition:transform .2s}
@@ -3215,7 +3221,9 @@ function openShop(){
   if(S.packView)return openPack();
   let h='<div class="shop">'+(S.campMsg?`<div class="skipGot">🏕 야영 — ${S.campMsg}</div>`:'');
   { const nf=S.rd<2?S.foes[S.rd+1]:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff))[0];
-    h+=`<div class="nextFoe${armorOn()?' nf2':''}"><small>다음 빌런 · ${S.rd<2?S.jang+'장 '+RD_KO[S.rd+1]:(S.jang+1)+'장 망령'}</small>${armorOn()?nextFoeHTML(nf):'<br>'+foeLine(nf)}</div>`; }
+    /* (DHL 11-02) 원정 캠프에도 옵션(⚙) — 라운드 고르기 창과 같은 톱니 버튼, 다음 빌런 머리줄 오른쪽 */
+    const gear=`<button type="button" class="rbOpt shOpt" onclick="gameOpt()" aria-label="메뉴" title="메뉴 · 설정 (Esc)">${(document.getElementById('sOpt')||{}).innerHTML||'⚙'}</button>`;
+    h+=`<div class="nextFoe${armorOn()?' nf2':''}"><div class="nfHead"><small>다음 빌런 · ${S.rd<2?S.jang+'장 '+RD_KO[S.rd+1]:(S.jang+1)+'장 망령'}</small>${gear}</div>${armorOn()?nextFoeHTML(nf):foeLine(nf)}</div>`; }
   // 구슬칸 (발라트로의 조커 줄)
   h+=`<div class="sOrbs">`;for(let i=0;i<S.maxOrb;i++){const k=S.orbs[i];h+=k?`<div class="sorb on${S.pick==='own'+i?' up':''}" data-slot="${i}" onclick="pickItem('own${i}')">${orbLabel(k)}</div>`:`<div class="sorb" data-slot="${i}"></div>`;}
   h+=`</div><div class="sRow1"><span>${S.orbs.length}/${S.maxOrb}</span><span class="gold">💰 ${S.gold}</span></div>`;
