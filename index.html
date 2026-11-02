@@ -3049,6 +3049,8 @@ const END_QUIP={lose:['괜찮아요 나리,\n진짜 기사는\n다시 일어나�
   win:['나리! 라만차가\n나리 이름을\n노래해요!','거인도 풍차도\n전부 쓰러뜨렸어요!\n역시 나리예요!']};
 /* (DHL 11-02 '역시부터 엔터') 말풍선 줄바꿈: 문장 끝(! ? .) = 늘 줄바꿈(세로 화면에서도) · 나머지 \n = 가로 화면 말풍선 모양용(세로에선 이어 씀) · 낱말 중간에선 안 끊음 */
 function lmQuipHTML(q){return String(q).replace(/([!?.])[ \n]+(?=\S)|(,)\n(?=\S)/g,(m,a,b)=>(a||b)+'\u0001').split('\u0001').map(x=>x.replace(/ (?=[^ \n]+$)/,'\u00a0').replace(/\n/g,' <br>')).join('<br class="hard">');}   /* 마지막 낱말은 앞 낱말과 붙여 한 낱말만 다음 줄로 떨어지지 않게 */
+/* (DHL 11-02 '8장 끝나면 견습 기사 · 기사 · 편력 기사 고르는 곳으로') 판 끝 [새로운 런] = 플레이 창 '새로운 런' 탭(난이도 고르기) · 방금 한 난이도가 골라져 있음 */
+function lmEndNewRun(){hideOv();if(S)S._statEnded=1;firstGame=false;try{ltPlayTab='new';if(S&&DIFF[S.diff])ltDiff=S.diff;}catch(e){}ltShow();ltPop('play');}
 function runEndHTML(won){
   const rs=S.rs||{play:0,dis:0,buy:0,rr:0},f=S.foe||(S.foes&&S.foes[S.rd]),TK=['token_minion','token_knight','token_giant'];
   const top=Object.entries(S.htCount||{}).sort((a,b)=>b[1]-a[1])[0];
@@ -3062,7 +3064,7 @@ function runEndHTML(won){
    `<div class="goGrid"><div class="goCol">${C('낸 카드',rs.play,'blue')}${C('버린 카드',rs.dis,'red')}${C('산 물건',rs.buy,'gold')}${C('리롤',rs.rr,'green')}${C('머지',S.merges||0,'green')}</div>`+
    `<div class="goCol">${C('장',S.jang+(S.endless?'<small>/∞</small>':'<small>/8</small>'),'gold')}${C('라운드',(S.jang-1)*3+S.rd+1,'gold')}`+
    `<div class="goFoe"><span>${won?'마지막 상대':'막아선 상대'}</span><img src="assets/ui/lamancha/${(f&&(window.LM_TOKB||{})[f.boss])||TK[S.rd]}.webp" alt=""><b>${f?f.name:''}</b>${!won&&f?`<small>${(S.score||0).toLocaleString()} / ${(S.tgt||0).toLocaleString()}</small>`:''}</div></div></div>`+
-   `<div class="goBtns">${won&&S.finale&&!S.endless?'<button class="goBtn goEndless" onclick="lmEndless()">원정 계속하기 ∞</button>':''}<button class="goBtn" onclick="hideOv();firstGame=false;newGame(S.diff)">새로운 런</button><button class="goBtn" onclick="goMenu()">메인 메뉴</button></div></div></div>`;
+   `<div class="goBtns">${won&&S.finale&&!S.endless?'<button class="goBtn goEndless" onclick="lmEndless()">원정 계속하기 ∞</button>':''}<button class="goBtn" onclick="lmEndNewRun()">새로운 런</button><button class="goBtn" onclick="goMenu()">메인 메뉴</button></div></div></div>`;
 }
 function goMenu(){hideOv();if(S)S._statEnded=1;if(typeof ltShow==='function')ltShow();else newGame();}
 function lose(){
