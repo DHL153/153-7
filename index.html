@@ -3039,7 +3039,7 @@ function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes
 function win(){
   const last=S.jang===8&&S.rd===2&&!S.endless;
   if(last&&S.diff==='errant'&&!S.finale){lmFinale();return;}   /* (DHL 10-30) 편력: 스카이아크 알론소 → 반전 씬 → 풍차 거인 (저장 없음 — 지면 처음부터) */
-  if(last){try{S._clearNew=!(LM_ST.clears||{})[S.diff];}catch(e){}try{lmStatEnd(true)}catch(e){}}
+  if(last){try{if(!S._statEnded)S._clearNew=!(LM_ST.clears||{})[S.diff];}catch(e){}try{lmStatEnd(true)}catch(e){}}
   if(last){if(S.finale){lmEnding();return;}
     /* (DHL 11-02) 견습 · 기사 8장 클리어: 복선 한 컷 → 결과표 */
     if((S.diff==='app'||S.diff==='knight')&&typeof lmClearCut==='function'){const k=S.diff==='app'?'a':'b';lmClearCut(k).then(()=>showOv(runEndHTML(true)));return;}
@@ -3050,13 +3050,26 @@ function win(){
 /* 🏁 판 끝 화면 — 발라트로 '게임 오버'처럼 (2026-10-28): 큰 제목 · 이번 판 기록 표 · 쓰러뜨린/막힌 상대 · 산초 한마디 · [새로운 런] [메인 메뉴] */
 const END_QUIP={lose:['괜찮아요 나리,\n진짜 기사는\n다시 일어나요!','풍차가 오늘은\n조금 셌네요.\n빵 먹고 다시 가요!','나리, 다음엔\n약점부터\n노려 봐요!','넘어진 김에\n잠깐 쉬었다\n가는 거예요!'],
   win:['나리! 라만차가\n나리 이름을\n노래해요!','거인도 풍차도\n전부 쓰러뜨렸어요!\n역시 나리예요!']};
+/* (DHL 11-02) 판 끝 한마디: 산초만 → 동료 10명 중 무작위 (말투도 캐릭터마다) */
+const END_QUIP_BY={sancho:END_QUIP,
+  alonso:{win:['이 검이 닿는 곳이\n곧 라만차다!','풍차여, 보았느냐!\n기사의 길은\n끝나지 않는다!'],lose:['쓰러져도 좋다.\n기사는 다시\n일어나는 법!','오늘의 패배는\n내일의 무용담이\n될 것이다!']},
+  dulcine:{win:['멋져요, 나리!\n오늘 밤 노래는\n나리 거예요!','망치보다 단단한\n마음이었어요!'],lose:['괜찮아요.\n제가 기다릴게요.\n다시 와요!','다음엔 제 망치가\n먼저 나갈게요!']},
+  rosi:{win:['탄창 비웠습니다!\n하나도 안\n남기고요!','명중, 명중,\n또 명중!\n오늘도 감사해요!'],lose:['재장전 중이에요.\n조금만\n기다려요!','총열이 식으면\n다시 쏩니다!']},
+  gris:{win:['한 방이면\n충분했지!\n주먹이 근질근질해!','거인? 내 주먹보다\n작던데!'],lose:['아직 주먹은\n쥐어져 있어!','넘어지면 더 세게\n일어나면 되지!']},
+  carden:{win:['어느 세계로 가도\n오늘 얘기는\n전해질 거예요.','긴 길이었지만\n끝이 좋네요.'],lose:['길은 또 있어요.\n지도부터\n다시 펴요.','돌아가는 길도\n여정이에요.']},
+  lucia:{win:['빛이 나리\n편이었어요!','어둠이 다\n걷혔어요!\n수고했어요!'],lose:['등불은 아직\n꺼지지 않았어요.','잠깐 어두워졌을\n뿐이에요.\n다시 가요!']},
+  nicole:{win:['약점을 정확히\n찔렀어요!\n완벽해요!','불도 물도 번개도\n전부 우리\n편이었어요!'],lose:['상성을 다시\n읽어 볼게요!','다음엔 창끝으로\n약점만 노려요!']},
+  palome:{win:['우와! 저도\n영웅이 된 것\n같아요!','작아도 해냈어요!\n우리 진짜\n멋져요!'],lose:['울지 않을게요!\n다시 해요,\n나리!','저 아직\n안 지쳤어요!']},
+  bruno:{win:['잘 두드린 쇠는\n안 부러지는\n법이지!','오늘 일 끝!\n망치 내려놓고\n쉬자고!'],lose:['쇠는 식혀서\n다시 두드리면\n돼.','부러진 건\n다시 벼리면\n그만이야!']}};
 /* (DHL 11-02 '역시부터 엔터') 말풍선 줄바꿈: 문장 끝(! ? .) = 늘 줄바꿈(세로 화면에서도) · 나머지 \n = 가로 화면 말풍선 모양용(세로에선 이어 씀) · 낱말 중간에선 안 끊음 */
 function lmQuipHTML(q){return String(q).replace(/([!?.])[ \n]+(?=\S)|(,)\n(?=\S)/g,(m,a,b)=>(a||b)+'\u0001').split('\u0001').map(x=>x.replace(/ (?=[^ \n]+$)/,'\u00a0').replace(/\n/g,' <br>')).join('<br class="hard">');}   /* 마지막 낱말은 앞 낱말과 붙여 한 낱말만 다음 줄로 떨어지지 않게 */
 function runEndHTML(won){
   const rs=S.rs||{play:0,dis:0,buy:0,rr:0},f=S.foe||(S.foes&&S.foes[S.rd]),TK=['token_minion','token_knight','token_giant'];
   const top=Object.entries(S.htCount||{}).sort((a,b)=>b[1]-a[1])[0];
-  const q=END_QUIP[won?'win':'lose'];const quip=q[Math.random()*q.length|0];
-  const img=typeof HAS_ART!=='undefined'&&HAS_ART&&MR_ART.idle&&(MR_ART.idle[JANG_WORLD(S.jang)+'_sancho']||MR_ART.idle.rust_sancho);
+  const art=k=>typeof HAS_ART!=='undefined'&&HAS_ART&&MR_ART.idle&&(MR_ART.idle[JANG_WORLD(S.jang)+'_'+k]||MR_ART.idle['rust_'+k]);
+  const ks=Object.keys(END_QUIP_BY).filter(k=>art(k)),who=ks.length?ks[Math.random()*ks.length|0]:'sancho';
+  const q=END_QUIP_BY[who][won?'win':'lose'];const quip=q[Math.random()*q.length|0];
+  const img=art(who);
   const C=(k,v,c)=>`<div class="goC"><span>${k}</span><b class="${c||''}">${v}</b></div>`;
   return `<div class="goB${won?' win':''}"><div class="goSide"><div class="goPal">${img?`<img src="${img}" alt="">`:''}</div><div class="goQuip">${lmQuipHTML(quip)}</div></div>`+
    `<div class="goPanel"><h1>${won?(S.finale?'풍차 거인 격파!':'라만차 정복!'):'게임 오버'}</h1>`+
@@ -3882,9 +3895,11 @@ function ltPlayHTML(){
   let h=`<div class="ls-tabs">${tab('new','새로운 런')}${tab('cont','계속하기')}${tab('try','배우기')}</div><div class="ls-body">`;
   if(ltPlayTab==='new'){
     const i=keys.indexOf(ltDiff),d=DIFF[ltDiff],TK=['diff_app','diff_knight','diff_errant'];   // 난이도 아이콘 (DHL 10-30 새 시트: 견습 나무 칼·방패 · 기사 투구·창 · 편력 이발사 대야 투구·풍차) — 라운드 토큰과 같은 청동 리벳 테
+    /* (DHL 11-02 시안 A) 위 훈장 3칸: 깬 난이도 = 금 훈장 · 안 깬 = 점선 빈칸 · 누르면 그 난이도 고르기 */
+    h+=`<div class="pl-medals" role="group" aria-label="난이도 클리어">`+keys.map((k,j)=>`<button type="button" class="pl-md${k===ltDiff?' on':''}${LM_ST.clears[k]?' got':''}" onclick="ltDiff='${k}';ltPop('play')" aria-label="${DIFF[k].ko}${LM_ST.clears[k]?' 클리어':''}"><span class="m"><img src="assets/ui/lamancha/${TK[j]}.webp?v=2" alt=""></span><b>${DIFF[k].ko}</b></button>`).join('')+`</div>`;
     h+=`<div class="pl-wrap"><div class="pl-deck"><img src="assets/ui/lamancha/card_back.webp" alt=""><div class="pl-info"><b>라만차 덱</b><div class="pl-white">`+
       `<p><span>덱</span>: <em class="b">60장</em></p><p><span>동료</span>: <em class="b">30명 · 세계 3</em></p><p><span>최고 장</span>: <em class="r">${LM_ST.bestJang||'—'}</em></p><p><span>최고 한 방</span>: <em class="r">${LM_ST.best?LM_ST.best.toLocaleString():'—'}</em></p></div></div></div>`+
-      `<div class="pl-stake"><span class="pl-vert">난이도</span><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt=""><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}${LM_ST.clears[ltDiff]?'<span class="lmClrOk" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div><div class="pl-white small">${d.d}</div></div></div></div>`+
+      `<div class="pl-stake"><span class="pl-vert">난이도</span><span class="pl-ic"><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt="">${LM_ST.clears[ltDiff]?'<span class="lmClrOk big" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</span><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div>${LM_ST.clears[ltDiff]?'<span class="pl-clr">8장 클리어</span>':''}<div class="pl-white small">${d.d}</div></div></div></div>`+
       (ltDiffOpen(ltDiff)?`<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`:`<button type="button" class="pl-go" disabled>🔒 ${DIFF[keys[Math.max(0,i-1)]].ko}을(를) 깨면 열려요</button>`);
   }
   if(ltPlayTab==='cont'){
@@ -8104,10 +8119,10 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 #lmClearCut .bg{left:0;top:0;width:100%;height:100%}
 #lmClearCut .ring{left:55.46%;top:17.5%;width:20.7%;mix-blend-mode:screen;animation:ccPulse 1.6s ease-in-out infinite}
 #lmClearCut .bl{left:56.97%;top:19.89%;width:17.82%;transform-origin:49.6% 49.8%;animation:ccSpin 5s linear infinite;filter:drop-shadow(0 0 6px #ff4a1a)}
-#lmClearCut .gh{left:42.47%;top:24.59%;width:20.17%;opacity:0;filter:drop-shadow(0 0 4px #7ff6ff) drop-shadow(0 0 10px #3fd8e8);animation:ccGhost 4.6s ease-in-out both}
+#lmClearCut .gh{left:44.4%;top:31.31%;width:15.95%;opacity:0;filter:drop-shadow(0 0 4px #7ff6ff) drop-shadow(0 0 10px #3fd8e8);animation:ccGhost 4.6s ease-in-out both}
 #lmClearCut .sm{mix-blend-mode:screen;opacity:0;animation:ccSmoke 4.6s ease-in-out both}
-#lmClearCut .s1{left:40.7%;top:27.6%;width:6.5%;animation-delay:.2s}#lmClearCut .s2{left:38.7%;top:47.9%;width:15%;animation-delay:.4s}
-#lmClearCut .s3{left:58%;top:24.9%;width:5.5%;animation-delay:.3s}#lmClearCut .s4{left:44.2%;top:53.4%;width:13%;animation-delay:.5s}
+#lmClearCut .s1{left:42.1%;top:33.1%;width:5.5%;animation-delay:.2s}#lmClearCut .s2{left:40.7%;top:47.9%;width:13%;animation-delay:.4s}
+#lmClearCut .s3{left:58%;top:31.3%;width:5%;animation-delay:.3s}#lmClearCut .s4{left:44.9%;top:51.6%;width:11%;animation-delay:.5s}
 @keyframes ccPush{from{transform:scale(1)}to{transform:scale(1.06)}}
 @keyframes ccSpin{to{transform:rotate(-360deg)}}
 @keyframes ccPulse{0%,100%{opacity:.45;transform:scale(.97)}50%{opacity:1;transform:scale(1.04)}}
@@ -8177,6 +8192,7 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 #lmClearStrip .em i{width:24px;height:24px;margin-top:2px;border-radius:50%;border:2px dashed #c9a24a88;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
 #lmClearStrip .em img{width:18px;filter:grayscale(1) brightness(.35)}
 #lm-title.ingame #lmClearStrip{display:none}
+#lm-title:has(.lt-pop:not([hidden])) #lmClearStrip{display:none}   /* 창이 열리면 숨김(작은 휴대폰에서 창 위로 겹침) */
 /* 난이도 고르기: 클리어한 난이도 이름 옆 초록 체크(똑바로) */
 .lmClrOk{display:inline-flex;align-items:center;justify-content:center;width:1.05em;height:1.05em;margin-left:.3em;vertical-align:-.12em;border-radius:50%;background:linear-gradient(180deg,#3fbf5a,#1f8a3a);border:2px solid #fff3d0;box-shadow:0 1px 3px #000a}.lmClrOk svg{width:70%;height:70%}
 </style>
@@ -8236,5 +8252,44 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 (function(){function put(){const t=document.getElementById('lm-title');if(!t||!window.LM_TEST){const o=document.getElementById('lmTestTag');if(o)o.remove();return;}
   if(!document.getElementById('lmTestTag')){const b=document.createElement('div');b.id='lmTestTag';b.textContent='테스트 버전';b.setAttribute('data-no-i18n','');t.appendChild(b);}}
   const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);try{put();}catch(e){}return r;};try{put();}catch(e){}})();
+</script>
+<style id="lm-diff-medals">
+/* (DHL 11-02 시안 A) 난이도 고르기 훈장 */
+#lm-title .pl-medals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:6px auto 10px;padding:2px 0 0;width:min(360px,100%)}
+
+#lm-title .pl-md{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;background:none!important;border:0!important;box-shadow:none!important;padding:0 0 9px!important;min-width:0!important;min-height:44px!important;cursor:pointer;color:#c8d3ea;opacity:.62;transition:opacity .2s,transform .2s}
+#lm-title .pl-md:hover{opacity:.9}
+#lm-title .pl-md.on{opacity:1}
+#lm-title .pl-md::after{content:'';position:absolute;left:50%;bottom:0;width:26px;height:3px;border-radius:2px;translate:-50% 0;background:#ffd36a;box-shadow:0 0 6px #ffd36a;opacity:0;transition:opacity .2s}
+#lm-title .pl-md.on::after{opacity:1}
+#lm-title .pl-md .m{position:relative;width:clamp(38px,5.6vh,64px);aspect-ratio:200/251;display:flex;justify-content:center}
+#lm-title .pl-md.got .m{background:url(assets/ui/kit/badge_chapter.webp) center/contain no-repeat;filter:drop-shadow(0 3px 3px #000a)}
+#lm-title .pl-md.got .m img{position:absolute;left:16%;top:9.5%;width:68%}
+#lm-title .pl-md:not(.got) .m img{width:68%;height:auto;align-self:flex-start;margin-top:9.5%;border-radius:50%;outline:2px dashed #c9a24a99;outline-offset:2px;filter:grayscale(.6) brightness(.6)}
+#lm-title .pl-md b{font:700 clamp(11px,1.7vh,13px)/1.1 'Noto Sans KR',sans-serif;white-space:nowrap;letter-spacing:-.2px}
+#lm-title .pl-md.got b{color:#ffd36a}
+
+#lm-title .pl-md.on.got .m{animation:plMdShine 3s ease-in-out infinite}
+@keyframes plMdShine{0%,100%{filter:drop-shadow(0 3px 3px #000a)}50%{filter:drop-shadow(0 0 10px #ffd36a) drop-shadow(0 3px 3px #000a)}}
+#lm-title .pl-ic{position:relative;flex:none;display:inline-flex}
+#lm-title .pl-ic>img{width:58px;height:58px}
+#lm-title .pl-ic .lmClrOk.big{position:absolute;right:-6px;top:-6px;width:24px;height:24px;margin:0;font-size:24px}
+#lm-title .pl-clr{display:inline-block;align-self:flex-start;margin:2px 0 4px;padding:2px 10px;border-radius:999px;background:#1f8a3a;color:#fff;font:900 12px/1.4 'Noto Sans KR',sans-serif;white-space:nowrap}
+@media (max-height:460px){#lm-title .pl-medals{margin:2px auto 6px}#lm-title .pl-md{flex-direction:row;justify-content:center;gap:5px;padding:0 0 7px!important;min-height:36px!important}#lm-title .pl-md .m{width:28px}#lm-title .pl-md b{font-size:11px}}
+@media (prefers-reduced-motion:reduce){#lm-title .pl-md.on.got .m{animation:none}}
+</style>
+<script id="lm-test8">
+/* (DHL 11-02 '8장 끝나고 플로우를 해보고 싶음') 테스트 주소: ?test8=app | knight | errant
+   → 그 난이도로 새 판 · 8장 거인 라운드부터(라운드 고르기 창) · 거인 체력 아주 낮게 → 런 한두 번이면 처치 → 실제 클리어 흐름(복선 컷 · 훈장 · 다음 난이도 열림 · 판 끝 화면)
+   ⚠ 실제 기록(클리어 훈장 · 통계)에 남음 */
+(function(){
+  let q='';try{q=new URLSearchParams(location.search).get('test8')||'';}catch(e){}
+  if(!q||typeof DIFF==='undefined'||!DIFF[q])return;
+  let fired=false;
+  const go=()=>{if(fired)return;fired=true;
+    try{ltHide();firstGame=false;newGame(q);hideOv();S._test8=1;S.jang=8;S.rd=2;S.foes=null;S.foesNext=null;startRound();}catch(e){console.warn('[test8]',e);}};
+  const _br=beginRound;beginRound=function(){const r=_br.apply(this,arguments);try{if(S&&S._test8&&S.jang===8&&S.rd===2){S.tgt=Math.min(S.tgt,40);render();}}catch(e){}return r;};
+  const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);if(!fired)setTimeout(go,300);return r;};
+})();
 </script>
 </body></html>
