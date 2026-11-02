@@ -3900,7 +3900,7 @@ function ltPlayHTML(){
     h+=`<div class="pl-wrap"><div class="pl-deck"><img src="assets/ui/lamancha/card_back.webp" alt=""><div class="pl-info"><b>라만차 덱</b><div class="pl-white">`+
       `<p><span>덱</span>: <em class="b">60장</em></p><p><span>동료</span>: <em class="b">30명 · 세계 3</em></p><p><span>최고 장</span>: <em class="r">${LM_ST.bestJang||'—'}</em></p><p><span>최고 한 방</span>: <em class="r">${LM_ST.best?LM_ST.best.toLocaleString():'—'}</em></p></div></div></div>`+
       `<div class="pl-stake"><span class="pl-vert">난이도</span><span class="pl-ic"><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt="">${LM_ST.clears[ltDiff]?'<span class="lmClrOk big" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</span><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div>${LM_ST.clears[ltDiff]?'<span class="pl-clr">8장 클리어</span>':''}<div class="pl-white small">${d.d}</div></div></div></div>`+
-      `<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`;
+      (ltDiffOpen(ltDiff)?`<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`:`<button type="button" class="pl-go" disabled>🔒 ${DIFF[keys[Math.max(0,i-1)]].ko}을(를) 깨면 열려요</button>`);
   }
   if(ltPlayTab==='cont'){
     const live=S&&!S.practice&&!S._statEnded;
@@ -3913,7 +3913,10 @@ function ltPlayHTML(){
   return h+`</div>`;
 }
 function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k.length)%k.length];ltPop('play');}
-function ltNewRun(){lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length)openInfo('learn','page',0);}
+/* (DHL 11-02) 테스트 버전: 견습 · 기사 · 편력 모두 고를 수 있음. 정식판(LM_TEST=false)은 앞 난이도를 깨야 열림 */
+window.LM_TEST=true;
+function ltDiffOpen(k){if(window.LM_TEST)return true;const K=Object.keys(DIFF),i=K.indexOf(k);return i<=0||!!(LM_ST.clears||{})[K[i-1]];}
+function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length)openInfo('learn','page',0);}
 /* 계속하기 (2026-10-29 버그): 라운드 선택 · 원정 캠프 중에 메인 메뉴로 갔다 오면 창이 사라져 손패 0장 판이 열리던 문제 → 그 단계 창을 다시 띄움 */
 /* 메인 메뉴로 (2026-11-01 DHL 버그): 라운드 선택 · 상점 · 캠프 창(#ov)이 타이틀보다 위(z 60)라 타이틀이 안 보이던 문제
    → 나갈 때 그 창을 통째로 보관(이벤트 그대로)하고 숨김, 계속하기에서 그대로 되돌림 */
@@ -8240,6 +8243,15 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
   const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);try{strip();}catch(e){}return r;};
   try{strip();}catch(e){}
 })();
+</script>
+<style id="lm-test-build">/* (DHL 11-02) 타이틀 언어 버튼 아래 '테스트 버전' 표시 */
+#lmTestTag{position:absolute;top:calc(max(12px,env(safe-area-inset-top)) + 48px);left:12px;z-index:3;padding:5px 12px;border-radius:999px;background:#e8483d;color:#fff;font:900 12px/1 "Noto Sans KR",sans-serif;letter-spacing:.04em;border:1px solid #ffb4a8;box-shadow:0 2px 0 #5a120c;pointer-events:none}
+#lm-title:not(.ltv2) #lmTestTag{top:58px}
+</style>
+<script id="lm-test-build-js">
+(function(){function put(){const t=document.getElementById('lm-title');if(!t||!window.LM_TEST){const o=document.getElementById('lmTestTag');if(o)o.remove();return;}
+  if(!document.getElementById('lmTestTag')){const b=document.createElement('div');b.id='lmTestTag';b.textContent='테스트 버전';b.setAttribute('data-no-i18n','');t.appendChild(b);}}
+  const _ls=ltShow;ltShow=function(){const r=_ls.apply(this,arguments);try{put();}catch(e){}return r;};try{put();}catch(e){}})();
 </script>
 <style id="lm-diff-medals">
 /* (DHL 11-02 시안 A) 난이도 고르기 훈장 */
