@@ -1578,32 +1578,102 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 </section>
 
 <script id="lm-audio">
-/* 🔊 소리 (153-6의 BGM 코드 그대로 · 효과음 채널은 아직 없음) — 설정은 lm_sound 키에 저장 */
+/* 🔊 소리 — 설정은 lm_sound / lm_settings 키에 저장 */
 var gameSettings={masterVolume:70,bgm:true,bgmVolume:28};   // 153-6 DEFAULT_GAME_SETTINGS 값
 try{const v=JSON.parse(localStorage.getItem('lm_sound')||'null');if(v&&typeof v.masterVolume==='number')gameSettings.masterVolume=v.masterVolume;}catch(e){}
-const BGM_FILE='assets/audio/bgm/starlight_atelier.ogg';
-let bgmAudio=null, audioUnlocked=false, bgmPlayPending=false;
-function getBgmAudio(){
-  if(!bgmAudio){bgmAudio=new Audio(BGM_FILE);bgmAudio.loop=true;bgmAudio.preload='auto';
-    bgmAudio.addEventListener('error',()=>console.warn('BGM load failed:',BGM_FILE,bgmAudio.error?.code));}
-  return bgmAudio;
-}
-const BGM_FADE_IN_MS=1500;let bgmFadeTimer=0,bgmDuck=1;
+/* 🎵 BGM — 장면별 9곡 (DHL 11-03). Web Audio로 끊김 없는 루프 + 1.4초 크로스페이드.
+   Web Audio를 못 쓰면(file:// 등) <audio> 루프로 대신 틀어요.
+   곡은 모두 −20 LUFS(효과음 −16보다 아래)라서 예전 곡(−14.4)과 같은 슬라이더에서 비슷하게 들리도록 +3dB 보정 */
+const BGM_DIR='assets/audio/bgm/';
+const BGM_TRACKS={title:'bgm_title',rust:'bgm_battle_rust',neon:'bgm_battle_neon',sky:'bgm_battle_sky',boss:'bgm_boss',
+  camp:'bgm_camp',shop:'bgm_shop',story:'bgm_story',ending:'bgm_ending'};
+const BGM_ONCE={ending:1};          // 엔딩은 루프 아님: 한 번 흐르고 조용히 끝남
+const BGM_MAKEUP=1.41, BGM_XFADE=1.4, BGM_CACHE=3;
+let audioUnlocked=false,bgmDuck=1,bgmCur=null,bgmScene='title';
+let bgmAC=null,bgmBus=null,bgmWA=true,bgmElTimer=0;
+const bgmBuf=new Map();             // key → Promise<AudioBuffer> (최근 3곡만 메모리에)
 function bgmTargetVolume(){const volume=v=>Number.isFinite(Number(v))?Math.max(0,Math.min(1,Number(v)/100)):0;
-  return (gameSettings.bgm?volume(gameSettings.masterVolume)*volume(gameSettings.bgmVolume):0)*bgmDuck;}
-function stopBgmFade(){if(bgmFadeTimer){clearInterval(bgmFadeTimer);bgmFadeTimer=0;}}
-function startBgmFade(a){stopBgmFade();const t0=performance.now();a.volume=0;
-  bgmFadeTimer=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/BGM_FADE_IN_MS);a.volume=Math.max(0,Math.min(1,bgmTargetVolume()*k*k));if(k>=1)stopBgmFade();},30);}
+  return (gameSettings.bgm?volume(gameSettings.masterVolume)*volume(gameSettings.bgmVolume):0)*bgmDuck*BGM_MAKEUP;}
+function bgmCtx(){
+  if(!bgmWA)return null;
+  if(!bgmAC){const AC=window.AudioContext||window.webkitAudioContext;if(!AC){bgmWA=false;return null;}
+    bgmAC=window.__lmAC||(window.__lmAC=new AC());bgmBus=bgmAC.createGain();bgmBus.gain.value=0;bgmBus.connect(bgmAC.destination);}
+  if(bgmAC.state==='suspended')bgmAC.resume().catch(()=>{});
+  return bgmAC;
+}
+function bgmGet(key){
+  if(bgmBuf.has(key)){const p=bgmBuf.get(key);bgmBuf.delete(key);bgmBuf.set(key,p);return p;}   // 최근 사용 순서 갱신
+  const p=fetch(BGM_DIR+BGM_TRACKS[key]+'.ogg').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();})
+    .then(b=>new Promise((ok,no)=>bgmAC.decodeAudioData(b,ok,no)));
+  p.catch(()=>bgmBuf.delete(key));
+  bgmBuf.set(key,p);
+  for(const k of bgmBuf.keys()){if(bgmBuf.size<=BGM_CACHE)break;if(!bgmCur||k!==bgmCur.key)bgmBuf.delete(k);}
+  return p;
+}
+function bgmFadeOut(o){
+  if(o.s){try{const t=bgmAC.currentTime;o.g.gain.cancelScheduledValues(t);o.g.gain.setValueAtTime(o.g.gain.value,t);o.g.gain.linearRampToValueAtTime(0,t+BGM_XFADE);o.s.stop(t+BGM_XFADE+.05);}catch(e){}}
+  if(o.el){o.out=performance.now();o.v0=o.k;bgmElTick();}
+}
+/* <audio> 대체 경로: 50ms마다 볼륨 계산 (페이드 인 · 아웃) */
+const bgmEls=new Set();
+function bgmElTick(){
+  if(!bgmElTimer)bgmElTimer=setInterval(()=>{const now=performance.now(),T=bgmTargetVolume();
+    bgmEls.forEach(o=>{if(o.out!=null){o.k=Math.max(0,o.v0*(1-(now-o.out)/(BGM_XFADE*1000)));if(o.k<=0){o.el.pause();o.el.src='';bgmEls.delete(o);return;}}
+      else o.k=Math.min(1,(now-o.t0)/(BGM_XFADE*1000));
+      o.el.volume=Math.max(0,Math.min(1,T*o.k));});
+    if(!bgmEls.size){clearInterval(bgmElTimer);bgmElTimer=0;}},50);
+}
+function bgmPlay(key){
+  if((bgmCur&&bgmCur.key)===key)return;
+  if(bgmCur)bgmFadeOut(bgmCur);
+  bgmCur=key?{key}:null;if(!key)return;
+  const me=bgmCur;
+  if(bgmCtx()){
+    bgmGet(key).then(buf=>{
+      if(bgmCur!==me)return;
+      const c=bgmAC,g=c.createGain(),s=c.createBufferSource(),t=c.currentTime;
+      s.buffer=buf;s.loop=!BGM_ONCE[key];s.connect(g).connect(bgmBus);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+BGM_XFADE);s.start(t);me.g=g;me.s=s;
+    }).catch(err=>{console.warn('BGM (Web Audio) →',BGM_TRACKS[key],err&&err.message,'— <audio>로 대신 재생');
+      bgmWA=false;if(bgmCur===me){bgmCur=null;bgmPlay(key);}});
+  }else{
+    const a=new Audio(BGM_DIR+BGM_TRACKS[key]+'.ogg');a.loop=!BGM_ONCE[key];a.preload='auto';a.volume=0;
+    me.el=a;me.k=0;me.t0=performance.now();bgmEls.add(me);bgmElTick();
+    a.addEventListener('error',()=>console.warn('BGM load failed:',a.src,a.error&&a.error.code));
+    Promise.resolve(a.play()).catch(err=>{if(err&&err.name!=='NotAllowedError'&&err.name!=='AbortError')console.warn('BGM playback:',err);});
+  }
+}
+/* 지금 장면 → 곡. 게임 중 메뉴(⚙)는 장면을 바꾸지 않음 */
+function lmBgmScene(){
+  const $$=id=>document.getElementById(id),t=$$('lm-title');
+  const titleOn=t&&!t.hidden&&!t.classList.contains('ingame');
+  const G=typeof S!=='undefined'&&S&&S.foes?S:null;
+  if($$('mr-story'))return G&&G._bgmEnd==='win'&&!titleOn?'ending':'story';
+  const boot=$$('game-startup-screen');
+  if(titleOn||(boot&&getComputedStyle(boot).display!=='none'))return 'title';
+  if(t&&!t.hidden)return bgmScene;                          // 게임 중 메뉴 · 설정
+  if(!G)return 'title';
+  if(G._bgmEnd)return G._bgmEnd==='win'?'ending':'story';    // 원정 완주 · 패배 화면
+  if($$('lmDefeat'))return 'story';                          // 패배 연출이 시작되면 전투 곡 → 이야기 곡
+  const ov=$$('ov'),p=$$('panel');
+  if(ov&&!ov.hidden&&p){
+    if(p.querySelector('.shop'))return 'shop';
+    if(p.querySelector('.rest,.night,[class^="camp"],[class*=" camp"]'))return 'camp';
+  }
+  if(G.rd===2&&!G.selecting&&G.foe)return 'boss';
+  const w=G.world||(typeof JANG_WORLD==='function'?JANG_WORLD(G.jang):'rust');
+  return BGM_TRACKS[w]?w:'rust';
+}
 function syncBgm(){
   if(!audioUnlocked)return;
-  const a=getBgmAudio(),target=bgmTargetVolume();
-  if(target===0){stopBgmFade();a.volume=0;a.pause();return;}
-  if(!a.paused){if(!bgmFadeTimer)a.volume=target;return;}
-  if(bgmPlayPending)return;bgmPlayPending=true;a.volume=0;
-  try{Promise.resolve(a.play()).then(()=>startBgmFade(a)).catch(err=>{if(err?.name!=='NotAllowedError'&&err?.name!=='AbortError')console.warn('BGM playback:',err);}).finally(()=>{bgmPlayPending=false;});}
-  catch(err){bgmPlayPending=false;console.warn('BGM playback:',err);}
+  try{bgmScene=lmBgmScene();}catch(e){}
+  const target=bgmTargetVolume();
+  if(bgmCtx()){const t=bgmAC.currentTime;bgmBus.gain.cancelScheduledValues(t);bgmBus.gain.setTargetAtTime(target,t,.12);}
+  bgmPlay(target>0?bgmScene:null);
 }
+function getBgmAudio(){return{load(){if(bgmCtx())bgmGet('title').catch(()=>{});}};}   // 부팅 때 첫 곡 미리 받기
 function unlockGameAudio(){audioUnlocked=true;syncBgm();}
+setInterval(()=>{if(audioUnlocked)syncBgm();},400);
 window.addEventListener('pointerdown',unlockGameAudio,{passive:true});
 window.addEventListener('keydown',unlockGameAudio,{passive:true});
 window.MR=window.MR||{};
@@ -3081,6 +3151,7 @@ function lmQuipHTML(q){return String(q).replace(/([!?.])[ \n]+(?=\S)|(,)\n(?=\S)
 /* (DHL 11-02 '8장 끝나면 견습 기사 · 기사 · 편력 기사 고르는 곳으로') 판 끝 [새로운 런] = 플레이 창 '새로운 런' 탭(난이도 고르기) · 방금 한 난이도가 골라져 있음 */
 function lmEndNewRun(){hideOv();if(S)S._statEnded=1;firstGame=false;try{ltPlayTab='new';if(S&&DIFF[S.diff])ltDiff=S.diff;}catch(e){}ltShow();ltPop('play');}
 function runEndHTML(won){
+  S._bgmEnd=won?'win':'lose';   // 🎵 완주 = 엔딩 곡 · 패배 = 이야기 곡
   const rs=S.rs||{play:0,dis:0,buy:0,rr:0},f=S.foe||(S.foes&&S.foes[S.rd]),TK=['token_minion','token_knight','token_giant'];
   const top=Object.entries(S.htCount||{}).sort((a,b)=>b[1]-a[1])[0];
   const art=k=>typeof HAS_ART!=='undefined'&&HAS_ART&&MR_ART.idle&&(MR_ART.idle[JANG_WORLD(S.jang)+'_'+k]||MR_ART.idle['rust_'+k]);
@@ -7898,10 +7969,10 @@ async function lmFinale(){
   S.finale=1;S.busy=false;beginRound();
 }
 async function lmEnding(){
-  S.busy=true;hideOv();await lmScene('ending');S.busy=false;
+  S.busy=true;S._bgmEnd='win';hideOv();await lmScene('ending');S.busy=false;
   showOv(runEndHTML(true));
 }
-function lmEndless(){hideOv();S.endless=true;S._statEnded=1;cashOut();}
+function lmEndless(){hideOv();delete S._bgmEnd;S.endless=true;S._statEnded=1;cashOut();}
 </script>
 
 <style id="lm-story-list-css">
