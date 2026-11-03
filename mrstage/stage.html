@@ -8119,7 +8119,7 @@ let isGameOver = false;
       d.style.left=(x-(o.flipX?1-rw.ax:rw.ax)*size).toFixed(1)+'px';d.style.top=(y-rw.ay*size).toFixed(1)+'px';
       d.style.backgroundPosition=`${m.c>1?c/(m.c-1)*100:0}% ${m.r>1?r/(m.r-1)*100:0}%`;};
     if(o.flipX)d.style.transform='scaleX(-1)';
-    if(o.z!=null)d.style.zIndex=o.z;if(o.blend)d.style.mixBlendMode=o.blend;if(o.alpha!=null)d.style.opacity=o.alpha;   // (DHL 11-03) 땅 마법진은 적 뒤(z 2) · 빛기둥은 빛 더하기(screen)로 적이 비쳐 보이게
+    if(o.z!=null)d.style.zIndex=o.z;if(o.clip)d.style.clipPath=o.clip;if(o.blend)d.style.mixBlendMode=o.blend;if(o.alpha!=null)d.style.opacity=o.alpha;   // (DHL 11-03) 땅 마법진은 적 뒤(z 2) · 빛기둥은 빛 더하기(screen)로 적이 비쳐 보이게
     put(seq[0]);stage.appendChild(d);
     // 타격 멈춤(히트스톱)으로 화면이 잠깐 멈춰도 칸을 건너뛰지 않음 — 한 번에 최대 한 칸씩
     const fps=o.fps||16,total=seq.length*(o.loops||1),step=1000/fps;let i=0,next=performance.now()+step;
@@ -8181,6 +8181,9 @@ let isGameOver = false;
     if(c.push){try{en?.animate([{translate:'0 0'},{translate:`${E.h*c.push}px 0`,offset:.25},{translate:'0 0'}],{duration:c.pushMs||520,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
     const y0=c.at==='foot'?E.foot:E.y;
     if(k==='pillar'){const G=enemyGround();flip(c.sheet,R(c.from,c.to),G.x,G.y,G.h*c.size,{fps:c.fps,track:enemyGround,blend:'screen',alpha:.92});}   // 카르덴 빛기둥: 마법진(바닥 · 적 가운데)에서 솟음
+    else if(k==='whirl'){   // (DHL 11-03 '원 이펙트가 빌런 앞에 있어 이상함') 고리가 적을 감싸게: 위쪽 반(먼 쪽)은 적 뒤 · 아래쪽 반(가까운 쪽)만 적 앞
+      const a=[c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size];
+      flip(...a,{fps:c.fps,flipX:c.flipX?1:0,z:2,clip:'inset(0 0 50% 0)'});flip(...a,{fps:c.fps,flipX:c.flipX?1:0,clip:'inset(50% 0 0 0)'});}
     else flip(c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size,{fps:c.fps,flipX:c.flipX?1:0});
     if(c.shake){if(c.shakeAt)setTimeout(()=>shake(c.shake),c.shakeAt);else shake(c.shake);}
   }
