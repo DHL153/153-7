@@ -8107,7 +8107,7 @@ let isGameOver = false;
     b.innerHTML=`<b>${text}</b>${sub?`<small>${sub}</small>`:''}`;
   }
   // ── 이펙트 = 받은 플립북 시트 (DHL 10-28 '코드 이펙트 말고 리소스로') · fx/route/fxNN.webp · cutfx.py 로 칸·땅 기준점 맞춤
-  const FXM={"fx01":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx02":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx03":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.493,"ay":0.5},{"ax":0.493,"ay":0.5}]},"fx04":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.0,"ay":0.5},{"ax":0.448,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx05":{"c":4,"r":2,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx06":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.77},{"ax":0.5,"ay":0.77}]},"fx07":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.57,"ay":0.5},{"ax":0.57,"ay":0.5}]},"fx08":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.511,"ay":0.5},{"ax":0.511,"ay":0.5}]},"fx09":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.504,"ay":0.5},{"ax":0.504,"ay":0.5}]},"fx10":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.499,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx12":{"c":4,"r":4,"blend":"unscreen","rows":[{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5}]},"fx12w":{"c":4,"r":4,"blend":"tint","rows":[{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5}]},"fx11":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]}},FXP='fx/route/';
+  const FXM={"fx01":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx02":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx03":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.493,"ay":0.5},{"ax":0.493,"ay":0.5}]},"fx04":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.0,"ay":0.5},{"ax":0.448,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx05":{"c":4,"r":2,"blend":"key","rows":[{"ax":0.5,"ay":0.7},{"ax":0.5,"ay":0.7}]},"fx06":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.77},{"ax":0.5,"ay":0.77}]},"fx07":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.57,"ay":0.5},{"ax":0.57,"ay":0.5}]},"fx08":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.511,"ay":0.5},{"ax":0.511,"ay":0.5}]},"fx09":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.504,"ay":0.5},{"ax":0.504,"ay":0.5}]},"fx10":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.499,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx12":{"c":4,"r":4,"blend":"unscreen","rows":[{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5}]},"fx12w":{"c":4,"r":4,"blend":"tint","rows":[{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5}]},"fx11":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]}},FXP='fx/route/';
   for(const k in FXM){const im=new Image();im.src=FXP+k+'.webp';}   // 미리 받아 두기 (첫 타격 때 빈 칸 방지)
   // flip(시트, 칸 번호 목록, 기준점 x·y(무대 px), 칸 크기 px, {fps, loops, flipX})
   function flip(k,seq,x,y,size,o={}){
@@ -8157,11 +8157,11 @@ let isGameOver = false;
     shock:{sheet:'fx02',from:0,to:7,at:'foot',dx:-.1,dy:0,size:1.7,fps:17,flipX:false,shake:9,shakeAt:0},
     launch:{sheet:'fx03',from:0,to:7,at:'mid',dx:-.3,dy:-.1,size:1.45,fps:20,flipX:true,shake:4,shakeAt:0,lift:.18,liftMs:620},   // DHL 10-28 '공격 방향과 반대' → 좌우 반전 · lift = 적 띄우기(무대 높이 배율)
     burst:{sheet:'fx04',from:8,to:11,at:'mid',dx:0,dy:0,size:1.25,fps:14,flipX:false,shake:3,shakeAt:0},
-    crater:{sheet:'fx05',from:1,to:7,at:'foot',dx:-.1,dy:0,size:1.7,fps:16,flipX:false,shake:10,shakeAt:0},
+    crater:{sheet:'fx05',from:1,to:7,at:'foot',dx:-.1,dy:0,size:1.7,fps:16,flipX:false,shake:10,shakeAt:0,wrap:.7},
     pillar:{sheet:'fx06',from:4,to:7,at:'mid',dx:0,dy:.22,size:1.5,fps:12,flipX:false,shake:5,shakeAt:0},   // (DHL 10-28 '카르덴 이펙트가 적 아래에서 터짐') 발밑 → 적 몸 아래쪽
     knock:{sheet:'fx07',from:0,to:7,at:'mid',dx:-.3,dy:0,size:1.45,fps:18,flipX:false,shake:7,shakeAt:0,push:.35,pushMs:520},   // push = 적 밀기(적 키 배율)
     pierce:{sheet:'fx08',from:0,to:7,at:'mid',dx:-.05,dy:0,size:1.9,fps:18,flipX:false,shake:4,shakeAt:0},
-    whirl:{sheet:'fx09',from:0,to:7,at:'mid',dx:-.15,dy:.05,size:1.7,fps:20,flipX:false,shake:6,shakeAt:0},
+    whirl:{sheet:'fx09',from:0,to:7,at:'mid',dx:-.15,dy:.05,size:1.7,fps:20,flipX:false,shake:6,shakeAt:0,wrap:.5},
     xcut:{sheet:'fx10',from:0,to:7,at:'mid',dx:0,dy:0,size:1.45,fps:18,flipX:false,shake:6,shakeAt:160},
     dust:{sheet:'fx11',fps:14,dash:{from:0,to:3,dx:-.12,size:1.25},land:{from:4,to:7,dx:0,size:1.4375},leap:{from:8,to:11,dx:0,size:1.25}},   // 몸 키 배율
     shot:{n:3,gap:90,gun:[.5,-.2],muzzle:{from:0,to:3,size:.95,fps:22},bullet:{from:4,to:7,size:.9,fps:24,ms:170},boom:{from:8,to:11,dx:-.15,size:.55,fps:20}},   // 총구 = 발에서 앞 .72h · 위 .32h · boom = 적 키 배율
@@ -8181,9 +8181,9 @@ let isGameOver = false;
     if(c.push){try{en?.animate([{translate:'0 0'},{translate:`${E.h*c.push}px 0`,offset:.25},{translate:'0 0'}],{duration:c.pushMs||520,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
     const y0=c.at==='foot'?E.foot:E.y;
     if(k==='pillar'){const G=enemyGround();flip(c.sheet,R(c.from,c.to),G.x,G.y,G.h*c.size,{fps:c.fps,track:enemyGround,blend:'screen',alpha:.92});}   // 카르덴 빛기둥: 마법진(바닥 · 적 가운데)에서 솟음
-    else if(k==='whirl'){   // (DHL 11-03 '원 이펙트가 빌런 앞에 있어 이상함') 고리가 적을 감싸게: 위쪽 반(먼 쪽)은 적 뒤 · 아래쪽 반(가까운 쪽)만 적 앞
-      const a=[c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size];
-      flip(...a,{fps:c.fps,flipX:c.flipX?1:0,z:2,clip:'inset(0 0 50% 0)'});flip(...a,{fps:c.fps,flipX:c.flipX?1:0,clip:'inset(50% 0 0 0)'});}
+    else if(c.wrap){   // (DHL 11-03 '원 이펙트가 빌런 앞에 있어 이상함') 고리 · 땅 파임이 적을 감싸게: 칸 위쪽(먼 쪽)은 적 뒤 · wrap 아래(가까운 쪽)만 적 앞
+      const a=[c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size],cut=Math.round(c.wrap*100);
+      flip(...a,{fps:c.fps,flipX:c.flipX?1:0,z:2,clip:`inset(0 0 ${100-cut}% 0)`});flip(...a,{fps:c.fps,flipX:c.flipX?1:0,clip:`inset(${cut}% 0 0 0)`});}
     else flip(c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size,{fps:c.fps,flipX:c.flipX?1:0});
     if(c.shake){if(c.shakeAt)setTimeout(()=>shake(c.shake),c.shakeAt);else shake(c.shake);}
   }
