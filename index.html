@@ -2366,7 +2366,7 @@ function newGame(diff){
      lv:{},vouch:[],grow:0,ost:{},runsMax:4,disMax:4,handN:8,maxOrb:5,rerollBase:2,interestMax:5,uid,voucherOffer:null,roundMerges:0,diff,score:0,tgt:tgtFor(1,0,diff),runs:4,dis:4,usedHT:[],inj:[]};
   S.wseq=worldSeq(60);   // 8장 + 무한 원정
   S.voucherOffer=pickVoucher();
-  if(firstGame){firstGame=false;S.selecting=true;ensureFoes();openInfo('learn','page',0);return;}
+  if(firstGame){firstGame=false;S.selecting=true;ensureFoes();return;}
   startRound();
 }
 /* 장의 빌런 3명(망령 · 수문장 · 거인)을 장이 시작될 때 정한다 — 거인 규칙을 미리 보고 준비 */
@@ -3943,7 +3943,7 @@ function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k
 /* (DHL 11-02) 타이틀 '테스터' 버튼으로 켜고 끔 — 켬: 난이도·스토리·배우기 전부 열림 / 끔: 이 브라우저에 저장된 기록만큼만 열림. 기본 켬 */
 window.LM_TEST=(()=>{try{return localStorage.getItem('lm_tester')==='1';}catch(e){return false;}})();   /* (DHL 11-02) 기본 = 테스터 OFF · 타이틀 버튼으로 켜면 ON 저장 */
 function ltDiffOpen(k){if(window.LM_TEST)return true;const K=Object.keys(DIFF),i=K.indexOf(k);return i<=0||!!(LM_ST.clears||{})[K[i-1]];}
-function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);if(!LEARN_SEEN.length&&!(S&&S.tut))openInfo('learn','page',0);}
+function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);}   /* (DHL 11-03) 배우기는 저절로 열지 않음 — 배우기 버튼으로만 */
 /* 계속하기 (2026-10-29 버그): 라운드 선택 · 원정 캠프 중에 메인 메뉴로 갔다 오면 창이 사라져 손패 0장 판이 열리던 문제 → 그 단계 창을 다시 띄움 */
 /* 메인 메뉴로 (2026-11-01 DHL 버그): 라운드 선택 · 상점 · 캠프 창(#ov)이 타이틀보다 위(z 60)라 타이틀이 안 보이던 문제
    → 나갈 때 그 창을 통째로 보관(이벤트 그대로)하고 숨김, 계속하기에서 그대로 되돌림 */
