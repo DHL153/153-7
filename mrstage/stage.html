@@ -8672,9 +8672,10 @@ body:has(#battle-stage[data-team-skill="on"]) #lm-sbar,body:has(#battle-stage.sk
 /* (DHL 10-30) 방패 에너지 바 · 몸체 바 초록 · 숫자 가운데 · 연출 중에도 방패가 흐려지지 않게 */
 #lm-sbar{background:#1e293b!important}
 #lm-sbar .f{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(#e2e8f0,#94a3b8 45%,#475569);box-shadow:inset 0 1px 0 #ffffffaa;transition:width .45s cubic-bezier(.3,.8,.3,1)}
+#lm-sbar .t{line-height:normal!important}#lm-sbar .t svg{width:1em!important;height:1em!important;flex:none}   /* (DHL 11-03) PC에서 방패 숫자가 바 위쪽으로 밀려 잘리던 것 → 가운데 */
 #lm-sbar .t{color:#fff!important;text-shadow:0 0 2px #0b1220,0 0 2px #0b1220,0 1px 1px #000!important}
 html.mr-uikit body #app#app#app #battle-stage #boss-hp-fill{background:linear-gradient(#86efac,#22c55e 55%,#15803d)!important}
-html.mr-uikit body #app#app#app #battle-stage #boss-hud #boss-hp-text{left:0!important;right:0!important;justify-content:center!important}
+html.mr-uikit body #app#app#app #battle-stage #boss-hud #boss-hp-text{left:calc(13px*var(--gk,1))!important;right:0!important;justify-content:center!important}   /* (DHL 11-03) 숫자를 바(방패 아이콘 자리 빼고) 가운데에 */
 #battle-stage.lm-fin #lm-gshield{opacity:1!important}
 </style>
 <style id="lm-hitline-css">
