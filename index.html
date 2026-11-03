@@ -3451,12 +3451,12 @@ function cmDetailHTML(id){
      `<div class="cmAw"><small>★3 각성 · 둘 중 하나</small><div><span><b>${A.ic} ${A.ko}</b><em>${A.d}</em></span><span><b>${B.ic} ${B.ko}</b><em>${B.d}</em></span></div></div>`+
    `</div></div></div>`;
 }
-function cmGo(d){const ord=CM_ORDER();let i=ord.indexOf(codexSel);i=(i+d+ord.length)%ord.length;codexSel=ord[i];openInfo('codex');lmSfx('sfx_character_select.wav',.22);}
+function cmGo(d){const ord=CM_ORDER();let i=ord.indexOf(codexSel);i=(i+d+ord.length)%ord.length;codexSel=ord[i];openInfo('codex');lmSfx('sfx_character_select.ogg',.22);}
 function cmTap(ev){
   const zone=ev.currentTarget,body=zone.querySelector('.cmChar');if(!body)return;
   const rect=zone.getBoundingClientRect(),br=body.getBoundingClientRect();
   const x=ev.clientX?ev.clientX-rect.left:br.left+br.width/2-rect.left,y=ev.clientY?ev.clientY-rect.top:br.top+br.height*.36-rect.top;
-  cmTapCount++;lmSfx('sfx_character_love.wav',.27);zone.querySelector('.cmHint')?.remove();
+  cmTapCount++;lmSfx('sfx_character_love.ogg',.27);zone.querySelector('.cmHint')?.remove();
   body.classList.remove('love-react');void body.offsetWidth;body.classList.add('love-react');setTimeout(()=>body.classList.remove('love-react'),760);
   const add=(cls,txt,css,ms)=>{const e=document.createElement('span');e.className=cls;if(txt)e.textContent=txt;Object.assign(e.style,css||{});zone.appendChild(e);setTimeout(()=>e.remove(),ms);return e;};
   add('char-love-aura','',{left:x+'px',top:(y+10)+'px'},760);
@@ -4615,7 +4615,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       else{const cyc=(U.tap||(c.rig.def.waveImg?TAP_CYCLE:TAP_CYCLE.filter(n=>n!=='wave'))).filter(n=>RunAnimator.ACTIONS[n]||c.rig.def.actions?.[n]);name=cyc[c.tapIdx++%cyc.length];}
       if(!name)return;
       if(!c.anim.attack(name)){c.anim.act=null;c.anim.attack(name);}   // 진행 중이면 끊고 새 반응
-      try{lmSfx('sfx_character_love.wav',.27);}catch(e){}
+      try{lmSfx('sfx_character_love.ogg',.27);}catch(e){}
     }
     cmTap=function(ev){
       const zone=ev.currentTarget;zone.querySelector('.cmHint')?.remove();
@@ -7788,7 +7788,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     sheet(h,FX.forge,cx,cy+cw*.05,cw*2.6,col);sheet(h,FX.flash,cx,cy,cw*2,'#ff9a3c');
     dim.animate([{},{background:'#fff'},{}],{duration:160});
     document.getElementById('app')?.animate([{translate:'0 0'},{translate:'-6px 3px'},{translate:'5px -2px'},{translate:'0 0'}],{duration:260});
-    try{typeof lmSfx==='function'&&lmSfx('sfx_merge_max.wav',.5);}catch(e){}
+    try{typeof lmSfx==='function'&&lmSfx('sfx_merge.ogg',.5);}catch(e){}
     A.remove();B.remove();
     const R=card(h,out,cx,cy,cw*1.05);R.animate([{scale:.6,filter:'brightness(3)'},{scale:1.12,filter:'brightness(1.6)',offset:.5},{scale:1,filter:'brightness(1)'}],{duration:520,easing:'cubic-bezier(.2,1.5,.4,1)',fill:'forwards'});
     const t=document.createElement('div');t.className='ttl';t.textContent=TYPES[out.id].ko;t.style.top=(cy-cw/.72/2-40)+'px';h.appendChild(t);t.animate([{opacity:0,translate:'-50% 8px'},{opacity:1,translate:'-50% 0'}],{duration:300,delay:200,fill:'forwards'});
