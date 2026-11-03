@@ -9050,12 +9050,8 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   let clkAt=0;document.addEventListener('click',()=>{clkAt=performance.now();},true);   // 누른 뒤 게임 동작이 이미 소리를 냈으면 일반 클릭 소리 생략
   document.addEventListener('click',e=>{const b=e.target.closest('button,[role=button],[onclick]');if(!b||b.closest(SKIP))return;
     if(performance.now()-LMS.since()>=clkAt)return;
-    if(b.id==='bSort')return P('sfx_hand_sort');if(b.id==='bClear')return P('sfx_card_deselect');
-    if(b.matches('.ibBack,.iClose,.lt-close,.lt-mb.back,.cmBackBtn,[aria-label="닫기"],[aria-label="뒤로"]'))return P('sfx_ui_back');
-    if(b.matches('.ibTab,.ls-tab,.cSub button,.pl-tabs button,[role=tab]'))return P('sfx_ui_tab');
     if(b.matches('.arrowBtn'))return;   // 쪽 넘김은 openInfo 에서
-    if(b.matches('.rbGo,.lt-play,.pl-go,.goBtn,.campOk,.lBot .go,.lmK,.rbSkip button'))return P('sfx_ui_confirm');
-    P('sfx_ui_click');},false);
+    P('sfx_ui_confirm',{gap:40});},false);   /* (DHL 11-04) 모든 버튼 = 타이틀 '플레이'를 눌렀을 때 소리 하나로 (뒤로 · 탭 · 정렬 · 해제 포함) — 창 열림 · 구매처럼 동작이 자기 소리를 내는 버튼은 그 소리 */
   document.addEventListener('change',e=>{if(e.target.matches('input[type=checkbox],input[type=radio],select'))P('sfx_ui_toggle');else if(e.target.matches('input[type=range]'))P('sfx_ui_click',{gap:120});},true);
 
   const wrap=(name,fn)=>{try{const o=window[name];if(typeof o!=='function')return;window[name]=fn(o);}catch(e){console.warn('[효과음 연결]',name,e);}};
