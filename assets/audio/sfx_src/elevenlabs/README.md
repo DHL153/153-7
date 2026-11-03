@@ -13,3 +13,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_tab_tap2.mp3 | 같은 계열, 조금 작음 | 안 씀 (보관) |
 | el_panel_open_11 · 10 · 9.mp3 | 0.3~0.37초 · 부드러운 창 열림 (잡음 0.03~0.11) | sfx_panel_open_a · _b · _c (창 열림 — 3개를 돌아가며, 소리 크기 같게 맞춤) |
 | el_panel_close_13 · 12.mp3 | 0.1~0.15초 · 낮고 부드러운 '툭' (141Hz · 94Hz) | sfx_panel_close_a · _b (닫기 · ✕ 버튼, 2개 돌아가며) — 휴대폰 스피커에선 작게 들릴 수 있음 |
+| el_page_turn.mp3 | 0.2초 · 종이 한 장 넘김 (고음 19% — 예전 58%) | sfx_page_turn_a (배우기 · 도감 쪽 넘김, 한 개를 높이만 살짝씩 흔들어 씀) |
