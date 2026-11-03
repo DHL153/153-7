@@ -6061,6 +6061,9 @@ body:has(#ov:not([hidden]) .rest) #midZone,body:has(#ov:not([hidden]) .rest) #ha
 .cpStat{position:absolute;left:20.6%;right:22.1%;top:88.6%;height:6.7%;display:flex;align-items:center;justify-content:center;font-size:7.6cqw;font-weight:800;color:#f6e7bf;white-space:nowrap}
 .cpTag{position:absolute;left:81.7%;width:14.2%;top:17.9%;height:14%;display:flex;align-items:center;justify-content:center;padding-top:2.5%;font-size:7.8cqw;font-weight:900;color:#5a2e0a}
 .cpSt.off .cpTag{color:#b3261e}
+/* (DHL 11-04) 꼬리표 숫자 = 비용이 바로 보이게 금화 아이콘 + 숫자 (세로로 쌓음) */
+.cpStat .cpCost{display:inline-flex;align-items:center;gap:.12em;margin-right:.35em;padding:0 .3em 0 .12em;border-radius:999px;background:#0006;color:#ffd84a;font-style:normal;font-weight:900}.cpStat .cpCost img{height:1.05em;width:auto}.cpSt.off .cpStat .cpCost{color:#ff8a80}
+.cpTag{flex-direction:column;gap:0;line-height:1}.cpTag img{width:62%;height:auto;margin-bottom:-2%;filter:drop-shadow(0 1px 0 #0006)}.cpTag b{font-size:.82em;font-weight:900}
 .cpDesc{width:min(720px,80cqw);height:calc(clamp(13px,2.3vh,18px)*3.4);box-sizing:content-box;padding:.9vh 18px;background:#0a1122d9;border:1px solid #c9a24a88;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:clamp(13px,2.3vh,18px);line-height:1.35;overflow:hidden}
 .cpDesc b{color:#ffd66a;font-size:1.08em}
 .cpDesc span{white-space:pre-line;opacity:.92}
@@ -6518,8 +6521,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   window.restHeader=header;
   function card(k,I,guest){const sel=S.restSel===k;
     return `<div class="cpSt${guest?' guest':''}${I.off?' off':''}${sel?' sel':''}" onclick="restTap('${k}')" onmouseenter="restHover('${k}')" onmouseleave="restHover()">`+
-      `${art(guest?S.campGuest.k:k)}<i class="cpFr"></i>${I.cost?`<span class="cpTag">${I.cost}</span>`:''}`+
-      `<b class="cpNm">${guest?GUESTS[S.campGuest.k].ko:NM[k]}</b><span class="cpStat">${I.st}</span></div>`;}
+      `${art(guest?S.campGuest.k:k)}<i class="cpFr"></i>${I.cost?`<span class="cpTag" title="비용 💰${I.cost}" aria-label="비용 ${I.cost}골드"><img src="assets/ui/kit/coin.webp" alt=""><b>${I.cost}</b></span>`:''}`+
+      `<b class="cpNm">${guest?GUESTS[S.campGuest.k].ko:NM[k]}</b><span class="cpStat">${I.cost?`<em class="cpCost"><img src="assets/ui/kit/coin.webp" alt="">${I.cost}</em>`:''}${I.st}</span></div>`;}
   function all(){const L=Object.keys(CAMP).map(k=>[k,info(k),0]);const g=S.campGuest;if(g&&!g.used)L.unshift(['guest',gInfo(g),1]);return L;}
   function desc(k){if(!k){const last=S.campLog[S.campLog.length-1];
       return `<div class="cpDesc"><b>${S.campLog.length?'✔ '+last.split(' — ')[0]:'정비 '+(S.campMax||2)+'번'}</b><span>${S.campLog.length?(last.split(' — ')[1]||''):'같은 정비를 두 번 해도 돼요'}</span></div>`;}
