@@ -17,3 +17,6 @@ assets/rig/
 - 새 캐릭터 추가 = `assets/rig/<id>/`에 넣고 `<script src=…rig.def.js>` 한 줄 + `REGISTRY[번호]='<id>'`.
 - `rig.json`을 바꾸면 `rig.def.js`도 다시 만든다:
   `python3 -c "import json;d=json.load(open('assets/rig/<id>/rig.json'));open('assets/rig/<id>/rig.def.js','w').write('window.MR_RIG_DEFS=window.MR_RIG_DEFS||{};window.MR_RIG_DEFS[\\'<id>\\']='+json.dumps(d,ensure_ascii=False,separators=(\\',\\',\\':\\'))+';')"`
+
+## 안내 NPC (2026-11-03)
+- `nicole-guide/` — 첫 판 안내 니콜(하얀 원피스). 전투 리그(rig.js)와 다른 엔진(`npc.js`: WebGL 메시 몸 + 그린 팔 그림 바꿔 끼우기 + 표정 조각). 게임 파일은 `mrstage/assets/rig/nicole-guide/`, 상태는 `nicole-guide/STATUS.md`.
