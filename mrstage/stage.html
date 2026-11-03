@@ -8135,7 +8135,7 @@ let isGameOver = false;
     const ring=cs.length>1?cs.concat(cs[0]):[cs[0],cs[0]];
     const d=document.createElement('div');d.className='lmflip';
     d.style.width=d.style.height=size.toFixed(1)+'px';
-    d.style.background=`radial-gradient(circle,#fff 0 9%,#ffffffaa 16%,transparent 34%),conic-gradient(from ${Math.round(Math.random()*360)}deg,${ring.join(',')})`;
+    d.style.mixBlendMode='screen';/* (DHL 11-03) 합동기 폭발도 빛 더하기 — 적이 비쳐 보이게 */d.style.background=`radial-gradient(circle,#fff 0 6%,#ffffff88 13%,transparent 30%),conic-gradient(from ${Math.round(Math.random()*360)}deg,${ring.join(',')})`;
     const url=`url(${FXP}${k}.webp)`,msz=`${m.c*100}% ${m.r*100}%`;
     d.style.webkitMaskImage=d.style.maskImage=url;d.style.webkitMaskSize=d.style.maskSize=msz;d.style.webkitMaskRepeat=d.style.maskRepeat='no-repeat';
     d.style.filter='brightness(1.15) saturate(1.2) drop-shadow(0 0 6px rgba(255,255,255,.35))';
