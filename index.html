@@ -2481,7 +2481,7 @@ function campCards(){const k=S.campK,n=S.campN,list=S.deck.filter(c=>TYPES[c.id]
   const sel=S.campSel||[];
   if(k==='merge'){const [a,b]=sel.map(u=>S.deck.find(c=>c.uid===u)),ok=a&&b&&mergeKind(a,b),cost=a?CAMP_MC[a.star+1]:CAMP_MC[2],ws=ok?[...new Set([cardW(a),cardW(b)])]:[];
     if(!ws.includes(S.campW))S.campW=ws[0];
-    return showOv(`<h2>${CAMP[k].ic} ${CAMP[k].ko} · ${NAMES.find(x=>x[0]===n)[1]}</h2><p class="omNote">같은 ★ 2장 · 번호와 속성은 랜덤</p><div class="packRow campPick">`+
+    return showOv(`<h2>${CAMP[k].ic} ${CAMP[k].ko} · ${NAMES.find(x=>x[0]===n)[1]}</h2><p class="omNote">같은 별 두 장 · 번호와 속성은 랜덤</p><div class="packRow campPick">`+
       list.map(c=>{const o=sel.indexOf(c.uid);return `<div class="card dz s${c.star}${o>=0?' sel':''}" style="border-color:${WORLD_C[cardW(c)]}" onclick="campTap(${c.uid})">${cardFace(c)}${o>=0?`<span class="ord">${o+1}</span>`:''}</div>`;}).join('')+`</div>`+
       (ws.length>1?`<div class="campW"><small>남길 세계</small>${ws.map(w=>`<button class="${w===S.campW?'on':''}" style="--wc:${WORLD_C[w]}" onclick="S.campW='${w}';campCards()">${WORLD_KO[w]}</button>`).join('')}</div>`:'')+
       `<button class="campOk" ${ok&&S.gold>=cost?'':'disabled'} onclick="campApply()">머지하기 💰${cost}${ok&&S.gold<cost?' — 돈이 부족해요':''}</button><button class="rsInfo" onclick="campPick('${k}')">← 뒤로</button>`);}
@@ -2501,8 +2501,8 @@ function campApply(){const s=S.campSel.map(u=>S.deck.find(c=>c.uid===u));
 const CAMP_MC={2:2,3:3};
 function campFaceNF(c){const f=S.foe;S.foe=null;try{return cardFace(c);}finally{S.foe=f;}}   // 굴리기 화면은 적 보정 없이 기본 힘
 function campRoll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a)return campOpen();
-  showOv(`<h2>🔨 모닥불 머지 · ${TYPES[a.id].ko} ★${a.star}${R.k==='mix'?' 혼합':''}</h2><div class="packRow campRollRow"><div></div><div class="card dz s${a.star}" id="campRC" style="border-color:${WORLD_C[cardW(a)]}">${campFaceNF(a)}</div><div></div></div>`+
-    `<p class="campRes" id="campRes">&nbsp;</p><button class="campOk" id="campRO" disabled onclick="campRollOk()">확인</button><button class="rsInfo campRe" id="campRR" hidden onclick="campReroll()">다시 굴리기 💰1 (1번)</button>`);
+  showOv(`<h2>🔨 모닥불 머지 · ${TYPES[a.id].ko} <span class="crStars">${'<img src="assets/ui/card/star_g.webp" alt="">'.repeat(a.star)}</span>${R.k==='mix'?' 혼합':''}</h2><div class="packRow campRollRow"><div></div><div class="card dz s${a.star}" id="campRC" style="border-color:${WORLD_C[cardW(a)]}">${campFaceNF(a)}</div><div></div></div>`+
+    `<p class="campRes" id="campRes">&nbsp;</p><button class="campOk" id="campRO" disabled onclick="campRollOk()">확인</button><button class="rsInfo campRe" id="campRR" hidden onclick="campReroll()">다시 굴리기 <span class="crPrice">💰1</span></button>`);
   campSpin(a);}
 async function campSpin(a){const R=S.campRoll,my=R.tk=(R.tk||0)+1;R.busy=true;
   const C=document.getElementById('campRC');if(!C)return;const I=C.querySelector('.dzi'),no=C.querySelector('.dzno'),pw=C.querySelector('.dzpw'),el=C.querySelector('.dzel');
@@ -2520,7 +2520,7 @@ async function campSpin(a){const R=S.campRoll,my=R.tk=(R.tk||0)+1;R.busy=true;
   C.classList.add('crFlash');R.busy=false;
   const res=document.getElementById('campRes');if(res)res.innerHTML=`번호 <b>${cardNo(a)}</b> · <b style="color:${EL_C[a.el]}">${a.el}</b> · 힘 <b>${power(a)}</b>`;
   const ok=document.getElementById('campRO'),rr=document.getElementById('campRR');if(ok)ok.disabled=false;
-  if(rr){rr.hidden=!(R.re>0);rr.disabled=S.gold<1;if(S.gold<1)rr.textContent='다시 굴리기 💰1 — 돈이 부족해요';}}
+  if(rr){rr.hidden=!(R.re>0);rr.disabled=S.gold<1;if(S.gold<1)rr.innerHTML='다시 굴리기 <span class="crPrice">💰1</span>';}}
 function campReroll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a||R.busy||R.re<1||S.gold<1)return;
   S.gold-=1;R.re--;a.no=1+(Math.random()*10|0);a.el=ELS[Math.random()*5|0];
   const ok=document.getElementById('campRO'),rr=document.getElementById('campRR');if(ok)ok.disabled=true;if(rr)rr.hidden=true;try{render();}catch(e){}campSpin(a);}
@@ -7697,7 +7697,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 .nf2 .nfPl b{font:900 15px/1 "Noto Sans KR",sans-serif;color:#fff1cf;white-space:nowrap}
 .nf2 .nfc{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;box-shadow:inset 0 0 0 2px #0004;flex:none}
 .nf2 .nfc img,.nf2 .nfc svg{width:66%;height:66%;object-fit:contain}
-.nf2 .nfKeys{display:flex;gap:8px;padding:4px 10px;border-radius:999px;background:#120e20;border:1.5px solid #c9a24a99}
+.nf2 .nfKeys{display:flex;gap:8px;padding:4px 10px;border-radius:14px;   /* (DHL 11-03) 바깥 틀: 알약 → 살짝 둥근 네모 */background:#120e20;border:1.5px solid #c9a24a99}
 .nf2 .nfK{display:flex;flex-direction:column;align-items:center;gap:2px}
 .nf2 .nfKi{display:inline-flex;width:30px;height:30px;border-radius:50%;box-shadow:0 0 0 2px #f0c24b,0 0 8px #f0c24b88}
 .nf2 .nfKi em{display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center}
@@ -8165,6 +8165,7 @@ html.lmB body .sBox .tile.t-pack[data-key="pack"]>b,html.lmB body .sBox .tile.t-
 .campRollRow{grid-template-columns:1fr 1.5fr 1fr}.campRollRow .card{transform:scale(1.12);transform-origin:50% 0;margin-bottom:10%}
 .campRes{text-align:center;font-size:14px;color:#cfd6e4;min-height:1.5em;margin:6px 0 4px;font-variant-numeric:tabular-nums}.campRes b{color:#f8edd0}
 .crSpin{filter:brightness(1.12)}
+.crStars{display:inline-flex;gap:1px;vertical-align:-.12em;white-space:nowrap}.crStars img{height:.95em;width:auto;filter:drop-shadow(0 1px 1px #000a)}   /* (DHL 11-03) ★ 글자가 그림 바꾸기로 깨져 보여 별 그림으로 */
 .crPop{animation:crPop .32s cubic-bezier(.2,1.6,.4,1)}
 @keyframes crPop{0%{scale:1.35}100%{scale:1}}
 .card.crFlash::after{content:"";position:absolute;inset:-3px;border-radius:10px;box-shadow:0 0 0 2px #f6cf63,0 0 24px 6px #f6cf6399;animation:crFl .7s ease-out forwards;pointer-events:none;z-index:9}
@@ -8683,4 +8684,26 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   addEventListener('click',e=>{if(!cur||cur.o.force)return;const t=e.target.closest&&e.target.closest('#bDis,#bMerge');if(t&&(cur.k==='tut.1_2.start'&&t.id==='bDis'||cur.k==='tut.1_3.start'&&t.id==='bMerge'))setTimeout(hideNic,200);},true);
 })();
 </script>
+<style id="lm-camp-kit">
+/* (DHL 11-03 시안 A) 야영 · 모닥불 머지 버튼 = 게임 버튼 그림 — 주황 = 진행 · 초록 = 다시 · 파랑 = 출발 */
+html.lmB .rest .campOk,html.lmB #campRO,html.lmB .rest .cpGo,html.lmB .rest .cpLeave,html.lmB #campRR{
+  --kb:url(assets/ui/kit/btn_orange.webp);--kbp:url(assets/ui/kit/btn_orange_pressed.webp);
+  background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+  border-image:var(--kb) 40 46 40 46 fill / 12px 15px / 0 stretch!important;filter:drop-shadow(0 3px 0 #000b);
+  color:#fff!important;font-weight:900!important;text-shadow:0 2px 0 #0009;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px}
+html.lmB .rest .campOk:active,html.lmB #campRO:active,html.lmB .rest .cpGo:active,html.lmB .rest .cpLeave:active,html.lmB #campRR:active{border-image-source:var(--kbp,var(--kb))!important;transform:translateY(2px);filter:drop-shadow(0 1px 0 #000b)}
+html.lmB .rest .campOk:disabled,html.lmB #campRO:disabled,html.lmB #campRR:disabled{filter:grayscale(.8) brightness(.6);cursor:default}
+html.lmB .rest .campOk,html.lmB #campRO{height:max(52px,6.6vh);font-size:clamp(17px,2.6vh,21px)!important;padding:0 20px!important;width:100%}
+html.lmB #campRR{--kb:url(assets/ui/kit/btn_green.webp);--kbp:url(assets/ui/kit/btn_green_pressed.webp);height:max(42px,5.4vh);min-width:60%;margin:8px auto 0!important;padding:0 18px!important;font-size:clamp(14px,2.1vh,17px)!important}
+html.lmB #campRR[hidden]{display:none!important}
+.crPrice{display:inline-flex;align-items:center;gap:3px;background:#0007;border-radius:99px;padding:2px 9px;font-size:.88em;text-shadow:none}
+/* 야영 아래: 출발(파랑) · 고른 정비(주황) 같은 폭 · 글자 한 줄 */
+html.lmB .rest .cpFoot.cpFoot3{grid-template-columns:1fr 1fr!important;gap:12px!important;width:min(520px,92cqw)!important}
+html.lmB .rest .cpFoot3 .cpL{display:none}
+html.lmB .rest .cpFoot3 .cpC,html.lmB .rest .cpFoot3 .cpR{display:flex;justify-content:stretch;min-width:0}
+html.lmB .rest .cpLeave{--kb:url(assets/ui/kit/btn_blue.webp);--kbp:url(assets/ui/kit/btn_blue_pressed.webp)}
+html.lmB .rest .cpLeave,html.lmB .rest .cpGo{flex:1;min-width:0;height:max(52px,6.6vh)!important;padding:0 10px!important;font-size:clamp(15px,2.3vh,19px)!important;overflow:hidden}
+html.lmB .rest .cpGo .lmIcA{height:1.1em;width:auto}
+html.lmB .rest .cpFoot3 .cpC:has(.cpBack){justify-content:center}
+</style>
 </body></html>
