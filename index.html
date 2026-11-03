@@ -3925,8 +3925,9 @@ async function lmStartGame(){
 /* ── 타이틀 ── */
 let ltRaf=0,ltAng=0,ltLast=0;
 function ltShow(){
-  const t=$('lm-title');t.hidden=false;document.body.classList.add('lm-titleOn');
+  const t=$('lm-title'),wasHidden=t.hidden;t.hidden=false;document.body.classList.add('lm-titleOn');
   const bl=t.querySelector('.mr-logo-blades');ltLast=0;
+  if(wasHidden&&!t.classList.contains('ingame'))try{window.LMS&&LMS.play('sfx_title_logo',{delay:120,gap:2500});}catch(e){}   // 풍차 돌기 시작 소리 (11-04 ElevenLabs)
   const spin=now=>{if(t.hidden){ltRaf=0;return;}const dt=ltLast?Math.min(64,now-ltLast):16;ltLast=now;
     ltAng=(ltAng+70*dt/1000)%360;bl.style.transform='rotate('+ltAng.toFixed(2)+'deg)';ltRaf=requestAnimationFrame(spin);};
   if(!ltRaf&&!matchMedia('(prefers-reduced-motion:reduce)').matches)ltRaf=requestAnimationFrame(spin);
@@ -4077,6 +4078,7 @@ function ltReplayIntro(){
   // 처음 실행 때와 같은 '움직이려다 마는' 한 번 (t0초에 시작, peak°까지 밀렸다가 살짝 반대로 넘어가 제자리)
   const attempt=(a,t0,peak)=>{const t=a-t0;if(t<0||t>.65)return 0;if(t<.3){const k=t/.3;return peak*(1-(1-k)*(1-k));}if(t<.5){const k=(t-.3)/.2;return peak+(-.18*peak-peak)*(k*k);}const k=(t-.5)/.15;return -.18*peak*(1-k*k*(3-2*k));};
   const SPD=110;   // 다 돈 뒤 일정한 속도 (도/초)
+  try{window.LMS&&LMS.play('sfx_title_logo',{delay:reduce?0:1850,gap:2500});}catch(e){}   // 다시 보기: 풍차가 진짜로 돌기 시작할 때
   let t0=0,last=0,ang=0,raf=0;
   const loop=t=>{if(!sc.isConnected)return;if(!t0)t0=t;const dt=last?Math.min(64,t-last):16;last=t;const age=(t-t0)/1000;let spd=0,wob=0;
     if(age<1.85)wob=attempt(age,.25,7)+attempt(age,1.05,26);           // 1차 살짝 · 2차 크게
@@ -9006,7 +9008,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     ui:{low:[200,1.5],cut:[3000,.9,-3],high:[5500,-6],lp:9500,rt:.45,pre:.006,wet:.07,make:1.15,ens:0},
     rest:{low:[200,1],cut:[3000,.9,-2.5],high:[7000,-4],lp:12000,rt:.6,pre:.01,wet:.08,make:1.08,ens:0}};
   /* (DHL 11-04) ElevenLabs로 다시 만든 깨끗한 실제 카드 소리는 다듬기(고음 깎기 · 겹치기)를 거치지 않음 — 잡음이 없어서 깎으면 먹먹해짐 */
-  const NOPOL=new Set(['sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_fire_merge_spin','sfx_fire_merge_stop']);
+  const NOPOL=new Set(['sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_fire_merge_spin','sfx_fire_merge_stop']);
   const catOf=n=>/^sfx_(card_|hand_sort|deck_shuffle)/.test(n)?'card':/^sfx_(ui_|panel_|page_turn|tooltip)/.test(n)?'ui':'rest';
   const polOn=()=>{try{return LM_SET.fxpol!==0;}catch(e){return true;}};
   const chains={};let irs={};
@@ -9019,8 +9021,8 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     const inp=c.createGain(),ls=B('lowshelf',P.low[0],P.low[1]),pk=B('peaking',P.cut[0],P.cut[2],P.cut[1]),hs=B('highshelf',P.high[0],P.high[1]),lp=B('lowpass',P.lp,null,.5);
     const dry=c.createGain(),wet=c.createGain(),cv=c.createConvolver();dry.gain.value=P.make*(1-P.wet*.5);wet.gain.value=P.make*P.wet;cv.buffer=ir(c,P.rt,P.pre);
     inp.connect(ls).connect(pk).connect(hs).connect(lp);lp.connect(dry).connect(out);lp.connect(cv).connect(wet).connect(out);return chains[k]={inp,P};}
-  const FIXV={sfx_page_turn:'a',sfx_card_select:'b',sfx_card_deal:'a',sfx_card_flip:'a',sfx_ui_click:'m'};   // (DHL 11-03) 버튼 클릭 = 방치형 M&R 때의 클릭 소리(sfx_ui_click_m) 그대로   // 카드 · 버튼은 한 가지 소리로 (a·b·c 높이가 달라 매번 다른 소리처럼 들렸음) — 대신 높이를 아주 조금씩 흔듦
-  const VARN={sfx_panel_close:2};   // 변형이 3개가 아닌 소리
+  const FIXV={sfx_page_turn:'a',sfx_card_select:'b',sfx_card_flip:'a',sfx_ui_click:'m'};   // (DHL 11-03) 버튼 클릭 = 방치형 M&R 때의 클릭 소리(sfx_ui_click_m) 그대로   // 카드 · 버튼은 한 가지 소리로 (a·b·c 높이가 달라 매번 다른 소리처럼 들렸음) — 대신 높이를 아주 조금씩 흔듦
+  const VARN={sfx_panel_close:2,sfx_card_deal:2};   // 변형이 3개가 아닌 소리
   function pick(n){if(FIXV[n])return n+'_'+FIXV[n];if(!VAR.has(n))return n;const N=VARN[n]||3;let i=Math.random()*N|0;if(i===lastV[n])i=(i+1+(Math.random()*(N-1)|0))%N;lastV[n]=i;return n+'_'+'abc'[i];}
   function play(n,o={}){
     if(window.__lmsLog)window.__lmsLog.push(n);   // 시험용 기록
