@@ -8239,7 +8239,7 @@ let isGameOver = false;
     const doStrikes=async()=>{for(let i=0;i<hits;i++){const last=i===hits-1;await strike(sl,num,{star:i===0?st:1,impact:last?o.impact:null,level:last?(o.level??8):6,noCut:i>0,group:o.group});}};
     if(r==='dash'||r==='bash'){at=near;if(r==='bash'){actors[sl].rot=-7;afterImg(sl,420);}
       await dash(start,at,enter?520:300,'out',[sl],2.6);actors[sl].rot=0;dust(sl,0);await doStrikes();}
-    else if(r==='half'){at=Math.max(-W*.5,near-hh*.8);await dash(start,at,enter?480:260,'out',[sl],2.4);dust(sl,0);await doStrikes();}
+    else if(r==='half'){at=Math.max(-W*.5,near-hh*1.0);   /* (DHL 11-03 '니콜은 살짝 뒤에서') .8 → 1.0 몸 키만큼 덜 다가감 */await dash(start,at,enter?480:260,'out',[sl],2.4);dust(sl,0);await doStrikes();}
     else if(r==='shoot'||r==='cast'){at=rangedAt(home,hh,near,W);if(Math.abs(at-start)>2)await dash(start,at,enter?460:300,'out',[sl],2.2);
       if(r==='cast')circle(num,st>=3?1100:st>=2?700:400);
       const fire=()=>r==='shoot'?shot(sl,num):null;
