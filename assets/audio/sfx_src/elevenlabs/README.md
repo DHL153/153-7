@@ -20,3 +20,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_card_flip.mp3 | 0.08초 · 또렷한 '탁' 뒤집기 (3kHz) | sfx_card_flip_a (카드 뒤집기 · 손패 펼칠 때 · 길 고르기) |
 | el_card_deselect.mp3 | 0.14초 · 카드를 내려놓는 낮은 '톡' (94Hz + 종이결) | sfx_card_deselect (고른 카드 해제 — 고르기 '착'과 짝) |
 | el_card_hover.mp3 | 0.37초 · 아주 작은 종이 스침 (잡음 0.42) → 앞 0.24초만, 120Hz 아래 깎음 | sfx_card_hover (PC에서 손패 카드 위에 마우스를 올릴 때 — 11-04 처음 연결) |
+| el_hand_sort.mp3 | 0.26초 · 카드를 촤라락 모아 '탁' 맞춤 (원본 넘침 +0.9dB → 줄임, 9kHz 위 살짝 깎음) | sfx_hand_sort (정렬 버튼 — 11-04 새로 연결 · 이겼을 때 카드가 덱으로 다 들어가는 끝) |
