@@ -8703,13 +8703,13 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(e==='land'&&now-lastSfx>250){lastSfx=now;try{window.LMS&&LMS.play('sfx_nicole_hop',{vol:.4});}catch(_){}}
     if(e==='poof'){try{window.LMS&&LMS.play('sfx_nicole_pop',{vol:.3});}catch(_){}}}}
   /* 이펙트: 화면 전체 캔버스(#lmNicFx)에 화면 좌표로 — 니콜 칸 밖으로 퍼지는 빛가루 · 꽃잎이 잘리지 않게 */
-  let fxDirty=false;
+  let fxDirty=false,nicClip=null;
   function nicFx(dt,on,view){if(!fxc||!G)return;const P=G.parts;if(!on&&!P.length){if(fxDirty){fxc.getContext('2d').clearRect(0,0,fxc.width,fxc.height);fxDirty=false;}return;}
     const dpr=Math.min(2,devicePixelRatio||1),W=Math.round(innerWidth*dpr),H=Math.round(innerHeight*dpr);if(fxc.width!==W||fxc.height!==H){fxc.width=W;fxc.height=H;}
     let col=null;if(on&&view&&!noMotion()){const r=cv.getBoundingClientRect(),cd=cv.width/(r.width||1),toS=(x,y)=>[r.left+x/cd,r.top+y/cd];
-      G.emit(toS,view.k/cd/NicoleGuide.REF_K,true);col=G.gatherCol(toS);}
+      G.emit(toS,view.k/cd/NicoleGuide.REF_K*.6,true);col=G.gatherCol(toS);nicClip=[r.left-12,r.top-16,r.width+24,r.height+20];}   /* (DHL 11-03 '창에 붙어서 터지게') 퍼지는 거리 60% · 니콜 칸 둘레 밖은 안 그림 */
     G.stepFx(dt);const g=fxc.getContext('2d');if(!G.parts.length&&!(col&&col.a>0)){if(fxDirty){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);fxDirty=false;}return;}   /* 그릴 게 없으면 화면 전체 캔버스는 쉼 */
-    g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);G.drawFx(g,dpr,col);fxDirty=true;}
+    g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);g.save();if(nicClip){g.beginPath();g.rect(nicClip[0]*dpr,nicClip[1]*dpr,nicClip[2]*dpr,nicClip[3]*dpr);g.clip();}G.drawFx(g,dpr,col);g.restore();fxDirty=true;}
   function mk(){if(box)return;box=document.createElement('div');box.id='lmNic';box.setAttribute('aria-live','polite');cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');bub=document.createElement('div');bub.className='bub';bub.setAttribute('role','button');bub.tabIndex=0;
     bub.onclick=()=>hideNic();box.append(cv,bub);document.body.appendChild(box);fxc=document.createElement('canvas');fxc.id='lmNicFx';fxc.setAttribute('aria-hidden','true');document.body.appendChild(fxc);}
   function anchor(){const A=cur&&cur.o.anchor&&document.querySelector(cur.o.anchor);if(A){const q=A.getBoundingClientRect();if(q.width)return {left:q.left,width:q.width,top:q.top,bottom:q.bottom,height:q.height,ov:1};}
