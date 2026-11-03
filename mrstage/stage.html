@@ -6041,6 +6041,7 @@ window.MRWorld=(()=>{
 <script id="mrstage-shim">// ===== 라만차 손패 전투 무대: M&R 원본 코드가 기대하는 게임 바깥 함수들 (경제·저장·소리는 손패에서 쓰지 않음) =====
 var gameSettings={screenShake:true,rigChars:true,sfx:false};
 function playSfx(){}                 // 소리: 손패 쪽 소리 체계를 따로 씀
+function lmSnd(n,o){try{if(window.parent!==window&&window.parent.LMS)window.parent.LMS.play(n,o);}catch(e){}}   /* (DHL 11-03) 효과음은 바깥 게임의 LMS 로 */
 function showFloatingText(){}        // 'BOSS -1 HP', '+골드' 같은 머지 게임 숫자 글자
 function flyCurrencyReward(){}       // 골드가 날아가는 연출 (손패 경제와 다름)
 function checkBossTrigger(){}        // 보스 출현은 손패 라운드가 정함
@@ -7968,13 +7969,13 @@ let isGameOver = false;
     g.style.display=show?'block':'none';sbarDraw(show);if(!show){clearInterval(gsT);gsT=0;return;}
     if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 그 런의 보석 그대로 (연출 시작에 finale이 다시 그림)
     paintGems(o.gems,o.n);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
-  async function gsShatter(){const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
+  async function gsShatter(){lmSnd('sfx_shield_break');const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
     g.classList.add('pop');await sleep(140);g.classList.remove('pop');g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
     bigText(((()=>{try{return parent.LM_TD();}catch(e){return '고정 피해';}})())+'!','prc');   // (DHL 10-30) 관통 → 고정 피해 · 영문 True Damage
     {const sb=$('lm-sbar');if(sb){sb._busy=true;sb.classList.add('brk');sb.querySelector('.t').textContent='';setTimeout(()=>{sb._busy=false;sb._lock=false;sb.classList.remove('brk');sbarDraw(false);},900);}}
     try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(253,224,71,.45)');}catch(e){}
     setTimeout(()=>b.remove(),700);gsBroken=true;await sleep(420);g.style.display='none';g.classList.remove('gone');}
-  function gsClank(blocked){const g=$('lm-gshield');if(!g||g.style.display==='none')return;const sz=parseFloat(g.style.width)||46,p={x:parseFloat(g.style.left)||0,y:parseFloat(g.style.top)||0,sz};
+  function gsClank(blocked){lmSnd('sfx_shield_block');const g=$('lm-gshield');if(!g||g.style.display==='none')return;const sz=parseFloat(g.style.width)||46,p={x:parseFloat(g.style.left)||0,y:parseFloat(g.style.top)||0,sz};
     g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');clearTimeout(g._ft);g._ft=setTimeout(()=>g.classList.remove('flash'),700);
     const sp=document.createElement('div');sp.className='lm-gsspark';sp.style.left=(p.x-p.sz*.42)+'px';sp.style.top=p.y+'px';sp.style.setProperty('--s',Math.round(p.sz*1.3)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),500);
     const sb=$('lm-sbar'),z=gsSh;
@@ -8147,7 +8148,9 @@ let isGameOver = false;
     const tick=now=>{if(!d.isConnected)return;if(now>=next){i++;if(i>=total){d.remove();return;}put(seq[i]);next=Math.max(next+step,now+step*.5);}requestAnimationFrame(tick);};
     requestAnimationFrame(tick);return d;
   }
-  const hitQ=[];function hitRun(){const now=performance.now();while(hitQ.length&&now-hitQ[0].t>3000)hitQ.shift();const h=hitQ.shift();if(hitQ.length)hitCb=hitRun;if(h)impactFx(h.n);}
+  const ATK_SND={1:'greatsword',2:'hammer',3:'bigblade',5:'fist',7:'shieldaxe',8:'spear',9:'widesword',10:'dual'};   /* 총(4) · 지팡이(6)는 쏘는 순간 따로 */
+  function hitSnd(num){const p=POS(num),w=['rust','neon','sky'][Math.min(2,(num-1)/10|0)]||'rust';if(ATK_SND[p])lmSnd('sfx_atk_'+ATK_SND[p],{gap:60});lmSnd('sfx_hit_'+w,{delay:40,vol:.85,gap:60});}
+  const hitQ=[];function hitRun(){const now=performance.now();while(hitQ.length&&now-hitQ[0].t>3000)hitQ.shift();const h=hitQ.shift();if(hitQ.length)hitCb=hitRun;if(h){impactFx(h.n);hitSnd(h.n);}}
   const R=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
   function footOf(sl){const h=heroPt(sl);return {x:h.x,y:h.y+h.h*.55,h:h.h};}
   // (DHL 10-31 '이펙트 조절실을 153-7 기준으로') 이펙트 값 = MR_FX_TUNING.route (조절실에서 맞춤). 없으면 아래 기본값(10-28~30 에 맞춘 값 그대로)
@@ -8196,6 +8199,7 @@ let isGameOver = false;
     // 총구 위치 = 발 기준 (몸 높이 비율) — 로시 3명 총 끝을 화면에서 재서 맞춤 (DHL 10-28 '총구와 이펙트가 안 맞음')
     const T=RT('shot'),h=heroPt(sl),f=footOf(sl),E=enemyPt(),g0=T.gun||GUN[num]||GUN[4],ga=GUN_ADJ[num]||[0,0],g=[g0[0]+ga[0],g0[1]+ga[1]],mx=f.x+f.h*g[0],my=f.y+f.h*g[1],M=T.muzzle,B=T.bullet,X=T.boom;
     for(let i=0;i<(T.n||3);i++)setTimeout(()=>{
+      lmSnd('sfx_atk_gun',{gap:0,vol:.85});
       flip('fx04',R(M.from,M.to),mx,my,h.h*M.size,{fps:M.fps});
       const sz=h.h*B.size,b=flip('fx04',R(B.from,B.to),mx+sz*.2,my,sz,{fps:B.fps,loops:2});
       const ty=E.y+(i-1)*E.h*.08;
@@ -8210,7 +8214,7 @@ let isGameOver = false;
     try{const sr=stage.getBoundingClientRect(),k=sr.width/(stage.clientWidth||sr.width)||1,r=en.getBoundingClientRect();if(r.width>0)cx=(r.left+r.width/2-sr.left)/k;}catch(e){}
     let gy=E.foot;try{const f=footOf(0);if(f&&f.y>0)gy=f.y;}catch(e){}
     return {x:cx,y:gy,h:E.h};}
-  function circle(num,ms=700){const G=enemyGround(),C=RT('circle');flip(C.sheet,[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),G.x,G.y,G.h*C.size,{fps:C.fps,track:enemyGround,z:2});}
+  function circle(num,ms=700){lmSnd('sfx_atk_staff',{gap:200});const G=enemyGround(),C=RT('circle');flip(C.sheet,[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),G.x,G.y,G.h*C.size,{fps:C.fps,track:enemyGround,z:2});}
   function afterImg(sl,ms=360){   // 잔상: 이동 중 리그 그림을 몇 장 남김
     if(!CODE_FX)return;
     const e=window.MRRig?.live?.get?.(sl);if(!e||!e.cv)return;let n=0;
@@ -8304,7 +8308,7 @@ let isGameOver = false;
     cast.group=[...battleTeamEntries()].sort((x,y)=>y.slot-x.slot);cast.cutDur=1300;   // (DHL 11-02) 컷인 왼→오 순서 = 전투 화면에 선 순서(뒷자리 왼쪽 · 1번 자리 오른쪽)
     cast.slot=0;
     impact={dmg:o.dmg,final:true,mult:o.mult,hp:o.killed?Math.max(o.hp??0,Math.round(hp-(hp-(o.hp??0))*mem.length/(mem.length+1))):o.hp,killed:false,heavy:true,combo:true};   /* 막타(주인공) 몫을 조금 남김 */clearTimeout(impactT);impactT=setTimeout(land,2600);   // (DHL 10-28) 합동기로 쓰러뜨려도 막타는 주인공 → 여기선 쓰러뜨리지 않음
-    hitQ.length=0;const ccb=()=>{const E=enemyPt(),C=RT('combo');flipTint(C.sheet,R(C.from,C.to),E.x,E.y,E.h*C.size,mem,{fps:C.fps});shake(C.shake);mem.forEach((n,i)=>setTimeout(()=>impactFx(n),300+i*110));};   // 세 세계 합류 폭발(fx12) → 각자 계열 효과
+    hitQ.length=0;const ccb=()=>{lmSnd('sfx_hit_weak');lmSnd('sfx_shield_break',{delay:120,vol:.7});const E=enemyPt(),C=RT('combo');flipTint(C.sheet,R(C.from,C.to),E.x,E.y,E.h*C.size,mem,{fps:C.fps});shake(C.shake);mem.forEach((n,i)=>setTimeout(()=>impactFx(n),300+i*110));};   // 세 세계 합류 폭발(fx12) → 각자 계열 효과
     hitCb=ccb;setTimeout(()=>{if(hitCb===ccb)hitCb=null;},5000);
     event({level:11,skill:true});
     await waitIdle(4000);cast.slot=null;cast.group=null;cast.cutDur=null;
@@ -8317,11 +8321,11 @@ let isGameOver = false;
       const res=await perform(0,heroNum,{enter:true,level:11,impact:{dmg:null,final:true,hp:o.hp,killed:true,heavy:true}});
       await sleep(520);
       if(!o.demo){
-        const en=$('enemy');try{if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
-        cast.finish=true;origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
+        const en=$('enemy');try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
+        cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
         await exit();return;
       }
-      cast.finish=true;origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
+      cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
       await goHome(0,res);return;
     }
     // 합동기 끝 → 멤버는 빠지고 주인공 혼자 다시
@@ -8387,12 +8391,12 @@ let isGameOver = false;
       await sleep(o.killed?520:260);
       if(o.killed&&!o.demo){
         const en=$('enemy');
-        try{if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
-        cast.finish=true;origVictory.call(window,'boss');
+        try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
+        cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');
         await sleep(80);await waitIdle(4000);cast.finish=false;
         await exit();
       }else{
-        if(o.killed&&o.demo){cast.finish=true;origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;demoPh='end';}   // (DHL 11-01) 처치 컷신 보기는 컷신이 끝나면 그대로 끝 — 전투 화면으로 돌아가지 않음 (무대는 바깥에서 감춘 뒤 원래대로)
+        if(o.killed&&o.demo){cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;demoPh='end';}   // (DHL 11-01) 처치 컷신 보기는 컷신이 끝나면 그대로 끝 — 전투 화면으로 돌아가지 않음 (무대는 바깥에서 감춘 뒤 원래대로)
         else await goHome(0,res);
       }
     }else{
@@ -8406,7 +8410,7 @@ let isGameOver = false;
   let demoPh='';   // (DHL 10-29 '연출 앞뒤 다른 캐릭터 잔상') 바깥 화면이 무대를 보여줄 때만 알 수 있게: live = 연출 캐릭터 준비됨 · end = 연출 끝(원래 캐릭터로 되돌리기 전)
   /* (DHL 11-01 '패배: 적이 공격 → 적 공격 이펙트 → 화면 전환 → 패배 메시지') 적의 마지막 공격 — 적이 주인공 쪽으로 덮치고, 주인공 자리에 적 공격 이펙트(전투와 같은 시트 · 좌우 반전) + 흔들림
      (적 #enemy 의 translate 는 다른 규칙이 !important 로 잡고 있어 CSS 애니메이션이 안 먹음 → transform 으로 직접 움직임) */
-  async function foeStrike(){
+  async function foeStrike(){lmSnd('sfx_counter');
     const en=$('enemy'),E=enemyPt(),h=heroPt(0),dx=Math.max(20,(E.x-h.x)*.55);
     if(en){try{en.animate([{transform:'translateX(0)'},{transform:`translateX(${-dx*.15}px) scale(1.04)`,offset:.25},{transform:`translateX(${-dx}px) scale(1.12)`,offset:.55},{transform:'translateX(0)'}],{duration:620,easing:'cubic-bezier(.3,0,.3,1)'});}catch(e){}}
     await sleep(330);

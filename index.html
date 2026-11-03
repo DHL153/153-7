@@ -4325,7 +4325,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r74" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r75" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -7767,6 +7767,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
   const rectOf=c=>{const e=document.querySelector(`#hand .card[data-uid="${c.uid}"]`);if(!e)return null;const r=e.getBoundingClientRect();return r.width?r:null;};
   /* C — ★2: 손패 안에서 빠르게 (약 0.8초, 화면 안 가림) */
   async function quick(bCopy,rb,a){
+    try{window.LMS&&LMS.play('sfx_merge');window.LMS&&LMS.play('sfx_star_up',{delay:420});}catch(e){}
     await sleep(30);const ra=rectOf(a);if(!ra)return;const h=host(),col=WC[cardW(a)]||'#ffe08a',ae=document.querySelector(`#hand .card[data-uid="${a.uid}"]`);
     if(rb){const B=card(h,bCopy,rb.x+rb.width/2,rb.y+rb.height/2,rb.width);
       await B.animate([{},{left:ra.x+'px',top:(ra.y-ra.height*.18)+'px',rotate:'-6deg',offset:.6},{left:ra.x+'px',top:ra.y+'px',rotate:'0deg',opacity:0}],{duration:380,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).finished;B.remove();}
@@ -7788,7 +7789,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     sheet(h,FX.forge,cx,cy+cw*.05,cw*2.6,col);sheet(h,FX.flash,cx,cy,cw*2,'#ff9a3c');
     dim.animate([{},{background:'#fff'},{}],{duration:160});
     document.getElementById('app')?.animate([{translate:'0 0'},{translate:'-6px 3px'},{translate:'5px -2px'},{translate:'0 0'}],{duration:260});
-    try{typeof lmSfx==='function'&&lmSfx('sfx_merge.ogg',.5);}catch(e){}
+    try{window.LMS&&LMS.play('sfx_merge');window.LMS&&LMS.play('sfx_star_up',{delay:380});}catch(e){}
     A.remove();B.remove();
     const R=card(h,out,cx,cy,cw*1.05);R.animate([{scale:.6,filter:'brightness(3)'},{scale:1.12,filter:'brightness(1.6)',offset:.5},{scale:1,filter:'brightness(1)'}],{duration:520,easing:'cubic-bezier(.2,1.5,.4,1)',fill:'forwards'});
     const t=document.createElement('div');t.className='ttl';t.textContent=TYPES[out.id].ko;t.style.top=(cy-cw/.72/2-40)+'px';h.appendChild(t);t.animate([{opacity:0,translate:'-50% 8px'},{opacity:1,translate:'-50% 0'}],{duration:300,delay:200,fill:'forwards'});
@@ -7983,6 +7984,8 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   function deal(els,big,el0){
     const P=pile(),h=document.getElementById('hand');if(!P||!h||!els.length||RM())return;
     const pc=ctr(P),hc=ctr(h),dur=big?1150:620,t0=el0||0;if(!t0)busy(dur+60);
+    if(!t0&&window.LMS){try{if(big){LMS.play('sfx_deck_shuffle',{vol:.8});LMS.play('sfx_card_flip',{delay:dur*.46});els.forEach((d,i)=>LMS.play('sfx_card_deal',{delay:dur*.2+i*35,vol:.55,gap:0}));}
+      else els.forEach((d,i)=>{LMS.play('sfx_card_deal',{delay:i*70,vol:.7,gap:0});LMS.play('sfx_card_flip',{delay:i*70+dur*.38,vol:.55,gap:0});});}catch(e){}}   /* 효과음: 카드 날아옴 · 뒤집힘 */
     if(big&&!t0){const f=document.createElement('i');f.className='lmDfFlash';const w=Math.min(260,hc.w*.5);Object.assign(f.style,{left:(hc.x-w/2)+'px',top:(hc.y-w*.42)+'px',width:w+'px',height:(w*.84)+'px'});document.body.appendChild(f);
       anim(f,[{opacity:0,transform:'scale(.6)'},{opacity:0,offset:.4},{opacity:1,transform:'scale(1)',offset:.5},{opacity:0,transform:'scale(1.4)'}],{duration:dur,easing:'ease-out',fill:'both'})?.finished.then(()=>f.remove(),()=>f.remove());
       anim(P,[{transform:'scale(1)'},{transform:'scale(1.1)',offset:.08},{transform:'scale(1)',offset:.3}],{duration:dur});}
@@ -8643,7 +8646,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);if(!an)return;an.update(dt,{vx:0,facing:1});
     const bh=rig.def.metrics?.bodyHeight||718,H=cv.height,sc=H*.74/bh;let dy=0;const th=(now-hopT)/1000;if(th>=0&&th<.5)dy=-Math.sin(th/.5*Math.PI)*H*.14;const tn=(now-nodT)/1000;if(tn>=0&&tn<.6)dy+=Math.sin(tn/.6*Math.PI)*H*.04;
     rig.draw(g,cv.width*.46,H*.98+dy,sc,an.facingScale);fx();}
-  function act(n){if(!an)return;if(n==='hop')hopT=performance.now();else if(n==='nod')nodT=performance.now();
+  function act(n){if(!an)return;if(n==='hop'){hopT=performance.now();try{window.LMS&&LMS.play('sfx_nicole_hop',{vol:.6});}catch(e){}}else if(n==='nod')nodT=performance.now();
     else{const nm=n==='point'?'thrust':n,o=n==='point'?{speed:.7}:{};if(!an.attack(nm,o)){an.act=null;an.attack(nm,o);}}}
   function ring(els){ringSel=(els||[]).map(x=>x&&x.el!==undefined?x:{el:x}).filter(x=>x&&x.el);}
   const tutWord=w=>{let v=TUT_TERM[w]||w;try{v=(window.MRLocale&&MRLocale.t&&MRLocale.t(v))||v;}catch(e){}return v;};
@@ -8661,7 +8664,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   function hideNic(){document.querySelectorAll('.lmTutHush').forEach(e=>e.classList.remove('lmTutHush'));if(box)box.classList.remove('on');cur=null;ring([]);clearTimeout(ringT);rgs.forEach(d=>d.style.display='none');}
   function badge(id){const b=document.getElementById(id);if(!b)return;b.classList.add('lmTutShow');setTimeout(()=>b.classList.remove('lmTutShow'),700);
     if(newOn)newOn.el.remove();const n=document.createElement('span');n.className='lmTutNew';let t='새로!';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}n.textContent=t;document.body.appendChild(n);newOn={id,el:n,until:performance.now()+7000};}
-  function say(k,o){if(!S||!S.tut)return;if(!o.force&&S.tut.seen[k])return;S.tut.seen[k]=1;if(!o.anchor)(S.tut.spoke=S.tut.spoke||{})[S.jang+'-'+S.rd]=1;mk();cls();cur={k,o,t:performance.now()};
+  function say(k,o){if(!S||!S.tut)return;if(!o.force&&S.tut.seen[k])return;S.tut.seen[k]=1;try{window.LMS&&LMS.play(k==='tut.3_3.grad'?'sfx_tut_grad':'sfx_nicole_pop');}catch(e){}if(!o.anchor)(S.tut.spoke=S.tut.spoke||{})[S.jang+'-'+S.rd]=1;mk();cls();cur={k,o,t:performance.now()};
     bub.innerHTML=tutLine(k);box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
     load().then(()=>{if(!an||!cur||cur.k!==k)return;an.setExpression(o.face||'happy');(o.seq||[]).forEach((a,j)=>setTimeout(()=>act(a),150+j*1500));
       if(o.face2)setTimeout(()=>an&&an.setExpression(o.face2),1500);});
@@ -8847,4 +8850,154 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
 @keyframes lmFreshB{50%{transform:translateY(-2px) scale(1.06)}}.lmTutHush *{visibility:hidden!important}
 #lmShieldTip b{color:#f6cf63;font-size:1.08em}
 </style>
+<script id="lm-sfx-js">
+/* 🔊 효과음 (DHL 11-03 · 109종 141개 OGG, assets/audio/sfx) — 옵션의 마스터 × 효과음 크기를 따름
+   LMS.play(이름, {vol, rate, delay(ms), gap(ms), jit})
+   · a·b·c 변형이 있는 소리는 돌아가며 (같은 것 연달아 안 나옴) · 같은 소리는 gap 안에 다시 안 남 · 소리마다 동시에 최대 MAXP 개
+   · 전투 무대(iframe)도 parent.LMS.play 로 부름 */
+(()=>{
+  const VAR=new Set(['sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
+  const GAIN={sfx_ui_hover:.6,sfx_card_hover:.6,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.8};   // 소리마다 기본 크기
+  const GAP={sfx_combo_tick:60,sfx_fire_merge_spin:50,sfx_coin_drop:45,sfx_score_card:40,sfx_boss_rule_trigger:400,sfx_ui_click:40};
+  const MAXP={sfx_card_deal:6,sfx_card_flip:6,sfx_score_card:4,sfx_coin_drop:4,sfx_combo_tick:3};
+  let ctx=null,out=null;const buf={},load={},last={},lastV={},live={};let lastAny=0;
+  const vol=()=>{try{return Math.max(0,(LM_SET.master/100)*(LM_SET.sfx/100));}catch(e){return .45;}};
+  function ac(){if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;try{ctx=new A();out=ctx.createGain();out.connect(ctx.destination);}catch(e){ctx=null;return null;}}
+    if(ctx.state==='suspended')ctx.resume().catch(()=>{});return ctx;}
+  function get(f){if(f in buf)return Promise.resolve(buf[f]);if(load[f])return load[f];const c=ac();if(!c)return Promise.resolve(null);
+    return load[f]=fetch('assets/audio/sfx/'+f+'.ogg').then(r=>r.ok?r.arrayBuffer():Promise.reject(r.status))
+      .then(a=>new Promise((res,rej)=>c.decodeAudioData(a,res,rej))).then(b=>buf[f]=b).catch(()=>{buf[f]=null;return null;});}   // 없는 파일 = 조용히 넘어감
+  function pick(n){if(!VAR.has(n))return n;let i=Math.random()*3|0;if(i===lastV[n])i=(i+1+(Math.random()*2|0))%3;lastV[n]=i;return n+'_'+'abc'[i];}
+  function play(n,o={}){
+    if(window.__lmsLog)window.__lmsLog.push(n);   // 시험용 기록
+    try{const v=vol()*(o.vol??1)*(GAIN[n]??1);if(!(v>0))return;const now=performance.now(),gap=o.gap??GAP[n]??30;
+      if(now-(last[n]||0)<gap)return;last[n]=now;lastAny=now;
+      const c=ac();if(!c)return;const f=pick(n);
+      const go=b=>{if(!b)return;const s=c.createBufferSource(),g=c.createGain();s.buffer=b;
+        s.playbackRate.value=(o.rate||1)*(o.jit?1+(Math.random()*2-1)*o.jit:1);g.gain.value=Math.min(1.5,v);s.connect(g).connect(out);
+        const late=(performance.now()-now);s.start(c.currentTime+Math.max(0,((o.delay||0)-late)/1000));
+        const L=live[n]=live[n]||[];L.push(s);if(L.length>(MAXP[n]||3)){try{L.shift().stop();}catch(e){}}
+        s.onended=()=>{const k=L.indexOf(s);if(k>=0)L.splice(k,1);};};
+      if(buf[f]!==undefined)go(buf[f]);else get(f).then(b=>{if(performance.now()-now<300+(o.delay||0))go(b);});
+    }catch(e){}}
+  const ALL=['sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_page_turn','sfx_tooltip',
+    'sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_discard','sfx_hand_sort','sfx_deck_shuffle','sfx_card_burn',
+    'sfx_hand_name','sfx_hand_name_big','sfx_score_card','sfx_score_mult','sfx_score_total','sfx_score_over','sfx_key_match','sfx_key_full','sfx_combo_tick',
+    'sfx_merge','sfx_merge_awaken','sfx_star_up','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_orb_equip','sfx_orb_swap','sfx_orb_sell',
+    'sfx_atk_greatsword','sfx_atk_hammer','sfx_atk_bigblade','sfx_atk_gun','sfx_atk_fist','sfx_atk_staff','sfx_atk_shieldaxe','sfx_atk_spear','sfx_atk_widesword','sfx_atk_dual','sfx_run_charge',
+    'sfx_hit_rust','sfx_hit_neon','sfx_hit_sky','sfx_hit_weak','sfx_shield_block','sfx_shield_break','sfx_foe_defeat','sfx_finish_cut','sfx_counter',
+    'sfx_round_select','sfx_round_start','sfx_round_win','sfx_runs_low','sfx_boss_enter','sfx_boss_rule','sfx_boss_rule_trigger','sfx_boss_defeat','sfx_chapter_clear',
+    'sfx_coin_drop','sfx_coin_pile','sfx_coin_jackpot','sfx_spend','sfx_no_money','sfx_shop_open','sfx_shop_reroll','sfx_shop_buy','sfx_pack_open','sfx_pack_reveal','sfx_pack_rare','sfx_book_use','sfx_deed_use',
+    'sfx_camp_enter','sfx_fire_merge_spin','sfx_fire_merge_stop','sfx_fire_merge_done','sfx_release','sfx_scout','sfx_night_walk','sfx_camp_leave',
+    'sfx_nicole_pop','sfx_nicole_hop','sfx_tut_grad','sfx_game_over','sfx_victory','sfx_new_record','sfx_unlock_diff','sfx_character_love','sfx_character_select'];
+  let pre=false;function preload(){if(pre)return;pre=true;const L=ALL.flatMap(n=>VAR.has(n)?['_a','_b','_c'].map(x=>n+x):[n]);let i=0;
+    const next=()=>{if(i>=L.length)return;get(L[i++]).finally(next);};for(let k=0;k<4;k++)next();}   // 처음 누를 때 (브라우저 소리 잠금이 풀린 뒤) 4개씩 받아 둠
+  addEventListener('pointerdown',()=>{ac();preload();},{capture:true,passive:true});
+  addEventListener('keydown',()=>{ac();preload();},{capture:true,passive:true});
+  window.LMS={play,preload,since:()=>performance.now()-lastAny};
+  const P=play;
+
+  /* ── 예전 소리 함수 → 새 파일 */
+  try{lmSfx=function(file,gain){P(String(file).replace(/\.(ogg|wav)$/,''),{vol:Math.min(1,(gain||.27)*2.6)});};}catch(e){}
+  try{lmSfxChing=function(big){P(big?'sfx_coin_jackpot':'sfx_coin_drop');};}catch(e){}
+  try{lmSfxTick=function(){P('sfx_combo_tick');};}catch(e){}
+
+  /* ── 버튼 (게임 동작이 자기 소리를 냈으면 일반 클릭 소리는 생략) */
+  const SKIP='#hand .card,#bPlay,#bDis,#bMerge,.tile,.sorb,.wCard,.packRow .card,.cashBtn,#cashBtn';
+  let clkAt=0;document.addEventListener('click',()=>{clkAt=performance.now();},true);   // 누른 뒤 게임 동작이 이미 소리를 냈으면 일반 클릭 소리 생략
+  document.addEventListener('click',e=>{const b=e.target.closest('button,[role=button],[onclick]');if(!b||b.closest(SKIP))return;
+    if(performance.now()-LMS.since()>=clkAt)return;
+    if(b.id==='bSort')return P('sfx_hand_sort');if(b.id==='bClear')return P('sfx_card_deselect');
+    if(b.matches('.ibBack,.iClose,.lt-close,.lt-mb.back,.cmBackBtn,[aria-label="닫기"],[aria-label="뒤로"]'))return P('sfx_ui_back');
+    if(b.matches('.ibTab,.ls-tab,.cSub button,.pl-tabs button,[role=tab]'))return P('sfx_ui_tab');
+    if(b.matches('.arrowBtn'))return;   // 쪽 넘김은 openInfo 에서
+    if(b.matches('.rbGo,.lt-play,.pl-go,.goBtn,.campOk,.lBot .go,.lmK,.rbSkip button'))return P('sfx_ui_confirm');
+    P('sfx_ui_click');},false);
+  document.addEventListener('change',e=>{if(e.target.matches('input[type=checkbox],input[type=radio],select'))P('sfx_ui_toggle');else if(e.target.matches('input[type=range]'))P('sfx_ui_click',{gap:120});},true);
+
+  const wrap=(name,fn)=>{try{const o=window[name];if(typeof o!=='function')return;window[name]=fn(o);}catch(e){console.warn('[효과음 연결]',name,e);}};
+  // 함수 선언은 window 속성이기도 함 → 다른 스크립트의 래퍼처럼 전역 이름을 바꿔 끼움
+  const W=(name,fn)=>{try{const o=eval(name);if(typeof o!=='function')return;const n=fn(o);eval(name+'=n');}catch(e){console.warn('[효과음 연결]',name,e);}};
+
+  /* ── 카드 · 손패 */
+  W('tapCard',o=>function(c){const b=S&&S.busy,was=S&&S.sel?S.sel.includes(c.uid):false;const r=o.apply(this,arguments);
+    if(!b&&S&&S.sel){const now=S.sel.includes(c.uid);if(now&&!was)P('sfx_card_select');else if(!now&&was)P('sfx_card_deselect');else P('sfx_ui_denied',{vol:.7});}return r;});
+  W('doDiscard',o=>function(){try{if(S&&!S.busy)P(S.sel.length&&S.dis>0?'sfx_card_discard':'sfx_ui_denied',S.sel.length&&S.dis>0?{}:{vol:.7});}catch(e){}return o.apply(this,arguments);});   /* 버리기 · 런은 손패 연출을 거쳐 늦게 실행됨 → 누르는 순간 미리 판단 */
+  W('doMerge',o=>function(){if(typeof canMerge==='function'&&!canMerge())P('sfx_ui_denied',{vol:.7});return o.apply(this,arguments);});
+  W('askAwaken',o=>function(){P('sfx_merge_awaken');return o.apply(this,arguments);});
+
+  /* ── 런 · 점수 계산 */
+  W('doPlay',o=>function(merged){try{if(S&&!S.busy&&!merged&&(!S.sel.length||S.runs<=0||(typeof psyShort==='function'&&psyShort())))P('sfx_ui_denied',{vol:.7});}catch(e){}return o.apply(this,arguments);});
+  const BIG=new Set(['house','march','oath','four','all']);
+  W('tick',o=>function(now){const A=S&&S.anim,sh=A?A.shown:-1,fin=A?A.fin:1,pm=+(document.getElementById('vM')?.dataset.v||0);
+    const r=o.apply(this,arguments);
+    try{if(A&&!A._snd){A._snd=1;P('sfx_run_charge');const k=A.r&&A.r.keys;if(k&&k.n&&!S.sandbox)P(k.n>=3?'sfx_key_full':'sfx_key_match',{delay:300});}
+      if(A&&A.shown!==sh){for(let i=Math.max(0,sh+1);i<=A.shown;i++){const st=A.r.steps[i];if(!st)continue;
+        if(st.i===-1){P(BIG.has(A.r.ht)||A.r.steps.some(x=>x.i===-1&&x!==st)?'sfx_hand_name_big':'sfx_hand_name');continue;}
+        if(st.orb){const k=typeof orbKind==='function'?orbKind(st.orb):'';P(k==='mul'?'sfx_orb_trigger_mult':'sfx_orb_trigger_add');continue;}
+        if(st.orbs&&st.orbs.length){P('sfx_orb_trigger_add');continue;}
+        if(st.i>=0&&!st.out){A._sc=(A._sc||0)+1;P('sfx_score_card',{rate:1+Math.min(.45,(A._sc-1)*.06),gap:0});}
+        if(st.mult>pm&&!(st.i>=0))P('sfx_score_mult');}}
+      if(A&&A.fin&&!fin){P('sfx_score_total');const tot=A.before+A.r.total;
+        if(!S.practice&&!S.sandbox&&S.tgt>0&&A.before<S.tgt&&tot>=S.tgt)P('sfx_score_over',{delay:380});
+        if(A.r.total>S.best&&S.best>0)P('sfx_new_record',{delay:650});}
+      if(A&&!S.anim&&!S.practice&&!S.sandbox&&S.runs===1&&S.score<S.tgt&&!document.querySelector('#ov:not([hidden])'))P('sfx_runs_low',{delay:200});
+    }catch(e){}
+    return r;});
+
+  /* ── 라운드 · 거인 */
+  W('startRound',o=>function(){const r=o.apply(this,arguments);if(S&&S.selecting)P('sfx_round_select',{vol:.8});return r;});
+  W('beginRound',o=>function(){const was=S&&S.selecting;const r=o.apply(this,arguments);
+    if(was&&S&&!S.selecting){P('sfx_round_start');if(S.rd===2){P('sfx_boss_enter',{delay:250});if(S.foe&&S.foe.rule)P('sfx_boss_rule',{delay:1500});}}return r;});
+  W('cashOut',o=>function(){P(S&&S.rd===2?'sfx_chapter_clear':'sfx_round_win');return o.apply(this,arguments);});
+  W('cashCollect',o=>function(){const b=document.getElementById('cashBtn'),go=b&&!b.dataset.go;const r=o.apply(this,arguments);if(go)P('sfx_coin_pile');return r;});
+  W('popMsg',o=>function(m){try{const t=String(m);if(/갈고리/.test(t))P('sfx_card_burn');else if(/거인|반격|약점이 바뀌|봉인|꺼졌|섞였/.test(t))P('sfx_boss_rule_trigger');}catch(e){}return o.apply(this,arguments);});
+  /* 판 끝 화면: 이김(훈장) · 짐 */
+  let endWon=null;W('runEndHTML',o=>function(won){endWon=!!won;return o.apply(this,arguments);});
+  W('showOv',o=>function(){const had=document.querySelector('#panel .goB');const r=o.apply(this,arguments);
+    try{const g=document.querySelector('#panel .goB');if(g&&!had&&!g.dataset.snd){g.dataset.snd=1;
+      if(endWon===false)P('sfx_game_over');
+      else{P('sfx_victory',{delay:g.querySelector('.goMedal')?300:0});if(g.querySelector('.goUnlock em'))P('sfx_unlock_diff',{delay:2300});}}}catch(e){}
+    return r;});
+
+  /* ── 원정 캠프 (상점) */
+  W('collect',o=>function(){const r=o.apply(this,arguments);P('sfx_shop_open',{delay:120});return r;});
+  W('reroll',o=>function(){const g=S.gold,f=S.freeRR;const r=o.apply(this,arguments);if(S.gold<g||S.freeRR<f){P('sfx_shop_reroll');if(S.gold<g)P('sfx_spend',{vol:.6});}else P('sfx_no_money');return r;});
+  W('actItem',o=>function(key,direct){let info=null;try{info=itemInfo(key);}catch(e){}
+    if(!info||!info.ok){P('sfx_no_money');return o.apply(this,arguments);}
+    const g=S.gold,conf=S.confirm;const it=key.startsWith('top')?S.top[+key.slice(3)]:null;const r=o.apply(this,arguments);
+    if(S.confirm===key&&conf!==key){P('sfx_ui_click');return r;}   // 첫 누름 = 확인 대기
+    if(key.startsWith('own'))P('sfx_orb_sell');
+    else if(key==='v'){P('sfx_deed_use');P('sfx_spend',{vol:.6});}
+    else if(key==='pack'){P('sfx_pack_open');}
+    else if(it){P('sfx_spend',{vol:.6});P(it.kind==='orb'?'sfx_orb_equip':it.kind==='card'?'sfx_shop_buy':'sfx_book_use',{delay:90});}
+    return r;});
+  W('openPack',o=>function(){const r=o.apply(this,arguments);try{(S.packView||[]).forEach((x,i)=>P('sfx_pack_reveal',{delay:250+i*140,gap:0}));if((S.packView||[]).some(x=>(x.star||1)>=2))P('sfx_pack_rare',{delay:700});}catch(e){}return r;});
+  W('takePack',o=>function(){P('sfx_shop_buy');return o.apply(this,arguments);});
+  W('moveOrb',o=>function(){P('sfx_orb_swap');return o.apply(this,arguments);});
+  W('bMoveOrb',o=>function(){P('sfx_orb_swap');return o.apply(this,arguments);});
+
+  /* ── 야영 */
+  W('campOpen',o=>function(){const first=S&&S.campFor!==S.jang*3+S.rd;const r=o.apply(this,arguments);P(first?'sfx_camp_enter':'sfx_panel_open',first?{}:{vol:.7});return r;});
+  W('campPick',o=>function(k){const g=S.gold;const r=o.apply(this,arguments);if(k==='scout'&&S.gold<g)P('sfx_scout');else if(k==='sleep')P('sfx_ui_confirm');return r;});
+  W('walkStart',o=>function(){const g=S.gold;const r=o.apply(this,arguments);if(S.gold<g)P('sfx_night_walk');else P('sfx_no_money');return r;});
+  W('walkPick',o=>function(){const r=o.apply(this,arguments);P('sfx_card_flip');return r;});
+  W('campApply',o=>function(){const k=S.campK,n=S.deck.length;const r=o.apply(this,arguments);if(k!=='merge'&&S.deck.length<n)P('sfx_release');return r;});
+  W('campSpin',o=>function(a){const R=S.campRoll,my=(R&&R.tk||0)+1;   // 굴림: 번호 0.9초 · 속성 1.45초 · 힘 2초에 하나씩 멈춤 (campSpin 박자와 같음)
+    const alive=()=>S.campRoll===R&&R.tk===my&&document.getElementById('campRC');let t=0;const t0=performance.now();
+    const loop=()=>{if(!alive())return;const el=performance.now()-t0;if(el>2000)return;P('sfx_fire_merge_spin');setTimeout(loop,55+Math.min(140,el/16));};setTimeout(loop,20);
+    [900,1450,2000].forEach(ms=>setTimeout(()=>{if(alive())P('sfx_fire_merge_stop',{gap:0});},ms));
+    setTimeout(()=>{if(alive())P('sfx_fire_merge_done');},2080);
+    return o.apply(this,arguments);});
+  W('campReroll',o=>function(){const g=S.gold;const r=o.apply(this,arguments);if(S.gold<g)P('sfx_spend',{vol:.6});return r;});
+  W('campFinish',o=>function(){P('sfx_camp_leave');return o.apply(this,arguments);});
+
+  /* ── 창 · 배우기 · 설명 */
+  W('openInfo',o=>function(tab,view,idx){const was=!!document.querySelector('#ov:not([hidden]) .ib'),pi=typeof learnIdx!=='undefined'?learnIdx:null,pv=typeof learnView!=='undefined'?learnView:null;
+    const r=o.apply(this,arguments);
+    try{if(!was)P('sfx_panel_open');else if(view==='page'&&(pv!=='page'||idx!==pi))P('sfx_page_turn');}catch(e){}return r;});
+  W('gameOpt',o=>function(){P('sfx_panel_open');return o.apply(this,arguments);});
+  try{const _st=window.lmShieldTip;if(typeof _st==='function')window.lmShieldTip=function(on){if(on)P('sfx_tooltip');return _st.apply(this,arguments);};}catch(e){}
+})();
+</script>
 </body></html>
