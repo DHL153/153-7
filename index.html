@@ -503,7 +503,7 @@ button.elPick{flex:1;color:#fff;font-size:22px;padding:18px 0}
 .lRow.seen .n{background:#22c55e;color:#052e16}.lRow.now .n{background:var(--gold);color:#221a00}
 .lRow .tx{flex:1;min-width:0;display:flex;flex-direction:column;word-break:keep-all}.lRow .tx b{font-size:15px}.lRow .tx small{font-size:11px;color:var(--dim)}
 .lRow .tag{flex:none;font-size:11px;font-weight:700;border-radius:99px;padding:3px 8px;background:#4a4554;color:var(--dim)}
-.lRow.seen .tag{background:#14361f;color:#86efac}.lRow.now .tag{background:#3b3320;color:var(--gold)}.lRow.lock{opacity:.55}
+.lRow.seen .tag{background:#14361f;color:#86efac}.lRow.fresh{box-shadow:inset 0 0 0 2px #f6cf63}.lRow.fresh .tag{background:linear-gradient(180deg,#ffe7a1,#d59a32);color:#3a2408;font-weight:900}.lRow.now .tag{background:#3b3320;color:var(--gold)}.lRow.lock{opacity:.55}
 .lNavL{min-width:36px}
 .lNav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-bottom:8px}.lNav button{min-height:40px;padding:6px 12px;font-size:14px}.lNav b{text-align:center}
 .lDots{display:flex;justify-content:center;gap:5px}.lDots span{width:8px;height:8px;border-radius:4px;background:#4a4554}.lDots span.seen{background:#22c55e}.lDots span.on{width:20px;background:var(--gold)}
@@ -3485,10 +3485,11 @@ function learnHTML(){
       `<div class="lBot lbArrows"><button class="arrowBtn prev" aria-label="이전" title="이전" ${pos?'':'disabled'} onclick="openInfo('learn','page',${prv})"></button>${i>=7?'<span class="try lxNoTry" aria-hidden="true"></span>':practiceOf(i)?`<button class="try on" onclick="practiceStart(${i})">해보기${PRACTICE_DONE.includes(i)?'<small class="lbDone">완료</small>':''}</button>`:`<button class="try" disabled>해보기 · 준비 중</button>`}`+
       (last?`<button class="arrowBtn next" aria-label="목록으로" title="목록으로" onclick="openInfo('learn','list')"></button>`:`<button class="arrowBtn next" aria-label="다음" title="다음" onclick="openInfo('learn','page',${nxt})"></button>`)+`</div>`;
   }
-  const next=lNext();
+  const fr=lsGet('lm_learn_new',[]).find(k=>!LEARN_SEEN.includes(k)&&!(LEARN[k].at>J)&&!lmTutLock(k)),next=fr!=null?fr:lNext();   /* 졸업 때 '새로!' 쪽이 있으면 '이어서 보기'가 그 쪽으로 */
   const rows=LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J||lmTutLock(k),seen=LEARN_SEEN.includes(k),now=k===next;
-    const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
-    return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
+    const fresh=!lock&&!seen&&lsGet('lm_learn_new',[]).includes(k);   /* 니콜 졸업 때 표시한 쪽(11쪽 '다음은 기사') — 한 번 보면 사라짐 */
+    const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):fresh?'새로!':PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
+    return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}${fresh?' fresh':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
   return `<p class="iLead">한 장씩 넘기며 배웁니다.</p><div class="lList">${rows}</div>`+
     `<div class="lBot two"><button onclick="openInfo('learn','dict')">기호 사전</button><button class="go" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':'이어서 보기 · '+(lPos(next)+1)}</button></div>`;
 }
@@ -8547,7 +8548,7 @@ const TUT_TXT={
   'tut.1_1.pair':'같은 번호 2장이면 {pair}! 골라서 {run}!','tut.1_1.three':'잘했어요! 이번엔 3장, {three}예요!',
   'tut.1_2.discard':'{two}을 만들게 나머지를 {discard}!','tut.1_2.done':'{two} 완성! 이제 {run}!','tut.1_3.start':'같은 동료 두 장이면 {merge}!','tut.save':'괜찮아요, {title}! 한 번 일으켜 드릴게요.',
   'tut.2_1.start':'{shield}는 큰 한 방을 막아요.','tut.2_1.key':'세계, 속성, 번호를 맞춰 봐요.','tut.2_2.shop':'{orb}은 판 내내 점수를 키워요!','tut.orb.order':'+ 구슬은 앞에, × 구슬은 뒤에!',
-  'tut.2_3.rule':'거인은 규칙 하나로 방해해요.','tut.3_1.rest':'쉬는 동안 {fire_merge}도 돼요.','tut.3_2.awaken':'별 2개 두 장을 머지하면 각성해요!','tut.3_3.grad':'이제 혼자서도 충분해요, {title}!',
+  'tut.2_3.rule':'거인은 규칙 하나로 방해해요.','tut.3_1.rest':'쉬는 동안 {fire_merge}도 돼요.','tut.3_2.awaken':'별 2개 두 장을 머지하면 각성해요!','tut.3_3.bridge':'기사부터는 같이 내면 {run}할 때 {merge}돼요!','tut.3_3.grad':'이제 혼자서도 충분해요, {title}!',
   'tut.3_2.camp':'이번엔 야영하며 정비해 봐요!',
   /* (DHL 11-03) 배울 것이 없는 라운드: 응원 한마디 → 런하면 사라짐 */
   'tut.cheer.1':'이번에도 크게 쳐 봐요!','tut.cheer.2':'같은 번호를 더 모아 봐요!','tut.cheer.3':'{title}이라면 할 수 있어요!','tut.cheer.4':'거의 다 왔어요, 힘내요!'};
@@ -8654,6 +8655,8 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(o.badge)badge(o.badge);
     if(o.auto)setTimeout(()=>{if(cur&&cur.k===k)hideNic();},o.auto);}
   window.lmTutSay=say;
+  /* 졸업 뒤 배우기 버튼 '새로!' — 표시한 쪽(11쪽)을 볼 때까지 남음 (창 아래에 가려지는 7초 배지 대신) */
+  setInterval(()=>{const b=document.getElementById('bLearn');if(!b)return;let on=false;try{on=!lmTutOn()&&lsGet('lm_learn_new',[]).some(k=>!LEARN_SEEN.includes(k));}catch(e){}b.classList.toggle('lmFresh',on);},1000);
   /* (DHL 11-03 피드백 '방패가 왜 있는지') 방패 설명창 — 2-1에서 한 번 저절로, 그 뒤엔 전투 화면의 방패를 누르면 언제든 */
   let tipEl=null,tipT=0;
   function shieldRect(){try{const f=document.querySelector('#lmStage iframe'),d=f&&f.contentDocument;if(!d)return null;const fr=f.getBoundingClientRect();
@@ -8728,7 +8731,10 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(cur&&cur.k==='tut.2_2.shop'){const mi=(S.top||[]).findIndex(t=>t&&t.kind==='orb'&&t.k==='mill'&&!t.sold),it=mi>=0?q('#ov:not([hidden]) .tile[data-key="top'+mi+'"]'):null;ring(it?[{el:it,label:ORBS.mill.ko}]:[]);}
     if(cur&&cur.k==='tut.orb.order'){const o=[...document.querySelectorAll('#ov:not([hidden]) .sorb.on')].slice(0,2);ring(o.map((e,i)=>({el:e,label:i?'':'⇄'})));}
     /* (DHL 11-03) 니콜 안내 끝: 3장 거인(3-3)을 깨고 뜨는 '라운드 보상' 창에서 마지막 인사 → 보상을 받아 창이 닫히면 안내 끝 */
-    if(!cur&&ovOn&&S.jang===3&&S.rd===2&&!T.seen['tut.3_3.grad']&&q('#ov:not([hidden]) .cashFx'))
+    /* (DHL 11-03 피드백 '머지 → Merge & Run 연결') 졸업 직전 한 줄: 기사부터는 머지 버튼 없이 런할 때 합쳐짐 + 배우기 11쪽 '새로!' */
+    if(!cur&&ovOn&&S.jang===3&&S.rd===2&&!T.seen['tut.3_3.bridge']&&q('#ov:not([hidden]) .cashFx')){
+      say('tut.3_3.bridge',{face:'focus',seq:['point'],learn:[6],anchor:'#ov:not([hidden]) .cashFx',above:1,auto:4200});lsSet('lm_learn_new',[6]);}
+    if(!cur&&ovOn&&S.jang===3&&S.rd===2&&T.seen['tut.3_3.bridge']&&!T.seen['tut.3_3.grad']&&q('#ov:not([hidden]) .cashFx'))
       say('tut.3_3.grad',{face:'happy',seq:['wave','hop'],anchor:'#ov:not([hidden]) .cashFx',above:1});
     if(T.seen['tut.3_3.grad']&&!cur){T.learn=LEARN_ORDER.slice();finish();return;}
     if(!cur&&ovOn&&!S.busy){
@@ -8793,7 +8799,9 @@ html.lmB .rest .cpFoot3 .cpC:has(.cpBack){justify-content:center}
 /* (DHL 11-03 피드백) 방패 설명창 */
 #lmShieldTip{position:absolute;z-index:890;background:#0b1427f2;border:2px solid #c9a24a;border-radius:14px;color:#e8edf6;padding:10px 13px;font:600 clamp(13px,1.9vh,15px)/1.45 'Noto Sans KR',sans-serif;box-shadow:0 8px 20px #000c;display:flex;flex-direction:column;gap:4px;animation:tutPop .25s ease-out both;cursor:pointer}
 #lmShieldTip[hidden]{display:none}
-.lmTutHush{color:transparent!important}.lmTutHush *{visibility:hidden!important}
+.lmTutHush{color:transparent!important}
+#bLearn{position:relative}#bLearn.lmFresh::after{content:"새로!";position:absolute;top:-8px;right:-6px;padding:2px 7px 3px;border-radius:99px;background:linear-gradient(180deg,#ffe7a1,#d59a32);color:#3a2408;font:900 11px/1.2 "Noto Sans KR",sans-serif;box-shadow:0 2px 0 #6b4510,0 0 10px #f1d48a88;pointer-events:none;animation:lmFreshB 1.6s ease-in-out infinite}
+@keyframes lmFreshB{50%{transform:translateY(-2px) scale(1.06)}}.lmTutHush *{visibility:hidden!important}
 #lmShieldTip b{color:#f6cf63;font-size:1.08em}
 </style>
 </body></html>
