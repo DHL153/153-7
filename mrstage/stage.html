@@ -8107,7 +8107,7 @@ let isGameOver = false;
     b.innerHTML=`<b>${text}</b>${sub?`<small>${sub}</small>`:''}`;
   }
   // ── 이펙트 = 받은 플립북 시트 (DHL 10-28 '코드 이펙트 말고 리소스로') · fx/route/fxNN.webp · cutfx.py 로 칸·땅 기준점 맞춤
-  const FXM={"fx01":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx02":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx03":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.493,"ay":0.5},{"ax":0.493,"ay":0.5}]},"fx04":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.0,"ay":0.5},{"ax":0.448,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx05":{"c":4,"r":2,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx06":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.9},{"ax":0.5,"ay":0.9}]},"fx07":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.57,"ay":0.5},{"ax":0.57,"ay":0.5}]},"fx08":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.511,"ay":0.5},{"ax":0.511,"ay":0.5}]},"fx09":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.504,"ay":0.5},{"ax":0.504,"ay":0.5}]},"fx10":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.499,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx12":{"c":4,"r":4,"blend":"unscreen","rows":[{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5}]},"fx12w":{"c":4,"r":4,"blend":"tint","rows":[{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5}]},"fx11":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]}},FXP='fx/route/';
+  const FXM={"fx01":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx02":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx03":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.493,"ay":0.5},{"ax":0.493,"ay":0.5}]},"fx04":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.0,"ay":0.5},{"ax":0.448,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx05":{"c":4,"r":2,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx06":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.77},{"ax":0.5,"ay":0.77}]},"fx07":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.57,"ay":0.5},{"ax":0.57,"ay":0.5}]},"fx08":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.511,"ay":0.5},{"ax":0.511,"ay":0.5}]},"fx09":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.504,"ay":0.5},{"ax":0.504,"ay":0.5}]},"fx10":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.499,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx12":{"c":4,"r":4,"blend":"unscreen","rows":[{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5}]},"fx12w":{"c":4,"r":4,"blend":"tint","rows":[{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5}]},"fx11":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]}},FXP='fx/route/';
   for(const k in FXM){const im=new Image();im.src=FXP+k+'.webp';}   // 미리 받아 두기 (첫 타격 때 빈 칸 방지)
   // flip(시트, 칸 번호 목록, 기준점 x·y(무대 px), 칸 크기 px, {fps, loops, flipX})
   function flip(k,seq,x,y,size,o={}){
@@ -8119,6 +8119,7 @@ let isGameOver = false;
       d.style.left=(x-(o.flipX?1-rw.ax:rw.ax)*size).toFixed(1)+'px';d.style.top=(y-rw.ay*size).toFixed(1)+'px';
       d.style.backgroundPosition=`${m.c>1?c/(m.c-1)*100:0}% ${m.r>1?r/(m.r-1)*100:0}%`;};
     if(o.flipX)d.style.transform='scaleX(-1)';
+    if(o.z!=null)d.style.zIndex=o.z;if(o.blend)d.style.mixBlendMode=o.blend;if(o.alpha!=null)d.style.opacity=o.alpha;   // (DHL 11-03) 땅 마법진은 적 뒤(z 2) · 빛기둥은 빛 더하기(screen)로 적이 비쳐 보이게
     put(seq[0]);stage.appendChild(d);
     // 타격 멈춤(히트스톱)으로 화면이 잠깐 멈춰도 칸을 건너뛰지 않음 — 한 번에 최대 한 칸씩
     const fps=o.fps||16,total=seq.length*(o.loops||1),step=1000/fps;let i=0,next=performance.now()+step;
@@ -8179,7 +8180,7 @@ let isGameOver = false;
     if(c.lift){try{en?.animate([{translate:'0 0'},{translate:`0 ${-H*c.lift}px`,offset:.35},{translate:'0 0'}],{duration:c.liftMs||620,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
     if(c.push){try{en?.animate([{translate:'0 0'},{translate:`${E.h*c.push}px 0`,offset:.25},{translate:'0 0'}],{duration:c.pushMs||520,easing:'cubic-bezier(.2,.9,.4,1)'});}catch(e){}}
     const y0=c.at==='foot'?E.foot:E.y;
-    if(k==='pillar'){const G=enemyGround();flip(c.sheet,R(c.from,c.to),G.x,G.y,G.h*c.size,{fps:c.fps,track:enemyGround});}   // 카르덴 빛기둥: 마법진(바닥 · 적 가운데)에서 솟음
+    if(k==='pillar'){const G=enemyGround();flip(c.sheet,R(c.from,c.to),G.x,G.y,G.h*c.size,{fps:c.fps,track:enemyGround,blend:'screen',alpha:.92});}   // 카르덴 빛기둥: 마법진(바닥 · 적 가운데)에서 솟음
     else flip(c.sheet,R(c.from,c.to),E.x+E.h*(c.dx||0),y0+E.h*(c.dy||0),E.h*c.size,{fps:c.fps,flipX:c.flipX?1:0});
     if(c.shake){if(c.shakeAt)setTimeout(()=>shake(c.shake),c.shakeAt);else shake(c.shake);}
   }
@@ -8204,7 +8205,7 @@ let isGameOver = false;
     try{const sr=stage.getBoundingClientRect(),k=sr.width/(stage.clientWidth||sr.width)||1,r=en.getBoundingClientRect();if(r.width>0)cx=(r.left+r.width/2-sr.left)/k;}catch(e){}
     let gy=E.foot;try{const f=footOf(0);if(f&&f.y>0)gy=f.y;}catch(e){}
     return {x:cx,y:gy,h:E.h};}
-  function circle(num,ms=700){const G=enemyGround(),C=RT('circle');flip(C.sheet,[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),G.x,G.y,G.h*C.size,{fps:C.fps,track:enemyGround});}
+  function circle(num,ms=700){const G=enemyGround(),C=RT('circle');flip(C.sheet,[0,1,2,3,2,3,2,3,2,3].slice(0,Math.max(4,Math.round(ms/90))),G.x,G.y,G.h*C.size,{fps:C.fps,track:enemyGround,z:2});}
   function afterImg(sl,ms=360){   // 잔상: 이동 중 리그 그림을 몇 장 남김
     if(!CODE_FX)return;
     const e=window.MRRig?.live?.get?.(sl);if(!e||!e.cv)return;let n=0;
