@@ -8606,6 +8606,8 @@ body.lmTutNoDis #bDis,body.lmTutNoMerge #bMerge,body.lmTutNoKey #keyBar,body.lmT
 #lmNic .bub{position:absolute;pointer-events:auto;cursor:pointer;background:#fff;color:#1d2433;border-radius:16px;padding:10px 14px;font:800 clamp(14px,2.1vh,17px)/1.4 'Noto Sans KR',sans-serif;box-shadow:0 4px 0 #0007;overflow-wrap:anywhere;animation:tutPop .3s ease-out both}
 #lmNic .bub::before{content:"";position:absolute;left:-9px;top:18px;border:9px solid transparent;border-left:0;border-right-color:#fff}
 #lmNic .bub b{color:#b8362c}
+#lmNic .bub.wait{visibility:hidden;animation:none}
+#lmNic .bub.up::before{left:50%;top:auto;bottom:-9px;translate:-50% 0;border:9px solid transparent;border-bottom:0;border-top-color:#fff}
 @keyframes tutPop{from{opacity:0;scale:.8}}
 .lmTutRg{position:fixed;z-index:870;pointer-events:none;border-radius:12px;box-shadow:0 0 0 3px #f6cf63,0 0 22px 6px #f6cf63aa;animation:tutRing 1.1s ease-in-out infinite}
 .lmTutRg.red{box-shadow:0 0 0 3px #ff6a5a,0 0 20px 5px #ff6a5a99}
@@ -8730,13 +8732,15 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     const lb=sr&&sr.right<r.left?sr.right:0,L=r.left-lb,top=hd?hd.getBoundingClientRect().top:r.top;let x,y,w,H,bl;
     if(L>=180){w=Math.min(L-16,300);H=Math.min(220,r.height*.42);x=r.left-w-8;y=r.top+r.height*.22;bl=.5;}
     else if(top>=84){H=Math.min(150,top-2);w=Math.min(r.width,innerWidth-16);x=Math.max(8,r.left+(r.width-w)/2);y=top-H+4;bl=.86;}
-    else return false;
+    else{   /* (DHL 11-03 '말풍선이 깨져 보임') 옆 · 위에 빈 곳이 없는 작은 가로 화면: 음영 처리된 다른 라운드 칸 아래쪽에 서서 말풍선은 머리 위 (지금 라운드 칸 · 버튼은 안 가림) */
+      const all=[...document.querySelectorAll('#ov:not([hidden]) .rsB .rb3')],ci=all.findIndex(e=>e.classList.contains('cur')),oi=ci<all.length-1?ci+1:ci-1,oc=all[oi];if(!oc)return false;
+      const c=oc.getBoundingClientRect(),bh=bub.offsetHeight||44;w=c.width-12;x=c.left+6;H=Math.max(70,Math.min(200,c.height*.62-bh-12));y=c.bottom-6-H;bl=.5;}
     const nw=H*.7;box.style.left=x+'px';box.style.top=y+'px';box.style.width=w+'px';box.style.height=H+'px';
     const dpr=Math.min(2,devicePixelRatio||1);cv.style.width=nw+'px';cv.style.height=H+'px';if(cv.width!==Math.round(nw*dpr)){cv.width=Math.round(nw*dpr);cv.height=Math.round(H*dpr);}
-    if(bl<.8){bub.style.left='0px';bub.style.maxWidth=w+'px';bub.style.top=Math.max(-bub.offsetHeight-6,-H)+'px';cv.style.marginLeft=Math.max(0,(w-nw)/2)+'px';}   /* 옆에 설 땐 말풍선을 머리 위로 */
-    else{cv.style.marginLeft='0px';bub.style.left=(nw*.86)+'px';bub.style.maxWidth=Math.max(140,w-nw*.86-6)+'px';bub.style.top=Math.max(0,H*.18)+'px';}
+    if(bl<.8){bub.classList.add('up');bub.style.left='0px';bub.style.maxWidth=w+'px';bub.style.top=(-bub.offsetHeight-12)+'px';cv.style.marginLeft=Math.max(0,(w-nw)/2)+'px';}   /* 옆에 설 땐 말풍선을 머리 위로 (꼬리는 아래) */
+    else{bub.classList.remove('up');cv.style.marginLeft='0px';bub.style.left=(nw*.86)+'px';bub.style.maxWidth=Math.max(140,w-nw*.86-6)+'px';bub.style.top=Math.max(0,H*.18)+'px';}
     return true;}
-  function place(){let r=anchor();if(cv&&!(cur&&cur.o.rs))cv.style.marginLeft='0px';if(!r)return;box.classList.remove('sky');if(!r.ov&&placeSky())return;
+  function place(){let r=anchor();if(cv&&!(cur&&cur.o.rs)){cv.style.marginLeft='0px';bub.classList.remove('up');}if(!r)return;box.classList.remove('sky');if(!r.ov&&placeSky())return;
     document.querySelectorAll('.lmTutHush').forEach(e=>{if(!(cur&&cur.o.inbox&&e===document.querySelector(cur.o.anchor)))e.classList.remove('lmTutHush');});
     if(cur&&cur.o.rs&&r.ov&&placeRs(r))return;
     if(cur&&cur.o.inbox&&r.ov){const A=document.querySelector(cur.o.anchor);if(A)A.classList.add('lmTutHush');   /* 원정 캠프 안내 칸 안에: 칸의 기본 글을 잠깐 감추고 그 자리에 니콜 · 말풍선 (구슬 칸 · 물건을 가리지 않음) */
@@ -8761,8 +8765,8 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   function selFlow(g,label){if(!g||!g.length)return pickEls();const sel=S.sel||[],need=g.filter(c=>!sel.includes(c.uid));
     return need.length?g.map((c,i)=>({el:cardEl(c),label:i?'':label,dim:sel.includes(c.uid)})).filter(x=>!x.dim):[{el:$('bPlay')}];}
   const rgs=[];let newOn=null;
-  function fx(){for(let i=0;i<Math.max(rgs.length,ringSel.length);i++){let d=rgs[i];const it=ringSel[i],e=it&&it.el;
-      if(!e){if(d)d.style.display='none';continue;}if(!d){d=document.createElement('div');d.className='lmTutRg';d.innerHTML='<i></i>';document.body.appendChild(d);rgs[i]=d;}
+  function fx(){const tOn=document.body.classList.contains('lm-titleOn');for(let i=0;i<Math.max(rgs.length,ringSel.length);i++){let d=rgs[i];const it=ringSel[i],e=it&&it.el;
+      if(!e||tOn){if(d)d.style.display='none';continue;}if(!d){d=document.createElement('div');d.className='lmTutRg';d.innerHTML='<i></i>';document.body.appendChild(d);rgs[i]=d;}
       d.classList.toggle('red',!!it.red);const lb=d.firstChild;if(lb.textContent!==(it.label||''))lb.textContent=it.label||'';lb.hidden=!it.label;
       const r=e.getBoundingClientRect(),cs=getComputedStyle(e);d.style.display=r.width&&cs.visibility!=='hidden'&&+cs.opacity>0.05?'block':'none';d.style.left=(r.left-3)+'px';d.style.top=(r.top-3)+'px';d.style.width=(r.width+6)+'px';d.style.height=(r.height+6)+'px';}
     if(newOn){const e=document.getElementById(newOn.id),r=e&&e.getBoundingClientRect();if(!r||performance.now()>newOn.until){newOn.el.remove();newOn=null;}else{newOn.el.style.left=(r.right-30)+'px';newOn.el.style.top=(r.top-12)+'px';}}}
@@ -8774,15 +8778,17 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   function badge(id){const b=document.getElementById(id);if(!b)return;b.classList.add('lmTutShow');setTimeout(()=>b.classList.remove('lmTutShow'),700);
     if(newOn)newOn.el.remove();const n=document.createElement('span');n.className='lmTutNew';let t='새로!';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}n.textContent=t;document.body.appendChild(n);newOn={id,el:n,until:performance.now()+7000};}
   function say(k,o){if(!S||!S.tut)return;if(!o.force&&S.tut.seen[k])return;S.tut.seen[k]=1;try{window.LMS&&LMS.play(k==='tut.3_3.grad'?'sfx_tut_grad':'sfx_nicole_pop');}catch(e){}if(!o.anchor)(S.tut.spoke=S.tut.spoke||{})[S.jang+'-'+S.rd]=1;mk();cls();cur={k,o,t:performance.now()};
-    bub.innerHTML=tutLine(k);box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
+    bub.innerHTML=tutLine(k);bub.classList.add('wait');box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
     bub.classList.remove('out');
+    const showBub=ms=>setTimeout(()=>{if(cur&&cur.k===k){bub.classList.remove('wait');place();}},ms);   /* (DHL 11-03 '니콜보다 말풍선이 먼저') 니콜이 나타난 뒤에 말풍선 */
     load().then(()=>{if(!G||!cur||cur.k!==k)return;const an=G.an,now=performance.now(),dur=Math.max(1100,Math.min(3800,(bub.textContent||'').length*85));
       queue=movesFor(k,o);qWait=0;
       if(leaving&&!an.hidden){leaving=0;an.waveK=1;an.play(queue[0]==='hello'?queue.shift():'hello');talkFrom=now+150;}   /* 사라지던 중 = 다시 인사하며 돌아옴 */
       else if(an.hidden){leaving=0;an.play('appear');if(queue[0]==='hello')queue.shift();talkFrom=now+800;}   /* 빛이 모여 나타나 콩 내려앉고 손 흔듦 */
       else if(an.act&&an.act.name==='appear'){talkFrom=now+150;}   /* 아직 나타나는 중 = 등장은 끝까지, 동작은 그다음 */
       else{an.play(queue.shift());talkFrom=now+150;}
-      talkUntil=talkFrom+dur;});
+      talkUntil=talkFrom+dur;showBub(Math.max(0,talkFrom-performance.now()-120));}).catch(()=>showBub(0));
+    setTimeout(()=>{if(cur&&cur.k===k&&!G)bub.classList.remove('wait');},2500);   /* 니콜 그림을 못 불러와도 말은 보이게 */
     if(o.learn)o.learn.forEach(x=>{if(!S.tut.learn.includes(x))S.tut.learn.push(x);});
     if(o.badge)badge(o.badge);
     if(o.auto)setTimeout(()=>{if(cur&&cur.k===k)hideNic();},o.auto);}
@@ -8866,6 +8872,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     return need.length?need.map(cardEl):[$('bPlay')];}
   setInterval(()=>{try{
     if(!lmTutOn()){if(box&&box.classList.contains('on')&&!(cur&&cur.o.force))hideNic();return;}
+    if(document.body.classList.contains('lm-titleOn')){if(cur||ringSel.length||(box&&box.classList.contains('on'))){const k=cur&&cur.k;hideNic();leaving=0;if(G)G.an.hidden=true;if(box){box.classList.remove('on');bub.classList.remove('out');}if(k&&S.tut)delete S.tut.seen[k];}return;}   /* (DHL 11-03 '메뉴로 나오니 빛 테두리가 남음') 메뉴 화면에선 니콜 · 빛 숨김 — 하던 말은 돌아오면 다시 */
     cls();const T=S.tut,ch1=S.jang===1,played=(S.rs&&S.rs.play)||0,ovOn=!$('ov').hidden;
     /* 창 위 안내(원정 캠프 · 야영): 그 창이 떠 있는 동안만 */
     if(cur&&cur.o.anchor&&!q(cur.o.anchor))hideNic();
