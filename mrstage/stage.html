@@ -5503,7 +5503,7 @@ body:has(#battle-stage[data-team-skill="on"]) :is(#lm-gshield,#lm-cap-line),body
 </div></div></div></div>
 <script id="mrstage-fit">
 /* (DHL 11-03) PC 캐릭터 크기: 전투 칸 폭 900px 이상일 때 몸 · 빌런 크기 배수 (1 = 그대로) */
-window.LM_PC_CHAR_K=window.LM_PC_CHAR_K||1;
+window.LM_PC_CHAR_K=window.LM_PC_CHAR_K||0.85;   // (DHL 11-03 추천안) PC 캐릭터 · 빌런 85%
 function lmCharK(){const pc=innerWidth>=900;   /* 전투 칸 실제 폭(iframe) — #battle-stage 는 작은 기준 크기에 확대라 쓰면 안 됨 */return lmPortraitK()*(pc?(+window.LM_PC_CHAR_K||1):1);}
 function lmPortraitK(){try{const w=window.top||window;return w.matchMedia('(orientation:portrait)').matches&&w.innerWidth<820?0.7:1;}catch(e){return 1;}}
 
