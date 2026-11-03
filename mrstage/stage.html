@@ -6520,9 +6520,12 @@ function startBattleTeamSkill(presentation={}){
         });
         window.MRRig?.scanStills?.(); // 2026-10-16 리깅 캐릭터 컷인: 바로 찌르기
         root.classList.add('on');window.MRBattleFX?.skill(duration);
-        playSfx('skillCharge',{gain:.35,minGap:150});
+        playSfx('skillCharge',{gain:.35,minGap:150});lmSnd('sfx_run_charge',{vol:.55,gap:150});   /* 컷인 들어올 때 기 모으는 소리 */
         const strike=({id,slot},index)=>{
             const el=battleTeamElement(slot),portrait=portraits.get(slot),assets=getBattleHeroAssets(id);if(!el||!portrait)return;
+            /* (DHL 11-03 '컷인 때 공격할 때 효과음이 있어야') 컷인 속 캐릭터가 휘두르는 순간 무기 소리 + 세계 타격음, 여러 명이면 마지막에 합동 타격 */
+            try{const p=(id%10)+1,W={1:'greatsword',2:'hammer',3:'bigblade',4:'gun',5:'fist',6:'staff',7:'shieldaxe',8:'spear',9:'widesword',10:'dual'}[p],w=['rust','neon','sky'][Math.min(2,id/10|0)];
+              lmSnd('sfx_atk_'+W,{gap:0,delay:90});lmSnd('sfx_hit_'+w,{gap:0,delay:200,vol:.7});if(count>1&&index===count-1)lmSnd('sfx_hit_weak',{delay:260,vol:.8});}catch(e){}
             applyBattleHeroImage(assets.skill,assets.idle,el);el.classList.add('skill');window.MRBattleFX?.attack(portrait.id);
             if(count>1&&index===count-1){const impact=document.createElement('div');impact.className='team-combined-impact';root.appendChild(impact);}
         };
