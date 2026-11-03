@@ -9145,4 +9145,35 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   try{const _st=window.lmShieldTip;if(typeof _st==='function')window.lmShieldTip=function(on){if(on)P('sfx_tooltip');return _st.apply(this,arguments);};}catch(e){}
 })();
 </script>
+<style id="lm-sbreak-css">
+/* (DHL 11-04) 휴대폰 세로: 여러 문장이 줄바꿈될 때는 문장마다 새 줄 — PC · 가로는 그대로 */
+br.lmSb{display:none}
+@media (orientation:portrait) and (max-width:700px){br.lmSb{display:inline}.lmSbOff br.lmSb{display:none}}
+</style>
+<script id="lm-sbreak">
+(function(){
+  const RE=/([가-힣)\]"'”’][.!?])[  ]+(?=[가-힣A-Za-z0-9'"‘“(\[<])/g;
+  const SKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|SVG|TITLE|CANVAS|CODE|PRE)$/;
+  const portrait=()=>matchMedia('(orientation:portrait) and (max-width:700px)').matches;
+  const blockOf=el=>{while(el&&el!==document.body){const d=getComputedStyle(el).display;if(d!=='inline'&&d!=='contents')return el;el=el.parentElement;}return el;};
+  const todo=new Set();
+  function split(t){const v=t.nodeValue;if(!v||v.length<6)return;RE.lastIndex=0;if(!RE.test(v))return;
+    const p=t.parentElement;if(!p||SKIP.test(p.tagName)||p.closest('[contenteditable],svg,.lmNoSb'))return;
+    const frag=document.createDocumentFragment();let last=0;RE.lastIndex=0;let m;
+    while((m=RE.exec(v))){const end=m.index+m[1].length;frag.appendChild(document.createTextNode(v.slice(last,end)+' '));const br=document.createElement('br');br.className='lmSb';frag.appendChild(br);last=m.index+m[0].length;}
+    frag.appendChild(document.createTextNode(v.slice(last)));p.replaceChild(frag,t);const b=blockOf(p);if(b)todo.add(b);}
+  /* 줄바꿈 없이도 한 줄에 다 들어가면 끊지 않음 */
+  function fit(b){if(!b.isConnected)return;if(!portrait()){b.classList.remove('lmSbOff');return;}
+    b.classList.add('lmSbOff');const cs=getComputedStyle(b),lh=parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)*1.4;
+    const r=document.createRange();r.selectNodeContents(b);const tops=new Set([...r.getClientRects()].filter(q=>q.width>0).map(q=>Math.round(q.top/(lh*.6))));
+    if(tops.size>1)b.classList.remove('lmSbOff');}
+  function walk(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const ts=[];let n;while((n=w.nextNode()))ts.push(n);ts.forEach(split);}
+  let q=new Set(),raf=0;
+  function flush(){raf=0;const roots=[...q];q.clear();mo.disconnect();try{roots.forEach(r=>{if(r.nodeType===3)split(r);else if(r.isConnected)walk(r);});todo.forEach(fit);todo.clear();}catch(e){}mo.observe(document.body,{childList:true,subtree:true,characterData:true});}
+  const mo=new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==='characterData')q.add(m.target);else m.addedNodes.forEach(x=>{if(x.nodeType===1||x.nodeType===3)q.add(x);});});if(!raf)raf=requestAnimationFrame(flush);});
+  function all(){document.querySelectorAll('br.lmSb').forEach(br=>{const b=blockOf(br.parentElement);if(b)todo.add(b);});todo.forEach(fit);todo.clear();}
+  addEventListener('resize',()=>{clearTimeout(all.t);all.t=setTimeout(all,200);});
+  walk(document.body);all();mo.observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
 </body></html>
