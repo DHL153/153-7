@@ -8594,7 +8594,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     const o=document.getElementById('orbs');let r=o&&o.getBoundingClientRect();
     if(!r||r.width<40||r.bottom<0){const h=document.getElementById('hand');r=h&&h.getBoundingClientRect();if(r)r={left:r.left,width:r.width,top:r.top-70,bottom:r.top+4,height:74};}
     return r;}
-  function place(){let r=anchor();if(!r)return;if(r.ov&&r.width<300){const L=Math.max(8,r.right-420);r={left:L,width:r.right-L+4,top:r.top,bottom:r.bottom,height:Math.min(r.height,90),ov:1};}   /* 좁은 칸(라운드 고르기 야영): 칸 왼쪽으로 넓혀 니콜 · 말풍선 */let H=r.ov?Math.max(120,Math.min(170,r.height*2.2)):Math.max(130,Math.min(190,r.height*2.4));
+  function place(){let r=anchor();if(!r)return;if(cur&&cur.o.above&&r.ov)r={left:r.left+8,width:r.width-8,top:r.top-90,bottom:r.top+10,height:100,ov:1};   /* above: 창 위 가장자리에 서기 (창 글씨를 가리지 않게) */if(r.ov&&r.width<300){const L=Math.max(8,r.right-420);r={left:L,width:r.right-L+4,top:r.top,bottom:r.bottom,height:Math.min(r.height,90),ov:1};}   /* 좁은 칸(라운드 고르기 야영): 칸 왼쪽으로 넓혀 니콜 · 말풍선 */let H=r.ov?Math.max(120,Math.min(170,r.height*2.2)):Math.max(130,Math.min(190,r.height*2.4));
     if(!r.ov&&r.bottom-H<2){const st=document.getElementById('lmStage'),q=st&&st.getBoundingClientRect();   /* 가로 화면: 위쪽 칸이 얇으면 전투 화면 왼쪽 안에 섬 */
       if(q&&q.height>80){H=Math.min(q.height-8,220);r={left:q.left+6,width:q.width*.72,bottom:q.bottom-4};}}
     const nw=H*.7;box.style.left=r.left+'px';box.style.top=(r.bottom-H)+'px';box.style.width=r.width+'px';box.style.height=H+'px';
@@ -8655,6 +8655,10 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(!cur&&ovOn&&!S.busy&&S.jang===3&&S.rd===1&&!T.seen['tut.3_2.camp']&&!T.seen['tut.3_1.rest']&&q('#ov:not([hidden]) .rbSkip:not(.off) button'))
       say('tut.3_2.camp',{face:'happy',seq:['point'],anchor:'#ov:not([hidden]) .rbSkip:not(.off)'});
     if(cur&&cur.k==='tut.3_2.camp')ring([q('#ov:not([hidden]) .rbSkip:not(.off) button')]);
+    /* (DHL 11-03) 니콜 안내 끝: 3장 거인(3-3)을 깨고 뜨는 '라운드 보상' 창에서 마지막 인사 → 보상을 받아 창이 닫히면 안내 끝 */
+    if(!cur&&ovOn&&S.jang===3&&S.rd===2&&!T.seen['tut.3_3.grad']&&q('#ov:not([hidden]) .cashFx'))
+      say('tut.3_3.grad',{face:'happy',seq:['wave','hop'],anchor:'#ov:not([hidden]) .cashFx',above:1});
+    if(T.seen['tut.3_3.grad']&&!cur){T.learn=LEARN_ORDER.slice();finish();return;}
     if(!cur&&ovOn&&!S.busy){
       if(!T.seen['tut.2_2.shop']&&q('#ov:not([hidden]) .sDesc'))say('tut.2_2.shop',{face:'happy',seq:['hop'],learn:[8],anchor:'#ov:not([hidden]) .sDesc'});
       else if(!T.seen['tut.3_1.rest']&&q('#ov:not([hidden]) .cpDesc'))say('tut.3_1.rest',{face:'relaxed',seq:[],learn:[9],anchor:'#ov:not([hidden]) .cpDesc'});}
