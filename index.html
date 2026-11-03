@@ -8596,6 +8596,8 @@ body.lmTutNoDis #bDis,body.lmTutNoMerge #bMerge,body.lmTutNoKey #keyBar,body.lmT
 #lmNic{position:fixed;z-index:880;pointer-events:none;display:none}
 #lmNic.on{display:block}
 #lmNic canvas{position:absolute;left:0;bottom:0;pointer-events:none;filter:drop-shadow(0 4px 4px #000a)}
+#lmNicFx{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:881;pointer-events:none}
+#lmNic .bub.out{opacity:0;scale:.9;pointer-events:none;transition:opacity .25s,scale .25s}
 #lmNic .bub{position:absolute;pointer-events:auto;cursor:pointer;background:#fff;color:#1d2433;border-radius:16px;padding:10px 14px;font:800 clamp(14px,2.1vh,17px)/1.4 'Noto Sans KR',sans-serif;box-shadow:0 4px 0 #0007;overflow-wrap:anywhere;animation:tutPop .3s ease-out both}
 #lmNic .bub::before{content:"";position:absolute;left:-9px;top:18px;border:9px solid transparent;border-left:0;border-right-color:#fff}
 #lmNic .bub b{color:#b8362c}
@@ -8668,15 +8670,43 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   const _lose=lose;lose=function(){if(lmTutCh1()&&S.runs<=0&&S.score<S.tgt){S.runs=1;try{fill();}catch(e){}render();say('tut.save',{face:'sad',face2:'happy',seq:['nod','nod'],force:1});return;}
     return _lose.apply(this,arguments);};
   /* ── 니콜 ── */
-  let box,cv,bub,rig=null,an=null,last=0,raf=0,hopT=-1,nodT=-1,cur=null,ringSel=[],ringT=null;
+  let box,cv,bub,fxc=null,G=null,last=0,raf=0,cur=null,ringSel=[],ringT=null;
+  /* (DHL 11-03) 안내 니콜 = 하얀 원피스 안내 NPC 리그(mrstage/assets/rig/nicole-guide) — 등장 · 퇴장 이펙트, 말하는 입, 동작 9종 */
+  let queue=[],qWait=0,talkFrom=0,talkUntil=0,leaving=0,lastSfx=0;
   const loadJs=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  const NG='mrstage/assets/rig/nicole-guide/';
   let ready=null;
-  function load(){if(ready)return ready;ready=(window.CharacterRig?Promise.resolve():loadJs('mrstage/assets/rig/rig.js?v=b13'))
-    .then(()=>window.MR_RIG_DEFS&&window.MR_RIG_DEFS['rust-fork-girl']?0:loadJs('mrstage/assets/rig/rust-fork-girl/rig.def.js?v=b13'))
-    .then(()=>{const def=window.MR_RIG_DEFS['rust-fork-girl'];return Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(res=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=()=>res([k,im]);im.src=p.src;})))
-      .then(pr=>{rig=new CharacterRig(def,Object.fromEntries(pr));an=new RunAnimator(rig,{runSpeed:620});an.facing=1;});}).catch(e=>{console.warn('[니콜]',e);});return ready;}
+  function load(){if(ready)return ready;ready=(window.NicoleRig?Promise.resolve():loadJs(NG+'npc.js?v=n1'))
+    .then(()=>window.NICOLE_GUIDE_DEF?0:loadJs(NG+'guide.def.js?v=e84471bb'))
+    .then(()=>window.NicoleGuide?0:loadJs(NG+'guide.js?v=n1'))
+    .then(()=>NicoleGuide.load()).then(img=>{G=NicoleGuide.create(img);}).catch(e=>{console.warn('[니콜]',e);});return ready;}
+  const noMotion=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* 대사마다 동작 순서 (앞에서부터 하나씩, 끝나면 숨쉬기 · 깜빡임 · 살랑임 대기)
+     hello 인사 · guide 손바닥 안내 · happy 두 손 모아 콩콩 · sad 펜던트 쥐고 눈물 · surprise 놀람 · think 생각 · worried 걱정 · content 흐뭇 */
+  const NIC_ACTS={'tut.1_1.pair':['guide'],'tut.1_1.three':['happy','guide'],'tut.1_2.discard':['think','guide'],'tut.1_2.done':['happy'],'tut.1_3.start':['surprise','guide'],
+    'tut.save':['worried','content'],'tut.2_1.start':['guide'],'tut.2_1.key':['think'],'tut.2_2.shop':['happy','guide'],'tut.orb.order':['think','guide'],'tut.2_2.camp':['guide'],
+    'tut.2_3.rule':['worried','guide'],'tut.3_1.rest':['content'],'tut.3_2.awaken':['surprise','happy'],'tut.3_3.bridge':['guide'],'tut.3_3.grad':['content','hello'],
+    'tut.rs.first':['guide'],'tut.rs.go':['hello'],'tut.rs.boss':['think','guide'],'tut.cheer.1':['happy'],'tut.cheer.2':['guide'],'tut.cheer.3':['content'],'tut.cheer.4':['happy']};
+  const FACE_ACT={sad:'sad',angry:'worried',focus:'guide',relaxed:'content',shout:'surprise',happy:'happy'},SEQ_ACT={wave:'hello',point:'guide',hop:'happy',nod:'think',thrust:'surprise'};
+  function movesFor(k,o){const b=k.split('@')[0];if(NIC_ACTS[b])return NIC_ACTS[b].slice();const m=[];if(o.face&&FACE_ACT[o.face])m.push(FACE_ACT[o.face]);
+    (o.seq||[]).forEach(x=>{const a=SEQ_ACT[x];if(a&&!m.includes(a))m.push(a);});return m.length?m:['guide'];}
+  /* 매 프레임: 대사 동안 말하는 입 · 동작 줄 · 퇴장 끝 */
+  function drive(dt){const an=G.an,now=performance.now();an.talk(!leaving&&now>=talkFrom&&now<talkUntil);
+    if(leaving){if(!an.act){leaving=0;an.hidden=true;box.classList.remove('on');bub.classList.remove('out');}return;}
+    if(!an.act&&queue.length){qWait-=dt;if(qWait<=0){an.play(queue.shift());qWait=.12;}}}
+  function sfxEv(){for(const e of G.events){const now=performance.now();
+    if(e==='land'&&now-lastSfx>250){lastSfx=now;try{window.LMS&&LMS.play('sfx_nicole_hop',{vol:.4});}catch(_){}}
+    if(e==='poof'){try{window.LMS&&LMS.play('sfx_nicole_pop',{vol:.3});}catch(_){}}}}
+  /* 이펙트: 화면 전체 캔버스(#lmNicFx)에 화면 좌표로 — 니콜 칸 밖으로 퍼지는 빛가루 · 꽃잎이 잘리지 않게 */
+  let fxDirty=false;
+  function nicFx(dt,on,view){if(!fxc||!G)return;const P=G.parts;if(!on&&!P.length){if(fxDirty){fxc.getContext('2d').clearRect(0,0,fxc.width,fxc.height);fxDirty=false;}return;}
+    const dpr=Math.min(2,devicePixelRatio||1),W=Math.round(innerWidth*dpr),H=Math.round(innerHeight*dpr);if(fxc.width!==W||fxc.height!==H){fxc.width=W;fxc.height=H;}
+    let col=null;if(on&&view&&!noMotion()){const r=cv.getBoundingClientRect(),cd=cv.width/(r.width||1),toS=(x,y)=>[r.left+x/cd,r.top+y/cd];
+      G.emit(toS,view.k/cd/NicoleGuide.REF_K,true);col=G.gatherCol(toS);}
+    G.stepFx(dt);const g=fxc.getContext('2d');if(!G.parts.length&&!(col&&col.a>0)){if(fxDirty){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);fxDirty=false;}return;}   /* 그릴 게 없으면 화면 전체 캔버스는 쉼 */
+    g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);G.drawFx(g,dpr,col);fxDirty=true;}
   function mk(){if(box)return;box=document.createElement('div');box.id='lmNic';box.setAttribute('aria-live','polite');cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');bub=document.createElement('div');bub.className='bub';bub.setAttribute('role','button');bub.tabIndex=0;
-    bub.onclick=()=>hideNic();box.append(cv,bub);document.body.appendChild(box);}
+    bub.onclick=()=>hideNic();box.append(cv,bub);document.body.appendChild(box);fxc=document.createElement('canvas');fxc.id='lmNicFx';fxc.setAttribute('aria-hidden','true');document.body.appendChild(fxc);}
   function anchor(){const A=cur&&cur.o.anchor&&document.querySelector(cur.o.anchor);if(A){const q=A.getBoundingClientRect();if(q.width)return {left:q.left,width:q.width,top:q.top,bottom:q.bottom,height:q.height,ov:1};}
     const o=document.getElementById('orbs');let r=o&&o.getBoundingClientRect();
     if(!r||r.width<40||r.bottom<0){const h=document.getElementById('hand');r=h&&h.getBoundingClientRect();if(r)r={left:r.left,width:r.width,top:r.top-70,bottom:r.top+4,height:74};}
@@ -8713,12 +8743,12 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     const nw=H*.7;box.style.left=r.left+'px';box.style.top=(r.bottom-H)+'px';box.style.width=r.width+'px';box.style.height=H+'px';
     const dpr=Math.min(2,devicePixelRatio||1);cv.style.width=nw+'px';cv.style.height=H+'px';if(cv.width!==Math.round(nw*dpr)){cv.width=Math.round(nw*dpr);cv.height=Math.round(H*dpr);}
     bub.style.left=(nw*.86)+'px';bub.style.maxWidth=Math.max(160,r.width-nw*.86-6)+'px';bub.style.top=Math.max(0,H*.18)+'px';}
-  function tick(now){raf=requestAnimationFrame(tick);if(!box||!box.classList.contains('on')){if(newOn||ringSel.length)fx();else rgs.forEach(d=>d.style.display='none');return;}place();const dt=Math.min(.05,(now-last)/1000);last=now;
-    const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);if(!an)return;an.update(dt,{vx:0,facing:1});
-    const bh=rig.def.metrics?.bodyHeight||718,H=cv.height,sc=H*.74/bh;let dy=0;const th=(now-hopT)/1000;if(th>=0&&th<.5)dy=-Math.sin(th/.5*Math.PI)*H*.14;const tn=(now-nodT)/1000;if(tn>=0&&tn<.6)dy+=Math.sin(tn/.6*Math.PI)*H*.04;
-    rig.draw(g,cv.width*.46,H*.98+dy,sc,an.facingScale);fx();}
-  function act(n){if(!an)return;if(n==='hop'){hopT=performance.now();try{window.LMS&&LMS.play('sfx_nicole_hop',{vol:.6});}catch(e){}}else if(n==='nod')nodT=performance.now();
-    else{const nm=n==='point'?'thrust':n,o=n==='point'?{speed:.7}:{};if(!an.attack(nm,o)){an.act=null;an.attack(nm,o);}}}
+  function tick(now){raf=requestAnimationFrame(tick);const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
+    if(!box||!box.classList.contains('on')){if(newOn||ringSel.length)fx();else rgs.forEach(d=>d.style.display='none');nicFx(dt,false);return;}
+    if(!leaving)place();   /* 퇴장하는 동안은 그 자리에서 */
+    const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);let view=null;
+    if(G){drive(dt);G.update(dt);const H=cv.height;view={x:cv.width*.46,y:H*.985,k:H*.955/975};G.draw(g,view);sfxEv();}
+    fx();nicFx(dt,true,view);}
   function ring(els){ringSel=(els||[]).map(x=>x&&x.el!==undefined?x:{el:x}).filter(x=>x&&x.el);}
   const tutWord=w=>{let v=TUT_TERM[w]||w;try{v=(window.MRLocale&&MRLocale.t&&MRLocale.t(v))||v;}catch(e){}return v;};
   function groupOf(n){const m=numCnt(S.hand),k=Object.keys(m).map(Number).filter(x=>m[x]>=n).sort((a,b)=>b-a)[0];return k==null?null:S.hand.filter(c=>cardNo(c)===k).slice(0,n);}
@@ -8732,13 +8762,22 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
       const r=e.getBoundingClientRect(),cs=getComputedStyle(e);d.style.display=r.width&&cs.visibility!=='hidden'&&+cs.opacity>0.05?'block':'none';d.style.left=(r.left-3)+'px';d.style.top=(r.top-3)+'px';d.style.width=(r.width+6)+'px';d.style.height=(r.height+6)+'px';}
     if(newOn){const e=document.getElementById(newOn.id),r=e&&e.getBoundingClientRect();if(!r||performance.now()>newOn.until){newOn.el.remove();newOn=null;}else{newOn.el.style.left=(r.right-30)+'px';newOn.el.style.top=(r.top-12)+'px';}}}
   const lmTutOff1=()=>!!document.querySelector('#ov:not([hidden])');
-  function hideNic(){document.querySelectorAll('.lmTutHush').forEach(e=>e.classList.remove('lmTutHush'));if(box)box.classList.remove('on');cur=null;ring([]);clearTimeout(ringT);rgs.forEach(d=>d.style.display='none');}
+  function hideNic(){document.querySelectorAll('.lmTutHush').forEach(e=>e.classList.remove('lmTutHush'));cur=null;ring([]);clearTimeout(ringT);rgs.forEach(d=>d.style.display='none');queue=[];talkUntil=0;
+    if(!box||!box.classList.contains('on')||leaving)return;
+    if(G&&!G.an.hidden){leaving=1;bub.classList.add('out');G.an.play('bye');}   /* 손 흔들며 빛가루로 사라짐 → drive()가 끝나면 닫음 */
+    else box.classList.remove('on');}
   function badge(id){const b=document.getElementById(id);if(!b)return;b.classList.add('lmTutShow');setTimeout(()=>b.classList.remove('lmTutShow'),700);
     if(newOn)newOn.el.remove();const n=document.createElement('span');n.className='lmTutNew';let t='새로!';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}n.textContent=t;document.body.appendChild(n);newOn={id,el:n,until:performance.now()+7000};}
   function say(k,o){if(!S||!S.tut)return;if(!o.force&&S.tut.seen[k])return;S.tut.seen[k]=1;try{window.LMS&&LMS.play(k==='tut.3_3.grad'?'sfx_tut_grad':'sfx_nicole_pop');}catch(e){}if(!o.anchor)(S.tut.spoke=S.tut.spoke||{})[S.jang+'-'+S.rd]=1;mk();cls();cur={k,o,t:performance.now()};
     bub.innerHTML=tutLine(k);box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
-    load().then(()=>{if(!an||!cur||cur.k!==k)return;an.setExpression(o.face||'happy');(o.seq||[]).forEach((a,j)=>setTimeout(()=>act(a),150+j*1500));
-      if(o.face2)setTimeout(()=>an&&an.setExpression(o.face2),1500);});
+    bub.classList.remove('out');
+    load().then(()=>{if(!G||!cur||cur.k!==k)return;const an=G.an,now=performance.now(),dur=Math.max(1100,Math.min(3800,(bub.textContent||'').length*85));
+      queue=movesFor(k,o);qWait=0;
+      if(leaving&&!an.hidden){leaving=0;an.waveK=1;an.play(queue[0]==='hello'?queue.shift():'hello');talkFrom=now+150;}   /* 사라지던 중 = 다시 인사하며 돌아옴 */
+      else if(an.hidden){leaving=0;an.play('appear');if(queue[0]==='hello')queue.shift();talkFrom=now+800;}   /* 빛이 모여 나타나 콩 내려앉고 손 흔듦 */
+      else if(an.act&&an.act.name==='appear'){talkFrom=now+150;}   /* 아직 나타나는 중 = 등장은 끝까지, 동작은 그다음 */
+      else{an.play(queue.shift());talkFrom=now+150;}
+      talkUntil=talkFrom+dur;});
     if(o.learn)o.learn.forEach(x=>{if(!S.tut.learn.includes(x))S.tut.learn.push(x);});
     if(o.badge)badge(o.badge);
     if(o.auto)setTimeout(()=>{if(cur&&cur.k===k)hideNic();},o.auto);}

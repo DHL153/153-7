@@ -1,0 +1,122 @@
+<title>니콜 안내 NPC</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f6efe6;--panel:#fffaf3;--ink:#3a2f2a;--mute:#86766b;--line:#e6d9ca;--acc:#c0566a;--acc-ink:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1a20;--panel:#26222a;--ink:#f1e9e2;--mute:#a99d94;--line:#3a3340;--acc:#e07a8c;--acc-ink:#24121a}}
+:root[data-theme="dark"]{--bg:#1d1a20;--panel:#26222a;--ink:#f1e9e2;--mute:#a99d94;--line:#3a3340;--acc:#e07a8c;--acc-ink:#24121a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.6;margin-left:5px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#c03a2a;white-space:pre-wrap}
+</style>
+<div class="wrap">
+  <h1>니콜 안내 NPC</h1>
+  <p class="sub">튜토리얼 안내용 니콜이에요. 숨 쉬기, 눈 깜빡임, 머리카락과 치맛자락 살랑임이 늘 살아 있고, 팔과 표정은 모두 그린 그림 그대로 보여 줘서 선이 깨지지 않아요. 니콜을 누르면 반응해요.</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bBye">퇴장<kbd>Q</kbd></button><button id="bDemo">튜토리얼 데모<kbd>D</kbd></button></div>
+    <div class="grp" id="acts"></div>
+    <div class="grp"><button id="bTalk">말하기<kbd>T</kbd></button><button id="bSlow">느리게</button><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1280" height="960"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장 · 퇴장</b> 빛이 모이며 작게 떠오르듯 나타나서 콩 하고 내려앉고, 손을 흔들며 활짝 웃어요. 퇴장은 손 흔들며 빛가루로 사라져요.</div>
+    <div class="note"><b>감정</b> 인사, 안내(말하면서 손바닥으로 가리키기), 기뻐요(두 손 모아 콩콩), 슬퍼요(펜던트 꼭 쥐고 고개 숙임, 눈물), 놀람, 생각, 걱정. 연출이 끝나면 기본 자세로 부드럽게 돌아와요.</div>
+    <div class="note"><b>말하기 · 깜빡임</b> 표정마다 맞는 입으로 말하고(슬플 땐 울먹이는 입), 표정마다 맞는 눈으로 깜빡여요(반쯤 감음 → 감음 → 반쯤). 머리카락과 얼굴선은 언제나 원본 그대로예요.</div>
+    <div class="note"><b>이펙트 OFF</b> 빛가루, 반짝이, 눈물방울, 땀, 생각 방울이 꺼지고 니콜의 움직임만 남아요. 글자나 말풍선은 넣지 않았어요.</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="w.js"></script>
+<script src="npc.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const getJ=async s=>(await fetch(s)).json();
+const frames=await getJ('frames.json'),faces=await getJ('faces.json');
+const names=['base'];for(const n in frames)names.push('arms_'+n);
+for(const z of['eyes','mouth'])for(const n of faces[z])names.push(z+'_'+n);
+const img={};await Promise.all(names.map(async n=>img[n]=await load('img/'+n+'.png')));
+const c=document.getElementById('c'),g=c.getContext('2d'),W=c.width,H=c.height;
+const glc=document.createElement('canvas');glc.width=W;glc.height=H;
+const rig=new NicoleRig(glc,{img,frames,faces,weights:window.NICOLE_W}),an=new NicoleAnim(frames,{kp:{},anchors:[]});
+const bc=document.createElement('canvas');bc.width=W;bc.height=H;const bg2=bc.getContext('2d');const sc=document.createElement('canvas');sc.width=W;sc.height=H;const sg=sc.getContext('2d');
+const VIEW={x:470,y:905,k:.86};
+let fx=true,slow=false,parts=[],OUT=null,last=performance.now(),demo=null;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const A2S=(x,y)=>{const o=[0,0];rig.view=VIEW;rig.a2s([x,y],OUT,o);return o};
+// buttons
+const ACTS=[['hello','인사','1'],['guide','안내','2'],['happy','기뻐요','3'],['sad','슬퍼요','4'],['surprise','놀람','5'],['think','생각','6'],['worried','걱정','7'],['content','흐뭇','8']];
+const box=document.getElementById('acts');
+for(const[k,l,key]of ACTS){const b=document.createElement('button');b.innerHTML=`${l}<kbd>${key}</kbd>`;b.onclick=()=>act(k);box.appendChild(b)}
+function act(k){if(an.hidden)an.play('appear');else{stopDemo();an.play(k)}}
+const bT=document.getElementById('bTalk');function setTalk(v){an.talk(v);bT.setAttribute('aria-pressed',v)}bT.onclick=()=>setTalk(!an.talking);
+document.getElementById('bSlow').onclick=e=>{slow=!slow;e.currentTarget.setAttribute('aria-pressed',slow)};
+{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx)parts=[]}}
+document.getElementById('bEnter').onclick=()=>{stopDemo();an.play('appear')};document.getElementById('bBye').onclick=()=>{stopDemo();an.play('bye')};
+document.getElementById('bDemo').onclick=()=>demo?stopDemo():startDemo();
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e'){stopDemo();an.play('appear')}if(k==='q'){stopDemo();an.play('bye')}if(k==='t')setTalk(!an.talking);if(k==='d')demo?stopDemo():startDemo();const i='12345678'.indexOf(k);if(i>=0)act(ACTS[i][0])});
+// tap the character: she reacts
+c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;if(an.hidden||an.act)return;
+  const top=A2S(300,30),bot=A2S(300,992);if(Math.abs(x-top[0])<210&&y>top[1]&&y<bot[1]){stopDemo();an.play(Math.random()<.55?'happy':'hello')}});
+// tutorial demo: a scripted guide sequence (what a real onboarding would call)
+const SEQ=[['appear',0],['guide',3.2,1],['think',3.8],['happy',3.4],['worried',3.2],['hello',2.4],['sad',4.0],['guide',3.6,1],['bye',2.6]];
+function startDemo(){demo={i:-1,t:0};document.getElementById('bDemo').setAttribute('aria-pressed',true);if(an.hidden)an.hidden=false}
+function stopDemo(){if(!demo)return;demo=null;document.getElementById('bDemo').setAttribute('aria-pressed',false);setTalk(false)}
+function demoStep(dt){if(!demo)return;demo.t-=dt;if(demo.t>0)return;demo.i=(demo.i+1)%SEQ.length;const[k,d,talk]=SEQ[demo.i];
+  if(k==='appear'&&!an.hidden&&demo.i===0){demo.t=.1;return}an.play(k);demo.t=k==='appear'?3.3:d;setTalk(!!talk);if(k==='guide')setTimeout(()=>demo&&setTalk(false),2900/(slow?.25:1))}
+// effects
+const star=(x,y,r,col,a,rot=0)=>{g.save();g.translate(x,y);g.rotate(rot);g.globalAlpha=a;g.fillStyle=col;g.beginPath();for(let i=0;i<8;i++){const rr=i%2?r*.28:r,an_=i/8*Math.PI*2;g.lineTo(Math.cos(an_)*rr,Math.sin(an_)*rr)}g.closePath();g.fill();g.restore()};
+const heart=(x,y,s,col,a)=>{g.save();g.translate(x,y);g.scale(s,s);g.globalAlpha=a;g.fillStyle=col;g.beginPath();g.moveTo(0,6);g.bezierCurveTo(-12,-4,-6,-14,0,-6);g.bezierCurveTo(6,-14,12,-4,0,6);g.fill();g.restore()};
+function emit(){const o=OUT,f=o.fx;if(!fx)return;
+  const ctr=A2S(300,560);
+  if(f.gather>0&&Math.random()<.9)for(let i=0;i<2;i++){const a=rnd(0,6.28),d=rnd(160,300);parts.push({k:'in',x:ctr[0]+Math.cos(a)*d,y:ctr[1]+Math.sin(a)*d*1.4,tx:ctr[0]+rnd(-60,60),ty:ctr[1]+rnd(-280,200),t:0,life:rnd(.5,.8),r:rnd(5,10)})}
+  if(f.gather<0&&Math.random()<.9)for(let i=0;i<3;i++){parts.push({k:'mote',x:ctr[0]+rnd(-120,120),y:ctr[1]+rnd(-380,300),vx:rnd(-40,40),vy:rnd(-160,-60),t:0,life:rnd(.6,1.1),r:rnd(4,9)})}
+  if(f.sparkle&&Math.random()<.35){const p=A2S(rnd(150,470),rnd(80,420));parts.push({k:Math.random()<.3?'heart':'mote',x:p[0],y:p[1],vx:rnd(-30,30),vy:rnd(-110,-50),t:0,life:rnd(.7,1.1),r:rnd(6,11)})}
+  if(f.tears&&Math.random()<.07){const e=Math.random()<.55?[262,270]:[380,266];const p=A2S(...e);parts.push({k:'tear',x:p[0],y:p[1],vx:rnd(-6,6),vy:20,t:0,life:1.1,r:4.2,gy:p[1]+rnd(40,70)})}
+  if(f.think&&Math.random()<.045){const p=A2S(452,150);parts.push({k:'bub',x:p[0]+rnd(-6,6),y:p[1],vx:rnd(10,22),vy:-34,t:0,life:1.6,r:rnd(8,13)})}
+  if(f.sweat&&!parts.some(p=>p.k==='sweat')){const p=A2S(438,150);parts.push({k:'sweat',x:p[0],y:p[1],vx:0,vy:14,t:0,life:1.8,r:9})}
+  for(const e of an.events){
+    if(e==='pop'||e==='poof'){for(let i=0;i<26;i++){const a=rnd(0,6.28),v=rnd(80,320);parts.push({k:i%4?'mote':'petal',x:ctr[0]+rnd(-40,40),y:ctr[1]+rnd(-200,120),vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,t:0,life:rnd(.6,1.1),r:rnd(5,10),rot:rnd(0,6)})}}
+    if(e==='land'){const p=A2S(300,992);for(let i=0;i<8;i++)parts.push({k:'dust',x:p[0]+rnd(-90,90),y:p[1]-2,vx:rnd(-70,70),vy:rnd(-40,-10),t:0,life:rnd(.35,.55),r:rnd(10,18)})}
+    if(e==='shock'){const p=A2S(430,70);parts.push({k:'shock',x:p[0],y:p[1],t:0,life:.6})}}}
+function stepParts(dt){for(const p of parts){p.t+=dt;if(p.k==='in'){const k=Math.min(1,p.t/p.life);p.x+=(p.tx-p.x)*Math.min(1,dt*5);p.y+=(p.ty-p.y)*Math.min(1,dt*5)}else if(p.k!=='shock'){p.x+=p.vx*dt;p.y+=p.vy*dt}
+  if(p.k==='tear'){p.vy+=420*dt;if(p.y>p.gy){p.t=p.life}}if(p.k==='petal'){p.vy+=160*dt;p.vx*=.98;p.rot+=dt*4}if(p.k==='mote'){p.vx*=.96;p.vy*=.97}if(p.k==='dust'){p.vx*=.9;p.vy*=.9}}parts=parts.filter(p=>p.t<p.life)}
+function drawParts(){g.save();for(const p of parts){const k=p.t/p.life,a=Math.max(0,1-k);
+  if(p.k==='in'||p.k==='mote'){g.globalCompositeOperation='lighter';star(p.x,p.y,p.r*(p.k==='in'?1-k*.5:1),'rgba(255,236,190,1)',a*(p.k==='in'?Math.min(1,p.t*6):1));g.globalCompositeOperation='source-over';continue}
+  if(p.k==='heart'){heart(p.x,p.y,p.r/9,'#f07c96',a);continue}
+  if(p.k==='petal'){g.save();g.translate(p.x,p.y);g.rotate(p.rot);g.globalAlpha=a;g.fillStyle='#f6b9c6';g.beginPath();g.ellipse(0,0,p.r,p.r*.55,0,0,7);g.fill();g.restore();continue}
+  if(p.k==='tear'){g.globalAlpha=Math.min(1,a*1.4);g.fillStyle='#9fd3ff';g.strokeStyle='rgba(60,120,190,.8)';g.lineWidth=1.5;g.beginPath();g.moveTo(p.x,p.y-p.r*1.8);g.quadraticCurveTo(p.x+p.r,p.y,p.x,p.y+p.r);g.quadraticCurveTo(p.x-p.r,p.y,p.x,p.y-p.r*1.8);g.fill();g.stroke();continue}
+  if(p.k==='bub'){g.globalAlpha=a*.9;g.strokeStyle='#8a7d9a';g.fillStyle='rgba(255,255,255,.85)';g.lineWidth=2;g.beginPath();g.arc(p.x,p.y,p.r*(.6+k*.6),0,7);g.fill();g.stroke();continue}
+  if(p.k==='sweat'){const y=p.y;g.globalAlpha=Math.min(1,a*2);g.fillStyle='#bfe6ff';g.strokeStyle='#5a8fbf';g.lineWidth=2;g.beginPath();g.moveTo(p.x,y-p.r*1.6);g.quadraticCurveTo(p.x+p.r,y,p.x,y+p.r);g.quadraticCurveTo(p.x-p.r,y,p.x,y-p.r*1.6);g.fill();g.stroke();continue}
+  if(p.k==='dust'){g.globalAlpha=a*.35;g.fillStyle='#b9a796';g.beginPath();g.arc(p.x,p.y,p.r*(1+k),0,7);g.fill();continue}
+  if(p.k==='shock'){g.globalAlpha=a;g.strokeStyle='#3a2f2a';g.lineWidth=5;g.lineCap='round';const s=1+.3*Math.sin(k*Math.PI);for(let i=0;i<3;i++){const an_=-1.2+i*.45;g.beginPath();g.moveTo(p.x+Math.cos(an_)*22*s,p.y+Math.sin(an_)*22*s);g.lineTo(p.x+Math.cos(an_)*48*s,p.y+Math.sin(an_)*48*s);g.stroke()}}}
+  g.restore()}
+function bg(){const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#efe3d6');gr.addColorStop(.78,'#e8d6c6');gr.addColorStop(.781,'#dcc6b3');gr.addColorStop(1,'#d3bba7');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const rg=g.createRadialGradient(VIEW.x,420,40,VIEW.x,420,620);rg.addColorStop(0,'rgba(255,250,240,.8)');rg.addColorStop(1,'rgba(255,250,240,0)');g.fillStyle=rg;g.fillRect(0,0,W,H)}
+function drawNicole(o){rig.renderBody(o,VIEW);g.save();g.globalAlpha=o.alpha;g.drawImage(glc,0,0);g.restore()}
+function step(dt){demoStep(dt);OUT=an.update(dt);emit();stepParts(dt)}
+function draw(){g.setTransform(1,0,0,1,0,0);const o=OUT;if(DIFF){g.clearRect(0,0,c.width,c.height);drawNicole(o);return}bg();
+  // floor shadow: shrinks as she hops
+  const lift=Math.max(0,-o.ty);g.fillStyle=`rgba(90,60,50,${.22*o.alpha*(1-Math.min(.6,lift/60))})`;g.beginPath();g.ellipse(VIEW.x,VIEW.y+4,150*VIEW.k*(1-Math.min(.35,lift/90)),20*VIEW.k,0,0,7);g.fill();
+  if(fx&&o.fx.gather>0){const k=o.fx.gather,a=Math.sin(Math.PI*Math.min(1,k*1.1));const gr=g.createLinearGradient(VIEW.x-140,0,VIEW.x+140,0);gr.addColorStop(0,'rgba(255,240,205,0)');gr.addColorStop(.5,`rgba(255,240,205,${.55*a})`);gr.addColorStop(1,'rgba(255,240,205,0)');g.fillStyle=gr;g.fillRect(VIEW.x-140,0,280,VIEW.y)}
+  drawNicole(o);
+  if(fx)drawParts()}
+let DIFF=false,DIFFNOSH=false;
+window.QA={noshadow:v=>DIFFNOSH=v,diff:()=>{DIFF=true;c.width=glc.width=bc.width=sc.width=680;c.height=bc.height=sc.height=1024;c.height=glc.height=1024;VIEW.x=300;VIEW.y=992;VIEW.k=1;an.still=true;an.fid=null;an.fidgetT=1e9;an.act=null;an.hidden=false;parts=[];fx=false},manual:false,fx:v=>{fx=v;an.fxOn=v;if(!v)parts=[]},play:k=>an.play(k),talk:v=>setTalk(v),gesture:p=>an.gesture(p),face:n=>an.face(n),step:dt=>{step(dt);draw()},anim:an,rig};
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;const dt=Math.min(.05,(t-last)/1000)*(slow?.25:1);last=t;step(dt);draw()}
+an.play('appear');step(0);draw();requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
