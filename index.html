@@ -8991,7 +8991,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
    · 전투 무대(iframe)도 parent.LMS.play 로 부름 */
 (()=>{
   const VAR=new Set(['sfx_panel_open','sfx_panel_close','sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
-  const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.75,sfx_card_deselect:.7,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
+  const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.9,sfx_card_deselect:.9,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
   const GAP={sfx_combo_tick:60,sfx_fire_merge_spin:50,sfx_coin_drop:45,sfx_score_card:40,sfx_boss_rule_trigger:400,sfx_ui_click:40};
   const MAXP={sfx_card_deal:6,sfx_card_flip:6,sfx_score_card:4,sfx_coin_drop:4,sfx_combo_tick:3};
   let ctx=null,out=null;const buf={},load={},last={},lastV={},live={};let lastAny=0;
