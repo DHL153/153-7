@@ -8164,7 +8164,7 @@ let isGameOver = false;
     whirl:{sheet:'fx09',from:0,to:7,at:'mid',dx:-.15,dy:.05,size:1.7,fps:20,flipX:false,shake:6,shakeAt:0,wrap:.5},
     xcut:{sheet:'fx10',from:0,to:7,at:'mid',dx:0,dy:0,size:1.45,fps:18,flipX:false,shake:6,shakeAt:160},
     dust:{sheet:'fx11',fps:14,dash:{from:0,to:3,dx:-.12,size:1.25},land:{from:4,to:7,dx:0,size:1.4375},leap:{from:8,to:11,dx:0,size:1.25}},   // 몸 키 배율
-    shot:{n:3,gap:90,gun:[.47,-.34],muzzle:{from:0,to:3,size:.95,fps:22},bullet:{from:4,to:7,size:.9,fps:24,ms:170},boom:{from:8,to:11,dx:-.15,size:.55,fps:20}},   // 총구 = 발에서 앞 .72h · 위 .32h · boom = 적 키 배율
+    shot:{n:3,gap:90,gun:[.47,-.34],muzzle:{from:0,to:3,size:.95,fps:22},bullet:{from:4,to:7,size:.9,fps:24,ms:170},boom:{from:8,to:11,dx:-.15,size:.44,fps:20}},   // 총구 = 발에서 앞 .72h · 위 .32h · boom = 적 키 배율
     circle:{sheet:'fx06',dy:.22,size:1.5,fps:11},
     combo:{sheet:'fx12w',from:0,to:15,size:2.3,fps:22,shake:8}
   };
@@ -8200,7 +8200,7 @@ let isGameOver = false;
       const sz=h.h*B.size,b=flip('fx04',R(B.from,B.to),mx+sz*.2,my,sz,{fps:B.fps,loops:2});
       const ty=E.y+(i-1)*E.h*.08;
       try{b&&b.animate([{translate:'0 0'},{translate:`${E.x-mx-sz*.2}px ${ty-my}px`}],{duration:B.ms,easing:'linear',fill:'forwards'});}catch(e){}
-      setTimeout(()=>{b&&b.remove();flip('fx04',R(X.from,X.to),E.x+E.h*X.dx+(i-1)*E.h*.06,ty,E.h*X.size,{fps:X.fps});},B.ms);
+      setTimeout(()=>{b&&b.remove();flip('fx04',R(X.from,X.to),E.x+E.h*X.dx+(i-1)*E.h*.06,ty,E.h*X.size,{fps:X.fps,blend:'screen'});/* (DHL 11-03) 맞는 폭발: 빛 더하기 · 크기 .55→.44 — 적을 덮지 않고 비쳐 보이게 */},B.ms);
       actors[sl].off-=3;setTimeout(()=>{actors[sl].off+=3;},70);   // 반동
     },i*(T.gap||90));
   }
