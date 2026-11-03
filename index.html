@@ -4136,10 +4136,14 @@ window.__v3={get S(){return S},pickAwaken,beginRound,campOpen,guestGo,campPick,c
   while(w.nextNode())list.push(w.currentNode);
   list.forEach(swapText);
  }
- window.emoSwap=swap;
- const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')swapText(m.target);else m.addedNodes.forEach(swap);}});
- mo.observe(document.body,{childList:true,subtree:true,characterData:true});
- swap(document.body);
+ /* (DHL 11-04 '이모지 골드 모두 우리 UI로') 그림을 못 넣는 곳(마우스 올림 설명 title · 읽어 주기 aria-label · alt)은 💰 → '골드' 글자로 */
+ const ATTR=['title','aria-label','placeholder'];
+ function swapAttr(el){if(!el||el.nodeType!==1)return;for(const a of ATTR){const v=el.getAttribute&&el.getAttribute(a);if(v&&v.includes('💰'))el.setAttribute(a,v.replace(/💰\s*([+\-−]?[\d,]+)/g,'$1골드').replace(/💰/g,'골드'));}}
+ function swapAttrs(n){if(!n||n.nodeType!==1)return;swapAttr(n);n.querySelectorAll&&n.querySelectorAll('[title*="💰"],[aria-label*="💰"],[placeholder*="💰"]').forEach(swapAttr);}
+ window.emoSwap=n=>{swap(n);swapAttrs(n);};
+ const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')swapText(m.target);else if(m.type==='attributes')swapAttr(m.target);else m.addedNodes.forEach(n=>{swap(n);swapAttrs(n);});}});
+ mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTR});
+ swap(document.body);swapAttrs(document.body);
 })();
 
 </script>
@@ -6521,8 +6525,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   window.restHeader=header;
   function card(k,I,guest){const sel=S.restSel===k;
     return `<div class="cpSt${guest?' guest':''}${I.off?' off':''}${sel?' sel':''}" onclick="restTap('${k}')" onmouseenter="restHover('${k}')" onmouseleave="restHover()">`+
-      `${art(guest?S.campGuest.k:k)}<i class="cpFr"></i>${I.cost?`<span class="cpTag" title="비용 💰${I.cost}" aria-label="비용 ${I.cost}골드"><img src="assets/ui/kit/coin.webp" alt=""><b>${I.cost}</b></span>`:''}`+
-      `<b class="cpNm">${guest?GUESTS[S.campGuest.k].ko:NM[k]}</b><span class="cpStat">${I.cost?`<em class="cpCost"><img src="assets/ui/kit/coin.webp" alt="">${I.cost}</em>`:''}${I.st}</span></div>`;}
+      `${art(guest?S.campGuest.k:k)}<i class="cpFr"></i>${I.cost?`<span class="cpTag" title="비용 ${I.cost}골드" aria-label="비용 ${I.cost}골드"><img src="assets/ui/maple/icons/coin.webp" alt=""><b>${I.cost}</b></span>`:''}`+
+      `<b class="cpNm">${guest?GUESTS[S.campGuest.k].ko:NM[k]}</b><span class="cpStat">${I.cost?`<em class="cpCost"><img src="assets/ui/maple/icons/coin.webp" alt="">${I.cost}</em>`:''}${I.st}</span></div>`;}
   function all(){const L=Object.keys(CAMP).map(k=>[k,info(k),0]);const g=S.campGuest;if(g&&!g.used)L.unshift(['guest',gInfo(g),1]);return L;}
   function desc(k){if(!k){const last=S.campLog[S.campLog.length-1];
       return `<div class="cpDesc"><b>${S.campLog.length?'✔ '+last.split(' — ')[0]:'정비 '+(S.campMax||2)+'번'}</b><span>${S.campLog.length?(last.split(' — ')[1]||''):'같은 정비를 두 번 해도 돼요'}</span></div>`;}
