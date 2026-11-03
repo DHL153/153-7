@@ -8988,7 +8988,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
    · a·b·c 변형이 있는 소리는 돌아가며 (같은 것 연달아 안 나옴) · 같은 소리는 gap 안에 다시 안 남 · 소리마다 동시에 최대 MAXP 개
    · 전투 무대(iframe)도 parent.LMS.play 로 부름 */
 (()=>{
-  const VAR=new Set(['sfx_panel_open','sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
+  const VAR=new Set(['sfx_panel_open','sfx_panel_close','sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
   const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.75,sfx_card_deselect:.7,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
   const GAP={sfx_combo_tick:60,sfx_fire_merge_spin:50,sfx_coin_drop:45,sfx_score_card:40,sfx_boss_rule_trigger:400,sfx_ui_click:40};
   const MAXP={sfx_card_deal:6,sfx_card_flip:6,sfx_score_card:4,sfx_coin_drop:4,sfx_combo_tick:3};
@@ -9020,7 +9020,8 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     const dry=c.createGain(),wet=c.createGain(),cv=c.createConvolver();dry.gain.value=P.make*(1-P.wet*.5);wet.gain.value=P.make*P.wet;cv.buffer=ir(c,P.rt,P.pre);
     inp.connect(ls).connect(pk).connect(hs).connect(lp);lp.connect(dry).connect(out);lp.connect(cv).connect(wet).connect(out);return chains[k]={inp,P};}
   const FIXV={sfx_card_select:'b',sfx_card_deal:'a',sfx_card_flip:'a',sfx_ui_click:'m'};   // (DHL 11-03) 버튼 클릭 = 방치형 M&R 때의 클릭 소리(sfx_ui_click_m) 그대로   // 카드 · 버튼은 한 가지 소리로 (a·b·c 높이가 달라 매번 다른 소리처럼 들렸음) — 대신 높이를 아주 조금씩 흔듦
-  function pick(n){if(FIXV[n])return n+'_'+FIXV[n];if(!VAR.has(n))return n;let i=Math.random()*3|0;if(i===lastV[n])i=(i+1+(Math.random()*2|0))%3;lastV[n]=i;return n+'_'+'abc'[i];}
+  const VARN={sfx_panel_close:2};   // 변형이 3개가 아닌 소리
+  function pick(n){if(FIXV[n])return n+'_'+FIXV[n];if(!VAR.has(n))return n;const N=VARN[n]||3;let i=Math.random()*N|0;if(i===lastV[n])i=(i+1+(Math.random()*(N-1)|0))%N;lastV[n]=i;return n+'_'+'abc'[i];}
   function play(n,o={}){
     if(window.__lmsLog)window.__lmsLog.push(n);   // 시험용 기록
     try{const v=vol()*(o.vol??1)*(GAIN[n]??1);if(!(v>0))return;const now=performance.now(),gap=o.gap??GAP[n]??30;
@@ -9045,7 +9046,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     'sfx_coin_drop','sfx_coin_pile','sfx_coin_jackpot','sfx_spend','sfx_no_money','sfx_shop_open','sfx_shop_reroll','sfx_shop_buy','sfx_pack_open','sfx_pack_reveal','sfx_pack_rare','sfx_book_use','sfx_deed_use',
     'sfx_camp_enter','sfx_fire_merge_spin','sfx_fire_merge_stop','sfx_fire_merge_done','sfx_release','sfx_scout','sfx_night_walk','sfx_camp_leave',
     'sfx_nicole_pop','sfx_nicole_hop','sfx_tut_grad','sfx_game_over','sfx_victory','sfx_new_record','sfx_unlock_diff','sfx_character_love','sfx_character_select'];
-  let pre=false;function preload(){if(pre)return;pre=true;const L=ALL.flatMap(n=>FIXV[n]?[n+'_'+FIXV[n]]:VAR.has(n)?['_a','_b','_c'].map(x=>n+x):[n]);let i=0;
+  let pre=false;function preload(){if(pre)return;pre=true;const L=ALL.flatMap(n=>FIXV[n]?[n+'_'+FIXV[n]]:VAR.has(n)?['_a','_b','_c'].slice(0,VARN[n]||3).map(x=>n+x):[n]);let i=0;
     const next=()=>{if(i>=L.length)return;get(L[i++]).finally(next);};for(let k=0;k<4;k++)next();}   // 처음 누를 때 (브라우저 소리 잠금이 풀린 뒤) 4개씩 받아 둠
   addEventListener('pointerdown',()=>{ac();preload();},{capture:true,passive:true});
   addEventListener('keydown',()=>{ac();preload();},{capture:true,passive:true});
@@ -9063,7 +9064,8 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   document.addEventListener('click',e=>{const b=e.target.closest('button,[role=button],[onclick]');if(!b||b.closest(SKIP))return;
     if(performance.now()-LMS.since()>=clkAt)return;
     if(b.matches('.arrowBtn'))return;   // 쪽 넘김은 openInfo 에서
-    if(b.matches('.ibBack,.iClose,.lt-close,.lt-mb.back,.cmBackBtn,.lmBackBtn,.lm-replay-back,[aria-label="닫기"],[aria-label="뒤로"],[aria-label="close"],[aria-label="back"]'))return P('sfx_ui_back',{gap:40});   /* (DHL 11-04) 뒤로 · 닫기 · ✕ = ElevenLabs '낮은 톡톡' */
+    if(b.matches('.iClose,.lt-close,[aria-label="닫기"],[aria-label="close"]'))return P('sfx_panel_close',{gap:40});   /* (DHL 11-04) 닫기 · ✕ = ElevenLabs 부드러운 '툭' (2개 돌아가며) */
+    if(b.matches('.ibBack,.lt-mb.back,.cmBackBtn,.lmBackBtn,.lm-replay-back,[aria-label="뒤로"],[aria-label="back"]'))return P('sfx_ui_back',{gap:40});   /* 뒤로 = ElevenLabs '낮은 톡톡' */
     if(b.matches('.ibTab,.ls-tab,.cSub button,.pl-tabs button,[role=tab]'))return P('sfx_ui_tab',{gap:40});   /* (DHL 11-04) 탭 전환 = ElevenLabs 낮은 가죽 '톡' */
     P('sfx_ui_confirm',{gap:40});},false);   /* (DHL 11-04) 모든 버튼 = 타이틀 '플레이'를 눌렀을 때 소리 하나로 (뒤로 · 탭 · 정렬 · 해제 포함) — 창 열림 · 구매처럼 동작이 자기 소리를 내는 버튼은 그 소리 */
   document.addEventListener('change',e=>{if(e.target.matches('input[type=checkbox],input[type=radio],select'))P('sfx_ui_toggle');else if(e.target.matches('input[type=range]'))P('sfx_ui_click',{gap:120});},true);
