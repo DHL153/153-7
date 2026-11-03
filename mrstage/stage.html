@@ -8164,7 +8164,7 @@ let isGameOver = false;
     whirl:{sheet:'fx09',from:0,to:7,at:'mid',dx:-.15,dy:.05,size:1.7,fps:20,flipX:false,shake:6,shakeAt:0,wrap:.5},
     xcut:{sheet:'fx10',from:0,to:7,at:'mid',dx:0,dy:0,size:1.45,fps:18,flipX:false,shake:6,shakeAt:160},
     dust:{sheet:'fx11',fps:14,dash:{from:0,to:3,dx:-.12,size:1.25},land:{from:4,to:7,dx:0,size:1.4375},leap:{from:8,to:11,dx:0,size:1.25}},   // 몸 키 배율
-    shot:{n:3,gap:90,gun:[.5,-.2],muzzle:{from:0,to:3,size:.95,fps:22},bullet:{from:4,to:7,size:.9,fps:24,ms:170},boom:{from:8,to:11,dx:-.15,size:.55,fps:20}},   // 총구 = 발에서 앞 .72h · 위 .32h · boom = 적 키 배율
+    shot:{n:3,gap:90,gun:[.47,-.34],muzzle:{from:0,to:3,size:.95,fps:22},bullet:{from:4,to:7,size:.9,fps:24,ms:170},boom:{from:8,to:11,dx:-.15,size:.55,fps:20}},   // 총구 = 발에서 앞 .72h · 위 .32h · boom = 적 키 배율
     circle:{sheet:'fx06',dy:.22,size:1.5,fps:11},
     combo:{sheet:'fx12w',from:0,to:15,size:2.3,fps:22,shake:8}
   };
@@ -8190,9 +8190,11 @@ let isGameOver = false;
 
   const GUN={4:[.5,-.2],14:[.5,-.2],24:[.5,-.2]};   // (DHL 11-02 '다시 멀어짐') 지금 리그에서 잰 총구 끝 = 발에서 앞 .55h · 위 .2h → 화염이 총구에 살짝 겹치게 .5h   // 세 총 모두 총구 끝이 발에서 앞 .78h · 위 .32h — 화염 꼬리가 총구에 살짝 겹치게 .72h
   // 총 (fx04): 총구 화염 + 날아가는 탄환 + 닿을 때 작은 폭발, 3발
+  /* (DHL 11-03 '총구에 다시 맞게') 화면에서 잰 총구 끝: 러스트 4 = 발에서 앞 .47h · 위 .34h(기본 gun) · 네온 14 · 스카이 24 는 총이 더 길어서 더함 */
+  const GUN_ADJ={14:[.08,.02],24:[.12,-.03]};
   function shot(sl,num){
     // 총구 위치 = 발 기준 (몸 높이 비율) — 로시 3명 총 끝을 화면에서 재서 맞춤 (DHL 10-28 '총구와 이펙트가 안 맞음')
-    const T=RT('shot'),h=heroPt(sl),f=footOf(sl),E=enemyPt(),g=T.gun||GUN[num]||GUN[4],mx=f.x+f.h*g[0],my=f.y+f.h*g[1],M=T.muzzle,B=T.bullet,X=T.boom;
+    const T=RT('shot'),h=heroPt(sl),f=footOf(sl),E=enemyPt(),g0=T.gun||GUN[num]||GUN[4],ga=GUN_ADJ[num]||[0,0],g=[g0[0]+ga[0],g0[1]+ga[1]],mx=f.x+f.h*g[0],my=f.y+f.h*g[1],M=T.muzzle,B=T.bullet,X=T.boom;
     for(let i=0;i<(T.n||3);i++)setTimeout(()=>{
       flip('fx04',R(M.from,M.to),mx,my,h.h*M.size,{fps:M.fps});
       const sz=h.h*B.size,b=flip('fx04',R(B.from,B.to),mx+sz*.2,my,sz,{fps:B.fps,loops:2});
