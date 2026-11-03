@@ -27,3 +27,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_card_burn.mp3 | 0.14초 · 쇠갈고리 '척' + 종이 '찍' (잡음 0.39 — 예전 0.51, 11kHz 위 살짝 깎음) | sfx_card_burn (거인 '갈고리' 규칙으로 카드가 뜯겨 나갈 때) |
 | el_merge.mp3 | 0.53초 · 두 카드가 마법처럼 합쳐지는 반짝임 (잡음 0.23 · 원본 넘침 +2.9dB → 줄임) | sfx_merge (카드 머지 · 곧이어 별 오름 소리) |
 | el_orb_trigger_mult.mp3 | 0.18초 + 잔향 · 유리 구슬 '팅' 화음 (785Hz=솔, 잡음 0.00) → 완전5도 내려 '도'에 가깝게 | sfx_orb_trigger_mult_a (× 구슬 발동 — 점수 노래의 한 음, _b/_c 삭제) |
+| el_orb_equip.mp3 | 0.24초 · 아주 작은 유리 '띵' (소리 대부분 8~16kHz) → 완전5도 낮춰 덜 쏘게 | sfx_orb_equip (구슬을 칸에 끼움 · 상점에서 구슬 살 때) |
