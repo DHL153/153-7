@@ -2780,7 +2780,7 @@ html.game-booting #app{visibility:hidden!important;}
 #skill-cinematic .mrfc i{position:absolute;display:block;}
 #skill-cinematic .mrfc-glow{right:8cqw;top:50%;width:140cqh;height:140cqh;translate:0 -50%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--mrfc-c1) 55%,transparent),transparent 65%);animation:mrfcGlow calc(var(--t)*.33) calc(var(--t)*.05) ease-out both;}
 /* 2026-10-12: 얼굴 클로즈업 — 그림을 키우고(165→240cqh) 얼굴 중심(--fx,--fy)을 화면 (66%, 42%)에 둠 */
-#skill-cinematic .mrfc-art{--fa:calc(240cqh * var(--fz,1));width:var(--fa);height:var(--fa);left:calc(66cqw - var(--fx)*var(--fa));top:calc(42cqh - var(--fy)*var(--fa));background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
+#skill-cinematic .mrfc-art{--fa:calc(240cqh * var(--fz,1));width:var(--fa);height:var(--fa);left:calc(var(--fcx,66cqw) - var(--fx)*var(--fa));top:calc(var(--fcy,42cqh) - var(--fy)*var(--fa));background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
 #skill-cinematic .mrfc-plate{position:absolute;left:4cqw;bottom:12cqh;display:flex;flex-direction:column;align-items:flex-start;gap:1.2cqh;padding:3.6cqh 3.4cqw 4cqh 2.4cqw;background:linear-gradient(90deg,rgba(6,8,16,.9),rgba(6,8,16,.55));border-left:.8cqw solid var(--mrfc-c1);transform:skewX(-10deg);clip-path:inset(0 100% 0 0);animation:mrfcWipe calc(var(--t)*.18) calc(var(--t)*.1) cubic-bezier(.3,.8,.3,1) both;}
 #skill-cinematic .mrfc-name,#skill-cinematic .mrfc-skill{display:block;white-space:nowrap;font-family:'Pretendard','Segoe UI','Hiragino Sans','Noto Sans CJK JP','Microsoft YaHei',sans-serif;}
 #skill-cinematic .mrfc-name{font-size:min(2.6cqw,7.6cqh);font-weight:800;letter-spacing:.06em;color:var(--mrfc-c2);-webkit-text-fill-color:var(--mrfc-c2);transform-origin:left center;opacity:0;animation:mrfcNameBig calc(var(--t)*.22) calc(var(--t)*.12) ease-out both,mrfcNameBack calc(var(--t)*.17) calc(var(--t)*.4) ease-in-out forwards;}
@@ -6420,7 +6420,9 @@ function clearBattleTeamSkill(){
 const MYROOM_FACE=window.MRRoomFit.FACE;
 /* (DHL 11-01 '컷신 몇몇은 너무 크게') 필살기 컷신 확대 보정: 마이룸 그림마다 머리 크기가 달라(덩치 · 수염 큰 5·6·15·16·25·26 등) 같은 확대면 얼굴 크기가 들쭉날쭉
    → 머리(정수리~턱) 높이를 그림에서 재서 모두 같은 얼굴 크기(512 그림 기준 머리 105px)가 되게 곱함. 없으면 1 */
-const FINISH_ZOOM={2:.97,4:.97,5:.7,6:.7,7:.97,9:.84,11:.9,13:.97,14:.97,15:.7,16:.7,19:.78,21:.97,22:.97,23:.97,24:.9,25:.7,26:.7,27:.86,29:.78};
+/* (DHL 11-03 '브루노 처치 컷신: 오른손에 든 도끼가 휘어 보임 → 오른손이 안 보이게') 얼굴 자리를 오른쪽으로 · 더 가까이 — 오른손은 화면 밖 */
+const FINISH_POS={10:[86,46]};
+const FINISH_ZOOM={10:1.45,2:.97,4:.97,5:.7,6:.7,7:.97,9:.84,11:.9,13:.97,14:.97,15:.7,16:.7,19:.78,21:.97,22:.97,23:.97,24:.9,25:.7,26:.7,27:.86,29:.78};
 const FINISH_WORLD_COLORS=[['#e07a3f','#ffc58a'],['#ff3fa4','#7ff6ff'],['#58b8ff','#ffd27a']];
 function localizedAssetText(meta,key){
         const lang=window.MRLocale?.language,raw=String(meta?.[key]||'');
@@ -6453,7 +6455,7 @@ function startBattleFinishCutscene(stage,root,duration){
         // team-cut-in: 컷인 중 구슬 연출이 모이는 대상 · data-no-i18n: 이름 일부만 번역되어 섞이지 않게
         cut.className='mrfc team-cut-in';cut.id=`battle-cut-in-${leader.slot}`;cut.dataset.teamSlot=String(leader.slot);
         cut.setAttribute('data-no-i18n','');cut.setAttribute('aria-hidden','true');
-        cut.style.setProperty('--fx',fx);cut.style.setProperty('--fy',fy);cut.style.setProperty('--fz',FINISH_ZOOM[num]||1);
+        cut.style.setProperty('--fx',fx);cut.style.setProperty('--fy',fy);cut.style.setProperty('--fz',FINISH_ZOOM[num]||1);if(FINISH_POS[num]){cut.style.setProperty('--fcx',FINISH_POS[num][0]+'cqw');cut.style.setProperty('--fcy',FINISH_POS[num][1]+'cqh');}
         cut.style.setProperty('--mrfc-c1',c1);cut.style.setProperty('--mrfc-c2',c2);cut.style.setProperty('--mrfc-time',duration+'ms');
         cut.innerHTML='<i class="mrfc-glow"></i><i class="mrfc-art"></i><div class="mrfc-plate"><span class="mrfc-name"></span><strong class="mrfc-skill"></strong></div><i class="mrfc-flash"></i>';
         cut.querySelector('.mrfc-art').style.backgroundImage=`url("${encodeURI(room.path)}")`;
