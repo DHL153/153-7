@@ -1332,6 +1332,7 @@ html:not(.lmB) .otx .oef{display:block;font-size:9px;opacity:.75}
 #keyBar .kbShield{width:22px;height:22px;flex:none;filter:drop-shadow(0 0 4px #60a5fa88)}
 #keyBar .kbShield.brk{filter:drop-shadow(0 0 6px #fde047) brightness(1.2);animation:lmShBrk 1.2s ease-in-out infinite}
 #keyBar .kbCap b{color:#fde047}
+#keyBar .kbCap .kbL{display:block;font-style:normal;line-height:1.35}/* (DHL 11-03) 방패 설명 세 줄로 */
 @keyframes lmShBrk{0%,100%{rotate:0deg;scale:1}25%{rotate:-8deg;scale:1.12}75%{rotate:8deg;scale:1.12}}
 
 
@@ -2693,7 +2694,7 @@ function renderKeyBar(){const kb=$('keyBar');if(!kb)return;const f=S&&S.foe;
   const capN=shNow(),capOn=capN>0;   /* (DHL 10-30) 방패 에너지 남은 양 */
   kb.innerHTML=`<div class="kbHead">${KIC('k')}<span>맞춤</span><b>${sel?k.n:0}<small>/3</small></b></div>`+
     `<div class="kbSlots">${slot('w',k.w,`<em style="background:${WORLD_C[f.home]}">${ICO(f.home)}</em>`,WORLD_KO[f.home],'세계')}${slot('e',k.e,`<em style="background:${EL_C[wk]}">${ICO(EL_KEY[wk])}</em>`,wk,'약점')}${slot('h',k.h,port,f.no?'번호 '+f.no:hn,f.no?'번호':'주인공')}</div>`+
-    `<div class="kbCap"><img class="kbShield${sel&&k.n>=3?' brk':''}" src="assets/ui/lamancha/cap_shield.webp" alt=""><span>${sel&&k.n>=3?`<b>${TD()}!</b> 방패 무시, 전부 들어가요`:capOn?`방패 <b>${capN.toLocaleString()}</b> 남음 — 방패가 있는 동안 몸체는 한 번에 <b>60%</b>(${hitMax().toLocaleString()})까지만 맞아요. 넘친 피해는 방패가 받아요 · 3개 맞추면 ${TD()}`:'방패가 깨졌어요 — 전부 몸체로 들어가요'}</span></div><div class="kbArmor">${KIC('s')}<span class="kbSeg">${[0,1,2,3].map(n=>`<u class="${sel&&n===k.n?'cur':''}${n===3?' p':''}"><small>${n}개</small> 공격 ${KX(n)}${n===3?' · '+TD():''}</u>`).join('')}</span></div>`+
+    `<div class="kbCap"><img class="kbShield${sel&&k.n>=3?' brk':''}" src="assets/ui/lamancha/cap_shield.webp" alt=""><span>${sel&&k.n>=3?`<b>${TD()}!</b> 방패 무시, 전부 들어가요`:capOn?`<i class="kbL">방패 <b>${capN.toLocaleString()}</b> 남음</i><i class="kbL">방패가 있는 동안 몸체는 한 번에 <b>60%</b>(${hitMax().toLocaleString()})까지만 맞아요</i><i class="kbL">넘친 피해는 방패가 받아요</i><i class="kbL">3개 맞추면 <b>${TD()}</b></i>`:'방패가 깨졌어요 — 전부 몸체로 들어가요'}</span></div><div class="kbArmor">${KIC('s')}<span class="kbSeg">${[0,1,2,3].map(n=>`<u class="${sel&&n===k.n?'cur':''}${n===3?' p':''}"><small>${n}개</small> 공격 ${KX(n)}${n===3?' · '+TD():''}</u>`).join('')}</span></div>`+
     `<div class="kbNote">${sel&&ka.n>k.n?'<b>족보 밖</b> 카드로 맞춘 칸은 안 쳐요 · ':''}${sel?(k.n>=3?'세 가지 모두 — 공격 ×1.75 · '+TD()+'!':`이번 런 공격 ${KX(k.n)}`):'족보 카드로 세계 · 속성 · 번호를 맞춰요'}</div>`;}
 function renderAtk(){
   const bar=$('atkBar');if(S&&S.sandbox&&!S.busy){bar.className='ok pBar';bar.innerHTML=`🧪 <b>연습장</b> · ${S.sbMsg||'추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞'}<br><button onclick="sandboxFoe()">적 바꾸기</button> <button onclick="sandboxOrbs()">구슬 무작위</button> <button onclick="sandboxExit()">나가기</button>`;return;}
