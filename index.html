@@ -8075,6 +8075,9 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   function winFx(){
     const P=pile(),els=cardsOf();if(!P||!els.length||RM())return Promise.resolve();
     const pc=ctr(P);busy(1500);
+    /* (DHL 11-03) 효과음: 금빛 반짝 → 카드마다 뒤집히며 덱으로 휙 → 덱에 모두 들어가며 착 */
+    if(window.LMS){try{LMS.play('sfx_guide_glow',{vol:.55});els.forEach((d,i)=>{if(els.length>6&&i%Math.ceil(els.length/6))return;LMS.play('sfx_card_flip',{delay:i*60+700,vol:.4,gap:0});LMS.play('sfx_card_deal',{delay:i*60+860,vol:.5,gap:0});});
+      LMS.play('sfx_hand_sort',{delay:900+els.length*60,vol:.6});}catch(e){}}
     const all=els.map((d,i)=>{const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,g=add(d,'lmDfGlow'),bk=add(d,'lmDfBack'),dl=i*60;
       anim(g,[{opacity:0},{opacity:1,offset:.15},{opacity:.8,offset:.4},{opacity:0,offset:.55},{opacity:0}],{duration:1300,delay:dl,fill:'both'});
       anim(bk,[{opacity:0},{opacity:0,offset:.5},{opacity:1,offset:.56},{opacity:1}],{duration:1300,delay:dl,fill:'both'});
@@ -8087,6 +8090,8 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
     const P=pile(),els=cardsOf();if(!P||!els.length||RM())return Promise.resolve();
     const pc=ctr(P),v=document.createElement('i');v.className='lmDfVig';document.body.appendChild(v);busy(2000);
     anim(v,[{opacity:0},{opacity:1,offset:.25},{opacity:1}],{duration:1900,fill:'forwards'});
+    /* (DHL 11-03) 효과음: 무거운 패배음 → 카드마다 뒤집힘 → 가라앉아 덱으로 */
+    if(window.LMS){try{LMS.play('sfx_round_lose',{vol:.8});els.forEach((d,i)=>{if(els.length>6&&i%Math.ceil(els.length/6))return;LMS.play('sfx_card_flip',{delay:i*110+270,vol:.35,gap:0});LMS.play('sfx_card_deal',{delay:i*110+1000,vol:.35,gap:0});});}catch(e){}}
     const all=els.map((d,i)=>{const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,bk=add(d,'lmDfBack'),dl=i*110;bk.style.filter='grayscale(.8) brightness(.55)';
       anim(bk,[{opacity:0},{opacity:0,offset:.17},{opacity:1,offset:.19},{opacity:1}],{duration:1500,delay:dl,fill:'both'});
       return done(anim(d,[{transform:'none'},{transform:'translateY(6px) scaleX(0.04)',offset:.18},{transform:'translateY(12px) scale(.96)',offset:.34},{transform:'translateY(12px) scale(.96)',offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:1,offset:.96},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:0}],{duration:1500,delay:dl,easing:'cubic-bezier(.45,0,.4,1)',fill:'forwards'}));});
