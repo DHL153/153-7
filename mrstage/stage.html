@@ -8682,4 +8682,19 @@ html.mr-uikit body #app#app#app #battle-stage #boss-hud #boss-hp-text{left:calc(
 #lm-hitline{position:absolute;top:-3px;bottom:-3px;width:2.5px;margin-left:-1.25px;background:linear-gradient(#fde047 0 32%,transparent 32% 68%,#fde047 68%);filter:drop-shadow(0 0 .5px #3a2a00) drop-shadow(0 0 2px #f59e0b);z-index:3;display:none;pointer-events:none;transition:left .25s ease}
 html.mr-uikit body #app#app#app #battle-stage #boss-hp-track{overflow:visible!important}
 </style>
+<style id="lm-pc-text">
+/* (DHL 11-03) 모은 힘 ⚡ 이모지 → 우리 UI 금빛 번개 그림 (모든 화면) */
+.lm-charge b::before{content:''!important;display:inline-block;width:.78em;height:1em;margin-right:.06em;vertical-align:-.14em;background:url(../assets/ui/maple/icons/lightning.webp) center/contain no-repeat;filter:drop-shadow(0 0 1px #2a1406) drop-shadow(0 1px 0 #2a1406)}
+/* (DHL 11-03 'PC에서만 지금 모양 그대로 글씨만 작게') 전투 칸 폭 900px 이상(= PC)일 때 숫자 · 큰 글자 40~50% 작게 · 테두리 얇게 */
+@media (min-width:900px){
+  .lm-dmg{font:800 10px/1 'Noto Sans KR',system-ui,sans-serif!important;-webkit-text-stroke:2px #0b1220!important;letter-spacing:.02em;filter:drop-shadow(0 1px 1px #0008)}
+  .lm-dmg small{font-size:6px!important;-webkit-text-stroke:1.5px #0b1220!important}
+  .lm-dmg.weak{font-size:12px!important}.lm-dmg.resist{font-size:8px!important}
+  .lm-dmg.blk{font-size:11px!important;-webkit-text-stroke:2.2px #0b1220!important}.lm-dmg.blk small{font-size:6.5px!important}
+  .lm-dmg.fin{font-size:14px!important;-webkit-text-stroke:2.2px #0b1220!important}.lm-dmg.fin small{font-size:7px!important}
+  .lm-charge{font:800 9px/1 'Noto Sans KR',system-ui,sans-serif!important;-webkit-text-stroke:2px #2a1406!important}
+  .lm-big b{font:800 15px/1 'Noto Sans KR',system-ui,sans-serif!important;-webkit-text-stroke:2.5px #0b1220!important}
+  .lm-big small{font-size:7px!important;-webkit-text-stroke:2px #0b1220!important}
+}
+</style>
 </body></html>
