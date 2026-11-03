@@ -9044,15 +9044,17 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   /* ── 런 · 점수 계산 */
   W('doPlay',o=>function(merged){try{if(S&&!S.busy&&!merged&&(!S.sel.length||S.runs<=0||(typeof psyShort==='function'&&psyShort())))P('sfx_ui_denied',{vol:.7});}catch(e){}return o.apply(this,arguments);});
   const BIG=new Set(['house','march','oath','four','all']);
+  /* (DHL 11-03) 런 한 번의 점수 소리(카드 → 배수 → 구슬)가 도레미파솔라시도로 한 칸씩 올라감. 높은 도에서 멈춤 */
+  const MAJ=[0,2,4,5,7,9,11,12],note=A=>{const k=A._sc=(A._sc||0)+1;return Math.pow(2,MAJ[Math.min(k-1,MAJ.length-1)]/12);};
   W('tick',o=>function(now){const A=S&&S.anim,sh=A?A.shown:-1,fin=A?A.fin:1,pm=+(document.getElementById('vM')?.dataset.v||0);
     const r=o.apply(this,arguments);
     try{if(A&&!A._snd){A._snd=1;P('sfx_run_charge');const k=A.r&&A.r.keys;if(k&&k.n&&!S.sandbox)P(k.n>=3?'sfx_key_full':'sfx_key_match',{delay:300});}
       if(A&&A.shown!==sh){for(let i=Math.max(0,sh+1);i<=A.shown;i++){const st=A.r.steps[i];if(!st)continue;
         if(st.i===-1){P(BIG.has(A.r.ht)||A.r.steps.some(x=>x.i===-1&&x!==st)?'sfx_hand_name_big':'sfx_hand_name');continue;}
-        if(st.orb){const k=typeof orbKind==='function'?orbKind(st.orb):'';P(k==='mul'?'sfx_orb_trigger_mult':'sfx_orb_trigger_add');continue;}
-        if(st.orbs&&st.orbs.length){P('sfx_orb_trigger_add');continue;}
-        if(st.i>=0&&!st.out){A._sc=(A._sc||0)+1;P('sfx_score_card',{rate:1+Math.min(.45,(A._sc-1)*.06),gap:0});}
-        if(st.mult>pm&&!(st.i>=0))P('sfx_score_mult');}}
+        if(st.orb){const k=typeof orbKind==='function'?orbKind(st.orb):'';P(k==='mul'?'sfx_orb_trigger_mult':'sfx_orb_trigger_add',{rate:note(A),gap:0});continue;}
+        if(st.orbs&&st.orbs.length){P('sfx_orb_trigger_add',{rate:note(A),gap:0});continue;}
+        if(st.i>=0&&!st.out)P('sfx_score_card',{rate:note(A),gap:0});
+        if(st.mult>pm&&!(st.i>=0))P('sfx_score_mult',{rate:note(A),gap:0});}}
       if(A&&A.fin&&!fin){P('sfx_score_total');const tot=A.before+A.r.total;
         if(!S.practice&&!S.sandbox&&S.tgt>0&&A.before<S.tgt&&tot>=S.tgt)P('sfx_score_over',{delay:380});
         if(A.r.total>S.best&&S.best>0)P('sfx_new_record',{delay:650});}
