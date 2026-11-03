@@ -8048,7 +8048,7 @@ let isGameOver = false;
   let charge=0,chargeEl=null,auraEl=null;
   function heroPt(slot=0){
     const e=window.MRRig?.live?.get?.(slot),info=window.MRRig?.info;
-    if(e&&e.footX!=null&&info)return {x:e.footX,y:e.footY-info.bodyH*.55,h:info.bodyH};
+    if(e&&e.footX!=null&&info){const bh=e.bodyH>0?e.bodyH:info.bodyH;return {x:e.footX,y:e.footY-bh*.55,h:bh};}   /* (DHL 11-03 '로시 총구에서 또 벗어남') 실제로 그린 몸 크기(휴대폰 세로 70% · PC 85%) 기준 — 예전엔 줄이기 전 크기라 총구 불꽃 · 이펙트가 앞으로 밀렸음 */
     const el=battleTeamElement(slot)||$('hero');if(el&&!el.hidden)return {x:el.offsetLeft+el.offsetWidth/2,y:el.offsetTop+el.offsetHeight*.5,h:el.offsetHeight*.5};
     return {x:stage.clientWidth*.25,y:stage.clientHeight*.5,h:stage.clientHeight*.4};
   }
