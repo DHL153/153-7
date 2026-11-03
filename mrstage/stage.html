@@ -5502,6 +5502,9 @@ body:has(#battle-stage[data-team-skill="on"]) :is(#lm-gshield,#lm-cap-line),body
 </div>
 </div></div></div></div>
 <script id="mrstage-fit">
+/* (DHL 11-03) PC 캐릭터 크기: 전투 칸 폭 900px 이상일 때 몸 · 빌런 크기 배수 (1 = 그대로) */
+window.LM_PC_CHAR_K=window.LM_PC_CHAR_K||1;
+function lmCharK(){const pc=innerWidth>=900;   /* 전투 칸 실제 폭(iframe) — #battle-stage 는 작은 기준 크기에 확대라 쓰면 안 됨 */return lmPortraitK()*(pc?(+window.LM_PC_CHAR_K||1):1);}
 function lmPortraitK(){try{const w=window.top||window;return w.matchMedia('(orientation:portrait)').matches&&w.innerWidth<820?0.7:1;}catch(e){return 1;}}
 
 /* 원본 전투 칸 높이(145px, 메인 화면) 그대로 배치하고 통째로 확대 — 캐릭터·빌런·글자·이펙트 비율이 M&R과 같다.
@@ -7400,7 +7403,7 @@ let isGameOver = false;
       if(!id){m.el?.classList.remove('mr-rig-hidden');continue;}
       seen.add(m.slot);
       const entry=live.get(m.slot)||{slot:m.slot};if(entry.id&&entry.id!==id){entry.rig=null;entry.anim=null;}entry.id=id;entry.el=m.el;entry.z=m.z;entry.footX=m.footX;entry.footY=next.H-next.ground;
-      entry.bodyH=(m.imageH>0?m.imageH*BODY_PX:next.bodyH)*lmPortraitK(); // 그림 캐릭터와 같은 몸 크기 · (DHL 10-29) 휴대폰 세로는 70%
+      entry.bodyH=(m.imageH>0?m.imageH*BODY_PX:next.bodyH)*lmCharK(); // 그림 캐릭터와 같은 몸 크기 · (DHL 10-29) 휴대폰 세로는 70%
       // 배율은 배치할 때마다 다시 계산 (휴대폰처럼 처음 배치 뒤 전투 칸 크기가 바뀌면 옛 배율로 거대하게 그려졌음 — 2026-10-16 수정)
       if(entry.rig)entry.scale=entry.bodyH/(entry.rig.def.metrics?.bodyHeight||718);
       live.set(m.slot,entry);
@@ -7902,7 +7905,7 @@ let isGameOver = false;
     const el=[...stage.querySelectorAll('.battle-team-hero')].find(e=>!e.hidden&&e.style.getPropertyValue('--team-height'));
     if(!el)return;
     const imgH=parseFloat(el.style.getPropertyValue('--team-height'))/100*H,body=imgH*290/512;
-    const S=body*(kind==='boss'?1.15:1.0)/0.75*lmPortraitK();   // (DHL 10-29) 휴대폰 세로는 빌런도 70%
+    const S=body*(kind==='boss'?1.15:1.0)/0.75*lmCharK();   // (DHL 10-29) 휴대폰 세로는 빌런도 70%
     stage.style.setProperty('--lm-enemy-size',S.toFixed(1)+'px');
     /* (DHL 10-30) 방패 바 + HP 바 2단: 게이지는 빌런 발밑에 — 빌런을 가리지 않게. 자리가 모자라면 빌런을 그만큼만 올림 */
     const gk=(lmPortraitK()<1?1.5:1)*.8,gH=17*gk;   /* (DHL 10-31) 방패 · 게이지 전체 20% 작게 */stage.style.setProperty('--gk',gk);
