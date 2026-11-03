@@ -24,3 +24,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_card_discard.mp3 | 0.3초 · 휙 던져 0.3초에 '탁' 떨어짐 (잡음 0.20 — 예전 0.49) | sfx_card_discard (버리기) |
 | el_deck_shuffle.mp3 | 0.6초 · 리플 셔플 '촤르륵' (고음 28% — 예전 46%, 10kHz 위 살짝 깎음) | sfx_deck_shuffle (손패 크게 새로 받을 때) |
 | el_card_fog.mp3 | 0.4초 · 바람결과 함께 뒷면 카드가 '스르륵 탁' | sfx_card_fog (안개 규칙으로 뒷면 카드가 손패에 들어올 때 · 첫 손패가 모두 뒷면인 판 — 11-04 처음 연결) |
+| el_card_burn.mp3 | 0.14초 · 쇠갈고리 '척' + 종이 '찍' (잡음 0.39 — 예전 0.51, 11kHz 위 살짝 깎음) | sfx_card_burn (거인 '갈고리' 규칙으로 카드가 뜯겨 나갈 때) |
