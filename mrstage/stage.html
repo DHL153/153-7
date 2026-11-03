@@ -8233,6 +8233,8 @@ let isGameOver = false;
     const st=opt.star??starOf(num);
     cast.slot=sl;cast.group=opt.group||null;
     if(st>=2&&!opt.noCut){cast.cutDur=st>=3?1150:520;if(!cast.group){const e=battleTeamEntries().filter(x=>x.slot===sl);if(e.length)cast.group=e;}}
+    /* (DHL 11-04 '이펙트가 보였다 안 보였다') 컷인이 뜨면 이펙트를 모두 가림 → 앞 동료의 총알 · 폭발이 터지는 중에 다음 컷인이 뜨면 중간에 사라짐. 앞 이펙트가 끝날 때까지 잠깐(최대 .7초) 기다렸다가 컷인 */
+    if(st>=2&&!opt.noCut){const t0=performance.now(),busyFx=()=>[...stage.querySelectorAll('.lmflip')].some(e=>!/fx11/.test(e.style.backgroundImage));while(busyFx()&&performance.now()-t0<700)await sleep(40);}
     if(opt.impact){impact=opt.impact;clearTimeout(impactT);impactT=setTimeout(land,2200);}
     hitQ.push({n:num,t:performance.now()});hitCb=hitRun;   // 맞는 순간마다 하나씩 (★3 두 번 치기도 각각)
     event({level:opt.level??8,skill:st>=2&&!opt.noCut});
