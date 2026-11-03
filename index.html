@@ -2526,7 +2526,7 @@ function campReroll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!
   S.gold-=1;R.re--;a.no=1+(Math.random()*10|0);a.el=ELS[Math.random()*5|0];
   const ok=document.getElementById('campRO'),rr=document.getElementById('campRR');if(ok)ok.disabled=true;if(rr)rr.hidden=true;try{render();}catch(e){}campSpin(a);}
 function campRollOk(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a||R.busy)return;S.campRoll=null;
-  campDone(`🔨 모닥불 머지 — ${TYPES[a.id].ko} ★${a.star}${R.k==='mix'?' 혼합':''} (${WORLD_KO[cardW(a)]} · ${cardNo(a)} · ${a.el})`);}
+  campDone(`🔨 모닥불 머지 — ${TYPES[a.id].ko} 별 ${a.star}개${R.k==='mix'?' 혼합':''} (${WORLD_KO[cardW(a)]} · ${cardNo(a)} · ${a.el})`);}
 function campDone(msg){S.campLog.push(msg);S.campLeft--;if(S.campGuest&&S.campGuestUsing){S.campGuest.used=true;S.campGuestUsing=false;}popMsg('🏕 '+msg.split(' — ')[0]);if(S.campLeft>0)return campOpen();campFinish();}
 function campFinish(){const f=S.foes[S.rd];f.camped=true;S.campMsg=S.campLog.join(' · ');S.rd++;startRound();}   // 원정 캠프 없이 바로 다음 라운드
 /* 라운드 고르기 화면 (발라트로의 블라인드 선택) */
@@ -5375,7 +5375,7 @@ html.lmB .rbName{background:var(--nv-950)!important;box-shadow:inset 0 0 0 1px #
 html.lmB .rb3.cur .rbName{box-shadow:inset 0 0 0 2px var(--brass-hi)!important}
 html.lmB .rbScore,html.lmB .rbSkip{background:var(--nv-950)!important;box-shadow:inset 0 0 0 1px #ffffff0d}
 html.lmB .rbScore small,html.lmB .rbFoe span,html.lmB .rbSkip span{color:var(--muted)!important}
-html.lmB .rbGo{animation:none;border-width:11px 20px!important;border-image-width:11px 20px!important}
+html.lmB .rbGo{animation:none;border-width:0!important;border-style:solid!important;border-image-width:11px 20px!important;padding:0 8px!important;display:flex!important;align-items:center;justify-content:center;line-height:1!important;min-height:0}   /* (DHL 11-03) 테두리 두께가 글자 칸을 줄여 낮은 화면에서 글자가 내려앉음 → 테두리 그림은 그대로, 글자 칸은 버튼 전체에서 가운데 */
 html.lmB .rbGo::after{content:"";position:absolute;inset:-6px;border-radius:12px;pointer-events:none;box-shadow:0 0 16px #e8674a88;opacity:0;animation:lmGlow 1.6s ease-in-out infinite}
 html.lmB .rbTop{position:relative}
 @keyframes lmGlow{50%{opacity:1}}
