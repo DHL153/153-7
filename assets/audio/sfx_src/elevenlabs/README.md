@@ -9,3 +9,5 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_back_taps.mp3 | 0.06초 · 낮은 '톡톡' 두 번 (300→266Hz, 내려감) | sfx_ui_back · sfx_panel_close (뒤로 · 닫기 · ✕ 버튼) |
 | el_back_alt_tick.mp3 | 0.33초 늦게 시작 · 1.5kHz 틱 | 안 씀 (보관) |
 (같은 묶음 3번째 파일은 거의 안 들리고(−34dB) 잡음이 많아 뺌)
+| el_tab_tap.mp3 | 0.04초 · 낮은 가죽 '톡' (200Hz, 고음 0%) | sfx_ui_tab (탭 전환: 게임 설정 탭 · 플레이 탭 · 도감 · 배우기) |
+| el_tab_tap2.mp3 | 같은 계열, 조금 작음 | 안 씀 (보관) |
