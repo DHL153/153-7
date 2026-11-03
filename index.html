@@ -8972,7 +8972,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
    · 전투 무대(iframe)도 parent.LMS.play 로 부름 */
 (()=>{
   const VAR=new Set(['sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
-  const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.75,sfx_card_deselect:.7,sfx_ui_click:.7,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
+  const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.75,sfx_card_deselect:.7,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
   const GAP={sfx_combo_tick:60,sfx_fire_merge_spin:50,sfx_coin_drop:45,sfx_score_card:40,sfx_boss_rule_trigger:400,sfx_ui_click:40};
   const MAXP={sfx_card_deal:6,sfx_card_flip:6,sfx_score_card:4,sfx_coin_drop:4,sfx_combo_tick:3};
   let ctx=null,out=null;const buf={},load={},last={},lastV={},live={};let lastAny=0;
@@ -9000,16 +9000,16 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     const inp=c.createGain(),ls=B('lowshelf',P.low[0],P.low[1]),pk=B('peaking',P.cut[0],P.cut[2],P.cut[1]),hs=B('highshelf',P.high[0],P.high[1]),lp=B('lowpass',P.lp,null,.5);
     const dry=c.createGain(),wet=c.createGain(),cv=c.createConvolver();dry.gain.value=P.make*(1-P.wet*.5);wet.gain.value=P.make*P.wet;cv.buffer=ir(c,P.rt,P.pre);
     inp.connect(ls).connect(pk).connect(hs).connect(lp);lp.connect(dry).connect(out);lp.connect(cv).connect(wet).connect(out);return chains[k]={inp,P};}
-  const FIXV={sfx_card_select:'b',sfx_card_deal:'a',sfx_card_flip:'a',sfx_ui_click:'a'};   // 카드 · 버튼은 한 가지 소리로 (a·b·c 높이가 달라 매번 다른 소리처럼 들렸음) — 대신 높이를 아주 조금씩 흔듦
+  const FIXV={sfx_card_select:'b',sfx_card_deal:'a',sfx_card_flip:'a',sfx_ui_click:'m'};   // (DHL 11-03) 버튼 클릭 = 방치형 M&R 때의 클릭 소리(sfx_ui_click_m) 그대로   // 카드 · 버튼은 한 가지 소리로 (a·b·c 높이가 달라 매번 다른 소리처럼 들렸음) — 대신 높이를 아주 조금씩 흔듦
   function pick(n){if(FIXV[n])return n+'_'+FIXV[n];if(!VAR.has(n))return n;let i=Math.random()*3|0;if(i===lastV[n])i=(i+1+(Math.random()*2|0))%3;lastV[n]=i;return n+'_'+'abc'[i];}
   function play(n,o={}){
     if(window.__lmsLog)window.__lmsLog.push(n);   // 시험용 기록
     try{const v=vol()*(o.vol??1)*(GAIN[n]??1);if(!(v>0))return;const now=performance.now(),gap=o.gap??GAP[n]??30;
       if(now-(last[n]||0)<gap)return;last[n]=now;lastAny=now;
       const c=ac();if(!c)return;const f=pick(n);
-      const go=b=>{if(!b)return;const s=c.createBufferSource(),g=c.createGain();s.buffer=b;const jit=o.jit??(FIXV[n]&&!o.rate?.025:0);
+      const go=b=>{if(!b)return;const s=c.createBufferSource(),g=c.createGain();s.buffer=b;const jit=o.jit??(FIXV[n]&&!o.rate&&n!=='sfx_ui_click'?.025:0);
         s.playbackRate.value=(o.rate||1)*(jit?1+(Math.random()*2-1)*jit:1);g.gain.value=Math.min(1.5,v);
-        let ch=null;if(polOn()){try{ch=chainOf(c,catOf(n));}catch(e){ch=null;}}s.connect(g).connect(ch?ch.inp:out);
+        let ch=null;if(polOn()&&n!=='sfx_ui_click'){try{ch=chainOf(c,catOf(n));}catch(e){ch=null;}}s.connect(g).connect(ch?ch.inp:out);
         const late=(performance.now()-now),at=c.currentTime+Math.max(0,((o.delay||0)-late)/1000);s.start(at);
         if(ch&&ch.P.ens>0){try{const s2=c.createBufferSource(),g2=c.createGain();s2.buffer=b;s2.playbackRate.value=s.playbackRate.value*1.007;g2.gain.value=ch.P.ens;s2.connect(g2).connect(g);s2.start(at+.009);}catch(e){}}
         const L=live[n]=live[n]||[];L.push(s);if(L.length>(MAXP[n]||3)){try{L.shift().stop();}catch(e){}}
@@ -9026,7 +9026,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     'sfx_coin_drop','sfx_coin_pile','sfx_coin_jackpot','sfx_spend','sfx_no_money','sfx_shop_open','sfx_shop_reroll','sfx_shop_buy','sfx_pack_open','sfx_pack_reveal','sfx_pack_rare','sfx_book_use','sfx_deed_use',
     'sfx_camp_enter','sfx_fire_merge_spin','sfx_fire_merge_stop','sfx_fire_merge_done','sfx_release','sfx_scout','sfx_night_walk','sfx_camp_leave',
     'sfx_nicole_pop','sfx_nicole_hop','sfx_tut_grad','sfx_game_over','sfx_victory','sfx_new_record','sfx_unlock_diff','sfx_character_love','sfx_character_select'];
-  let pre=false;function preload(){if(pre)return;pre=true;const L=ALL.flatMap(n=>VAR.has(n)?['_a','_b','_c'].map(x=>n+x):[n]);let i=0;
+  let pre=false;function preload(){if(pre)return;pre=true;const L=ALL.flatMap(n=>FIXV[n]?[n+'_'+FIXV[n]]:VAR.has(n)?['_a','_b','_c'].map(x=>n+x):[n]);let i=0;
     const next=()=>{if(i>=L.length)return;get(L[i++]).finally(next);};for(let k=0;k<4;k++)next();}   // 처음 누를 때 (브라우저 소리 잠금이 풀린 뒤) 4개씩 받아 둠
   addEventListener('pointerdown',()=>{ac();preload();},{capture:true,passive:true});
   addEventListener('keydown',()=>{ac();preload();},{capture:true,passive:true});
@@ -9065,8 +9065,12 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   /* ── 런 · 점수 계산 */
   W('doPlay',o=>function(merged){try{if(S&&!S.busy&&!merged&&(!S.sel.length||S.runs<=0||(typeof psyShort==='function'&&psyShort())))P('sfx_ui_denied',{vol:.7});}catch(e){}return o.apply(this,arguments);});
   const BIG=new Set(['house','march','oath','four','all']);
-  /* (DHL 11-03) 런 한 번의 점수 소리(카드 → 배수 → 구슬)가 도레미파솔라시도로 한 칸씩 올라감. 높은 도에서 멈춤 */
-  const MAJ=[0,2,4,5,7,9,11,12],note=A=>{const k=A._sc=(A._sc||0)+1;return Math.pow(2,MAJ[Math.min(k-1,MAJ.length-1)]/12);};
+  /* (DHL 11-03) 런 한 번의 점수 소리(카드 → 배수 → 구슬)가 노래 한 곡의 음을 하나씩 연주 — 방치형 M&R '멜로디 머지'와 같은 동요 3곡 중 런마다 랜덤(같은 곡 연달아 안 나옴), 곡이 끝나면 처음부터
+     세 곡 모두 저작권이 없는 곡(프랑스 민요 · 독일 민요 · 베토벤) */
+  const MELS=[[0,0,7,7,9,9,7,5,5,4,4,2,2,0],[7,4,4,5,2,2,0,2,4,5,7,7,7],[4,4,5,7,7,5,4,2,0,0,2,4,4,2,2]];   // 반짝반짝 작은별 · 나비야 · 환희의 송가 (도 = 0)
+  let lastMel=-1;
+  const note=A=>{if(A._mel==null){let i=Math.random()*MELS.length|0;if(i===lastMel)i=(i+1+(Math.random()*(MELS.length-1)|0))%MELS.length;lastMel=A._mel=i;}
+    const m=MELS[A._mel],k=A._sc=(A._sc||0)+1;return Math.pow(2,m[(k-1)%m.length]/12);};
   W('tick',o=>function(now){const A=S&&S.anim,sh=A?A.shown:-1,fin=A?A.fin:1,pm=+(document.getElementById('vM')?.dataset.v||0);
     const r=o.apply(this,arguments);
     try{if(A&&!A._snd){A._snd=1;P('sfx_run_charge');const k=A.r&&A.r.keys;if(k&&k.n&&!S.sandbox)P(k.n>=3?'sfx_key_full':'sfx_key_match',{delay:300});}
