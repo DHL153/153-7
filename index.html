@@ -2629,12 +2629,14 @@ function beginRound(){
   S.hand=[];S.sel=[];S.runs=K==='needle'?1:S.runsMax;S.dis=K==='water'?0:S.disMax;S.handNow=S.handN-(K==='manacle'?1:0);S.roundMerges=0;S.discCount=0;S.bOrb=null;S.score=0;S.sh=null;S.tgt=roundTgt(S.rd);
   S.offOrb=null;S.orbHidden=false;S.forced=null;S.ostate=S.ostate||{};
   {const di=S.orbs.indexOf('dagger');if(di>=0&&di<S.orbs.length-1){const v=S.orbs[di+1],gain=2*sellPrice(v);S.ostate.dagger=(S.ostate.dagger||0)+gain;delete S.ost[v];delete S.ostate[v];S.orbs.splice(di+1,1);setTimeout(()=>popMsg('🗡 제물의 단검 — '+ORBS[v].ko+' 파괴, 기세 +'+gain),300);}}if(K==='acorn'){S.orbs=shuffle(S.orbs);S.orbHidden=true;}if(K==='leaf')R.on=S.orbs.length>0;
-  S.world=JANG_WORLD(S.jang);S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
-  fill(true);if(K==='house')S.hand.forEach(c=>c.fog=true);rollIntent();bossTick();render();
+  const prevW=S.world;S.world=JANG_WORLD(S.jang);if(prevW&&prevW!==S.world)try{window.LMS&&LMS.play('sfx_world_change',{vol:.85,gap:2000});}catch(e){}   // 다음 장 — 세계가 바뀌면 풍차 문 '슈와앙' (11-04 ElevenLabs)
+  S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
+  fill(true);if(K==='house'){S.hand.forEach(c=>c.fog=true);try{window.LMS&&LMS.play('sfx_card_fog',{delay:380,vol:.8,gap:400});}catch(e){}}rollIntent();bossTick();render();
 }
 /* 손패 채우기 — 뱀: 첫 손패 뒤에는 런 · 버리기마다 3장만 */
-function fill(first){S.hl=null;if(S.sandbox&&S.draw.length<(S.handNow||S.handN)){const inH=new Set(S.hand.map(c=>c.uid));S.draw=shuffle(S.deck.filter(c=>!inH.has(c.uid)&&!S.draw.includes(c)).concat(S.draw));}const R=S.foe&&S.foe.rule,fog=R&&R.k==='fog',lim=!first&&R&&R.k==='serpent'?3:99;let n=0;
-  while(S.hand.length<(S.handNow||S.handN)&&S.draw.length&&n<lim){const c=S.draw.pop();n++;if(fog&&Math.random()<0.3)c.fog=true;S.hand.push(c);}   // 안개: 새로 들어온 카드 30%가 뒷면
+function fill(first){S.hl=null;if(S.sandbox&&S.draw.length<(S.handNow||S.handN)){const inH=new Set(S.hand.map(c=>c.uid));S.draw=shuffle(S.deck.filter(c=>!inH.has(c.uid)&&!S.draw.includes(c)).concat(S.draw));}const R=S.foe&&S.foe.rule,fog=R&&R.k==='fog',lim=!first&&R&&R.k==='serpent'?3:99;let n=0,nFog=0;
+  while(S.hand.length<(S.handNow||S.handN)&&S.draw.length&&n<lim){const c=S.draw.pop();n++;if(fog&&Math.random()<0.3){c.fog=true;nFog++;}S.hand.push(c);}
+  if(nFog)try{window.LMS&&LMS.play('sfx_card_fog',{delay:380,vol:.8,gap:400});}catch(e){}   // 안개 카드가 들어올 때 '스르륵' (11-04 ElevenLabs)   // 안개: 새로 들어온 카드 30%가 뒷면
   sortHand();}
 /* 런마다 바뀌는 거인 효과: 풍차 날개(구슬 하나 꺼짐) · 바람 종(카드 1장 강제 선택) */
 function bossTick(){const K=S.foe&&S.foe.rule&&S.foe.rule.k;
@@ -3876,7 +3878,7 @@ function hideOv(){$('ov').hidden=true;}
 
 $('bPlay').onclick=()=>doPlay();$('bDis').onclick=()=>doDiscard();   /* 손패 리그 연출(슬픈 표정 → 사라짐)을 거치도록 — 함수 원본을 바로 묶으면 연출이 건너뛰어짐 */$('bMerge').onclick=doMerge;
 $('bClear').onclick=()=>{S.sel=[];render();};
-$('bSort').onclick=()=>{const o=Object.keys(SORT_KO);S.sort=o[(o.indexOf(S.sort)+1)%o.length];sortHand();render();$('tip').textContent='정렬: '+o.map(k=>k===S.sort?'['+SORT_KO[k]+']':SORT_KO[k]).join(' → ');};
+$('bSort').onclick=()=>{try{window.LMS&&LMS.play('sfx_hand_sort',{vol:.7,gap:120});}catch(e){}const o=Object.keys(SORT_KO);S.sort=o[(o.indexOf(S.sort)+1)%o.length];sortHand();render();$('tip').textContent='정렬: '+o.map(k=>k===S.sort?'['+SORT_KO[k]+']':SORT_KO[k]).join(' → ');};
 $('bLearn').onclick=()=>{if(S)openInfo('learn','list');};
 $('bInfo').onclick=()=>{if(S){S.orbs.forEach(k=>codexMark('orb',k));LEARN_SEEN.length?openInfo('run'):openInfo('learn','list');}};   // 처음 온 사람은 배우기, 이후엔 이번 판
 document.addEventListener('keydown',e=>{if(!$('ov').hidden)return;if(e.key==='Enter')doPlay();if(e.key==='m'&&!document.body.classList.contains('lm-noMergeBtn'))doMerge();});
@@ -3925,8 +3927,9 @@ async function lmStartGame(){
 /* ── 타이틀 ── */
 let ltRaf=0,ltAng=0,ltLast=0;
 function ltShow(){
-  const t=$('lm-title');t.hidden=false;document.body.classList.add('lm-titleOn');
+  const t=$('lm-title'),wasHidden=t.hidden;t.hidden=false;document.body.classList.add('lm-titleOn');
   const bl=t.querySelector('.mr-logo-blades');ltLast=0;
+  if(wasHidden&&!t.classList.contains('ingame'))try{window.LMS&&LMS.play('sfx_title_logo',{delay:120,gap:2500});}catch(e){}   // 풍차 돌기 시작 소리 (11-04 ElevenLabs)
   const spin=now=>{if(t.hidden){ltRaf=0;return;}const dt=ltLast?Math.min(64,now-ltLast):16;ltLast=now;
     ltAng=(ltAng+70*dt/1000)%360;bl.style.transform='rotate('+ltAng.toFixed(2)+'deg)';ltRaf=requestAnimationFrame(spin);};
   if(!ltRaf&&!matchMedia('(prefers-reduced-motion:reduce)').matches)ltRaf=requestAnimationFrame(spin);
@@ -4077,6 +4080,7 @@ function ltReplayIntro(){
   // 처음 실행 때와 같은 '움직이려다 마는' 한 번 (t0초에 시작, peak°까지 밀렸다가 살짝 반대로 넘어가 제자리)
   const attempt=(a,t0,peak)=>{const t=a-t0;if(t<0||t>.65)return 0;if(t<.3){const k=t/.3;return peak*(1-(1-k)*(1-k));}if(t<.5){const k=(t-.3)/.2;return peak+(-.18*peak-peak)*(k*k);}const k=(t-.5)/.15;return -.18*peak*(1-k*k*(3-2*k));};
   const SPD=110;   // 다 돈 뒤 일정한 속도 (도/초)
+  try{window.LMS&&LMS.play('sfx_title_logo',{delay:reduce?0:1850,gap:2500});}catch(e){}   // 다시 보기: 풍차가 진짜로 돌기 시작할 때
   let t0=0,last=0,ang=0,raf=0;
   const loop=t=>{if(!sc.isConnected)return;if(!t0)t0=t;const dt=last?Math.min(64,t-last):16;last=t;const age=(t-t0)/1000;let spd=0,wob=0;
     if(age<1.85)wob=attempt(age,.25,7)+attempt(age,1.05,26);           // 1차 살짝 · 2차 크게
@@ -8988,8 +8992,8 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
    · a·b·c 변형이 있는 소리는 돌아가며 (같은 것 연달아 안 나옴) · 같은 소리는 gap 안에 다시 안 남 · 소리마다 동시에 최대 MAXP 개
    · 전투 무대(iframe)도 parent.LMS.play 로 부름 */
 (()=>{
-  const VAR=new Set(['sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
-  const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.75,sfx_card_deselect:.7,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
+  const VAR=new Set(['sfx_panel_open','sfx_panel_close','sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
+  const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.9,sfx_card_deselect:.9,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
   const GAP={sfx_combo_tick:60,sfx_fire_merge_spin:50,sfx_coin_drop:45,sfx_score_card:40,sfx_boss_rule_trigger:400,sfx_ui_click:40};
   const MAXP={sfx_card_deal:6,sfx_card_flip:6,sfx_score_card:4,sfx_coin_drop:4,sfx_combo_tick:3};
   let ctx=null,out=null;const buf={},load={},last={},lastV={},live={};let lastAny=0;
@@ -9005,6 +9009,8 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   const POL={card:{low:[250,2],cut:[3500,.8,-4],high:[4500,-8],lp:8000,rt:.5,pre:.008,wet:.09,make:1.3,ens:.2},
     ui:{low:[200,1.5],cut:[3000,.9,-3],high:[5500,-6],lp:9500,rt:.45,pre:.006,wet:.07,make:1.15,ens:0},
     rest:{low:[200,1],cut:[3000,.9,-2.5],high:[7000,-4],lp:12000,rt:.6,pre:.01,wet:.08,make:1.08,ens:0}};
+  /* (DHL 11-04) ElevenLabs로 다시 만든 깨끗한 실제 카드 소리는 다듬기(고음 깎기 · 겹치기)를 거치지 않음 — 잡음이 없어서 깎으면 먹먹해짐 */
+  const NOPOL=new Set(['sfx_character_select','sfx_unlock_diff','sfx_guide_glow','sfx_camp_leave','sfx_release','sfx_fire_merge_done','sfx_deed_use','sfx_book_use','sfx_pack_rare','sfx_pack_reveal','sfx_pack_open','sfx_shop_buy','sfx_shop_reroll','sfx_shop_open','sfx_coin_pile','sfx_world_change','sfx_boss_defeat','sfx_boss_rule','sfx_runs_low','sfx_round_start','sfx_round_select','sfx_counter','sfx_finish_cut','sfx_foe_defeat','sfx_shield_break','sfx_shield_block','sfx_hit_weak','sfx_hit_neon','sfx_hit_rust','sfx_run_charge','sfx_atk_dual','sfx_atk_widesword','sfx_atk_shieldaxe','sfx_atk_staff','sfx_atk_fist','sfx_atk_gun','sfx_atk_bigblade','sfx_atk_hammer','sfx_atk_greatsword','sfx_orb_swap','sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_hand_sort','sfx_card_discard','sfx_deck_shuffle','sfx_card_fog','sfx_card_burn','sfx_merge','sfx_orb_trigger_mult','sfx_orb_equip','sfx_fire_merge_spin','sfx_fire_merge_stop']);
   const catOf=n=>/^sfx_(card_|hand_sort|deck_shuffle)/.test(n)?'card':/^sfx_(ui_|panel_|page_turn|tooltip)/.test(n)?'ui':'rest';
   const polOn=()=>{try{return LM_SET.fxpol!==0;}catch(e){return true;}};
   const chains={};let irs={};
@@ -9017,8 +9023,9 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     const inp=c.createGain(),ls=B('lowshelf',P.low[0],P.low[1]),pk=B('peaking',P.cut[0],P.cut[2],P.cut[1]),hs=B('highshelf',P.high[0],P.high[1]),lp=B('lowpass',P.lp,null,.5);
     const dry=c.createGain(),wet=c.createGain(),cv=c.createConvolver();dry.gain.value=P.make*(1-P.wet*.5);wet.gain.value=P.make*P.wet;cv.buffer=ir(c,P.rt,P.pre);
     inp.connect(ls).connect(pk).connect(hs).connect(lp);lp.connect(dry).connect(out);lp.connect(cv).connect(wet).connect(out);return chains[k]={inp,P};}
-  const FIXV={sfx_card_select:'b',sfx_card_deal:'a',sfx_card_flip:'a',sfx_ui_click:'m'};   // (DHL 11-03) 버튼 클릭 = 방치형 M&R 때의 클릭 소리(sfx_ui_click_m) 그대로   // 카드 · 버튼은 한 가지 소리로 (a·b·c 높이가 달라 매번 다른 소리처럼 들렸음) — 대신 높이를 아주 조금씩 흔듦
-  function pick(n){if(FIXV[n])return n+'_'+FIXV[n];if(!VAR.has(n))return n;let i=Math.random()*3|0;if(i===lastV[n])i=(i+1+(Math.random()*2|0))%3;lastV[n]=i;return n+'_'+'abc'[i];}
+  const FIXV={sfx_orb_trigger_mult:'a',sfx_page_turn:'a',sfx_card_select:'b',sfx_card_flip:'a',sfx_ui_click:'m'};   // (DHL 11-03) 버튼 클릭 = 방치형 M&R 때의 클릭 소리(sfx_ui_click_m) 그대로   // 카드 · 버튼은 한 가지 소리로 (a·b·c 높이가 달라 매번 다른 소리처럼 들렸음) — 대신 높이를 아주 조금씩 흔듦
+  const VARN={sfx_panel_close:2,sfx_card_deal:2};   // 변형이 3개가 아닌 소리
+  function pick(n){if(FIXV[n])return n+'_'+FIXV[n];if(!VAR.has(n))return n;const N=VARN[n]||3;let i=Math.random()*N|0;if(i===lastV[n])i=(i+1+(Math.random()*(N-1)|0))%N;lastV[n]=i;return n+'_'+'abc'[i];}
   function play(n,o={}){
     if(window.__lmsLog)window.__lmsLog.push(n);   // 시험용 기록
     try{const v=vol()*(o.vol??1)*(GAIN[n]??1);if(!(v>0))return;const now=performance.now(),gap=o.gap??GAP[n]??30;
@@ -9026,24 +9033,24 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
       const c=ac();if(!c)return;const f=pick(n);
       const go=b=>{if(!b)return;const s=c.createBufferSource(),g=c.createGain();s.buffer=b;const jit=o.jit??(FIXV[n]&&!o.rate&&n!=='sfx_ui_click'?.025:0);
         s.playbackRate.value=(o.rate||1)*(jit?1+(Math.random()*2-1)*jit:1);g.gain.value=Math.min(1.5,v);
-        let ch=null;if(polOn()&&n!=='sfx_ui_click'){try{ch=chainOf(c,catOf(n));}catch(e){ch=null;}}s.connect(g).connect(ch?ch.inp:out);
+        let ch=null;if(polOn()&&n!=='sfx_ui_click'&&!NOPOL.has(n)){try{ch=chainOf(c,catOf(n));}catch(e){ch=null;}}s.connect(g).connect(ch?ch.inp:out);
         const late=(performance.now()-now),at=c.currentTime+Math.max(0,((o.delay||0)-late)/1000);s.start(at);
         if(ch&&ch.P.ens>0){try{const s2=c.createBufferSource(),g2=c.createGain();s2.buffer=b;s2.playbackRate.value=s.playbackRate.value*1.007;g2.gain.value=ch.P.ens;s2.connect(g2).connect(g);s2.start(at+.009);}catch(e){}}
         const L=live[n]=live[n]||[];L.push(s);if(L.length>(MAXP[n]||3)){try{L.shift().stop();}catch(e){}}
         s.onended=()=>{const k=L.indexOf(s);if(k>=0)L.splice(k,1);};};
       if(buf[f]!==undefined)go(buf[f]);else get(f).then(b=>{if(performance.now()-now<300+(o.delay||0))go(b);});
     }catch(e){}}
-  const ALL=['sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_page_turn','sfx_tooltip',
-    'sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_discard','sfx_hand_sort','sfx_deck_shuffle','sfx_card_burn',
+  const ALL=['sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_panel_close','sfx_page_turn','sfx_tooltip','sfx_title_logo','sfx_guide_glow',
+    'sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_discard','sfx_hand_sort','sfx_deck_shuffle','sfx_card_burn','sfx_card_hover','sfx_card_fog',
     'sfx_hand_name','sfx_hand_name_big','sfx_score_card','sfx_score_mult','sfx_score_total','sfx_score_over','sfx_key_match','sfx_key_full','sfx_combo_tick',
     'sfx_merge','sfx_merge_awaken','sfx_star_up','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_orb_equip','sfx_orb_swap','sfx_orb_sell',
     'sfx_atk_greatsword','sfx_atk_hammer','sfx_atk_bigblade','sfx_atk_gun','sfx_atk_fist','sfx_atk_staff','sfx_atk_shieldaxe','sfx_atk_spear','sfx_atk_widesword','sfx_atk_dual','sfx_run_charge',
     'sfx_hit_rust','sfx_hit_neon','sfx_hit_sky','sfx_hit_weak','sfx_shield_block','sfx_shield_break','sfx_foe_defeat','sfx_finish_cut','sfx_counter',
-    'sfx_round_select','sfx_round_start','sfx_round_win','sfx_runs_low','sfx_boss_enter','sfx_boss_rule','sfx_boss_rule_trigger','sfx_boss_defeat','sfx_chapter_clear',
+    'sfx_round_select','sfx_round_start','sfx_round_win','sfx_runs_low','sfx_boss_enter','sfx_boss_rule','sfx_boss_rule_trigger','sfx_boss_defeat','sfx_chapter_clear','sfx_world_change',
     'sfx_coin_drop','sfx_coin_pile','sfx_coin_jackpot','sfx_spend','sfx_no_money','sfx_shop_open','sfx_shop_reroll','sfx_shop_buy','sfx_pack_open','sfx_pack_reveal','sfx_pack_rare','sfx_book_use','sfx_deed_use',
     'sfx_camp_enter','sfx_fire_merge_spin','sfx_fire_merge_stop','sfx_fire_merge_done','sfx_release','sfx_scout','sfx_night_walk','sfx_camp_leave',
     'sfx_nicole_pop','sfx_nicole_hop','sfx_tut_grad','sfx_game_over','sfx_victory','sfx_new_record','sfx_unlock_diff','sfx_character_love','sfx_character_select'];
-  let pre=false;function preload(){if(pre)return;pre=true;const L=ALL.flatMap(n=>FIXV[n]?[n+'_'+FIXV[n]]:VAR.has(n)?['_a','_b','_c'].map(x=>n+x):[n]);let i=0;
+  let pre=false;function preload(){if(pre)return;pre=true;const L=ALL.flatMap(n=>FIXV[n]?[n+'_'+FIXV[n]]:VAR.has(n)?['_a','_b','_c'].slice(0,VARN[n]||3).map(x=>n+x):[n]);let i=0;
     const next=()=>{if(i>=L.length)return;get(L[i++]).finally(next);};for(let k=0;k<4;k++)next();}   // 처음 누를 때 (브라우저 소리 잠금이 풀린 뒤) 4개씩 받아 둠
   addEventListener('pointerdown',()=>{ac();preload();},{capture:true,passive:true});
   addEventListener('keydown',()=>{ac();preload();},{capture:true,passive:true});
@@ -9056,12 +9063,17 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   try{lmSfxTick=function(){P('sfx_combo_tick');};}catch(e){}
 
   /* ── 버튼 (게임 동작이 자기 소리를 냈으면 일반 클릭 소리는 생략) */
-  const SKIP='#hand .card,#bPlay,#bDis,#bMerge,.tile,.sorb,.wCard,.packRow .card,.cashBtn,#cashBtn';
+  const SKIP='#hand .card,#bPlay,#bDis,#bMerge,#bSort,.tile,.sorb,.wCard,.packRow .card,.cashBtn,#cashBtn';
   let clkAt=0;document.addEventListener('click',()=>{clkAt=performance.now();},true);   // 누른 뒤 게임 동작이 이미 소리를 냈으면 일반 클릭 소리 생략
   document.addEventListener('click',e=>{const b=e.target.closest('button,[role=button],[onclick]');if(!b||b.closest(SKIP))return;
     if(performance.now()-LMS.since()>=clkAt)return;
     if(b.matches('.arrowBtn'))return;   // 쪽 넘김은 openInfo 에서
-    P('sfx_ui_confirm',{gap:40});},false);   /* (DHL 11-04) 모든 버튼 = 타이틀 '플레이'를 눌렀을 때 소리 하나로 (뒤로 · 탭 · 정렬 · 해제 포함) — 창 열림 · 구매처럼 동작이 자기 소리를 내는 버튼은 그 소리 */
+    if(b.matches('.iClose,.lt-close,[aria-label="닫기"],[aria-label="close"]'))return P('sfx_panel_close',{gap:40});   /* (DHL 11-04) 닫기 · ✕ = ElevenLabs 부드러운 '툭' (2개 돌아가며) */
+    if(b.matches('.ibBack,.lt-mb.back,.cmBackBtn,.lmBackBtn,.lm-replay-back,[aria-label="뒤로"],[aria-label="back"]'))return P('sfx_ui_back',{gap:40});   /* 뒤로 = ElevenLabs '낮은 톡톡' */
+    if(b.matches('.ibTab,.ls-tab,.cSub button,.pl-tabs button,[role=tab]'))return P('sfx_ui_tab',{gap:40});   /* (DHL 11-04) 탭 전환 = ElevenLabs 낮은 가죽 '톡' */
+    P('sfx_ui_confirm',{gap:40});},false);
+  /* 손패 카드 위에 마우스를 올리면 아주 작은 '슥' (11-04 ElevenLabs · 마우스만, 같은 카드 위에선 한 번만) */
+  let hovC=null;document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const c=e.target.closest&&e.target.closest('#hand .card');if(c===hovC)return;hovC=c;if(c&&!c.classList.contains('sel'))P('sfx_card_hover',{gap:70});},true);   /* (DHL 11-04) 모든 버튼 = 타이틀 '플레이'를 눌렀을 때 소리 하나로 (뒤로 · 탭 · 정렬 · 해제 포함) — 창 열림 · 구매처럼 동작이 자기 소리를 내는 버튼은 그 소리 */
   document.addEventListener('change',e=>{if(e.target.matches('input[type=checkbox],input[type=radio],select'))P('sfx_ui_toggle');else if(e.target.matches('input[type=range]'))P('sfx_ui_click',{gap:120});},true);
 
   const wrap=(name,fn)=>{try{const o=window[name];if(typeof o!=='function')return;window[name]=fn(o);}catch(e){console.warn('[효과음 연결]',name,e);}};
