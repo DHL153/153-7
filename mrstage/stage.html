@@ -8013,7 +8013,7 @@ let isGameOver = false;
     const fill=$('boss-hp-fill'),text=$('boss-hp-text'),name=$('boss-name');
     const pct=Math.max(0,Math.min(100,hp/Math.max(1,maxHp)*100));
     if(fill)fill.style.width=pct+'%';
-    const lag=$('lm-hp-lag');if(lag)lag.style.width=pct+'%';
+    const lag=$('lm-hp-lag');if(lag){const was=parseFloat(lag.style.width);if(was>pct+.3&&pct>0)lmSnd('sfx_hp_drain',{delay:400,vol:.55,gap:700});lag.style.width=pct+'%';}   // (11-04) 흰 잔상 막대가 줄어들 때 기운 빠지는 소리 — 0이 되면 쓰러짐 소리가 맡음
     if(text)text.innerText=`${Math.max(0,Math.ceil(hp)).toLocaleString()} / ${maxHp.toLocaleString()}`;
     if(name)name.innerText=(kind==='boss'?'👑 ':'')+enemyName;
     const pips=$('normal-enemy-hp');if(pips)pips.style.display='none';
