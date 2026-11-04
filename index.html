@@ -2629,7 +2629,8 @@ function beginRound(){
   S.hand=[];S.sel=[];S.runs=K==='needle'?1:S.runsMax;S.dis=K==='water'?0:S.disMax;S.handNow=S.handN-(K==='manacle'?1:0);S.roundMerges=0;S.discCount=0;S.bOrb=null;S.score=0;S.sh=null;S.tgt=roundTgt(S.rd);
   S.offOrb=null;S.orbHidden=false;S.forced=null;S.ostate=S.ostate||{};
   {const di=S.orbs.indexOf('dagger');if(di>=0&&di<S.orbs.length-1){const v=S.orbs[di+1],gain=2*sellPrice(v);S.ostate.dagger=(S.ostate.dagger||0)+gain;delete S.ost[v];delete S.ostate[v];S.orbs.splice(di+1,1);setTimeout(()=>popMsg('🗡 제물의 단검 — '+ORBS[v].ko+' 파괴, 기세 +'+gain),300);}}if(K==='acorn'){S.orbs=shuffle(S.orbs);S.orbHidden=true;}if(K==='leaf')R.on=S.orbs.length>0;
-  S.world=JANG_WORLD(S.jang);S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
+  const prevW=S.world;S.world=JANG_WORLD(S.jang);if(prevW&&prevW!==S.world)try{window.LMS&&LMS.play('sfx_world_change',{vol:.85,gap:2000});}catch(e){}   // 다음 장 — 세계가 바뀌면 풍차 문 '슈와앙' (11-04 ElevenLabs)
+  S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
   fill(true);if(K==='house'){S.hand.forEach(c=>c.fog=true);try{window.LMS&&LMS.play('sfx_card_fog',{delay:380,vol:.8,gap:400});}catch(e){}}rollIntent();bossTick();render();
 }
 /* 손패 채우기 — 뱀: 첫 손패 뒤에는 런 · 버리기마다 3장만 */
@@ -9009,7 +9010,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     ui:{low:[200,1.5],cut:[3000,.9,-3],high:[5500,-6],lp:9500,rt:.45,pre:.006,wet:.07,make:1.15,ens:0},
     rest:{low:[200,1],cut:[3000,.9,-2.5],high:[7000,-4],lp:12000,rt:.6,pre:.01,wet:.08,make:1.08,ens:0}};
   /* (DHL 11-04) ElevenLabs로 다시 만든 깨끗한 실제 카드 소리는 다듬기(고음 깎기 · 겹치기)를 거치지 않음 — 잡음이 없어서 깎으면 먹먹해짐 */
-  const NOPOL=new Set(['sfx_boss_defeat','sfx_boss_rule','sfx_runs_low','sfx_round_start','sfx_round_select','sfx_counter','sfx_finish_cut','sfx_foe_defeat','sfx_shield_break','sfx_shield_block','sfx_hit_weak','sfx_hit_neon','sfx_hit_rust','sfx_run_charge','sfx_atk_dual','sfx_atk_widesword','sfx_atk_shieldaxe','sfx_atk_staff','sfx_atk_fist','sfx_atk_gun','sfx_atk_bigblade','sfx_atk_hammer','sfx_atk_greatsword','sfx_orb_swap','sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_hand_sort','sfx_card_discard','sfx_deck_shuffle','sfx_card_fog','sfx_card_burn','sfx_merge','sfx_orb_trigger_mult','sfx_orb_equip','sfx_fire_merge_spin','sfx_fire_merge_stop']);
+  const NOPOL=new Set(['sfx_world_change','sfx_boss_defeat','sfx_boss_rule','sfx_runs_low','sfx_round_start','sfx_round_select','sfx_counter','sfx_finish_cut','sfx_foe_defeat','sfx_shield_break','sfx_shield_block','sfx_hit_weak','sfx_hit_neon','sfx_hit_rust','sfx_run_charge','sfx_atk_dual','sfx_atk_widesword','sfx_atk_shieldaxe','sfx_atk_staff','sfx_atk_fist','sfx_atk_gun','sfx_atk_bigblade','sfx_atk_hammer','sfx_atk_greatsword','sfx_orb_swap','sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_hand_sort','sfx_card_discard','sfx_deck_shuffle','sfx_card_fog','sfx_card_burn','sfx_merge','sfx_orb_trigger_mult','sfx_orb_equip','sfx_fire_merge_spin','sfx_fire_merge_stop']);
   const catOf=n=>/^sfx_(card_|hand_sort|deck_shuffle)/.test(n)?'card':/^sfx_(ui_|panel_|page_turn|tooltip)/.test(n)?'ui':'rest';
   const polOn=()=>{try{return LM_SET.fxpol!==0;}catch(e){return true;}};
   const chains={};let irs={};
@@ -9045,7 +9046,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     'sfx_merge','sfx_merge_awaken','sfx_star_up','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_orb_equip','sfx_orb_swap','sfx_orb_sell',
     'sfx_atk_greatsword','sfx_atk_hammer','sfx_atk_bigblade','sfx_atk_gun','sfx_atk_fist','sfx_atk_staff','sfx_atk_shieldaxe','sfx_atk_spear','sfx_atk_widesword','sfx_atk_dual','sfx_run_charge',
     'sfx_hit_rust','sfx_hit_neon','sfx_hit_sky','sfx_hit_weak','sfx_shield_block','sfx_shield_break','sfx_foe_defeat','sfx_finish_cut','sfx_counter',
-    'sfx_round_select','sfx_round_start','sfx_round_win','sfx_runs_low','sfx_boss_enter','sfx_boss_rule','sfx_boss_rule_trigger','sfx_boss_defeat','sfx_chapter_clear',
+    'sfx_round_select','sfx_round_start','sfx_round_win','sfx_runs_low','sfx_boss_enter','sfx_boss_rule','sfx_boss_rule_trigger','sfx_boss_defeat','sfx_chapter_clear','sfx_world_change',
     'sfx_coin_drop','sfx_coin_pile','sfx_coin_jackpot','sfx_spend','sfx_no_money','sfx_shop_open','sfx_shop_reroll','sfx_shop_buy','sfx_pack_open','sfx_pack_reveal','sfx_pack_rare','sfx_book_use','sfx_deed_use',
     'sfx_camp_enter','sfx_fire_merge_spin','sfx_fire_merge_stop','sfx_fire_merge_done','sfx_release','sfx_scout','sfx_night_walk','sfx_camp_leave',
     'sfx_nicole_pop','sfx_nicole_hop','sfx_tut_grad','sfx_game_over','sfx_victory','sfx_new_record','sfx_unlock_diff','sfx_character_love','sfx_character_select'];
