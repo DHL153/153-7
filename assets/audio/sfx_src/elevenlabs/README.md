@@ -44,3 +44,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_hit_weak.mp3 | 0.39초 · 약점 강타 '쾅—' 묵직하게 (원본이 아주 크고 눌린 소리 −9.7 LUFS → 줄이고 60Hz 아래 깎고 2.5kHz +3dB) | sfx_hit_weak (속성 약점 공격 · 마지막 연타) |
 | el_shield_block.mp3 | 0.22초 · 마법 방패 '둥—웅' 막아냄 (맑은 울림, 잡음 0.08 — 예전 0.47 · 2.5kHz +3dB) | sfx_shield_block (방패가 공격을 막을 때) |
 | el_shield_break.mp3 | 0.36초 · 마법 유리 방패 '쨍그랑' (고음 85% · 12kHz 위 깎고, 아래에 37번째 방패 '둥'을 작게 깔아 무게를 줌) | sfx_shield_break (방패가 깨질 때) |
+| el_foe_defeat.mp3 | 0.46초 · 적이 '쿵—' 쓰러짐 (원본이 크고 초저음 위주 → 줄이고 60Hz 아래 깎고 2.5kHz +3dB) | sfx_foe_defeat (일반 적 쓰러짐 · stage.html) |
