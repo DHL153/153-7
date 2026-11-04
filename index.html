@@ -4407,7 +4407,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r81" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r82" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -9115,7 +9115,6 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   const VARN={sfx_panel_close:2,sfx_card_deal:2};   // 변형이 3개가 아닌 소리
   function pick(n){if(FIXV[n])return n+'_'+FIXV[n];if(!VAR.has(n))return n;const N=VARN[n]||3;let i=Math.random()*N|0;if(i===lastV[n])i=(i+1+(Math.random()*(N-1)|0))%N;lastV[n]=i;return n+'_'+'abc'[i];}
   function play(n,o={}){
-    if(document.getElementById('mr-story'))return;   // (DHL 11-04) 컷신(이야기 만화 · 장 사이 장면) 동안은 효과음 없음 — 버튼 누름 · 뒤에서 남은 소리 모두
     if(window.__lmsLog)window.__lmsLog.push(n);   // 시험용 기록
     try{const v=vol()*(o.vol??1)*(GAIN[n]??1);if(!(v>0))return;const now=performance.now(),gap=o.gap??GAP[n]??30;
       if(now-(last[n]||0)<gap)return;last[n]=now;lastAny=now;
