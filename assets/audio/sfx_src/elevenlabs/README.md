@@ -33,3 +33,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_atk_hammer.mp3 | 0.45초 · 큰 전쟁 망치 '쾅' 바로 내리침 (중심 507Hz, 잡음 0.41 — 예전 0.47) | sfx_atk_hammer (망치 동료 공격 · 컷인) |
 | el_atk_bigblade.mp3 | 0.18초 · 넓은 칼날 '휙' 짧고 굵게 (중심 888Hz — 예전 4.9kHz) | sfx_atk_bigblade (큰 칼날 동료 공격 · 컷인) |
 | el_atk_gun.mp3 | 0.28초 · 옛 화승총 한 발 '탕' (잡음 0.23 — 예전 0.48 · 원본 넘침 +3.8dB → 줄임) | sfx_atk_gun_a · _b(높이 −6%) · _c(+6%) (총 동료 공격 · 연사 때 3개 번갈아) |
+| el_atk_fist.mp3 | 0.39초 · 쇠장갑 주먹 '퍽' (원본은 소리 대부분이 60Hz 아래라 작은 스피커에선 거의 안 들림 → 70Hz 아래 깎고 2.2kHz +5dB로 맞는 결을 살림) | sfx_atk_fist (주먹 동료 공격 · 컷인) |
