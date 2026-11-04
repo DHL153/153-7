@@ -35,3 +35,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_atk_gun.mp3 | 0.28초 · 옛 화승총 한 발 '탕' (잡음 0.23 — 예전 0.48 · 원본 넘침 +3.8dB → 줄임) | sfx_atk_gun_a · _b(높이 −6%) · _c(+6%) (총 동료 공격 · 연사 때 3개 번갈아) |
 | el_atk_fist.mp3 | 0.39초 · 쇠장갑 주먹 '퍽' (원본은 소리 대부분이 60Hz 아래라 작은 스피커에선 거의 안 들림 → 70Hz 아래 깎고 2.2kHz +5dB로 맞는 결을 살림) | sfx_atk_fist (주먹 동료 공격 · 컷인) |
 | el_atk_staff.mp3 | 0.43초 · 마법 지팡이 '샤라랑' 반짝임 (맑은 음, 잡음 0.00 — 예전 0.45 · 12kHz 위 살짝 깎음) | sfx_atk_staff (지팡이 동료 공격 · 컷인) |
+| el_atk_shieldaxe.mp3 | 0.22초 · 무거운 방패로 '쿵' 밀치기 (원본은 대부분 150Hz 아래 → 70Hz 아래 깎고 2.5kHz +5dB로 쇠 부딪힘 살림) | sfx_atk_shieldaxe (방패도끼 동료 공격 · 컷인) |
