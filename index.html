@@ -8623,6 +8623,21 @@ body.lmTutGate.lmTutNum #hand .card.lmTutOk .dzno,body.lmTutGate.lmTutNum #hand 
 @keyframes tutNo{0%,100%{box-shadow:0 0 0 .6cqw #fff6d6,0 0 2cqw 1cqw #f6cf63;scale:1}50%{box-shadow:0 0 0 1.2cqw #f6cf63,0 0 5cqw 2.4cqw #f6cf63;scale:1.22}}
 .lmTutRg.nudge{animation:tutNudge .45s ease-out}
 @keyframes tutNudge{30%{scale:1.12}60%{scale:.97}}
+#lmCmp{position:fixed;z-index:905;display:flex;align-items:center;gap:18px;padding:12px 26px 14px;border-radius:18px;transform-origin:50% 50%;cursor:pointer;
+ background:radial-gradient(ellipse at 50% 40%,#1d2433ee,#0d1220dd);box-shadow:0 0 0 2px #c9a24a,0 6px 0 #0008,0 0 40px #f6cf6355;animation:cmpIn .25s cubic-bezier(.3,1.5,.5,1) both;white-space:nowrap}
+#lmCmp[hidden]{display:none}
+#lmCmp.out{opacity:0;transition:opacity .25s}
+#lmCmp .col{display:flex;flex-direction:column;align-items:center;line-height:1}
+#lmCmp .lab{font:900 15px/1 'Noto Sans KR',sans-serif;padding:4px 10px;border-radius:99px;margin-bottom:6px}
+#lmCmp .old .lab{background:#3a4458;color:#c8d0dd}
+#lmCmp .new .lab{background:linear-gradient(180deg,#ffe7a1,#d59a32);color:#3a2408;box-shadow:0 2px 0 #6b4510}
+#lmCmp .old b{font:900 34px/1 'Noto Sans KR',sans-serif;color:#9aa3b5;text-shadow:0 2px 0 #000}
+#lmCmp .new b{font:900 60px/1 'Noto Sans KR',sans-serif;color:#ffd65a;-webkit-text-stroke:2px #5a3505;text-shadow:0 4px 0 #3a2105,0 0 22px #ffcf4a;min-width:3ch;text-align:center;font-variant-numeric:tabular-nums}
+#lmCmp .new b.pop{animation:cmpPop .45s cubic-bezier(.3,1.8,.5,1)}
+#lmCmp .arr{font:900 34px/1 sans-serif;color:#f6cf63;text-shadow:0 0 12px #f6cf63}
+@keyframes cmpIn{from{opacity:0;transform:scale(.6)}}
+@keyframes cmpPop{40%{transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){#lmCmp,#lmCmp .new b.pop{animation:none}}
 @media (prefers-reduced-motion:reduce){body.lmTutGate.lmTutNum #hand .card.lmTutOk .dzno{animation:none;box-shadow:0 0 0 1cqw #f6cf63}}
 #lmNic{position:fixed;z-index:880;pointer-events:none;display:none}
 #lmNic.on{display:block}
@@ -8654,12 +8669,12 @@ body.lmTutGate.lmTutNum #hand .card.lmTutOk .dzno,body.lmTutGate.lmTutNum #hand 
 const TUT_TERM={run:'런',discard:'버리기',merge:'머지',key:'열쇠',orb:'구슬',shield:'방패',fire_merge:'모닥불 머지',title:'기사님',select:'선택',score:'최소 득점',fill:'채우기',pair:HT.pair[0],three:HT.three[0],two:HT.two[0]};   /* 족보 이름은 게임 족보표(HT)와 같은 말 */
 const TUT_TXT={
   /* (DHL 11-03 피드백) 1장 = 족보를 실제로 만들며: 짝 → 삼총사 → 두 쌍(버리기로) → 머지 */
-  'tut.1_1.pair':'같은 번호 2장이면 {pair}! 골라서 {run}!','tut.1_1.three':'잘했어요! 이번엔 3장, {three}예요!',
-  'tut.1_2.discard':'{two}을 만들게 나머지를 {discard}!','tut.1_2.done':'{two} 완성! 이제 {run}!','tut.1_3.start':'같은 동료 두 장이면 {merge}!','tut.save':'괜찮아요, {title}! 한 번 일으켜 드릴게요.',
+  'tut.1_1.pair':'반짝이는 번호가 똑같죠? 그게 {pair}이에요!','tut.1_1.go':'좋아요, 이제 {run}!','tut.1_1.three':'같은 번호가 세 장이면 더 세져요!','tut.1_1.cmp':'아까보다 훨씬 세졌죠?',
+  'tut.1_2.discard':'빨간 카드는 {discard}로 새 카드랑 바꿔요!','tut.1_2.done':'{two} 완성! 이제 {run}!','tut.1_3.start':'똑같은 동료 둘을 {merge}하면 별이 늘어요!','tut.save':'괜찮아요, {title}! 한 번 일으켜 드릴게요.',
   'tut.2_1.start':'{shield}는 큰 한 방을 막아요.','tut.2_1.key':'세계, 속성, 번호를 맞춰 봐요.','tut.2_2.shop':'{orb}은 판 내내 점수를 키워요!','tut.orb.order':'+ 구슬은 앞에, × 구슬은 뒤에!',
-  'tut.2_3.rule':'거인은 규칙 하나로 방해해요.','tut.rule.psychic':'이 거인 앞에선 꼭 다섯 장을 내야 해요!','tut.3_1.rest':'쉬는 동안 {fire_merge}도 돼요.','tut.3_2.awaken':'별 2개 두 장을 머지하면 각성해요!','tut.3_3.bridge':'기사부터는 같이 내면 {run}할 때 {merge}돼요!','tut.3_3.grad':'이제 혼자서도 충분해요, {title}!',
+  'tut.2_3.rule':'거인은 규칙 하나로 방해해요.','tut.rule.psychic':'이 거인은 다섯 장을 모으면 {run}할 수 있어요!','tut.3_1.rest':'쉬는 동안 {fire_merge}도 돼요.','tut.3_2.awaken':'별 2개 두 장을 머지하면 각성해요!','tut.3_3.bridge':'기사부터는 같이 내면 {run}할 때 {merge}돼요!','tut.3_3.grad':'이제 혼자서도 충분해요, {title}!',
   'tut.2_2.camp':'이번엔 야영하며 정비해 봐요!',
-  'tut.rs.first':'{score}을 넘기면 이겨요!','tut.rs.go':'준비되면 {select}!','tut.rs.boss':'거인을 이기면 다음 장이에요!',
+  'tut.rs.first':'적의 체력이 다 없어지면 이겨요!','tut.rs.go':'준비되면 {select}!','tut.rs.boss':'거인을 이기면 다음 장이에요!',
   /* (DHL 11-03) 배울 것이 없는 라운드: 응원 한마디 → 런하면 사라짐 */
   'tut.cheer.1':'이번에도 크게 쳐 봐요!','tut.cheer.2':'같은 번호를 더 모아 봐요!','tut.cheer.3':'{title}이라면 할 수 있어요!','tut.cheer.4':'거의 다 왔어요, 힘내요!'};
 const tutLine=k=>{let t=TUT_TXT[k.split('@')[0]]||'';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}
@@ -8716,7 +8731,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   const noMotion=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
   /* 대사마다 동작 순서 (앞에서부터 하나씩, 끝나면 숨쉬기 · 깜빡임 · 살랑임 대기)
      hello 인사 · guide 손바닥 안내 · happy 두 손 모아 콩콩 · sad 펜던트 쥐고 눈물 · surprise 놀람 · think 생각 · worried 걱정 · content 흐뭇 */
-  const NIC_ACTS={'tut.1_1.pair':['guide'],'tut.1_1.three':['happy','guide'],'tut.1_2.discard':['think','guide'],'tut.1_2.done':['happy'],'tut.1_3.start':['surprise','guide'],
+  const NIC_ACTS={'tut.1_1.pair':['guide'],'tut.1_1.three':['happy','guide'],'tut.1_1.cmp':['surprise','happy'],'tut.1_2.discard':['think','guide'],'tut.1_2.done':['happy'],'tut.1_3.start':['surprise','guide'],
     'tut.save':['worried','content'],'tut.2_1.start':['guide'],'tut.2_1.key':['think'],'tut.2_2.shop':['happy','guide'],'tut.orb.order':['think','guide'],'tut.2_2.camp':['guide'],
     'tut.2_3.rule':['worried','guide'],'tut.rule.psychic':['surprise','guide'],'tut.3_1.rest':['content'],'tut.3_2.awaken':['surprise','happy'],'tut.3_3.bridge':['guide'],'tut.3_3.grad':['content','hello'],
     'tut.rs.first':['guide'],'tut.rs.go':['hello'],'tut.rs.boss':['think','guide'],'tut.cheer.1':['happy'],'tut.cheer.2':['guide'],'tut.cheer.3':['content'],'tut.cheer.4':['happy']};
@@ -8778,7 +8793,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     const nw=H*.7;box.style.left=r.left+'px';box.style.top=(r.bottom-H)+'px';box.style.width=r.width+'px';box.style.height=H+'px';
     const dpr=Math.min(2,devicePixelRatio||1);cv.style.width=nw+'px';cv.style.height=H+'px';if(cv.width!==Math.round(nw*dpr)){cv.width=Math.round(nw*dpr);cv.height=Math.round(H*dpr);}
     bub.style.left=(nw*.86)+'px';bub.style.maxWidth=Math.max(160,r.width-nw*.86-6)+'px';bub.style.top=Math.max(0,H*.18)+'px';}
-  function tick(now){raf=requestAnimationFrame(tick);const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;try{gate();}catch(e){}
+  function tick(now){raf=requestAnimationFrame(tick);const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;try{gate();cmpTrack();}catch(e){}
     if(!box||!box.classList.contains('on')){if(newOn||ringSel.length)fx();else rgs.forEach(d=>d.style.display='none');nicFx(dt,false);return;}
     if(!leaving)place();   /* 퇴장하는 동안은 그 자리에서 */
     const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);let view=null;
@@ -8804,7 +8819,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   function badge(id){const b=document.getElementById(id);if(!b)return;b.classList.add('lmTutShow');setTimeout(()=>b.classList.remove('lmTutShow'),700);
     if(newOn)newOn.el.remove();const n=document.createElement('span');n.className='lmTutNew';let t='새로!';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}n.textContent=t;document.body.appendChild(n);newOn={id,el:n,until:performance.now()+7000};}
   function say(k,o){if(!S||!S.tut)return;if(!o.force&&S.tut.seen[k])return;S.tut.seen[k]=1;try{window.LMS&&LMS.play(k==='tut.3_3.grad'?'sfx_tut_grad':'sfx_nicole_pop');}catch(e){}if(!o.anchor)(S.tut.spoke=S.tut.spoke||{})[S.jang+'-'+S.rd]=1;mk();cls();cur={k,o,t:performance.now()};
-    bub.innerHTML=tutLine(k);bub.classList.add('wait');box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
+    bub.innerHTML=tutLine(k);bub.dataset.k='';bub.classList.add('wait');box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
     bub.classList.remove('out');
     const showBub=ms=>setTimeout(()=>{if(cur&&cur.k===k){bub.classList.remove('wait');place();}},ms);   /* (DHL 11-03 '니콜보다 말풍선이 먼저') 니콜이 나타난 뒤에 말풍선 */
     load().then(()=>{if(!G||!cur||cur.k!==k)return;const an=G.an,now=performance.now(),dur=Math.max(1100,Math.min(3800,(bub.textContent||'').length*85));
@@ -8819,6 +8834,32 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(o.badge)badge(o.badge);
     if(o.auto)setTimeout(()=>{if(cur&&cur.k===k)hideNic();},o.auto);}
   window.lmTutSay=say;
+  /* ── (DHL 11-04 시안 A) 피해 비교: 1-1 첫 런(짝)과 두 번째 런(삼총사)의 피해를 '짝 120 ➜ 삼총사 480'으로 한 번 ──
+     숫자 · 화살표 · 족보표 이름만 → 따로 번역할 글 없음. PC = 전투 화면 하늘 가운데 · 세로 화면 = 전투 화면 바로 위 */
+  let cmpEl=null,lastAnim=null,cmpUntil=0;
+  function cmpTrack(){const T=S&&S.tut;if(!T||T.cmpDone||S.jang!==1||S.rd!==0)return;
+    if(S.anim&&S.anim!==lastAnim&&S.anim.r){lastAnim=S.anim;(T.hist=T.hist||[]).push({t:S.anim.r.total|0,lb:S.anim.r.label||''});}
+    if(!S.anim&&(T.hist||[]).length>=2&&T.seen['tut.1_1.three']){if(!$('ov').hidden){T.cmpDone=1;return;}if(S.busy||!idle())return;   /* 공격 연출 · 카드 받기가 다 끝난 뒤에 */
+      cmpFire();}}
+  const cmpReady=()=>{const T=S&&S.tut;return !!(T&&!T.cmpDone&&S.jang===1&&S.rd===0&&T.seen['tut.1_1.three']&&(T.hist||[]).length>=2);};
+  function cmpFire(){const T=S.tut;T.cmpDone=1;const a=T.hist[0],b=T.hist[1];if(b.t>a.t)cmpShow(a,b);}
+  /* 삼총사 런으로 라운드를 이기면: 비교를 바로 보여 주고 '라운드 보상' 창은 비교가 끝난 뒤에 */
+  const _winC=win;win=function(){const args=arguments;try{if(lmTutOn()&&cmpReady())cmpFire();}catch(e){}const w=cmpUntil-performance.now();
+    if(w>0){setTimeout(()=>_winC.apply(this,args),w);return;}return _winC.apply(this,args);};
+  function cmpShow(a,b){const st=document.getElementById('lmStage'),q=st&&st.getBoundingClientRect();if(!q||!q.width)return;
+    if(!cmpEl){cmpEl=document.createElement('div');cmpEl.id='lmCmp';cmpEl.setAttribute('aria-live','polite');cmpEl.onclick=()=>cmpHide();document.body.appendChild(cmpEl);}
+    const W=t=>{try{return (window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){return t;}},f=n=>n.toLocaleString();
+    cmpEl.innerHTML=`<div class="col old"><span class="lab">${W(a.lb||HT.pair[0])}</span><b>${f(a.t)}</b></div><span class="arr" aria-hidden="true">➜</span><div class="col new"><span class="lab">${W(b.lb||HT.three[0])}</span><b>${f(a.t)}</b></div>`;   /* 이름 = 실제로 낸 족보 (예: 세 세계의 맹세) */
+    cmpEl.classList.remove('out');cmpEl.hidden=false;const tall=innerHeight>innerWidth*1.2,k=tall?Math.min(.62,(q.width-24)/(cmpEl.offsetWidth||1)):1;cmpEl.style.scale=k;
+    const w=cmpEl.offsetWidth*k,h=cmpEl.offsetHeight*k;cmpEl.style.left=(q.left+q.width/2-cmpEl.offsetWidth/2)+'px';
+    cmpEl.style.top=(tall?Math.max(4,q.top-h-6-(cmpEl.offsetHeight-h)/2):q.top+q.height*.12)+'px';
+    const nb=cmpEl.querySelector('.new b'),t0=performance.now(),D=700;
+    const step=now=>{const p=Math.min(1,(now-t0-250)/D);if(p>0)nb.textContent=f(Math.round(a.t+(b.t-a.t)*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(step);else{nb.classList.add('pop');try{window.LMS&&LMS.play('sfx_star_up',{vol:.5});}catch(e){}}};
+    requestAnimationFrame(step);try{window.LMS&&LMS.play('sfx_guide_glow',{vol:.35});}catch(e){}
+    setTimeout(()=>say('tut.1_1.cmp',{face:'happy',seq:['hop'],auto:3200}),D+300);
+    clearTimeout(cmpEl._t);cmpEl._t=setTimeout(cmpHide,D+3300);cmpUntil=performance.now()+D+3000;}
+  function cmpHide(){if(!cmpEl||cmpEl.hidden)return;cmpEl.classList.add('out');setTimeout(()=>{if(cmpEl)cmpEl.hidden=true;},260);}
+
   /* 라운드 고르기 창 음영: 지금 라운드 칸만 또렷 · 고를 버튼 하나만 누를 수 있음 · 아직 안 배운 열쇠는 1장 동안 음영 */
   const rsDim=(e,on)=>{if(!e)return;e.classList.toggle('lmTutDim',!!on);(e.matches('button')?[e]:[...e.querySelectorAll('button')]).forEach(b=>{if(on){if(!b.disabled){b.disabled=true;b.dataset.lmTd=1;}}else if(b.dataset.lmTd){b.disabled=false;delete b.dataset.lmTd;}});};
   function rsGate(){const B=lmTutOn()&&S.selecting?q('#ov:not([hidden]) .rsB'):null;
@@ -8948,7 +8989,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(!cur&&ch1&&hasHand&&!S.busy&&!lmTutOff1())ring(freeHint());else if(!cur)ring([]);
     /* 빛 표시 */
     if(cur&&!cur.o.force){const k=cur.k;
-      if(k==='tut.1_1.pair'){const g=groupOf(2);ring(selFlow(g,HT.pair[0]));}
+      if(k==='tut.1_1.pair'){const g=groupOf(2);ring(selFlow(g,HT.pair[0]));const go=!!(g&&g.length&&g.every(c=>(S.sel||[]).includes(c.uid))),bk=go?'go':'pair';if(bub.dataset.k!==bk){bub.dataset.k=bk;bub.innerHTML=tutLine(go?'tut.1_1.go':'tut.1_1.pair');}}
       else if(k==='tut.1_1.three'){const g=groupOf(3);ring(g?selFlow(g,HT.three[0]):pickEls());}
       else if(k==='tut.1_2.discard'){const pr=(T.pairU||[]).map(u=>S.hand.find(c=>c.uid===u)).filter(Boolean),sel=S.sel||[],rest=S.hand.filter(c=>!pr.includes(c)&&!c.fog),want=Math.min(rest.length,MAXSEL);
         const chosen=rest.filter(c=>sel.includes(c.uid)).length,R=pr.map((c,i)=>({el:cardEl(c),label:i?'':HT.pair[0],keep:1}));
