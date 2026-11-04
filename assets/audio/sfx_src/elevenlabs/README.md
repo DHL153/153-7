@@ -4,7 +4,7 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | 원본 | 소리 모양 | 넣은 곳 |
 |---|---|---|
 | el_card_swish.mp3 | 0.25초 · 밝은 스치는 소리 | sfx_card_deal_a (카드 날아옴 — _b와 번갈아) |
-| el_card_tick.mp3 | 0.03초 · 또렷한 '틱' (1.5kHz) | sfx_fire_merge_spin_a/b/c (뒤집기·고르기·호버는 11-04 전용 소리로 바뀜) |
+| el_card_tick.mp3 | 0.03초 · 또렷한 '틱' (1.5kHz) | 안 씀 (뒤집기·고르기·호버·모닥불 돌기 모두 11-04 전용 소리로 바뀜) |
 | el_card_tock.mp3 | 0.02초 · 조금 낮은 '톡' (1.1kHz) | sfx_fire_merge_stop (해제는 11-04 전용 소리로 바뀜) |
 | el_back_taps.mp3 | 0.06초 · 낮은 '톡톡' 두 번 (300→266Hz, 내려감) | sfx_ui_back (뒤로 버튼) |
 | el_back_alt_tick.mp3 | 0.33초 늦게 시작 · 1.5kHz 틱 | 안 씀 (보관) |
@@ -63,3 +63,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_pack_rare.mp3 | 0.56초 · 희귀 카드 '샤라라랑' 반짝임 (맑은 음, 잡음 0.04 · 고음 95%라 한 옥타브 아래 같은 소리를 작게 겹쳐 두께를 줌) | sfx_pack_rare (팩에서 별 2개 이상 카드가 나올 때) |
 | el_book_use.mp3 | 0.38초 · 무거운 고서 '턱' 펼침 (중간 소리가 고르게 · 잡음 0.40 · 원본 작아 −28 LUFS → 키움) | sfx_book_use (책 사용 · 상점에서 책 살 때) |
 | el_deed_use.mp3 | 0.53초 · 깃펜 '사각사각' 서명 + 도장 '쿵' (펜 긁는 결이라 잡음 0.49 → 9kHz 위 깎음) | sfx_deed_use (증서 사기) |
+| el_fire_merge_spin.mp3 | 0.02초 · 나무 바퀴 '딱' 한 번 (잡음 0.23 · 원본 넘침 +2.5dB → 줄임) | sfx_fire_merge_spin_a · _b(−6%) · _c(+6%) (모닥불 머지 굴림, 점점 느려지며 반복) |
