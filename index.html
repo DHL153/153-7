@@ -9054,7 +9054,13 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     const next=()=>{if(i>=L.length)return;get(L[i++]).finally(next);};for(let k=0;k<4;k++)next();}   // 처음 누를 때 (브라우저 소리 잠금이 풀린 뒤) 4개씩 받아 둠
   addEventListener('pointerdown',()=>{ac();preload();},{capture:true,passive:true});
   addEventListener('keydown',()=>{ac();preload();},{capture:true,passive:true});
-  window.LMS={play,preload,since:()=>performance.now()-lastAny};
+  /* (11-04 DHL '61번 지금 것 활용') 배경 반복 소리 — 야영 화면 동안 모닥불 '타닥타닥'을 음악 아래 작게. 효과음 크기 설정을 따르고, 켤 때 1.5초 · 끌 때 0.8초에 걸쳐 스며들고 빠짐 */
+  const loops={};
+  function loop(n,o={}){try{if(loops[n])return;const c=ac();if(!c)return;const v=vol()*(o.vol??.35);if(!(v>0))return;loops[n]={pend:true};
+    get(n).then(b=>{const L=loops[n];if(!L||!b){delete loops[n];return;}const s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.loop=true;const t=c.currentTime;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+(o.fade??1.5));s.connect(g).connect(out);s.start(t);L.s=s;L.g=g;L.pend=false;});}catch(e){}}
+  function loopStop(n,fade=.8){const L=loops[n];if(!L)return;delete loops[n];try{if(!L.s)return;const c=ac(),t=c.currentTime;L.g.gain.cancelScheduledValues(t);L.g.gain.setValueAtTime(L.g.gain.value,t);L.g.gain.linearRampToValueAtTime(0,t+fade);L.s.stop(t+fade+.05);}catch(e){}}
+  window.LMS={play,preload,loop,loopStop,looping:()=>Object.keys(loops),since:()=>performance.now()-lastAny};
   const P=play;
 
   /* ── 예전 소리 함수 → 새 파일 */
@@ -9158,6 +9164,9 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     return o.apply(this,arguments);});
   W('campReroll',o=>function(){const g=S.gold;const r=o.apply(this,arguments);if(S.gold<g)P('sfx_spend',{vol:.6});return r;});
   W('campFinish',o=>function(){P('sfx_camp_leave');return o.apply(this,arguments);});
+  /* 야영 화면 동안만 모닥불 배경 — 들어오면 켜고, 라운드로 넘어가거나 타이틀로 나가면 끔 */
+  W('campOpen',o=>function(){const r=o.apply(this,arguments);try{if(S&&S.rd<2)LMS.loop('amb_campfire',{vol:.35});}catch(e){}return r;});
+  ['startRound','beginRound','ltShow','newGame'].forEach(k=>W(k,o=>function(){try{LMS.loopStop('amb_campfire');}catch(e){}return o.apply(this,arguments);}));
 
   /* ── 창 · 배우기 · 설명 */
   W('openInfo',o=>function(tab,view,idx){const was=!!document.querySelector('#ov:not([hidden]) .ib'),pi=typeof learnIdx!=='undefined'?learnIdx:null,pv=typeof learnView!=='undefined'?learnView:null;
