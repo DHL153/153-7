@@ -6523,9 +6523,16 @@ function startBattleTeamSkill(presentation={}){
         });
         window.MRRig?.scanStills?.(); // 2026-10-16 리깅 캐릭터 컷인: 바로 찌르기
         root.classList.add('on');window.MRBattleFX?.skill(duration);
-        playSfx('skillCharge',{gain:.35,minGap:150});   /* (DHL 11-04 '컷인 소리가 이상해요') 컷인 동안은 효과음 없음 — 기 모으는 소리 · 휘두르는 무기 · 타격음 모두 뺌 */
+        playSfx('skillCharge',{gain:.35,minGap:150});
+        /* (DHL 11-04 '컷인이 여러 번 나올 때 그 소리가 여러 번 나오는 게 이상 · 전투 연출보기에선 괜찮음')
+           컷인 소리 묶음(기 모으기 → 휘두르는 무기 → 세계 타격음 → 합동 타격)은 4초에 한 번만. 연달아 나오는 컷인은 소리 없이 연출만,
+           소리를 낸 컷인 동안은 일반 공격 소리(hitSnd)가 겹치지 않게 잠깐 쉼 */
+        const cutNow=performance.now(),cutSnd=cutNow-(window.__cutSndAt||0)>4000;
+        if(cutSnd){window.__cutSndAt=cutNow;window.__cutSndUntil=cutNow+duration;lmSnd('sfx_run_charge',{vol:.55,gap:150});}
         const strike=({id,slot},index)=>{
             const el=battleTeamElement(slot),portrait=portraits.get(slot),assets=getBattleHeroAssets(id);if(!el||!portrait)return;
+            if(cutSnd)try{const p=(id%10)+1,W={1:'greatsword',2:'hammer',3:'bigblade',4:'gun',5:'fist',6:'staff',7:'shieldaxe',8:'spear',9:'widesword',10:'dual'}[p],w=['rust','neon','sky'][Math.min(2,id/10|0)];
+              lmSnd('sfx_atk_'+W,{gap:0,delay:90});lmSnd('sfx_hit_'+w,{gap:0,delay:200,vol:.7});if(count>1&&index===count-1)lmSnd('sfx_hit_weak',{delay:260,vol:.8});}catch(e){}
             applyBattleHeroImage(assets.skill,assets.idle,el);el.classList.add('skill');window.MRBattleFX?.attack(portrait.id);
             if(count>1&&index===count-1){const impact=document.createElement('div');impact.className='team-combined-impact';root.appendChild(impact);}
         };
@@ -8152,7 +8159,7 @@ let isGameOver = false;
     requestAnimationFrame(tick);return d;
   }
   const ATK_SND={1:'greatsword',2:'hammer',3:'bigblade',5:'fist',7:'shieldaxe',8:'spear',9:'widesword',10:'dual'};   /* 총(4) · 지팡이(6)는 쏘는 순간 따로 */
-  function hitSnd(num){const p=POS(num),w=['rust','neon','sky'][Math.min(2,(num-1)/10|0)]||'rust';if(ATK_SND[p])lmSnd('sfx_atk_'+ATK_SND[p],{gap:60});lmSnd('sfx_hit_'+w,{delay:40,vol:.85,gap:60});}
+  function hitSnd(num){if(performance.now()<(window.__cutSndUntil||0))return;const p=POS(num),w=['rust','neon','sky'][Math.min(2,(num-1)/10|0)]||'rust';if(ATK_SND[p])lmSnd('sfx_atk_'+ATK_SND[p],{gap:60});lmSnd('sfx_hit_'+w,{delay:40,vol:.85,gap:60});}
   const hitQ=[];function hitRun(){const now=performance.now();while(hitQ.length&&now-hitQ[0].t>3000)hitQ.shift();const h=hitQ.shift();if(hitQ.length)hitCb=hitRun;if(h){impactFx(h.n);hitSnd(h.n);}}
   const R=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
   function footOf(sl){const h=heroPt(sl);return {x:h.x,y:h.y+h.h*.55,h:h.h};}
