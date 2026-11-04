@@ -41,3 +41,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_run_charge.mp3 | 0.28초 · 동료들 '두두둑' 출발 (원본은 대부분 60Hz 아래 '둥' → 150Hz 아래 깎고 2.5kHz +4dB) | sfx_run_charge ('런!' 누르고 점수 연출 시작) |
 | el_hit_rust.mp3 | 0.28초 · 녹슨 쇠 갑옷에 단단히 맞는 '깡' (원본이 아주 작음 −27dB → 키우고 70Hz 아래 깎음) | sfx_hit_rust_a · _b(높이 −6%) · _c(+6%) (녹슨 세계 1~10번 동료가 맞힐 때, 3개 번갈아) |
 | el_hit_neon.mp3 | 0.21초 · 빛나는 몸체에 맞는 '찡' (잡음 0.35 — 예전 0.52 · 원본 넘침 +2.9dB → 줄임) | sfx_hit_neon_a · _b(높이 −6%) · _c(+6%) (네온 세계 21~30번 동료가 맞힐 때, 3개 번갈아) |
+| el_hit_weak.mp3 | 0.39초 · 약점 강타 '쾅—' 묵직하게 (원본이 아주 크고 눌린 소리 −9.7 LUFS → 줄이고 60Hz 아래 깎고 2.5kHz +3dB) | sfx_hit_weak (속성 약점 공격 · 마지막 연타) |
