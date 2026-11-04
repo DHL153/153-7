@@ -65,3 +65,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_deed_use.mp3 | 0.53초 · 깃펜 '사각사각' 서명 + 도장 '쿵' (펜 긁는 결이라 잡음 0.49 → 9kHz 위 깎음) | sfx_deed_use (증서 사기) |
 | el_fire_merge_spin.mp3 | 0.02초 · 나무 바퀴 '딱' 한 번 (잡음 0.23 · 원본 넘침 +2.5dB → 줄임) | sfx_fire_merge_spin_a · _b(−6%) · _c(+6%) (모닥불 머지 굴림, 점점 느려지며 반복) |
 | el_fire_merge_stop.mp3 | 0.2초 · 나무 바퀴가 '딱—탁' 걸려 멈춤 (맑은 결, 잡음 0.15 · 원본 넘침 +0.8dB → 줄임) | sfx_fire_merge_stop (모닥불 머지 바퀴 멈춤) |
+| el_fire_merge_done.mp3 | 0.34초 · 모닥불이 '화르륵' 타오름 (잡음 0.27 — 예전 0.42 · 70Hz 아래 · 12kHz 위 깎음) | sfx_fire_merge_done (모닥불 머지 완성) |
