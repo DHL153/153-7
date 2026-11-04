@@ -58,3 +58,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_shop_open.mp3 | 0.42초 · 떠돌이 상인 가게 종 '딸랑' (맑은 음, 잡음 0.07 — 예전 0.44 · 끝 잡소리 0.75초에서 자름) | sfx_shop_open (원정 캠프 · 상점 열림) |
 | el_shop_reroll.mp3 | 0.3초 · 물건을 '달그락' 다시 늘어놓음 (잡음 0.08 — 예전 0.44 · 원본이 작아 −28 LUFS → 키움) | sfx_shop_reroll (상점 리롤) |
 | el_shop_buy.mp3 | 0.37초 · 물건 사고 '찰랑' (원본 고음 85% · 중심 11kHz, 작음 −31 LUFS → 완전5도 낮추고 키움, 11kHz 위 깎음) | sfx_shop_buy (상점에서 카드 살 때 · '돈 씀' 뒤 0.09초) |
+| el_pack_open.mp3 | 0.35초 · 카드 팩 봉투 '쫘악' 뜯기 (잡음 0.34 — 예전 0.47 · 뒤 0.56초부터 남은 부스럭 잘라냄 · 원본 작아 키움) | sfx_pack_open (카드 팩 열기) |
