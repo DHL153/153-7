@@ -72,3 +72,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_unlock_diff.mp3 | 1.2초 · 쇠사슬 '철컥—쨍그랑' 두 번 끊어짐 (잡음 0.17 — 예전 0.39 · 원본 +3.5dB 넘침 줄임) | sfx_unlock_diff (판을 깨고 새 난이도가 열릴 때 · 결과 화면 2.3초 뒤) |
 | el_character_select.mp3 | 0.37초 · 초상 앨범 '스윽' 넘김 (고음 95% → 길이 그대로 4도 낮추고 9kHz 위 깎음 · 넘길 때 겹치지 않게 0.3초로 줄임 · 잡음 0.23) | sfx_character_select (도감에서 동료 넘겨 보기) |
 | el_atk_spear.mp3 | 0.11초 · 창끝 '슉' 찌르기 (2차 다시 받음 · 120Hz 아래 · 10kHz 위 깎고 2kHz +3dB · 잡음 0.33 — 예전 0.47) | sfx_atk_spear (창 동료 공격 · 컷인) |
+| el_hit_sky.mp3 | 0.07초 · 바람이 '훅' 부딪히는 가벼운 타격 (2차 다시 받음 · 80Hz 아래 깎고 2.5kHz +3dB · 끝 잡소리 자름) | sfx_hit_sky_a · _b(−6%) · _c(+6%) (하늘 세계 11~20번 동료가 맞힐 때, 3개 번갈아) |
