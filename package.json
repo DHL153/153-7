@@ -1,0 +1,50 @@
+{
+  "name": "merge-and-run-la-mancha",
+  "productName": "Merge & Run La Mancha",
+  "version": "0.1.0",
+  "description": "Merge & Run La Mancha",
+  "author": "DHL153",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win",
+    "dist:dir": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "38.8.6",
+    "electron-builder": "26.0.20"
+  },
+  "build": {
+    "appId": "com.dhl153.lamancha",
+    "productName": "Merge & Run La Mancha",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "asar": true,
+    "files": [
+      "electron/**",
+      "package.json",
+      "index.html",
+      "mrstage/**",
+      "assets/**",
+      "!assets/rig/**",
+      "!assets/audio/sfx_src/**",
+      "!**/*.{py,npy,md,psd}"
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Merge & Run La Mancha",
+      "artifactName": "LaMancha-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "LaMancha-Portable-${version}.${ext}"
+    }
+  }
+}
