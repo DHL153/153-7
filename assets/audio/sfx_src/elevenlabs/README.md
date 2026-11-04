@@ -57,3 +57,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_coin_pile.mp3 | 0.5초 · 금화 한 줌 '차르륵' (원본 고음 96% · 중심 9.9kHz로 얇음 → 4도 낮춰 묵직한 금화 느낌, 11kHz 위 깎고, 끝 잡소리 자름) | sfx_coin_pile (보상 받기 버튼) |
 | el_shop_open.mp3 | 0.42초 · 떠돌이 상인 가게 종 '딸랑' (맑은 음, 잡음 0.07 — 예전 0.44 · 끝 잡소리 0.75초에서 자름) | sfx_shop_open (원정 캠프 · 상점 열림) |
 | el_shop_reroll.mp3 | 0.3초 · 물건을 '달그락' 다시 늘어놓음 (잡음 0.08 — 예전 0.44 · 원본이 작아 −28 LUFS → 키움) | sfx_shop_reroll (상점 리롤) |
+| el_shop_buy.mp3 | 0.37초 · 물건 사고 '찰랑' (원본 고음 85% · 중심 11kHz, 작음 −31 LUFS → 완전5도 낮추고 키움, 11kHz 위 깎음) | sfx_shop_buy (상점에서 카드 살 때 · '돈 씀' 뒤 0.09초) |
