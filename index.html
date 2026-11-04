@@ -4028,8 +4028,13 @@ function ltExit(){const o=$('ov');ltPop();
   if(S&&o&&!o.hidden){_ovPark={S,cls:o.className,kids:[...o.childNodes]};o.replaceChildren();o.hidden=true;}
   ltShow();}
 function ltCont(){const pk=_ovPark;ltHide();if(!S)return;
-  if(pk&&pk.S===S){const o=$('ov');o.className=pk.cls;o.replaceChildren(...pk.kids);o.hidden=false;render();return;}
-  render();if($('ov').hidden){if(S.selecting&&!S.practice&&!S.sandbox)startRound();else if(S.inShop)openShop();}}
+  if(pk&&pk.S===S){const o=$('ov');o.className=pk.cls;o.replaceChildren(...pk.kids);o.hidden=false;render();
+    if(S.tgt>0&&S.score>=S.tgt&&!S.anim&&!S.selecting&&!S.inShop&&!document.querySelector('#panel .cash,#panel .goB')){o.hidden=true;win();}   // 나가 있는 동안 이긴 처리가 막혔으면 다시
+    return;}
+  render();if($('ov').hidden){if(S.selecting&&!S.practice&&!S.sandbox)startRound();else if(S.inShop)openShop();else if(lmWinStuck())win();}}
+/* (DHL 11-04 '클리어했는데 넘어가지 않아요 · 메인 메뉴에 갔다 옴') 이긴 연출 중에 메인 메뉴로 나가면 보상 창이 못 뜨고(창 자리가 치워져 있음) 그대로 멈춤
+   → 계속하기로 돌아왔을 때 '목표를 넘었는데 아무 창도 없음'이면 이긴 처리(보상 창)를 다시 띄움 */
+function lmWinStuck(){return !!(S&&!S.practice&&!S.sandbox&&!S.selecting&&!S.inShop&&!S.anim&&S.tgt>0&&S.score>=S.tgt&&$('ov').hidden);}
 function ltLearn(i){ltPop();openInfo('learn','page',i);}
 /* 🧪 연습장 (2026-10-29 DHL): 추천이 켜진 연습용 — 런 · 버리기 무한, 적 체력 무한(쓰러지지 않음), 의도 · 거인 규칙 없음, 보상 · 캠프 없음 */
 function sandboxFoeMake(){const w=WORLDS[Math.random()*3|0],f=makeFoes(w,1+(Math.random()*8|0),S.diff)[0];f.ints=[];f.atype=null;f.rule=null;f.hero=NAMES[Math.random()*NAMES.length|0][0];f.no=1+(Math.random()*10|0);return f;}
