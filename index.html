@@ -3929,7 +3929,7 @@ let ltRaf=0,ltAng=0,ltLast=0;
 function ltShow(){
   const t=$('lm-title'),wasHidden=t.hidden;t.hidden=false;document.body.classList.add('lm-titleOn');
   const bl=t.querySelector('.mr-logo-blades');ltLast=0;
-  if(wasHidden&&!t.classList.contains('ingame'))try{window.LMS&&LMS.play('sfx_title_logo',{delay:120,gap:2500});}catch(e){}   // 풍차 돌기 시작 소리 (11-04 ElevenLabs)
+  if(wasHidden&&!t.classList.contains('ingame')&&!(window.__lmMillT&&performance.now()-window.__lmMillT<6000))try{window.LMS&&LMS.play('sfx_title_logo',{delay:120,gap:2500});}catch(e){}   /* 로딩 풍차 소리가 막 났으면 타이틀에서 또 내지 않음 */   // 풍차 돌기 시작 소리 (11-04 ElevenLabs)
   const spin=now=>{if(t.hidden){ltRaf=0;return;}const dt=ltLast?Math.min(64,now-ltLast):16;ltLast=now;
     ltAng=(ltAng+70*dt/1000)%360;bl.style.transform='rotate('+ltAng.toFixed(2)+'deg)';ltRaf=requestAnimationFrame(spin);};
   if(!ltRaf&&!matchMedia('(prefers-reduced-motion:reduce)').matches)ltRaf=requestAnimationFrame(spin);
@@ -9098,7 +9098,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     ui:{low:[200,1.5],cut:[3000,.9,-3],high:[5500,-6],lp:9500,rt:.45,pre:.006,wet:.07,make:1.15,ens:0},
     rest:{low:[200,1],cut:[3000,.9,-2.5],high:[7000,-4],lp:12000,rt:.6,pre:.01,wet:.08,make:1.08,ens:0}};
   /* (DHL 11-04) ElevenLabs로 다시 만든 깨끗한 실제 카드 소리는 다듬기(고음 깎기 · 겹치기)를 거치지 않음 — 잡음이 없어서 깎으면 먹먹해짐 */
-  const NOPOL=new Set(['sfx_sky_change','sfx_no_money','sfx_codex_new','sfx_night_walk','sfx_scout','sfx_boss_rule_trigger','sfx_boss_enter','sfx_hp_drain','sfx_hit_sky','sfx_atk_spear','sfx_character_select','sfx_unlock_diff','sfx_guide_glow','sfx_camp_leave','sfx_release','sfx_fire_merge_done','sfx_deed_use','sfx_book_use','sfx_pack_rare','sfx_pack_reveal','sfx_pack_open','sfx_shop_buy','sfx_shop_reroll','sfx_shop_open','sfx_coin_pile','sfx_world_change','sfx_boss_defeat','sfx_boss_rule','sfx_runs_low','sfx_round_start','sfx_round_select','sfx_counter','sfx_finish_cut','sfx_foe_defeat','sfx_shield_break','sfx_shield_block','sfx_hit_weak','sfx_hit_neon','sfx_hit_rust','sfx_run_charge','sfx_atk_dual','sfx_atk_widesword','sfx_atk_shieldaxe','sfx_atk_staff','sfx_atk_fist','sfx_atk_gun','sfx_atk_bigblade','sfx_atk_hammer','sfx_atk_greatsword','sfx_orb_swap','sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_hand_sort','sfx_card_discard','sfx_deck_shuffle','sfx_card_fog','sfx_card_burn','sfx_merge','sfx_orb_trigger_mult','sfx_orb_equip','sfx_fire_merge_spin','sfx_fire_merge_stop']);
+  const NOPOL=new Set(['sfx_load_windmill','sfx_sky_change','sfx_no_money','sfx_codex_new','sfx_night_walk','sfx_scout','sfx_boss_rule_trigger','sfx_boss_enter','sfx_hp_drain','sfx_hit_sky','sfx_atk_spear','sfx_character_select','sfx_unlock_diff','sfx_guide_glow','sfx_camp_leave','sfx_release','sfx_fire_merge_done','sfx_deed_use','sfx_book_use','sfx_pack_rare','sfx_pack_reveal','sfx_pack_open','sfx_shop_buy','sfx_shop_reroll','sfx_shop_open','sfx_coin_pile','sfx_world_change','sfx_boss_defeat','sfx_boss_rule','sfx_runs_low','sfx_round_start','sfx_round_select','sfx_counter','sfx_finish_cut','sfx_foe_defeat','sfx_shield_break','sfx_shield_block','sfx_hit_weak','sfx_hit_neon','sfx_hit_rust','sfx_run_charge','sfx_atk_dual','sfx_atk_widesword','sfx_atk_shieldaxe','sfx_atk_staff','sfx_atk_fist','sfx_atk_gun','sfx_atk_bigblade','sfx_atk_hammer','sfx_atk_greatsword','sfx_orb_swap','sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_hand_sort','sfx_card_discard','sfx_deck_shuffle','sfx_card_fog','sfx_card_burn','sfx_merge','sfx_orb_trigger_mult','sfx_orb_equip','sfx_fire_merge_spin','sfx_fire_merge_stop']);
   const catOf=n=>/^sfx_(card_|hand_sort|deck_shuffle)/.test(n)?'card':/^sfx_(ui_|panel_|page_turn|tooltip)/.test(n)?'ui':'rest';
   const polOn=()=>{try{return LM_SET.fxpol!==0;}catch(e){return true;}};
   const chains={};let irs={};
@@ -9128,7 +9128,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
         s.onended=()=>{const k=L.indexOf(s);if(k>=0)L.splice(k,1);};};
       if(buf[f]!==undefined)go(buf[f]);else get(f).then(b=>{if(performance.now()-now<300+(o.delay||0))go(b);});
     }catch(e){}}
-  const ALL=['sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_panel_close','sfx_page_turn','sfx_tooltip','sfx_title_logo','sfx_guide_glow',
+  const ALL=['sfx_load_windmill','sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_panel_close','sfx_page_turn','sfx_tooltip','sfx_title_logo','sfx_guide_glow',
     'sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_discard','sfx_hand_sort','sfx_deck_shuffle','sfx_card_burn','sfx_card_hover','sfx_card_fog',
     'sfx_hand_name','sfx_hand_name_big','sfx_score_card','sfx_score_mult','sfx_score_total','sfx_score_over','sfx_key_match','sfx_key_full','sfx_combo_tick',
     'sfx_merge','sfx_merge_awaken','sfx_star_up','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_orb_equip','sfx_orb_swap','sfx_orb_sell',
@@ -9295,6 +9295,20 @@ br.lmSb{display:none}
   function all(){document.querySelectorAll('br.lmSb').forEach(br=>{const b=blockOf(br.parentElement);if(b)todo.add(b);});todo.forEach(fit);todo.clear();}
   addEventListener('resize',()=>{clearTimeout(all.t);all.t=setTimeout(all,200);});
   walk(document.body);all();mo.observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+<script id="lm-load-windmill">
+/* (DHL 11-05) 로딩 화면 풍차 소리 — 탁 · 탁 · 탁(톱니 걸림) → 끼익 → 휘이잉 (sfx_load_windmill, 2.5초, DHL 제작)
+   첫 탁 = 날개가 처음 움찔하는 때(부팅 .25초)에 맞춤 · 휘이잉 ≈ 날개가 돌기 시작할 때.
+   브라우저는 한 번도 누르지 않은 화면에서 소리를 막음 → 이미 누른 적 있거나(언어 고르기 · 다시 켜기) Steam 앱이면 바로, 아니면 로딩 화면을 처음 누르는 순간 */
+(function(){
+  const scr=()=>{const s=document.getElementById('game-startup-screen');return s&&s.isConnected&&s.dataset.phase!=='language'&&s.style.display!=='none'&&getComputedStyle(s).display!=='none'?s:null;};
+  const allowed=()=>{try{return !!(navigator.userActivation&&navigator.userActivation.hasBeenActive)||/Electron/i.test(navigator.userAgent);}catch(e){return false;}};
+  let done=false;
+  function go(delay){if(done||!window.LMS||!scr())return;done=true;window.__lmMillT=performance.now();try{LMS.play('sfx_load_windmill',{delay:Math.max(0,delay),gap:4000});}catch(e){}}
+  function tryAuto(){if(done||!scr())return;if(!allowed())return;const t0=window.__mrBootT0||performance.now();go(250-(performance.now()-t0));}
+  setTimeout(tryAuto,0);
+  addEventListener('pointerdown',()=>{if(!done&&scr())setTimeout(()=>go(0),30);},{capture:true,passive:true});
 })();
 </script>
 </body></html>
