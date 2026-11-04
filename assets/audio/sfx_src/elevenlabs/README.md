@@ -38,3 +38,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_atk_shieldaxe.mp3 | 0.22초 · 무거운 방패로 '쿵' 밀치기 (원본은 대부분 150Hz 아래 → 70Hz 아래 깎고 2.5kHz +5dB로 쇠 부딪힘 살림) | sfx_atk_shieldaxe (방패도끼 동료 공격 · 컷인) |
 | el_atk_widesword.mp3 | 0.29초 · 넓은 대검 가로 베기 '부왕' (중심 368Hz, 잡음 0.20 — 예전 0.47 · 원본 넘침 +2.5dB → 줄이고 45Hz 아래 깎음) | sfx_atk_widesword (넓은 검 동료 공격 · 컷인) |
 | el_atk_dual.mp3 | 0.2초 · 짧은 칼 '샥' (원본은 대부분 60Hz 아래 '둥' → 120Hz 아래 깎고, 같은 소리를 0.075초 뒤 8% 높게 한 번 더 겹쳐 쌍검 '샥샥') | sfx_atk_dual (쌍검 동료 공격 · 컷인) |
+| el_run_charge.mp3 | 0.28초 · 동료들 '두두둑' 출발 (원본은 대부분 60Hz 아래 '둥' → 150Hz 아래 깎고 2.5kHz +4dB) | sfx_run_charge ('런!' 누르고 점수 연출 시작) |
