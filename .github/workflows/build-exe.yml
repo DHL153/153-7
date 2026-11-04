@@ -1,13 +1,13 @@
 # Windows exe 자동 빌드
-# - electron-app / main 브랜치에 올리면 자동 실행, Actions 탭에서 수동 실행도 가능
+# - 자동 실행 안 함: Actions 탭 → Build Windows exe → Run workflow 로 원할 때만 실행
+#   (또는 v1.0.0 같은 버전 태그를 올리면 실행)
 # - 결과물: Actions 실행 화면 아래 "Artifacts" → LaMancha-windows (설치판 + 포터블)
 name: Build Windows exe
 
 on:
-  push:
-    branches: [electron-app, main]
-    paths-ignore: ['docs/**', '**/*.md', 'assets/rig/**']
   workflow_dispatch:
+  push:
+    tags: ['v*']
 
 jobs:
   build:

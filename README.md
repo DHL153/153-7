@@ -17,7 +17,7 @@
 | `docs/balance/` | 밸런스 설계 기록 — 강인도·브레이크 보관안(`toughness-balance.md`)과 봇 시뮬레이터(`bot/`) · 게임 실행에는 필요 없음 |
 
 ## Windows exe (Electron)
-- 자동 빌드: GitHub **Actions → Build Windows exe** → 실행 화면 아래 **Artifacts → LaMancha-windows** 를 내려받으면 설치판(`LaMancha-Setup-*.exe`)과 포터블(`LaMancha-Portable-*.exe`)이 들어 있습니다.
+- 빌드(원할 때만): GitHub **Actions → Build Windows exe → Run workflow** (또는 `v1.0.0` 같은 태그 push) → 실행 화면 아래 **Artifacts → LaMancha-windows** 를 내려받으면 설치판(`LaMancha-Setup-*.exe`)과 포터블(`LaMancha-Portable-*.exe`)이 들어 있습니다.
 - 로컬 실행: `npm install` → `npm start` (F11 전체 화면 · F12 개발자 도구 · Ctrl+R 새로고침)
 - 로컬 빌드(Windows): `npm run dist:win` → `dist/`
 - 게임은 `app://game/` 주소로 열립니다 — `file://`로 열면 fetch()로 불러오는 배경음·효과음이 막히기 때문.
