@@ -52,3 +52,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_runs_low.mp3 | 0.34초 · 부드러운 경고 '뚱—' (400~1000Hz에 모인 소리) | sfx_runs_low (런이 1번 남았는데 목표 점수 못 넘었을 때) |
 | el_boss_rule.mp3 | 0.33초 + 잔향 · 신비로운 마법 '우웅' (끝 0.85초쯤 작은 잡소리 잘라냄 · 60Hz 아래 깎고 2.5kHz +3dB) | sfx_boss_rule (거인 규칙 공개) |
 | el_boss_rule_trigger.mp3 | 0.12초 · 어두운 마법 '툭' (원본은 76Hz 초저음 위주 → 100Hz 아래 깎고 2.5kHz +4dB, 남은 0.06초 '툭') | 안 씀 — 손봐도 100Hz '툭'뿐이라 휴대폰에서 거의 안 들려 예전 소리로 되돌림 (다시 받기) |
+| el_boss_defeat.mp3 | 1.2초 · 거인이 '우르르—쾅' 무너짐 (원본이 아주 크고 72%가 60Hz 아래 → 줄이고 80Hz 아래 깎고 2.5kHz +3dB, 끝 잡소리 1.45초에서 자름 · 잡음 0.24) | sfx_boss_defeat (거인 격파) · **나중에 풍차 거인 공격 소리 후보 (DHL 11-04)** |
