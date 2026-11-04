@@ -1,0 +1,32 @@
+# Windows exe 자동 빌드
+# - electron-app / main 브랜치에 올리면 자동 실행, Actions 탭에서 수동 실행도 가능
+# - 결과물: Actions 실행 화면 아래 "Artifacts" → LaMancha-windows (설치판 + 포터블)
+name: Build Windows exe
+
+on:
+  push:
+    branches: [electron-app, main]
+    paths-ignore: ['docs/**', '**/*.md', 'assets/rig/**']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build exe
+        run: npx electron-builder --win --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'   # 코드 서명 없이 빌드
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LaMancha-windows
+          path: |
+            dist/*.exe
+          retention-days: 14

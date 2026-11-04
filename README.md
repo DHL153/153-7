@@ -16,7 +16,14 @@
 | `assets/rig/` | 리깅 캐릭터 원본 데이터·제작 도구 (게임은 `mrstage/assets/rig/` 사용) |
 | `docs/balance/` | 밸런스 설계 기록 — 강인도·브레이크 보관안(`toughness-balance.md`)과 봇 시뮬레이터(`bot/`) · 게임 실행에는 필요 없음 |
 
-## exe로 묶을 때
+## Windows exe (Electron)
+- 자동 빌드: GitHub **Actions → Build Windows exe** → 실행 화면 아래 **Artifacts → LaMancha-windows** 를 내려받으면 설치판(`LaMancha-Setup-*.exe`)과 포터블(`LaMancha-Portable-*.exe`)이 들어 있습니다.
+- 로컬 실행: `npm install` → `npm start` (F11 전체 화면 · F12 개발자 도구 · Ctrl+R 새로고침)
+- 로컬 빌드(Windows): `npm run dist:win` → `dist/`
+- 게임은 `app://game/` 주소로 열립니다 — `file://`로 열면 fetch()로 불러오는 배경음·효과음이 막히기 때문.
+- 빠지는 폴더: `assets/rig/`(리깅 원본), `assets/audio/sfx_src/`, `docs/`, `*.py · *.npy · *.md`
+
+## exe로 묶을 때 (수동)
 - 폴더 전체를 그대로 묶으면 됩니다 (모든 경로가 상대 경로).
 - 시작 파일: `index.html`
 - `docs/` 폴더는 개발 기록이라 빼고 묶어도 됩니다.
