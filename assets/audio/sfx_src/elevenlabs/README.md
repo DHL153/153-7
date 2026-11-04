@@ -29,3 +29,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_orb_trigger_mult.mp3 | 0.18초 + 잔향 · 유리 구슬 '팅' 화음 (785Hz=솔, 잡음 0.00) → 완전5도 내려 '도'에 가깝게 | sfx_orb_trigger_mult_a (× 구슬 발동 — 점수 노래의 한 음, _b/_c 삭제) |
 | el_orb_equip.mp3 | 0.24초 · 아주 작은 유리 '띵' (소리 대부분 8~16kHz) → 완전5도 낮춰 덜 쏘게 | sfx_orb_equip (구슬을 칸에 끼움 · 상점에서 구슬 살 때) |
 | el_orb_swap.mp3 | 0.34초 · 유리 구슬 '띵…띵' 두 번 (거의 8kHz 위) → 끼움과 같이 완전5도 낮춤 | sfx_orb_swap (구슬 순서 바꿈) |
+| el_atk_greatsword.mp3 | 0.38초 · 묵직한 대검 '부웅—쿵' (중심 225Hz, 잡음 0.29 — 예전 0.46 · 원본 넘침 +3.1dB → 줄이고 35Hz 아래 깎음) | sfx_atk_greatsword (대검 동료 공격 · 컷인) |
