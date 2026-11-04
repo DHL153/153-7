@@ -68,3 +68,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_fire_merge_done.mp3 | 0.34초 · 모닥불이 '화르륵' 타오름 (잡음 0.27 — 예전 0.42 · 70Hz 아래 · 12kHz 위 깎음) | sfx_fire_merge_done (모닥불 머지 완성) |
 | el_release.mp3 | 0.35초 · 부드러운 바람 '스으—' (바람이라 잡음 0.46 · 끝이 뚝 끊겨 짧은 메아리 + 0.25초 페이드로 날려 보내듯 · 9kHz 위 깎음 · 원본 작아 키움) | sfx_release (동료 떠나보내기) |
 | el_camp_leave.mp3 | 0.5초 · 짐 꾸려 '부스럭—탁' 챙김 (원본 아주 작음 −40 LUFS → 키우고 0.6초 뒤 바닥 잡음 잘라냄 · 10kHz 위 깎음 · 잡음 0.30) | sfx_camp_leave (캠프 떠나기) |
+| el_guide_glow.mp3 | 0.4초 · 부드러운 마법 반짝임 (맑은 음 0.06 · 원본은 10.7~12.7kHz에 몰린 얇은 반짝임 → 길이 그대로 한 옥타브 낮춤) | sfx_guide_glow (안내 빛 · 이겼을 때 금빛 물결 시작) |
