@@ -48,3 +48,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_finish_cut.mp3 | 0.5초 + 잔향 · 극적인 마무리 일격 '샤악—쾅' (잡음 0.22 — 예전 0.46 · 1.2초쯤 끝의 작은 잡소리 잘라냄 · 원본 +3.6dB 넘침 줄임) | sfx_finish_cut (거인 마무리 컷인) |
 | el_counter.mp3 | 0.45초 · 적 반격 '휘익—콱' (중심 2kHz, 잡음 0.37 — 예전 0.45) | sfx_counter (적이 동료에게 반격 · stage.html foeStrike) |
 | el_round_select.mp3 | 0.3초 · 오래된 양피지 지도 '촤락' 펼침 (중심 932Hz, 잡음 0.36 · 원본이 작아 −28 LUFS → 키움) | sfx_round_select (라운드 고르기 창 등장) |
+| el_round_start.mp3 | 0.32초 · 짧은 영웅 팡파르 '빠밤' (맑은 음, 잡음 0.13 — 예전 0.99 · 원본 +3.6dB 넘침 줄임 · 12kHz 위 깎음) | sfx_round_start (라운드 시작) |
