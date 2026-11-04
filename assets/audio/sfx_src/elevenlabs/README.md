@@ -32,3 +32,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_atk_greatsword.mp3 | 0.38초 · 묵직한 대검 '부웅—쿵' (중심 225Hz, 잡음 0.29 — 예전 0.46 · 원본 넘침 +3.1dB → 줄이고 35Hz 아래 깎음) | sfx_atk_greatsword (대검 동료 공격 · 컷인) |
 | el_atk_hammer.mp3 | 0.45초 · 큰 전쟁 망치 '쾅' 바로 내리침 (중심 507Hz, 잡음 0.41 — 예전 0.47) | sfx_atk_hammer (망치 동료 공격 · 컷인) |
 | el_atk_bigblade.mp3 | 0.18초 · 넓은 칼날 '휙' 짧고 굵게 (중심 888Hz — 예전 4.9kHz) | sfx_atk_bigblade (큰 칼날 동료 공격 · 컷인) |
+| el_atk_gun.mp3 | 0.28초 · 옛 화승총 한 발 '탕' (잡음 0.23 — 예전 0.48 · 원본 넘침 +3.8dB → 줄임) | sfx_atk_gun_a · _b(높이 −6%) · _c(+6%) (총 동료 공격 · 연사 때 3개 번갈아) |
