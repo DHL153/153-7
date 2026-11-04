@@ -1586,7 +1586,7 @@ try{const v=JSON.parse(localStorage.getItem('lm_sound')||'null');if(v&&typeof v.
    곡은 모두 −20 LUFS(효과음 −16보다 아래)라서 예전 곡(−14.4)과 같은 슬라이더에서 비슷하게 들리도록 +3dB 보정 */
 const BGM_DIR='assets/audio/bgm/';
 const BGM_TRACKS={title:'bgm_title',rust:'bgm_battle_rust',neon:'bgm_battle_neon',sky:'bgm_battle_sky',boss:'bgm_boss',
-  camp:'bgm_camp',shop:'bgm_shop',story:'bgm_story',ending:'bgm_ending'};
+  camp:'bgm_camp',shop:'bgm_shop',story:'bgm_title',ending:'bgm_ending'};   /* (DHL 11-05) 타이틀 곡(Gemini 'Sunlight at the Gates')을 이야기 장면에도 */
 const BGM_ONCE={ending:1};          // 엔딩은 루프 아님: 한 번 흐르고 조용히 끝남
 const BGM_MAKEUP=1.41, BGM_XFADE=1.4, BGM_CACHE=3;
 let audioUnlocked=false,bgmDuck=1,bgmCur=null,bgmScene='title';
@@ -1625,6 +1625,7 @@ function bgmElTick(){
 }
 function bgmPlay(key){
   if((bgmCur&&bgmCur.key)===key)return;
+  if(bgmCur&&key&&BGM_TRACKS[bgmCur.key]===BGM_TRACKS[key]){bgmCur.key=key;return;}   // 같은 곡을 쓰는 장면끼리(타이틀 ↔ 이야기)는 처음부터 다시 틀지 않고 이어서
   if(bgmCur)bgmFadeOut(bgmCur);
   bgmCur=key?{key}:null;if(!key)return;
   const me=bgmCur;
