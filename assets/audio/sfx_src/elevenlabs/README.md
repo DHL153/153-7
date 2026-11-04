@@ -39,3 +39,4 @@ ElevenLabs Sound Effects v2로 받은 원본. 게임 파일(assets/audio/sfx/*.o
 | el_atk_widesword.mp3 | 0.29초 · 넓은 대검 가로 베기 '부왕' (중심 368Hz, 잡음 0.20 — 예전 0.47 · 원본 넘침 +2.5dB → 줄이고 45Hz 아래 깎음) | sfx_atk_widesword (넓은 검 동료 공격 · 컷인) |
 | el_atk_dual.mp3 | 0.2초 · 짧은 칼 '샥' (원본은 대부분 60Hz 아래 '둥' → 120Hz 아래 깎고, 같은 소리를 0.075초 뒤 8% 높게 한 번 더 겹쳐 쌍검 '샥샥') | sfx_atk_dual (쌍검 동료 공격 · 컷인) |
 | el_run_charge.mp3 | 0.28초 · 동료들 '두두둑' 출발 (원본은 대부분 60Hz 아래 '둥' → 150Hz 아래 깎고 2.5kHz +4dB) | sfx_run_charge ('런!' 누르고 점수 연출 시작) |
+| el_hit_rust.mp3 | 0.28초 · 녹슨 쇠 갑옷에 단단히 맞는 '깡' (원본이 아주 작음 −27dB → 키우고 70Hz 아래 깎음) | sfx_hit_rust_a · _b(높이 −6%) · _c(+6%) (녹슨 세계 1~10번 동료가 맞힐 때, 3개 번갈아) |
