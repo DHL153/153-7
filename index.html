@@ -1937,11 +1937,11 @@ const cardW=c=>c.w||TYPES[c.id].w;      // 지금 카드의 세계 (고른 세�
 const originW=c=>[cardW(c)];
 /* ★3 각성: 동료마다 고유 능력 (발라트로 강화 카드 · 봉인 자리) */
 const STAR3={
-  alonso:{ic:'⚔',ko:'라만차의 기사',d:'족보에 있으면 기세 ×1.5'},
+  alonso:{ic:'⚔',ko:'라만차의 기사',d:'족보에 있으면 배수 ×1.5'},
   dulcine:{ic:'🌹',ko:'둘시네아의 축복',d:'함께 낸 다른 족보 카드 힘 +5씩'},
   sancho:{ic:'🪙',ko:'충직한 종자',d:'족보에 넣어 낼 때마다 💰2'},
   rosi:{ic:'🐎',ko:'로시난테의 질주',d:'한 번 더 발동'},
-  lucia:{ic:'✋',ko:'빛나는 손',d:'손에 남아 있으면 기세 +4'},
+  lucia:{ic:'✋',ko:'빛나는 손',d:'손에 남아 있으면 배수 +4'},
   bruno:{ic:'🔨',ko:'망치질',d:'버릴 때 💰3'},
   nicole:{ic:'🌈',ko:'원소의 아이',d:'모든 속성으로 셈'},
   carden:{ic:'🧭',ko:'세계의 방랑자',d:'모든 세계로 셈'},
@@ -1950,11 +1950,11 @@ const STAR3={
 };
 const STAR3B={
   alonso:{ic:'🛡',ko:'늙은 방패',d:'손에 남아 있으면 족보 카드 힘 +10씩'},
-  dulcine:{ic:'💌',ko:'그리움',d:'족보에 있으면 기세 +8'},
+  dulcine:{ic:'💌',ko:'그리움',d:'족보에 있으면 배수 +8'},
   sancho:{ic:'🍞',ko:'산초의 도시락',d:'족보에 넣어 내면 이번 라운드 버리기 +1'},
   rosi:{ic:'💨',ko:'돌진',d:'맨 앞에 내면 힘 ×3'},
-  lucia:{ic:'🔆',ko:'등불',d:'손에 남아 있으면 기세 ×1.2'},
-  bruno:{ic:'⚒',ko:'담금질',d:'버릴 때 다음 런 기세 +6'},
+  lucia:{ic:'🔆',ko:'등불',d:'손에 남아 있으면 배수 ×1.2'},
+  bruno:{ic:'⚒',ko:'담금질',d:'버릴 때 다음 런 배수 +6'},
   nicole:{ic:'⚡',ko:'상성 증폭',d:'약점 공격이 ×2 → ×3'},
   carden:{ic:'🏠',ko:'고향의 노래',d:'고향 보너스 ×1.5 → ×2.5'},
   palome:{ic:'🐣',ko:'작은 날개',d:'족보에 넣어 내면 덱의 ★1 카드 1장이 ★2로'},
@@ -1985,7 +1985,7 @@ const DECK_N=60;
 function makeDeck(){let uid=0;const d=[];WORLDS.forEach((w,wi)=>NAMES.forEach(([n],ni)=>{const id=w+'_'+n,o=(ni+wi*2)%5;[1,3].forEach(k=>d.push({uid:uid++,id,star:1,el:ELS[(o+k)%5]}));}));
   const nos=[];for(let v=1;v<=10;v++)for(let i=0;i<d.length/10;i++)nos.push(v);for(let i=nos.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[nos[i],nos[j]]=[nos[j],nos[i]];}
   d.forEach((c,i)=>c.no=nos[i]);return d;}   // 매판 번호(=힘) 무작위: 1~10 각 6장
-const HT={ /* 족보: [이름, 힘, 기세, 설명] — 축마다 하나씩(이름 족보 · 행진 · 원소 결속 · 세계 결속), 걸린 건 모두 더한다 */
+const HT={ /* 족보: [이름, 힘, 배수, 설명] — 축마다 하나씩(이름 족보 · 행진 · 원소 결속 · 세계 결속), 걸린 건 모두 더한다 */
   solo:['홀로 런',5,1,'족보 없음'],
   pair:['짝',10,2,'같은 번호 2장'],
   two:['두 쌍',15,2,'같은 번호 2장 + 2장'],
@@ -2005,73 +2005,73 @@ const HT_ORDER=['solo','pair','two','three','world','house','march','oath','four
 const ORBS={
   /* 순서 — 예전 키워드 */
   flag:{ko:'돌격 깃발',cost:5,r:'c',g:'순서',d:'맨 앞 카드 힘 ×3'},
-  guard:{ko:'후위 방패',cost:5,r:'c',g:'순서',d:'맨 뒤 카드 기세 +4 (★2 +8 · ★3 +16)'},
+  guard:{ko:'후위 방패',cost:5,r:'c',g:'순서',d:'맨 뒤 카드 배수 +4 (★2 +8 · ★3 +16)'},
   bell:{ko:'축복의 종',cost:5,r:'c',g:'순서',d:'가운데(3번째) 카드 힘 ×4'},
   chain:{ko:'연쇄 고리',cost:6,r:'u',g:'순서',d:'앞 카드와 같은 속성이면 앞 카드 힘을 한 번 더'},
   echo:{ko:'메아리',cost:6,r:'u',g:'순서',d:'맨 뒤 카드 힘이 한 번 더'},
-  delu:{ko:'착각의 투구',cost:7,r:'u',g:'순서',d:'맨 뒤 카드: 힘 0, 대신 기세 ×2 (★2 ×3 · ★3 ×6)'},
+  delu:{ko:'착각의 투구',cost:7,r:'u',g:'순서',d:'맨 뒤 카드: 힘 0, 대신 배수 ×2 (★2 ×3 · ★3 ×6)'},
   /* 속성 · 세계 */
-  el_물:{ko:'물방울',cost:5,r:'c',g:'속성',d:'물 카드마다 기세 +3'},
-  el_불:{ko:'불씨',cost:5,r:'c',g:'속성',d:'불 카드마다 기세 +3'},
-  el_전기:{ko:'번개',cost:5,r:'c',g:'속성',d:'전기 카드마다 기세 +3'},
-  el_흙:{ko:'흙덩이',cost:5,r:'c',g:'속성',d:'흙 카드마다 기세 +3'},
-  el_바람:{ko:'바람개비',cost:5,r:'c',g:'속성',d:'바람 카드마다 기세 +3'},
+  el_물:{ko:'물방울',cost:5,r:'c',g:'속성',d:'물 카드마다 배수 +3'},
+  el_불:{ko:'불씨',cost:5,r:'c',g:'속성',d:'불 카드마다 배수 +3'},
+  el_전기:{ko:'번개',cost:5,r:'c',g:'속성',d:'전기 카드마다 배수 +3'},
+  el_흙:{ko:'흙덩이',cost:5,r:'c',g:'속성',d:'흙 카드마다 배수 +3'},
+  el_바람:{ko:'바람개비',cost:5,r:'c',g:'속성',d:'바람 카드마다 배수 +3'},
   w_rust:{ko:'톱니',cost:4,r:'c',g:'세계',d:'러스트 카드마다 힘 +20'},
   w_neon:{ko:'네온관',cost:4,r:'c',g:'세계',d:'네온 카드마다 힘 +20'},
   w_sky:{ko:'구름',cost:4,r:'c',g:'세계',d:'스카이 카드마다 힘 +20'},
   /* 족보 */
-  ring:{ko:'짝꿍 반지',cost:4,r:'c',g:'족보',d:'짝 · 두 쌍 · 기사단이면 기세 +6'},
-  trio:{ko:'삼총사 깃털',cost:7,r:'u',g:'족보',d:'같은 이름 3장 이상 족보면 기세 ×2'},
-  crown:{ko:'원소 왕관',cost:7,r:'u',g:'족보',d:'원소 결속이면 기세 ×2'},
-  rainbow:{ko:'행진 나팔',cost:7,r:'u',g:'족보',d:'행진이면 기세 ×3'},
-  map3:{ko:'세 세계 지도',cost:6,r:'u',g:'족보',d:'러스트 · 네온 · 스카이가 모두 있으면 기세 ×2'},
-  letter:{ko:'둘시네아의 편지',cost:6,r:'u',g:'족보',d:'5장 모두 다른 이름이면 기세 ×2.5'},
+  ring:{ko:'짝꿍 반지',cost:4,r:'c',g:'족보',d:'짝 · 두 쌍 · 기사단이면 배수 +6'},
+  trio:{ko:'삼총사 깃털',cost:7,r:'u',g:'족보',d:'같은 이름 3장 이상 족보면 배수 ×2'},
+  crown:{ko:'원소 왕관',cost:7,r:'u',g:'족보',d:'원소 결속이면 배수 ×2'},
+  rainbow:{ko:'행진 나팔',cost:7,r:'u',g:'족보',d:'행진이면 배수 ×3'},
+  map3:{ko:'세 세계 지도',cost:6,r:'u',g:'족보',d:'러스트 · 네온 · 스카이가 모두 있으면 배수 ×2'},
+  letter:{ko:'둘시네아의 편지',cost:6,r:'u',g:'족보',d:'5장 모두 다른 이름이면 배수 ×2.5'},
   /* 머지 · ★ */
-  hammer:{ko:'머지 망치',cost:5,r:'c',g:'머지',d:'이번 판 머지 1번마다 기세 +1 (누적)'},
-  twin:{ko:'쌍둥이 별',cost:5,r:'c',g:'머지',d:'★2 이상 카드마다 기세 +4'},
-  starmap:{ko:'별빛 지도',cost:8,r:'r',g:'머지',d:'★3 카드마다 기세 ×2'},
+  hammer:{ko:'머지 망치',cost:5,r:'c',g:'머지',d:'이번 판 머지 1번마다 배수 +1 (누적)'},
+  twin:{ko:'쌍둥이 별',cost:5,r:'c',g:'머지',d:'★2 이상 카드마다 배수 +4'},
+  starmap:{ko:'별빛 지도',cost:8,r:'r',g:'머지',d:'★3 카드마다 배수 ×2'},
   diet:{ko:'가벼운 짐',cost:6,r:'u',g:'머지',d:'덱이 60장보다 1장 적을 때마다 힘 +8'},
   /* 기본 · 상황 */
-  mill:{ko:'풍차',cost:3,r:'c',g:'기본',d:'기세 +4'},
-  spare:{ko:'산초의 여분',cost:5,r:'c',g:'상황',d:'남은 버리기 1번마다 기세 +2'},
-  small:{ko:'작은 원정',cost:5,r:'c',g:'상황',d:'3장 이하로 내면 기세 +12'},
-  dusk:{ko:'해 질 녘',cost:7,r:'u',g:'상황',d:'라운드 마지막 런이면 기세 ×3'},
+  mill:{ko:'풍차',cost:3,r:'c',g:'기본',d:'배수 +4'},
+  spare:{ko:'산초의 여분',cost:5,r:'c',g:'상황',d:'남은 버리기 1번마다 배수 +2'},
+  small:{ko:'작은 원정',cost:5,r:'c',g:'상황',d:'3장 이하로 내면 배수 +12'},
+  dusk:{ko:'해 질 녘',cost:7,r:'u',g:'상황',d:'라운드 마지막 런이면 배수 ×3'},
   grow:{ko:'자라는 망토',cost:6,r:'u',g:'성장',d:'런을 할 때마다 힘 +8 (누적)'},
   horse:{ko:'황금 편자',cost:6,r:'c',g:'돈',d:'라운드를 이길 때마다 💰+4'},
-  quix:{ko:'라만차의 기사',cost:9,r:'r',g:'기본',d:'기세 ×3'},
+  quix:{ko:'라만차의 기사',cost:9,r:'r',g:'기본',d:'배수 ×3'},
   /* 새 구슬 (곱하기 · 빌드 축) */
-  anvil:{ko:'대장장이 모루',cost:7,r:'u',g:'머지',d:'이번 판 머지 1번마다 기세 ×0.05씩 (머지 20번 = ×2)'},
-  pureel:{ko:'순수한 원소',cost:6,r:'u',g:'속성',d:'낸 카드(2장 이상)가 모두 같은 속성이면 기세 ×1.5'},
-  homeflag:{ko:'고향 깃발',cost:6,r:'u',g:'세계',d:'낸 카드(2장 이상)가 모두 같은 세계면 기세 ×1.5'},
-  duel:{ko:'쌍둥이 결투',cost:5,r:'c',g:'족보',d:'짝 · 두 쌍이면 기세 ×2'},
-  crest:{ko:'기사단 문장',cost:7,r:'u',g:'족보',d:'기사단이면 기세 ×3'},
-  four4:{ko:'사인방 깃발',cost:7,r:'u',g:'족보',d:'사인방 · 라만차 원정대면 기세 ×3'},
-  wcrest:{ko:'결속의 문장',cost:7,r:'u',g:'족보',d:'세계 결속이면 기세 ×2.5'},
-  oathring:{ko:'맹세의 반지',cost:7,r:'u',g:'족보',d:'세 세계의 맹세면 기세 ×3'},
-  basil:{ko:'바실의 꾀',cost:6,r:'u',g:'번호',d:'족보 카드 번호가 모두 5 이하면 기세 ×2'},
-  noble:{ko:'귀족의 문장',cost:6,r:'u',g:'번호',d:'족보 카드 번호가 모두 6 이상이면 기세 ×1.5'},
-  five:{ko:'다섯 동료',cost:5,r:'c',g:'상황',d:'5장을 내면 기세 ×1.5'},
-  hunter:{ko:'약점 사냥꾼',cost:7,r:'u',g:'빌런',d:'족보 카드에 약점 속성 카드가 있으면 기세 ×2'},
-  shadow:{ko:'풍차의 그림자',cost:8,r:'r',g:'머지',d:'덱이 50장 이하면 기세 ×2'},
+  anvil:{ko:'대장장이 모루',cost:7,r:'u',g:'머지',d:'이번 판 머지 1번마다 배수 ×0.05씩 (머지 20번 = ×2)'},
+  pureel:{ko:'순수한 원소',cost:6,r:'u',g:'속성',d:'낸 카드(2장 이상)가 모두 같은 속성이면 배수 ×1.5'},
+  homeflag:{ko:'고향 깃발',cost:6,r:'u',g:'세계',d:'낸 카드(2장 이상)가 모두 같은 세계면 배수 ×1.5'},
+  duel:{ko:'쌍둥이 결투',cost:5,r:'c',g:'족보',d:'짝 · 두 쌍이면 배수 ×2'},
+  crest:{ko:'기사단 문장',cost:7,r:'u',g:'족보',d:'기사단이면 배수 ×3'},
+  four4:{ko:'사인방 깃발',cost:7,r:'u',g:'족보',d:'사인방 · 라만차 원정대면 배수 ×3'},
+  wcrest:{ko:'결속의 문장',cost:7,r:'u',g:'족보',d:'세계 결속이면 배수 ×2.5'},
+  oathring:{ko:'맹세의 반지',cost:7,r:'u',g:'족보',d:'세 세계의 맹세면 배수 ×3'},
+  basil:{ko:'바실의 꾀',cost:6,r:'u',g:'번호',d:'족보 카드 번호가 모두 5 이하면 배수 ×2'},
+  noble:{ko:'귀족의 문장',cost:6,r:'u',g:'번호',d:'족보 카드 번호가 모두 6 이상이면 배수 ×1.5'},
+  five:{ko:'다섯 동료',cost:5,r:'c',g:'상황',d:'5장을 내면 배수 ×1.5'},
+  hunter:{ko:'약점 사냥꾼',cost:7,r:'u',g:'빌런',d:'족보 카드에 약점 속성 카드가 있으면 배수 ×2'},
+  shadow:{ko:'풍차의 그림자',cost:8,r:'r',g:'머지',d:'덱이 50장 이하면 배수 ×2'},
   /* 새 구슬 (더하기) */
-  dawn:{ko:'새벽 출정',cost:4,r:'c',g:'상황',d:'라운드 첫 런이면 기세 +10'},
+  dawn:{ko:'새벽 출정',cost:4,r:'c',g:'상황',d:'라운드 첫 런이면 배수 +10'},
   wisdom:{ko:'버린 자의 지혜',cost:5,r:'c',g:'버리기',d:'이번 라운드에 버린 카드 1장마다 힘 +8'},
   stars:{ko:'별자리',cost:5,r:'c',g:'머지',d:'족보 안 ★2 이상 카드마다 힘 +20'},
   bignum:{ko:'큰 번호',cost:4,r:'c',g:'번호',d:'족보 카드 번호 합 ×2 만큼 힘 +'},
   even:{ko:'짝수의 북',cost:6,r:'u',g:'번호',d:'번호가 짝수(10·8·6·4·2)인 족보 카드는 한 번 더 발동'},
   odd:{ko:'홀수의 피리',cost:6,r:'u',g:'번호',d:'번호가 홀수(9·7·5·3·1)인 족보 카드는 한 번 더 발동'},
   /* 축마다 자라는 구슬 (판 내내 누적) */
-  pulse:{ko:'원소의 맥박',cost:7,r:'u',g:'성장',d:'원소 결속을 낼 때마다 기세 ×0.2씩 쌓임'},
-  pilgrim:{ko:'세 세계 순례',cost:5,r:'c',g:'성장',d:'세계 결속을 낼 때마다 기세 +4씩 쌓임'},
-  marchsong:{ko:'행진곡',cost:7,r:'u',g:'성장',d:'행진을 낼 때마다 기세 ×0.3씩 쌓임'},
+  pulse:{ko:'원소의 맥박',cost:7,r:'u',g:'성장',d:'원소 결속을 낼 때마다 배수 ×0.2씩 쌓임'},
+  pilgrim:{ko:'세 세계 순례',cost:5,r:'c',g:'성장',d:'세계 결속을 낼 때마다 배수 +4씩 쌓임'},
+  marchsong:{ko:'행진곡',cost:7,r:'u',g:'성장',d:'행진을 낼 때마다 배수 ×0.3씩 쌓임'},
   diary:{ko:'산초의 일기',cost:5,r:'c',g:'성장',d:'버린 카드 1장마다 힘 +3씩 쌓임'},
-  collector:{ko:'약점 수집가',cost:7,r:'u',g:'성장',d:'약점 속성 카드를 낼 때마다 기세 ×0.1씩 쌓임'},
-  parity:{ko:'짝짝이 장부',cost:5,r:'c',g:'성장',d:'족보 카드가 모두 짝수거나 모두 홀수면 기세 +5씩 쌓임'},
+  collector:{ko:'약점 수집가',cost:7,r:'u',g:'성장',d:'약점 속성 카드를 낼 때마다 배수 ×0.1씩 쌓임'},
+  parity:{ko:'짝짝이 장부',cost:5,r:'c',g:'성장',d:'족보 카드가 모두 짝수거나 모두 홀수면 배수 +5씩 쌓임'},
   bull:{ko:'산초의 금고',cost:6,r:'u',g:'돈',d:'가진 💰5마다 힘 +10'},
   /* 재미 축: 운 · 희생 · 절제 · 규칙 비틀기 · 정체성 */
-  roulette:{ko:'풍차의 룰렛',cost:5,r:'c',g:'운',d:'런마다 기세 +0~25 무작위'},
-  dagger:{ko:'제물의 단검',cost:7,r:'u',g:'희생',d:'라운드 시작 때 오른쪽 구슬을 부수고, 그 판매가 ×2만큼 기세가 영구히 쌓임'},
-  monk:{ko:'수도사의 서약',cost:6,r:'u',g:'절제',d:'원정 캠프에서 아무것도 사지 않고 떠나면 기세 ×0.25씩 쌓임'},
+  roulette:{ko:'풍차의 룰렛',cost:5,r:'c',g:'운',d:'런마다 배수 +0~25 무작위'},
+  dagger:{ko:'제물의 단검',cost:7,r:'u',g:'희생',d:'라운드 시작 때 오른쪽 구슬을 부수고, 그 판매가 ×2만큼 배수가 영구히 쌓임'},
+  monk:{ko:'수도사의 서약',cost:6,r:'u',g:'절제',d:'원정 캠프에서 아무것도 사지 않고 떠나면 배수 ×0.25씩 쌓임'},
   fourway:{ko:'네 갈래 길',cost:7,r:'u',g:'규칙',d:'원소 결속 · 세계 결속 · 행진을 4장으로도 인정'},
   stepping:{ko:'징검다리',cost:6,r:'u',g:'규칙',d:'행진에서 번호 1칸 건너뛰기 허용 (예: 10·8·7·5·4)'},
   stage:{ko:'주연 무대',cost:7,r:'u',g:'정체성',d:'알론소 · 둘시네 · 산초 카드는 한 번 더 발동'},
@@ -2142,11 +2142,11 @@ function score(cards,ctx){
   /* 구슬 머지: ★2는 더하기 2배 · 곱하기 1.5배씩 (×3 → ×4.5), ★3은 더하기 3배 · 곱하기 ×6 */
   const OS=k=>(ctx.ost&&ctx.ost[k])||1, A=(k,v)=>v*OS(k), X=(k,x)=>Math.round(x*(1+ORB_XS*(OS(k)-1))*100)/100;
   const NUM=cardNo;
-  const MX=(k,x)=>{const v=X(k,x);mult*=v;return '×'+v+' 기세';};
+  const MX=(k,x)=>{const v=X(k,x);mult*=v;return '×'+v+' 배수';};
   const live=cards;
   const HX=handInfo(cards,{four:has('fourway'),skip:has('stepping')}), ht=HX.ht, bonds=HX.bonds, LV=k=>((ctx.lv||{})[k]||1)-1, L=LV(ht);
   let chips=HT[ht][1]+LVUP[ht][0]*L, mult=HT[ht][2]+LVUP[ht][1]*L;
-  bonds.forEach((b,i)=>{const f=HX.xb&&HX.xb[i]?EXM:1;chips+=HT[b][1]+LVUP[b][0]*LV(b);mult+=Math.round((HT[b][2]+LVUP[b][1]*LV(b))*f*10)/10;});   // 겹친 이름 족보 기세 비율 EXM(기본 1 = 그대로)
+  bonds.forEach((b,i)=>{const f=HX.xb&&HX.xb[i]?EXM:1;chips+=HT[b][1]+LVUP[b][0]*LV(b);mult+=Math.round((HT[b][2]+LVUP[b][1]*LV(b))*f*10)/10;});   // 겹친 이름 족보 배수 비율 EXM(기본 1 = 그대로)
   const label=[ht].concat(bonds).map(k=>HT[k][0]+(LV(k)?' Lv'+(LV(k)+1):'')).join(' + '); const comboTag=bonds.length>=3?'사중 결속!':bonds.length===2?'삼중 결속!':'';
   const steps=[{i:-1,txt:(comboTag?comboTag+' ':'')+label,chips,mult,combo:bonds.length}];
   const isHT=k=>ht===k||bonds.includes(k);
@@ -2178,7 +2178,7 @@ function score(cards,ctx){
     if(has('stars')&&st>=2){ch+=A('stars',20);chips+=A('stars',20);fired.push('stars');}
     if(has('twin')&&st>=2){mult+=A('twin',4);fired.push('twin');}
     if(last&&has('guard')){mult+=A('guard',4*STAR_MUL[st]);notes.push('후위 +'+A('guard',4*STAR_MUL[st]));fired.push('guard');}
-    // 재발동: 짝수의 북 · 홀수의 피리 — 이 카드의 힘과 더하기 기세를 한 번 더 (구슬 ◆ 단계만큼)
+    // 재발동: 짝수의 북 · 홀수의 피리 — 이 카드의 힘과 더하기 배수를 한 번 더 (구슬 ◆ 단계만큼)
     const nRe=(has('even')&&NUM(c)%2===0?OS('even'):0)+(has('odd')&&NUM(c)%2===1?OS('odd'):0)+(S3(c,'rosi')?1:0)+(has('stage')&&LEADS.includes(t.n)?OS('stage'):0);
     if(nRe){const dm=mult-m0;chips+=ch*nRe;mult+=dm*nRe;ch+=ch*nRe;notes.push('재발동 ×'+nRe);fired.push(NUM(c)%2===0?'even':'odd');}
     if(S3(c,'alonso')){mult*=1.5;notes.push('⚔ ×1.5');}
@@ -2192,19 +2192,19 @@ function score(cards,ctx){
   const G={
     grow:()=>ctx.grow?(chips+=A('grow',ctx.grow),'+'+A('grow',ctx.grow)+' 힘'):null,
     diet:()=>ctx.deck<DECK_N?(chips+=A('diet',8*(DECK_N-ctx.deck)),'+'+A('diet',8*(DECK_N-ctx.deck))+' 힘'):null,
-    mill:()=>(mult+=A('mill',4),'+'+A('mill',4)+' 기세'),
-    hammer:()=>ctx.merges?(mult+=A('hammer',ctx.merges),'+'+A('hammer',ctx.merges)+' 기세'):null,
-    ring:()=>['pair','two','house'].includes(ht)?(mult+=A('ring',6),'+'+A('ring',6)+' 기세'):null,
-    spare:()=>ctx.discards?(mult+=A('spare',2*ctx.discards),'+'+A('spare',2*ctx.discards)+' 기세'):null,
-    small:()=>n<=3?(mult+=A('small',12),'+'+A('small',12)+' 기세'):null,
-    trio:()=>['three','house','oath','four','all'].includes(ht)?(mult*=X('trio',2),'×'+X('trio',2)+' 기세'):null,
-    crown:()=>isHT('elf')?(mult*=X('crown',2),'×'+X('crown',2)+' 기세'):null,
-    rainbow:()=>isHT('march')?(mult*=X('rainbow',3),'×'+X('rainbow',3)+' 기세'):null,
-    map3:()=>worlds.size===3?(mult*=X('map3',2),'×'+X('map3',2)+' 기세'):null,
-    letter:()=>names.size===5&&n===5?(mult*=X('letter',2.5),'×'+X('letter',2.5)+' 기세'):null,
-    dusk:()=>ctx.runsLeft===1?(mult*=X('dusk',3),'×'+X('dusk',3)+' 기세'):null,
-    quix:()=>(mult*=X('quix',3),'×'+X('quix',3)+' 기세'),
-    dawn:()=>ctx.runsMax&&ctx.runsLeft===ctx.runsMax?(mult+=A('dawn',10),'+'+A('dawn',10)+' 기세'):null,
+    mill:()=>(mult+=A('mill',4),'+'+A('mill',4)+' 배수'),
+    hammer:()=>ctx.merges?(mult+=A('hammer',ctx.merges),'+'+A('hammer',ctx.merges)+' 배수'):null,
+    ring:()=>['pair','two','house'].includes(ht)?(mult+=A('ring',6),'+'+A('ring',6)+' 배수'):null,
+    spare:()=>ctx.discards?(mult+=A('spare',2*ctx.discards),'+'+A('spare',2*ctx.discards)+' 배수'):null,
+    small:()=>n<=3?(mult+=A('small',12),'+'+A('small',12)+' 배수'):null,
+    trio:()=>['three','house','oath','four','all'].includes(ht)?(mult*=X('trio',2),'×'+X('trio',2)+' 배수'):null,
+    crown:()=>isHT('elf')?(mult*=X('crown',2),'×'+X('crown',2)+' 배수'):null,
+    rainbow:()=>isHT('march')?(mult*=X('rainbow',3),'×'+X('rainbow',3)+' 배수'):null,
+    map3:()=>worlds.size===3?(mult*=X('map3',2),'×'+X('map3',2)+' 배수'):null,
+    letter:()=>names.size===5&&n===5?(mult*=X('letter',2.5),'×'+X('letter',2.5)+' 배수'):null,
+    dusk:()=>ctx.runsLeft===1?(mult*=X('dusk',3),'×'+X('dusk',3)+' 배수'):null,
+    quix:()=>(mult*=X('quix',3),'×'+X('quix',3)+' 배수'),
+    dawn:()=>ctx.runsMax&&ctx.runsLeft===ctx.runsMax?(mult+=A('dawn',10),'+'+A('dawn',10)+' 배수'):null,
     wisdom:()=>ctx.discCount?(chips+=A('wisdom',8*ctx.discCount),'+'+A('wisdom',8*ctx.discCount)+' 힘'):null,
     bignum:()=>{const v=2*SC.reduce((s,c)=>s+NUM(c),0);return v?(chips+=A('bignum',v),'+'+A('bignum',v)+' 힘'):null;},
     anvil:()=>ctx.merges?MX('anvil',Math.round((1+0.05*ctx.merges)*100)/100):null,
@@ -2220,22 +2220,22 @@ function score(cards,ctx){
     five:()=>n===5?MX('five',1.5):null,
     hunter:()=>ctx.foe&&SC.some(c=>isWeakCard(c,ctx.foe)&&!paralyzed(c,ctx.foe))?MX('hunter',2):null,
     pulse:()=>(ctx.ostate&&ctx.ostate.pulse)?MX('pulse',Math.round((1+ctx.ostate.pulse)*100)/100):null,
-    pilgrim:()=>(ctx.ostate&&ctx.ostate.pilgrim)?(mult+=A('pilgrim',ctx.ostate.pilgrim),'+'+A('pilgrim',ctx.ostate.pilgrim)+' 기세'):null,
+    pilgrim:()=>(ctx.ostate&&ctx.ostate.pilgrim)?(mult+=A('pilgrim',ctx.ostate.pilgrim),'+'+A('pilgrim',ctx.ostate.pilgrim)+' 배수'):null,
     marchsong:()=>(ctx.ostate&&ctx.ostate.marchsong)?MX('marchsong',Math.round((1+ctx.ostate.marchsong)*100)/100):null,
     diary:()=>(ctx.ostate&&ctx.ostate.diary)?(chips+=A('diary',ctx.ostate.diary),'+'+A('diary',ctx.ostate.diary)+' 힘'):null,
     collector:()=>(ctx.ostate&&ctx.ostate.collector)?MX('collector',Math.round((1+ctx.ostate.collector)*100)/100):null,
-    parity:()=>(ctx.ostate&&ctx.ostate.parity)?(mult+=A('parity',ctx.ostate.parity),'+'+A('parity',ctx.ostate.parity)+' 기세'):null,
+    parity:()=>(ctx.ostate&&ctx.ostate.parity)?(mult+=A('parity',ctx.ostate.parity),'+'+A('parity',ctx.ostate.parity)+' 배수'):null,
     bull:()=>ctx.gold>=5?(chips+=A('bull',10*Math.floor(ctx.gold/5)),'+'+A('bull',10*Math.floor(ctx.gold/5))+' 힘'):null,
-    roulette:()=>{const v=A('roulette',Math.floor((ctx.rng||Math.random)()*26));mult+=v;return '🎲 +'+v+' 기세';},
-    dagger:()=>(ctx.ostate&&ctx.ostate.dagger)?(mult+=ctx.ostate.dagger,'+'+ctx.ostate.dagger+' 기세'):null,
+    roulette:()=>{const v=A('roulette',Math.floor((ctx.rng||Math.random)()*26));mult+=v;return '🎲 +'+v+' 배수';},
+    dagger:()=>(ctx.ostate&&ctx.ostate.dagger)?(mult+=ctx.ostate.dagger,'+'+ctx.ostate.dagger+' 배수'):null,
     monk:()=>(ctx.ostate&&ctx.ostate.monk)?MX('monk',Math.round((1+ctx.ostate.monk)*100)/100):null,
     shadow:()=>ctx.deck&&ctx.deck<=50?MX('shadow',2):null
   };
-  {const LB=(ctx.held||[]).filter(c=>S3B(c,'lucia')).length;if(LB){const x=Math.round(Math.pow(1.2,LB)*100)/100;mult*=x;steps.push({i:-2,txt:'🔆 등불 ×'+x+' 기세',pop:'×'+x+' 기세',chips,mult});}}
-  if(ctx.bonusMult){mult+=ctx.bonusMult;steps.push({i:-2,txt:'⚒ 담금질 +'+ctx.bonusMult+' 기세',pop:'+'+ctx.bonusMult+' 기세',chips,mult});}
+  {const LB=(ctx.held||[]).filter(c=>S3B(c,'lucia')).length;if(LB){const x=Math.round(Math.pow(1.2,LB)*100)/100;mult*=x;steps.push({i:-2,txt:'🔆 등불 ×'+x+' 배수',pop:'×'+x+' 배수',chips,mult});}}
+  if(ctx.bonusMult){mult+=ctx.bonusMult;steps.push({i:-2,txt:'⚒ 담금질 +'+ctx.bonusMult+' 배수',pop:'+'+ctx.bonusMult+' 배수',chips,mult});}
   // 머지 콤보: 이번 런에서 머지가 2번이면 ×1.5, 3번 이상이면 ×2
-  if((ctx.mcombo||0)>=2){const x=ctx.mcombo>=3?2:1.5;mult*=x;steps.push({i:-2,txt:(ctx.mcombo>=3?'트리플 머지!':'더블 머지!')+' ×'+x+' 기세',pop:'×'+x+' 기세',chips,mult,combo:1});}
-  {const L3=(ctx.held||[]).filter(c=>S3(c,'lucia')).length;if(L3){mult+=4*L3;steps.push({i:-2,txt:'✋ 빛나는 손 +'+4*L3+' 기세',pop:'+'+4*L3+' 기세',chips,mult});}}
+  if((ctx.mcombo||0)>=2){const x=ctx.mcombo>=3?2:1.5;mult*=x;steps.push({i:-2,txt:(ctx.mcombo>=3?'트리플 머지!':'더블 머지!')+' ×'+x+' 배수',pop:'×'+x+' 배수',chips,mult,combo:1});}
+  {const L3=(ctx.held||[]).filter(c=>S3(c,'lucia')).length;if(L3){mult+=4*L3;steps.push({i:-2,txt:'✋ 빛나는 손 +'+4*L3+' 배수',pop:'+'+4*L3+' 배수',chips,mult});}}
   orbs.forEach(k=>{if(!G[k])return;const t=G[k]();if(t)steps.push({i:-2,orb:k,txt:ORBS[k].ko+' '+t,pop:t,chips,mult});});
   chips=Math.max(0,chips);               // 마이너스 힘 카드가 있어도 한 런의 총 힘은 0 아래로 안 감
   mult=Math.round(mult*10)/10;
@@ -2393,11 +2393,11 @@ function battlePower(c,foe){if(paralyzed(c,foe))return 0;if(foe&&foe.rule&&foe.r
 function rarityOdds(j){const r=Math.min(0.2,0.04+0.02*(j-1)),u=Math.min(0.45,0.22+0.03*(j-1));return {r,u};}
 const RD_KO=['망령','수문장','거인'];   /* (DHL 10-30) 졸개 → 망령 · 기사 → 수문장 (난이도 '기사'와 겹쳐서) */   // 장 안의 세 전투 (추후 지도 방식이면 바뀔 수 있음)
 const _E=(k,d)=>(typeof process!=='undefined'&&process.env&&process.env[k])?+process.env[k]:d;
-const EXM=_E('EXM',1);   // 겹친 이름 족보(남은 묶음)의 기세 비율 — 봇 실험용
+const EXM=_E('EXM',1);   // 겹친 이름 족보(남은 묶음)의 배수 비율 — 봇 실험용
 const ORB_XS=_E('OMX',0.5), TGT_G=_E('TG',2.3), TGT_G2=_E('TG2',2.3);   // 구슬 ★당 곱하기 증가 · 목표 성장률(1~4장 / 5장~)
 function target(j,r,g2){const e=Math.min(j-1,3),l=Math.max(0,j-4);return Math.round([315,475,685][r]*Math.pow(TGT_G,e)*Math.pow(g2||TGT_G2,l)/10)*10;}   // 족보 카드만 힘 → 목표 -5%
 const REWARD=[4,5,6];
-/* 족보서: 레벨 1 오를 때마다 [힘, 기세] */
+/* 족보서: 레벨 1 오를 때마다 [힘, 배수] */
 const LVUP={solo:[5,1],pair:[10,1],two:[10,1],three:[15,1],world:[15,1],house:[20,1],march:[20,2],oath:[20,2],four:[20,2],elf:[25,2],all:[30,2]};
 /* 증서(바우처): 판 내내 유지, 거인을 잡을 때만 새로 나옴 */
 const VOUCH={ /* 증서: 기본 14 + 상위 14 (상위는 같은 판에서 기본을 산 뒤에만 나옴) */
@@ -2632,7 +2632,7 @@ function beginRound(){
   S.draw=shuffle(S.deck.filter(c=>!banned(c,S.foe)&&!c.out));   // 거인 출전 불가 카드는 아예 안 뽑힘
   S.hand=[];S.sel=[];S.runs=K==='needle'?1:S.runsMax;S.dis=K==='water'?0:S.disMax;S.handNow=S.handN-(K==='manacle'?1:0);S.roundMerges=0;S.discCount=0;S.bOrb=null;S.score=0;S.sh=null;S.tgt=roundTgt(S.rd);
   S.offOrb=null;S.orbHidden=false;S.forced=null;S.ostate=S.ostate||{};
-  {const di=S.orbs.indexOf('dagger');if(di>=0&&di<S.orbs.length-1){const v=S.orbs[di+1],gain=2*sellPrice(v);S.ostate.dagger=(S.ostate.dagger||0)+gain;delete S.ost[v];delete S.ostate[v];S.orbs.splice(di+1,1);setTimeout(()=>popMsg('🗡 제물의 단검 — '+ORBS[v].ko+' 파괴, 기세 +'+gain),300);}}if(K==='acorn'){S.orbs=shuffle(S.orbs);S.orbHidden=true;}if(K==='leaf')R.on=S.orbs.length>0;
+  {const di=S.orbs.indexOf('dagger');if(di>=0&&di<S.orbs.length-1){const v=S.orbs[di+1],gain=2*sellPrice(v);S.ostate.dagger=(S.ostate.dagger||0)+gain;delete S.ost[v];delete S.ostate[v];S.orbs.splice(di+1,1);setTimeout(()=>popMsg('🗡 제물의 단검 — '+ORBS[v].ko+' 파괴, 배수 +'+gain),300);}}if(K==='acorn'){S.orbs=shuffle(S.orbs);S.orbHidden=true;}if(K==='leaf')R.on=S.orbs.length>0;
   const prevW=S.world;S.world=JANG_WORLD(S.jang);if(prevW&&prevW!==S.world)try{window.LMS&&LMS.play('sfx_world_change',{vol:.85,gap:2000});}catch(e){}   // 다음 장 — 세계가 바뀌면 풍차 문 '슈와앙' (11-04 ElevenLabs)
   S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
   fill(true);if(K==='house'){S.hand.forEach(c=>c.fog=true);try{window.LMS&&LMS.play('sfx_card_fog',{delay:380,vol:.8,gap:400});}catch(e){}}rollIntent();bossTick();render();
@@ -2978,7 +2978,7 @@ function finishMergeTail(a,k,healed){if(S.orbs.includes('trader'))S.gold+=(S.ost
 function doDiscard(){
   if(S.busy||!S.sel.length||S.dis<=0)return;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
-  const out=selCards();const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 기세 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
+  const out=selCards();const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
 }
 /* 머지 & 런 (기사 이상): 고른 카드 안의 같은 이름 · 같은 ★ 짝을 먼저 합치고 달린다 */
 function runPairs(cs){ // 미리보기용: 복사본으로 합쳐 본 짝 목록
@@ -3037,7 +3037,7 @@ function doPlay(merged){
   render();requestAnimationFrame(tick);
 }
 const STEP=520,END=900;
-/* 간단한 주스: 숫자가 굴러 오르고, 기세가 오르면 박스가 튐 */
+/* 간단한 주스: 숫자가 굴러 오르고, 배수가 오르면 박스가 튐 */
 function rollNum(id,to,dec=0,pre='',ms=220){
   const el=$(id),from=+(el.dataset.v||0),t0=performance.now();el.dataset.v=to;
   const f=k=>pre+(dec?(+(from+(to-from)*k).toFixed(dec)):Math.round(from+(to-from)*k)).toLocaleString();
@@ -3285,7 +3285,7 @@ function itemInfo(key){
   const it=S.top[+key.slice(3)];
   if(it.kind==='orb'){if(S.orbs.includes(it.k)){const st=S.ost[it.k]||1;return {name:ORBS[it.k].ko+' 머지',desc:`가진 구슬 ★${st} → ★${st+1} · ${ORBS[it.k].d} → ${orbKind(it.k)==='mul'?'곱하는 값이 '+(1+0.5*st)+'배':orbKind(it.k)==='add'?'더하는 값이 '+(st+1)+'배':'효과가 더 세짐 (더하기 '+(st+1)+'배 · 곱하기 '+(1+0.5*st)+'배)'}`,act:'머지',ok:S.gold>=it.cost};}
     const full=S.orbs.length>=S.maxOrb;return {name:ORBS[it.k].ko+(it.pre?' ◆◆':''),desc:(it.pre?'✨ 이미 머지된 구슬 (◆◆◇) · ':'')+ORBS[it.k].d+(full?' (구슬칸 가득)':''),act:'구매',ok:S.gold>=it.cost&&!full};}
-  const L=S.lv[it.k]||1,UP=S.vouch.includes('scope2')?2:1;return {name:'족보서: '+HT[it.k][0],desc:`${HT[it.k][0]} Lv${L} → Lv${L+UP} (힘 +${LVUP[it.k][0]}, 기세 +${LVUP[it.k][1]})`,act:'사용',ok:S.gold>=it.cost};
+  const L=S.lv[it.k]||1,UP=S.vouch.includes('scope2')?2:1;return {name:'족보서: '+HT[it.k][0],desc:`${HT[it.k][0]} Lv${L} → Lv${L+UP} (힘 +${LVUP[it.k][0]}, 배수 +${LVUP[it.k][1]})`,act:'사용',ok:S.gold>=it.cost};
 }
 function tileHTML(key,label,title,cost,cls,sold){
   if(sold)return `<div class="tile empty"></div>`;
@@ -3343,7 +3343,7 @@ function orbModal(i){
     `<h2 class="omName">${kind==='mul'?'<i class="ok mul">×</i>':kind==='add'?'<i class="ok add">+</i>':''}${ORBS[k].ko}</h2>`;
   {h+='<div class="omTiers">'+[1,2,3].map(s=>{const t=tierText(k,s);return `<div class="omTier${s===st?' cur':''}"><b>${dia(s)}</b><span>${t||(s===2?'더하기 ×2 · 곱하기 ×1.5':'더하기 ×3 · 곱하기 ×2')}</span>${s===st?'<em>현재</em>':''}</div>`;}).join('')+'</div>'+
     `<p class="omNote">같은 구슬을 원정 캠프에서 또 사면 머지돼서 다음 단계로 올라가요.</p>`;}
-  if(S.ostate&&S.ostate[k])h+=`<div class="skipGot">지금까지 쌓인 값: ${['pulse','marchsong','collector','monk'].includes(k)?'기세 ×'+Math.round((1+S.ostate[k])*100)/100:k==='diary'?'힘 +'+S.ostate[k]:'기세 +'+S.ostate[k]}</div>`;
+  if(S.ostate&&S.ostate[k])h+=`<div class="skipGot">지금까지 쌓인 값: ${['pulse','marchsong','collector','monk'].includes(k)?'배수 ×'+Math.round((1+S.ostate[k])*100)/100:k==='diary'?'힘 +'+S.ostate[k]:'배수 +'+S.ostate[k]}</div>`;
   h+=`<p class="omNote">구슬은 <b>왼쪽부터</b> 발동해요. 더하기를 먼저, 곱하기를 나중에 두면 점수가 커져요.</p>`;
   if(DIFF[S.diff].hint&&S.orbs.length>1){const ok=bestOrder().join()===S.orbs.join();h+=`<div class="ordHelp">`+(ok?'✔ 지금 순서가 좋아요':`<button onclick="S.orbs=bestOrder();render();orbModal(S.orbs.indexOf('${k}'))">추천 순서로 ⇅</button>`)+`</div>`;}
   if(S.foe&&S.foe.rule&&S.foe.rule.k==='leaf'&&S.foe.rule.on)h+=`<button class="omSell" onclick="leafSell(${i})">🍂 이 구슬 팔기 💰${sellPrice(k)} — 녹슨 잎 풀기</button>`;
@@ -3799,7 +3799,7 @@ if(document.getElementById('rb_p1')){
 
 }
 if(document.getElementById('rb_p2')){
-// 2쪽: 고르기 체험 — 게임과 같은 족보 · 같은 수치 (점수 = (족보 힘 + 카드 힘) × 기세)
+// 2쪽: 고르기 체험 — 게임과 같은 족보 · 같은 수치 (점수 = (족보 힘 + 카드 힘) × 배수)
 const HT={solo:['홀로 런',5,1,'1장'],pair:['짝',10,2,'같은 숫자 2장'],two:['두 쌍',15,2,'2장 + 2장'],three:['삼총사',20,3,'같은 숫자 3장'],house:['기사단',30,3,'3장 + 2장'],
   march:['행진',35,4,'이어진 숫자 5개'],world:['세계 결속',15,2,'같은 세계 5장'],elf:['원소 결속',30,3,'같은 속성 5장']};
 const hand=[{...C.a1,e:'불'},{...C.a1,e:'물'},{...C.a2,e:'불'},C.du,{...C.sa,e:'불'},{...C.sa,e:'흙'},{id:'rust_rosi',n:7,ko:'로시',w:'rust',e:'불'},{...C.lu,e:'불'}];
@@ -4539,7 +4539,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // 처치 때 손패의 '오버킬 +n' 팝업은 띄우지 않음 (처치 컷신이 대신함)
   // 알림(2026-10-28): 화면 한가운데 큰 팝업이 전투를 가렸음 → 무대가 보이는 동안은 무대 왼쪽 위(하늘 쪽) 작은 알림 줄로. 최대 3줄, 1.8초 뒤 사라짐
   const toast=document.createElement('div');toast.id='lmToast';toast.setAttribute('aria-live','polite');box.appendChild(toast);
-  const toneOf=m=>/부상|상처|반격!|독안개|파괴|−1|버려짐|거인:/.test(m)?'bad':/피했|머지|합류|신기록|★|Lv|치료|돌아와|💰|기세/.test(m)?'good':'';
+  const toneOf=m=>/부상|상처|반격!|독안개|파괴|−1|버려짐|거인:/.test(m)?'bad':/피했|머지|합류|신기록|★|Lv|치료|돌아와|💰|배수/.test(m)?'good':'';
   const stageOn=()=>{const ov=document.getElementById('ov');if(ov&&!ov.hidden)return false;const r=box.getBoundingClientRect();return r.height>40&&r.bottom>0&&r.top<innerHeight;};
   if(typeof popMsg==='function'){const _pm=popMsg;popMsg=function(m){const t=String(m||'').replace(/\s+[—–-]\s+/g,' · ').replace(/…+$/,'');if(/^오버킬/.test(t))return;if(/^🛡 방패 [\d,]+ 깎임/.test(t)&&stageOn())return;   /* 무대가 보이면 '막힘! 방패 −n · 몸체 −n' 글자가 맞는 순간에 대신 나옴 (공격 전에 결과가 먼저 뜨던 것) */   /* (DHL 11-01) 전투 알림에 '—' · '…' 없이 */
     if(!stageOn())return _pm.apply(this,arguments);
@@ -5076,13 +5076,13 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       else if(b.classList.contains('tMore')){hide();orbModal(i);}
       else if(b.dataset.sell){if(S.busy)return;if(!b.classList.contains('arm')){b.classList.add('arm');var l=b.querySelector('.tSl');if(l)l.textContent='한 번 더 누르면 판매';return;}hide();leafSell(i);}});}return tip;}
   function kindOf(k){var o=ORBS[k],d=o.d||'';if(TEAL.indexOf(k)>=0)return['teal','규칙'];if(d.indexOf('💰+')>=0)return['gold','돈'];
-    if(/기세 ×/.test(d))return['mul','기세 ×'];if(/기세 ?\+|기세가/.test(d))return['add','기세 +'];return['pow','힘'];}
+    if(/배수 ×/.test(d))return['mul','배수 ×'];if(/배수 ?\+|배수가/.test(d))return['add','배수 +'];return['pow','힘'];}
   function html(i){var k=S.orbs[i];if(!k)return '';
     if(S.orbHidden)return '<div class="tName">⚙ 맷돌</div><div class="tNow">구슬이 섞여 뒷면이 됐어요<br>라운드가 끝나면 돌아와요</div>';
     var st=S.ost[k]||1,kd=kindOf(k),r=ORBS[k].r||'c',h='<div class="tTags"><span class="tTag r-'+r+'">'+({c:'일반',u:'고급',r:'희귀'})[r]+'</span><span class="tTag k-'+kd[0]+'">'+kd[1]+'</span><span class="tTag ord">'+(i+1)+'번째로 발동</span></div>';
     h+='<div class="tName">'+ORBS[k].ko+'<b>'+dia(st)+'</b>'+'</div><div class="tNow">'+orbEffAt(k,st)+'</div>';
     if(st<3)h+='<div class="tNext"><b>'+dia(st+1)+'</b>'+orbEffAt(k,st+1)+'</div>';
-    if(S.ostate&&S.ostate[k])h+='<div class="tAcc">지금까지 쌓인 값: '+(['pulse','marchsong','collector','monk'].indexOf(k)>=0?'기세 ×'+Math.round((1+S.ostate[k])*100)/100:k==='diary'?'힘 +'+S.ostate[k]:'기세 +'+S.ostate[k])+'</div>';
+    if(S.ostate&&S.ostate[k])h+='<div class="tAcc">지금까지 쌓인 값: '+(['pulse','marchsong','collector','monk'].indexOf(k)>=0?'배수 ×'+Math.round((1+S.ostate[k])*100)/100:k==='diary'?'힘 +'+S.ostate[k]:'배수 +'+S.ostate[k])+'</div>';
     if(S.offOrb===k)h+='<div class="tOff">🌪 이번 판은 꺼져 있어요</div>';
     /* (DHL 11-02) 녹슨 잎: 판매 버튼이 '자세히' 안에만 있어 못 찾던 문제 → 설명창에 바로 */
     var leaf=S.foe&&S.foe.rule&&S.foe.rule.k==='leaf'&&S.foe.rule.on;
@@ -5302,8 +5302,8 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 </script>
 <style id="lm-brand">
 /* ═══ 브랜드 레이어 1단계 (2026-10-28) — 153-6 남색·황동 토큰을 v3 화면에 입힘
-   규칙: ① 색은 아래 토큰에서만 ② 황동 테(굵은 테)는 화면당 1곳 — 게임 화면은 '힘 × 기세' 점수판, 창은 창 테두리
-         ③ 강조색은 산호 1개(시작·선택·확인) ④ 게임 뜻이 있는 색(힘 파랑 · 기세/버리기 빨강 · 머지 초록 · 라운드 종류)은 유지하되 에나멜 톤으로
+   규칙: ① 색은 아래 토큰에서만 ② 황동 테(굵은 테)는 화면당 1곳 — 게임 화면은 '힘 × 배수' 점수판, 창은 창 테두리
+         ③ 강조색은 산호 1개(시작·선택·확인) ④ 게임 뜻이 있는 색(힘 파랑 · 배수/버리기 빨강 · 머지 초록 · 라운드 종류)은 유지하되 에나멜 톤으로
    비교: 오른쪽 위 작은 버튼으로 '원래 UI'와 바로 바꿔 볼 수 있음 (html.lmB 가 켜져 있을 때만 적용) ═══ */
 :root{
   --nv-950:#0a1120;--nv-900:#0f1a2e;--nv-850:#14213a;--nv-800:#1a2a47;--nv-700:#233759;--nv-600:#2e476f;
@@ -5392,7 +5392,7 @@ html.lmB .sTgtBox b{color:#ff6a55!important;text-shadow:0 2px 0 #0008}
 html.lmB .sRow b{color:#fff}
 html.lmB .sCell.wide b{color:var(--gold-n)!important}
 html.lmB .bl1{color:#6ea6ff!important}html.lmB .rd1{color:#ff7a68!important}
-/* 주인공 판: 힘 × 기세 — 이 화면의 유일한 황동 테 */
+/* 주인공 판: 힘 × 배수 — 이 화면의 유일한 황동 테 */
 html.lmB .sScoreBox{background:radial-gradient(120% 90% at 50% 40%,var(--nv-800),var(--nv-950))!important;
   border:2px solid var(--brass);border-radius:12px!important;
   box-shadow:inset 0 0 0 1px #f1d48a40,inset 0 0 0 4px var(--nv-950),inset 0 0 0 5px #c9a24a33,0 0 0 1px #000a,0 0 18px #c9a24a1f!important}
@@ -5539,7 +5539,7 @@ html.lmB #app.bl #bClear:active,html.lmB .sBtn:active,html.lmB .sBox .sBtns .rr:
 html.lmB .sortBox #bSort{--kb:url(assets/ui/kit/btn_cream.webp);--kbp:url(assets/ui/kit/btn_cream_pressed.webp);color:#3a2a10!important;text-shadow:none!important;border-width:9px 12px!important;border-image-width:9px 12px!important}
 html.lmB .sBtn{color:var(--cream)!important}
 
-/* 힘 × 기세 점수판: 시트 한 장을 세 조각(파랑 · × 명판 · 빨강)으로 */
+/* 힘 × 배수 점수판: 시트 한 장을 세 조각(파랑 · × 명판 · 빨강)으로 */
 html.lmB #app.bl #scoreRow{gap:0!important;align-items:stretch!important}
 html.lmB #app.bl .box,html.lmB #app.bl .box.c,html.lmB #app.bl .box.m{border-radius:0!important;box-shadow:none!important;background:none!important;border:solid transparent;padding:0 6px!important;min-height:40px;display:flex;align-items:center}
 html.lmB #app.bl .box.c{justify-content:flex-end;border-width:9px 0 9px 10px;border-image:url(assets/ui/kit/score_left.webp) 24 0 24 26 fill / 9px 0 9px 10px / 0 stretch}
@@ -5571,7 +5571,7 @@ html.lmB #lmFoeTag .t.it img.emi[alt="☠"],html.lmB #atkBar img.emi[alt="☠"]{
 
 /* ═══ 3단계: 색으로 정보 나누기 (DHL 10-28 "다 비슷한 색이라 안 읽힘" → 발라트로처럼 정보마다 고유색) ═══
    색의 뜻 (화면 전체에서 같은 뜻 = 같은 색):
-   파랑 = 힘 · 런 · 시작하기     빨강 = 기세 · 버리기 · 목표 점수     주황 = 이동 · 선택 · 뒤로 · 장/라운드 진행
+   파랑 = 힘 · 런 · 시작하기     빨강 = 배수 · 버리기 · 목표 점수     주황 = 이동 · 선택 · 뒤로 · 장/라운드 진행
    초록 = 머지 · 망령 · 컬렉션    금색 = 골드                         남색 = 중립(해제 · 목록)
    바탕은 '판(밝은 남색) 위에 우물(아주 어두운 칸)' 2단으로 — 칸과 바탕이 확실히 구분되게 */
 :root{--well:#081022;--plate:#1c2c4a;--plate2:#243a60;
@@ -5681,7 +5681,7 @@ html.lmB #lm-title .lt-mb.go,html.lmB #lm-title .lt-mb.exit{background:none!impo
 html.lmB #lm-title .lt-mb.go{--kb:url(assets/ui/kit/btn_blue.webp);--kbp:url(assets/ui/kit/btn_blue_pressed.webp)}
 html.lmB #lm-title .lt-mb.exit{--kb:url(assets/ui/kit/btn_orange.webp);--kbp:url(assets/ui/kit/btn_orange_pressed.webp)}
 html.lmB #lm-title .lt-mb.go:active,html.lmB #lm-title .lt-mb.exit:active{border-image-source:var(--kbp)!important;transform:translateY(2px)}
-/* 구슬 그림 (몸통 = 효과 종류 색 · 문양 · 등급 테) — 파랑 힘 · 빨강 기세+ · 보라 기세× · 금 돈 · 청록 규칙 */
+/* 구슬 그림 (몸통 = 효과 종류 색 · 문양 · 등급 테) — 파랑 힘 · 빨강 배수+ · 보라 배수× · 금 돈 · 청록 규칙 */
 html:not(.lmB) .lmOrbIc{display:none}
 html.lmB .lmOrbIc{position:relative;display:block;flex:none;aspect-ratio:1;border-radius:50%;
   background:var(--emb,none) center/58% no-repeat,var(--bead) center/100% no-repeat;filter:drop-shadow(0 3px 2px #000a)}
@@ -6303,8 +6303,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   function kind(k){var o=ORBS[k],d=o.d||'';
     if(TEAL.indexOf(k)>=0)return 'teal';
     if(o.g==='돈'&&d.indexOf('💰+')>=0)return 'gold';
-    if(/기세 ×/.test(d))return 'mul';
-    if(/기세 ?\+|기세가/.test(d))return 'add';
+    if(/배수 ×/.test(d))return 'mul';
+    if(/배수 ?\+|배수가/.test(d))return 'add';
     return 'pow';}
   var BEAD={pow:'0008',add:'0001',mul:'0009',gold:'0012',teal:'0006'};
   var byName={};Object.keys(ORBS).forEach(function(k){byName[ORBS[k].ko]=k;});
@@ -8521,7 +8521,7 @@ function lmResetRecord(btn){
 </style>
 <script id="lm-portrait-peek">
 /* (DHL 11-02 모바일 세로 '카드를 고르려면 아래로 내려야 해서 어떤 족보가 됐는지 안 보임') — 간단한 해결:
-   위 족보 · 점수판이 화면 밖으로 나가 있을 때만, 화면 위에 얇은 족보 줄(족보 이름 · 힘 × 기세)을 띄움. 판이 보이면 숨김. 세로 화면만 */
+   위 족보 · 점수판이 화면 밖으로 나가 있을 때만, 화면 위에 얇은 족보 줄(족보 이름 · 힘 × 배수)을 띄움. 판이 보이면 숨김. 세로 화면만 */
 (function(){
   const bar=document.createElement('div');bar.id='lmPeek';bar.setAttribute('aria-live','polite');bar.hidden=true;
   bar.innerHTML='<b class="pkN"></b><span class="pkS"><em class="pkC">0</em><i>×</i><em class="pkM">0</em></span>';document.body.appendChild(bar);
@@ -8714,7 +8714,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
       if(S&&S.diff==='app'&&!S.practice&&!S.sandbox&&!done()&&(first||force)){S.tut={learn:[0,1],seen:{}};force=false;}}catch(e){}
     cls();return r;};
   const _re=runEndHTML;runEndHTML=function(){try{finish();}catch(e){}return _re.apply(this,arguments);};
-  /* (DHL 11-03 피드백 '첫 구슬 고정') 첫 원정 캠프 첫 칸 = 풍차(늘 기세 +4) — 사자마자 다음 런에 보임. 사라고 강제하지는 않음 */
+  /* (DHL 11-03 피드백 '첫 구슬 고정') 첫 원정 캠프 첫 칸 = 풍차(늘 배수 +4) — 사자마자 다음 런에 보임. 사라고 강제하지는 않음 */
   const _rt=rollTop;rollTop=function(){const r=_rt.apply(this,arguments);try{if(lmTutOn()&&!S.tut.seen['tut.2_2.shop']&&!S.tut.mill&&ORBS.mill&&!S.orbs.includes('mill')&&S.top&&S.top.length){
       S.top[0]={kind:'orb',k:'mill',pre:false,cost:price(ORBS.mill.cost)};S.tut.mill=1;}}catch(e){}return r;};
   /* 손패 맞춤: 1-1 같은 번호 2장 · 1-3 같은 동료(★1) 2장 */
