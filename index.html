@@ -98,7 +98,7 @@ button.act{background:#f59e0b;padding:7px 14px;font-size:14px}
 .flyer{position:fixed;z-index:20;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#222;pointer-events:none}
 /* (DHL 11-05 시안 A + B 배경) 짧은 알림 = 화면 위쪽 가운데 크림 명판(가격표 색) · 황동 테 · 왼쪽에 산 물건 그림 · 위 작은 머리말 + 아래 이름. 상점 · 야영 · 팩 등 전투 무대가 안 보일 때 */
 .popmsg{position:fixed;left:50%;top:max(14px,14vh);transform:translateX(-50%);z-index:80;pointer-events:none;display:flex;align-items:center;gap:12px;
-  max-width:min(560px,calc(100vw - 32px));padding:10px 22px 10px 12px;border-radius:12px;
+  width:max-content;box-sizing:border-box;max-width:min(560px,calc(100vw - 32px));   /* (11-06) left:50%라 폭이 화면 절반으로 줄던 문제 → 내용 폭(max-content) */padding:10px 22px 10px 12px;border-radius:12px;
   background:linear-gradient(180deg,#fdf4dc,#f1dfb2 70%,#e8d09b);border:2px solid #b5862f;
   box-shadow:inset 0 0 0 2px #fbe7b0,inset 0 -3px 0 #d8b773,0 10px 24px rgba(0,0,0,.5),0 0 0 1px #5a3d12;
   font-family:'Noto Sans KR',sans-serif;animation:lmPmIn 1.6s ease forwards}
@@ -3373,12 +3373,15 @@ function fly(fromEl,toSel,txt,cls){
 function popMsg(t,o){document.querySelectorAll('.popmsg').forEach(x=>x.remove());const d=document.createElement('div');d.className='popmsg';d.setAttribute('role','status');
   /* o = {art: 화면의 물건 요소(복제해 작게), kick: 위 작은 머리말} — 없으면 글자만 */
   const tx=document.createElement('div');tx.className='pmTx';if(o&&o.kick){const k=document.createElement('small');k.textContent=o.kick;tx.appendChild(k);}const b=document.createElement('b');b.textContent=t;tx.appendChild(b);
-  if(o&&o.art&&o.art.getBoundingClientRect){try{const r=o.art.getBoundingClientRect(),c=o.art.cloneNode(true);c.querySelectorAll('.price,button,.act').forEach(x=>x.remove());c.classList.remove('up');c.removeAttribute('onclick');c.removeAttribute('id');
+  if(o&&o.art&&o.art.getBoundingClientRect){try{const r=o.art.getBoundingClientRect(),c=o.art.cloneNode(true);c.querySelectorAll('.price,button,.act').forEach(x=>x.remove());c.classList.remove('up');c.classList.add('pmC');c.removeAttribute('onclick');c.removeAttribute('id');
     const a=document.createElement('div');a.className='pmArt';const k=Math.min(52/Math.max(1,r.width),64/Math.max(1,r.height));c.style.cssText+=`;width:${r.width}px;height:${r.height}px;margin:0;position:relative;left:auto;top:auto;transform:none;translate:none;scale:none;animation:none`;
     /* 원래 자리의 꾸밈(.shop .sBox .tile …)이 그대로 걸리게 조상 클래스를 껍데기(display:contents)로 감쌈 */
     let host=c;for(let p=o.art.parentElement;p&&p!==document.body&&p.id!=='ov';p=p.parentElement){if(!p.className||typeof p.className!=='string')continue;const w=document.createElement('div');w.className=p.className;w.style.display='contents';w.appendChild(host);host=w;}
     const z=document.createElement('div');z.className='pmZ';z.style.cssText=`position:absolute;left:50%;top:50%;width:${r.width}px;height:${r.height}px;transform:translate(-50%,-50%) scale(${k.toFixed(3)});transform-origin:50% 50%`;z.appendChild(host);a.appendChild(z);d.appendChild(a);d.classList.add('hasArt');}catch(e){}}
-  d.appendChild(tx);document.body.appendChild(d);setTimeout(()=>d.remove(),1650);}
+  d.appendChild(tx);document.body.appendChild(d);
+  /* (11-06) 모바일은 진열 칸 꾸밈이 크기를 덮어써 그림이 글자를 가림 → 붙인 뒤 실제 크기로 다시 맞춤 */
+  {const z=d.querySelector('.pmZ'),c=z&&z.querySelector('.pmC');if(c){const w=c.offsetWidth,h=c.offsetHeight;if(w&&h){const k=Math.min(52/w,64/h);z.style.width=w+'px';z.style.height=h+'px';z.style.transform=`translate(-50%,-50%) scale(${k.toFixed(3)})`;}}}
+  setTimeout(()=>d.remove(),1650);}
 function actItem(key,direct){
   const info=itemInfo(key);if(!info.ok)return;
   if(!direct&&S.confirm!==key){ // 첫 번째 누름 → 확인 대기 (3초)
