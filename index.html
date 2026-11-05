@@ -96,7 +96,22 @@ small{color:var(--dim)}
 .t-orb{background:#e5e7eb}.t-orb.r-u{background:#bbf7d0}.t-orb.r-r{background:#fecaca;box-shadow:0 0 10px #f87171}.t-book{background:#bfdbfe}.t-v{background:#ddd6fe}.t-pack{background:linear-gradient(135deg,#fca5a5,#fdba74,#fde68a)}
 button.act{background:#f59e0b;padding:7px 14px;font-size:14px}
 .flyer{position:fixed;z-index:20;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#222;pointer-events:none}
-.popmsg{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:30;background:#f59e0b;color:#fff;font-weight:900;font-size:22px;padding:10px 18px;border-radius:12px;animation:pop 1.1s forwards;pointer-events:none}
+/* (DHL 11-05 시안 A + B 배경) 짧은 알림 = 화면 위쪽 가운데 크림 명판(가격표 색) · 황동 테 · 왼쪽에 산 물건 그림 · 위 작은 머리말 + 아래 이름. 상점 · 야영 · 팩 등 전투 무대가 안 보일 때 */
+.popmsg{position:fixed;left:50%;top:max(14px,14vh);transform:translateX(-50%);z-index:80;pointer-events:none;display:flex;align-items:center;gap:12px;
+  max-width:min(560px,calc(100vw - 32px));padding:10px 22px 10px 12px;border-radius:12px;
+  background:linear-gradient(180deg,#fdf4dc,#f1dfb2 70%,#e8d09b);border:2px solid #b5862f;
+  box-shadow:inset 0 0 0 2px #fbe7b0,inset 0 -3px 0 #d8b773,0 10px 24px rgba(0,0,0,.5),0 0 0 1px #5a3d12;
+  font-family:'Noto Sans KR',sans-serif;animation:lmPmIn 1.6s ease forwards}
+.popmsg:not(.hasArt){padding-left:22px}
+.popmsg::before,.popmsg::after{content:"";position:absolute;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe9a8,#b5862f 60%,#6b4a14)}
+.popmsg::before{left:6px}.popmsg::after{right:6px}
+.popmsg .pmArt{flex:none;width:52px;height:64px;position:relative;display:grid;place-items:center;filter:drop-shadow(0 2px 3px rgba(60,35,5,.45))}
+.popmsg .pmArt{overflow:visible;pointer-events:none}.popmsg .pmZ *{pointer-events:none}
+.popmsg .pmTx{min-width:0;display:grid;gap:4px}
+.popmsg small{font:800 12px/1 'Noto Sans KR',sans-serif;letter-spacing:.08em;color:#9a6a2a}
+.popmsg b{font:900 21px/1.2 'Noto Sans KR',sans-serif;color:#3f2709;overflow-wrap:anywhere}
+@keyframes lmPmIn{0%{opacity:0;transform:translate(-50%,-14px) scale(.96)}12%{opacity:1;transform:translate(-50%,0) scale(1.02)}18%{transform:translate(-50%,0) scale(1)}82%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-8px)}}
+@media (prefers-reduced-motion:reduce){.popmsg{animation:lmPmFade 1.6s linear forwards}@keyframes lmPmFade{0%,85%{opacity:1}100%{opacity:0}}}
 @keyframes pop{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%)}}
 .packRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .card .cnt{position:absolute;right:4px;bottom:28px;font-size:11px;font-weight:800;color:#2563eb}
@@ -3367,7 +3382,15 @@ function fly(fromEl,toSel,txt,cls){
   Object.assign(d.style,{left:a.left+'px',top:a.top+'px',width:a.width+'px',height:a.height+'px'});document.body.appendChild(d);
   d.animate([{transform:'translate(0,0) scale(1)'},{transform:`translate(${b.left-a.left}px,${b.top-a.top}px) scale(${b.width/a.width},${b.height/a.height})`,opacity:.9}],{duration:380,easing:'cubic-bezier(.3,.7,.3,1)'}).onfinish=()=>d.remove();
 }
-function popMsg(t){document.querySelectorAll('.popmsg').forEach(x=>x.remove());const d=document.createElement('div');d.className='popmsg';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1100);}
+function popMsg(t,o){document.querySelectorAll('.popmsg').forEach(x=>x.remove());const d=document.createElement('div');d.className='popmsg';d.setAttribute('role','status');
+  /* o = {art: 화면의 물건 요소(복제해 작게), kick: 위 작은 머리말} — 없으면 글자만 */
+  const tx=document.createElement('div');tx.className='pmTx';if(o&&o.kick){const k=document.createElement('small');k.textContent=o.kick;tx.appendChild(k);}const b=document.createElement('b');b.textContent=t;tx.appendChild(b);
+  if(o&&o.art&&o.art.getBoundingClientRect){try{const r=o.art.getBoundingClientRect(),c=o.art.cloneNode(true);c.querySelectorAll('.price,button,.act').forEach(x=>x.remove());c.classList.remove('up');c.removeAttribute('onclick');c.removeAttribute('id');
+    const a=document.createElement('div');a.className='pmArt';const k=Math.min(52/Math.max(1,r.width),64/Math.max(1,r.height));c.style.cssText+=`;width:${r.width}px;height:${r.height}px;margin:0;position:relative;left:auto;top:auto;transform:none;translate:none;scale:none;animation:none`;
+    /* 원래 자리의 꾸밈(.shop .sBox .tile …)이 그대로 걸리게 조상 클래스를 껍데기(display:contents)로 감쌈 */
+    let host=c;for(let p=o.art.parentElement;p&&p!==document.body&&p.id!=='ov';p=p.parentElement){if(!p.className||typeof p.className!=='string')continue;const w=document.createElement('div');w.className=p.className;w.style.display='contents';w.appendChild(host);host=w;}
+    const z=document.createElement('div');z.className='pmZ';z.style.cssText=`position:absolute;left:50%;top:50%;width:${r.width}px;height:${r.height}px;transform:translate(-50%,-50%) scale(${k.toFixed(3)});transform-origin:50% 50%`;z.appendChild(host);a.appendChild(z);d.appendChild(a);d.classList.add('hasArt');}catch(e){}}
+  d.appendChild(tx);document.body.appendChild(d);setTimeout(()=>d.remove(),1650);}
 function actItem(key,direct){
   const info=itemInfo(key);if(!info.ok)return;
   if(!direct&&S.confirm!==key){ // 첫 번째 누름 → 확인 대기 (3초)
@@ -3376,13 +3399,13 @@ function actItem(key,direct){
   S.confirm=null;clearTimeout(S.cft);if(!key.startsWith('own')){S.boughtShop=true;(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).buy++;}
   const el=document.querySelector(`.tile[data-key="${key}"]`);
   if(key.startsWith('own')){const i=+key.slice(3);S.gold+=sellPrice(S.orbs[i]);delete S.ost[S.orbs[i]];if(S.ostate)delete S.ostate[S.orbs[i]];S.orbs.splice(i,1);S.pick=null;render();openShop();return;}
-  if(key==='v'){const k=S.voucherOffer;S.gold-=price(VOUCH_COST);S.vouch.push(k);applyVoucher(k);S.voucherOffer=null;S.pick=null;popMsg(VOUCH[k].ko+'!');render();openShop();return;}
+  if(key==='v'){const k=S.voucherOffer;S.gold-=price(VOUCH_COST);S.vouch.push(k);applyVoucher(k);S.voucherOffer=null;S.pick=null;popMsg(VOUCH[k].ko+'!',{art:el,kick:'증서 사용'});render();openShop();return;}
   if(key==='pack'){S.gold-=S.pack.cost;S.pack.sold=true;S.pick=null;S.packView=shuffle(TYPE_IDS.slice()).slice(0,3).map(id=>({id,no:rndNo(),el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:Math.random()<0.05*(S.hone||1)?2:1}));render();openShop();return;}
   const it=S.top[+key.slice(3)];S.gold-=it.cost;it.sold=true;S.pick=null;
-  if(it.kind==='card'){S.deck.push({uid:S.uid++,id:it.id,star:it.star,el:it.el,no:it.no||rndNo()});popMsg(`${TYPES[it.id].ko} ★${it.star} 합류!`);render();openShop();return;}
-  if(it.kind==='orb'&&S.orbs.includes(it.k)){S.ost[it.k]=Math.min(3,(S.ost[it.k]||1)+(it.pre?2:1));popMsg(`🔮 ${orbName(it.k)} 머지!`);render();openShop();const o=document.querySelector(`.sorb[data-slot="${S.orbs.indexOf(it.k)}"]`);if(o){o.classList.add('merged');}return;}
+  if(it.kind==='card'){S.deck.push({uid:S.uid++,id:it.id,star:it.star,el:it.el,no:it.no||rndNo()});popMsg(`${TYPES[it.id].ko} ★${it.star} 합류!`,{art:el,kick:'동료 영입'});render();openShop();return;}
+  if(it.kind==='orb'&&S.orbs.includes(it.k)){S.ost[it.k]=Math.min(3,(S.ost[it.k]||1)+(it.pre?2:1));popMsg(`${orbName(it.k)} 머지!`,{art:el,kick:'구슬 강화'});render();openShop();const o=document.querySelector(`.sorb[data-slot="${S.orbs.indexOf(it.k)}"]`);if(o){o.classList.add('merged');}return;}
   if(it.kind==='orb'){S.orbs.push(it.k);if(it.pre)S.ost[it.k]=2;render();openShop();fly(el,`.sorb[data-slot="${S.orbs.length-1}"]`,ORBS[it.k].ko,'t-orb');}
-  else{S.lv[it.k]=(S.lv[it.k]||1)+(S.vouch.includes('scope2')?2:1);render();openShop();popMsg(`${HT[it.k][0]} Lv${S.lv[it.k]}!`);}
+  else{S.lv[it.k]=(S.lv[it.k]||1)+(S.vouch.includes('scope2')?2:1);popMsg(`${HT[it.k][0]} Lv${S.lv[it.k]}!`,{art:el,kick:'족보서 사용'});render();openShop();}
 }
 function applyVoucher(k){
   if(k==='run')S.runsMax++;if(k==='dis')S.disMax++;if(k==='hand')S.handN++;if(k==='slot')S.maxOrb++;
@@ -3404,10 +3427,10 @@ function openPack(){
   let h=`<h2>동료 팩</h2><p><small>1장을 골라 덱에 넣어요. 같은 카드가 많을수록 손패 머지가 잘 나와요.</small></p><div class="packRow">`;
   S.packView.forEach(({id,el,star},i)=>{const t=TYPES[id],n=S.deck.filter(c=>c.id===id).length;
     h+=`<div class="card dz s${star||1}" style="border-color:${WORLD_C[t.w]}" onclick="takePack(${i})">${cardFace({id,el,star:star||1})}<span class="cnt">덱 ${n}→${n+1}</span></div>`;});
-  h+=`</div><button style="width:100%;margin-top:10px" onclick="S.packView=null;openShop()">건너뛰기</button>`;
+  h+=`</div><button type="button" class="packSkip" onclick="S.packView=null;openShop()">건너뛰기</button>`;
   showOv(h);
 }
-function takePack(i){const {id,el,star,no}=S.packView[i];S.deck.push({uid:S.uid++,id,star:star||1,el,no:no||rndNo()});S.packView=null;popMsg(TYPES[id].ko+' 합류!');render();openShop();}
+function takePack(i){const {id,el,star,no}=S.packView[i];S.deck.push({uid:S.uid++,id,star:star||1,el,no:no||rndNo()});S.packView=null;const cardEl=document.querySelectorAll('#panel .packRow>.card')[i];popMsg(TYPES[id].ko+' 합류!',{art:cardEl,kick:'동료 영입'});render();openShop();}
 function nextRound(){
   hideOv();S.pick=null;S.campMsg=null;
   if(S.inShop&&S.orbs.includes('monk')&&!S.boughtShop){S.ostate=S.ostate||{};S.ostate.monk=Math.round(((S.ostate.monk||0)+0.25)*100)/100;popMsg('🙏 수도사의 서약 ×'+(1+S.ostate.monk));}S.inShop=false;
@@ -4301,6 +4324,14 @@ html.lmB body .sBox .tw>button.act{background:url(assets/ui/kit/btn_cream.webp) 
 html.lmB body .sBox .tw>button.act:active{background-image:url(assets/ui/kit/btn_cream_pressed.webp)!important;translate:0 2px;filter:drop-shadow(0 1px 0 #0009)}
 html.lmB body .sBox .tw>button.act:disabled{filter:grayscale(.7) brightness(.75) drop-shadow(0 3px 0 #0009);opacity:.8}
 html.lmB body .sBox .tw>button.act.confirm{color:#0f3d1e!important;animation:none}
+/* (DHL 11-05 'UI가 안 된 곳') 상점 구매 버튼: 작은 알약 → 키트 버튼 크기 · 한 번 누른 '확인' 상태는 초록 키트 버튼 */
+html.lmB body .shop .sBox .tw>button.act{min-width:96px;padding:9px 18px 11px!important;font-size:14px!important;line-height:1!important}
+html.lmB body .shop .sBox .tw>button.act.confirm{background-image:url(assets/ui/kit/btn_green.webp)!important;color:#fff!important;text-shadow:0 1px 0 #0b3a1a!important;min-width:112px}
+html.lmB body .shop .sBox .tw>button.act.confirm:active{background-image:url(assets/ui/kit/btn_green_pressed.webp)!important}
+html.lmB body .shop .sBox .tw>button.act.confirm .lmIcA{filter:brightness(0) invert(1)}
+/* 동료 팩 '건너뛰기': 글자처럼 보이던 것 → 주황 키트 버튼 (뒤로 · 건너뛰기 = 주황) */
+#panel .packSkip{display:block;width:min(260px,70%);margin:40px auto 0;padding:10px 18px;border:12px solid transparent;border-image:url(assets/ui/kit/btn_orange.webp) 40 46 40 46 fill / 12px 15px;background:none;color:#fff;font:900 16px/1 'Noto Sans KR',sans-serif;text-shadow:0 1px 0 #6a2a00;cursor:pointer}
+#panel .packSkip:active{border-image-source:url(assets/ui/kit/btn_orange_pressed.webp);transform:translateY(2px)}
 
 /* 타이틀 3버튼: 9조각(border-image) 이음선이 125%·150% 화면배율·hover 때 '안쪽 사각형'으로 보이던 문제(근본: 조각 경계가 소수점 픽셀에 걸림)
    → 버튼 비율에 맞춰 미리 합쳐 둔 한 장 그림 + 비율 고정. 모서리 크기·모양은 이전과 같고 이음선 자체가 없음 */
