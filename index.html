@@ -9372,9 +9372,8 @@ const LM_OST=[
     const R=(cls,fn,art,name,sub,cnt)=>`<button type="button" class="lt-cb lc-t ${cls}" onclick="${fn}"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${cnt||''}</span></button>`;
     return `<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">컬렉션</div></div>${tabs}<div class="lc-list">`+
       R('lc-story lc-s1',"ltPop('story')",`<img src="${LM_STORY[0].img}" alt="">`,'스토리','여정의 시작부터 엔딩까지 다시 보기',`<em>${nS} <u>/ ${LM_STORY.length}</u></em>`)+
-      `<button type="button" class="lt-cb lc-t lc-fx"><span class="lc-art"><img class="fb n" src="${A}battle_characters/battle_char_0008_Idle.png" alt=""><canvas aria-hidden="true"></canvas></span><span class="lc-txt"><b>전투 연출 보기</b><small>공격 · 컷인 · 세 세계 합동기 · 처치 컷신을 바로 재생</small></span></button>`+
       R('lc-snd',"ltPop('ost')",`<span class="lc-disc"><img src="assets/brand/logo_blades.webp" alt=""></span>`,'사운드트랙','게임 음악 듣기',`<em>${nO} <u>/ ${LM_OST.length}</u></em>`)+
-      `</div></div>`;
+      `<button type="button" class="lt-cb lc-t lc-fx"><span class="lc-art"><img class="fb n" src="${A}battle_characters/battle_char_0008_Idle.png" alt=""><canvas aria-hidden="true"></canvas></span><span class="lc-txt"><b>전투 연출 보기</b><small>공격 · 컷인 · 세 세계 합동기 · 처치 컷신을 바로 재생</small></span></button>`+`</div></div>`;
   };
   const _lp=ltPop;
   ltPop=function(kind){
