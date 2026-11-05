@@ -9323,6 +9323,10 @@ br.lmSb{display:none}
 #lm-title .lc-disc::after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,#0000 0 3px,#ffffff10 3px 4px)}
 #lm-title .lc-disc img{position:absolute!important;inset:14%;width:72%!important;height:72%!important;object-fit:contain;filter:none!important}
 #lm-title .lc-disc.spin{animation:lcSpin 6s linear infinite}
+/* (DHL 11-05) 사운드트랙 칸 = DHL 레코드판 그림 · 금테만 남김 · 마우스 올리면 천천히 돎 */
+#lm-title .lc-disc.art{background:none}#lm-title .lc-disc.art::after{content:none}#lm-title .lc-disc.art img{inset:0;width:100%!important;height:100%!important;border-radius:50%}
+#lm-title .lt-cb:hover .lc-disc.art,#lm-title .lt-cb:focus-visible .lc-disc.art{animation:lcSpin 4s linear infinite}
+@media (prefers-reduced-motion:reduce){#lm-title .lt-cb:hover .lc-disc.art{animation:none}}
 @keyframes lcSpin{to{rotate:360deg}}
 #lm-title .lc-more{display:flex;justify-content:center;margin:8px 0 0}
 #lm-title .lt-card:has(.lc-more) .lc-story.lt-cb.lc-t{height:clamp(52px,calc((92vh - 268px)/4),110px)!important;height:clamp(52px,calc((92dvh - 268px)/4),110px)!important}
@@ -9380,7 +9384,7 @@ const LM_OST=[
     const R=(cls,fn,art,name,sub,cnt)=>`<button type="button" class="lt-cb lc-t ${cls}" onclick="${fn}"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${cnt||''}</span></button>`;
     return `<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">컬렉션</div></div>${tabs}<div class="lc-list">`+
       R('lc-story lc-s1',"ltPop('story')",`<img src="${LM_STORY[0].img}" alt="">`,'스토리','여정의 시작부터 엔딩까지 다시 보기',`<em>${nS} <u>/ ${LM_STORY.length}</u></em>`)+
-      R('lc-snd',"ltPop('ost')",`<span class="lc-disc"><img src="assets/brand/logo_blades.webp" alt=""></span>`,'사운드트랙','게임 음악 듣기',`<em>${nO} <u>/ ${LM_OST.length}</u></em>`)+
+      R('lc-snd',"ltPop('ost')",`<span class="lc-disc art"><img src="assets/ui/collection/ost_disc.webp" alt=""></span>`,'사운드트랙','게임 음악 듣기',`<em>${nO} <u>/ ${LM_OST.length}</u></em>`)+
       `<button type="button" class="lt-cb lc-t lc-fx"><span class="lc-art"><img class="fb n" src="${A}battle_characters/battle_char_0008_Idle.png" alt=""><canvas aria-hidden="true"></canvas></span><span class="lc-txt"><b>전투 연출 보기</b><small>공격 · 컷인 · 세 세계 합동기 · 처치 컷신을 바로 재생</small></span></button>`+`</div></div>`;
   };
   const _lp=ltPop;
