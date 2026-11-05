@@ -6907,6 +6907,14 @@ html.lmPtr #lm-title .ls-tab:focus-visible,html.lmPtr #lm-title .lt-mb:focus-vis
 #lm-title .ltv-slotBtn{display:flex;justify-content:space-between;align-items:center;width:100%;margin:10px 0 2px;padding:11px 14px;border-radius:10px;border:1px solid #c9a24a99;background:#ffffff08;color:#f3e6c8;font:800 14px/1 "Noto Sans KR",sans-serif;cursor:pointer}
 #lm-title .ltv-slotBtn b{color:#f1d48a}
 #lm-title .ltv-slotBtn.reset{border-color:#e8483d77}#lm-title .ltv-slotBtn.reset span{color:#ffb4a8}#lm-title .ltv-slotBtn.reset b{color:#ffb4a8}
+/* (DHL 11-05) 기록 초기화 줄: 왼쪽 정렬 + › 유지(확인 화면으로 넘어감) · 우리 아이콘(g_discard, 붉은 톤) · 지워지는 것 한 줄 · 다른 줄과 조금 떨어뜨림 */
+#lm-title .ltv-slotBtn.reset{justify-content:flex-start;gap:12px;margin-top:18px;padding:12px 14px;text-align:left}
+#lm-title .ltv-slotBtn.reset .rsIc{flex:none;width:30px;height:30px;border-radius:8px;background:#e8483d22;border:1px solid #e8483d55;display:grid;place-items:center}
+#lm-title .ltv-slotBtn.reset .rsIc i{width:18px;height:18px;background:#ffb4a8;-webkit-mask:url(assets/ui/lamancha/icons/g_discard.webp) center/contain no-repeat;mask:url(assets/ui/lamancha/icons/g_discard.webp) center/contain no-repeat}
+#lm-title .ltv-slotBtn.reset .rsTx{flex:1;min-width:0;display:grid;gap:5px}
+#lm-title .ltv-slotBtn.reset .rsTx span{font:800 14px/1.2 "Noto Sans KR",sans-serif}
+#lm-title .ltv-slotBtn.reset .rsTx small{font:600 12px/1.35 "Noto Sans KR",sans-serif;color:#c9b8a8;opacity:.85}
+#lm-title .ltv-slotBtn.reset:hover{background:#e8483d14}
 #lm-title .ltv-rs{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}
 #lm-title .ltv-rs p{margin:0;padding:10px 12px;border-radius:10px;background:#ffffff08;border:1px solid #c9a24a44;color:#f3e6c8;font:600 14px/1.45 "Noto Sans KR",sans-serif}
 #lm-title .ltv-rs p b{display:block;margin-bottom:2px;color:#f1d48a;font-weight:900}
@@ -7030,7 +7038,7 @@ html.lmB #lm-title .lt-mb.ltv-rsGo:active{border-image-source:url(assets/ui/kit/
       const body=card.querySelector('.ls-body');
       /* (DHL 11-02) 저장 슬롯은 스팀 연결 때 다시 판단 — LM_SAVE_SLOTS=true면 다시 보임. 그 자리엔 기록 초기화 */
       if(body&&window.LM_SAVE_SLOTS&&!body.querySelector('.ltv-slotBtn[data-k=slot]')){const b=document.createElement('button');b.type='button';b.className='ltv-slotBtn';b.dataset.k='slot';b.innerHTML='<span>💾 저장 슬롯</span><b>슬롯 1 ›</b>';b.onclick=()=>ltPop('prof');body.appendChild(b);}
-      if(body&&!body.querySelector('.ltv-slotBtn[data-k=reset]')){const b=document.createElement('button');b.type='button';b.className='ltv-slotBtn reset';b.dataset.k='reset';b.innerHTML='<span>기록 초기화</span><b>›</b>';b.onclick=()=>ltPop('reset');body.appendChild(b);}
+      if(body&&!body.querySelector('.ltv-slotBtn[data-k=reset]')){const b=document.createElement('button');b.type='button';b.className='ltv-slotBtn reset';b.dataset.k='reset';b.innerHTML='<span class="rsIc" aria-hidden="true"><i></i></span><span class="rsTx"><span>기록 초기화</span><small>훈장 · 스토리 · 도감 · 통계가 지워져요</small></span><b>›</b>';b.onclick=()=>ltPop('reset');body.appendChild(b);}
     }
     if(kind==='reset'){
       card.innerHTML=`<h3>기록 초기화</h3><div class="ltv-rs"><p><b>지워지는 것</b>훈장 · 스토리 · 도감 · 통계 · 배우기 진행</p><p><b>남는 것</b>언어 · 소리 · 게임 설정</p></div><p class="lt-note">지운 기록은 되돌릴 수 없어요.</p><div class="ltv-rsBtns"><button type="button" class="lt-mb" onclick="ltPop('set')">취소</button><button type="button" class="lt-mb ltv-rsGo" onclick="lmResetRecord(this)">지우기</button></div>`;
