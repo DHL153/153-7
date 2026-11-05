@@ -9403,4 +9403,18 @@ const LM_OST=[
   window.lmOstPlay=function(k){window.lmOstKey=window.lmOstKey===k?null:k;try{if(!audioUnlocked)unlockGameAudio();syncBgm();}catch(e){}ltPop('ost');};
 })();
 </script>
+<style id="lm-play-2col">
+/* (DHL 11-05 시안 A) 낮은 가로 화면(높이 700 이하): 라만차 덱 · 난이도 칸을 나란히 → 플레이 버튼이 잘리지 않게 */
+@media (orientation:landscape) and (max-height:700px) and (min-height:461px){
+  #lm-title .pl-wrap{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch;max-width:none!important}
+  #lm-title .pl-wrap>div{margin:0!important;max-width:none!important}
+  #lm-title .pl-deck>img{width:56px}
+  #lm-title .pl-deck .pl-white{font-size:12px!important;padding:6px 8px!important}
+  #lm-title .pl-deck .pl-white p{white-space:nowrap}
+  #lm-title .pl-stake{flex-wrap:wrap;align-content:center}
+  #lm-title .pl-vert{display:none}
+  #lm-title .pl-medals{margin:0 auto 8px}
+  #lm-title .pl-go{margin-top:10px!important}
+}
+</style>
 </body></html>
