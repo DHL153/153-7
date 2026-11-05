@@ -1586,7 +1586,8 @@ try{const v=JSON.parse(localStorage.getItem('lm_sound')||'null');if(v&&typeof v.
    곡은 모두 −20 LUFS(효과음 −16보다 아래)라서 예전 곡(−14.4)과 같은 슬라이더에서 비슷하게 들리도록 +3dB 보정 */
 const BGM_DIR='assets/audio/bgm/';
 const BGM_TRACKS={title:'bgm_title',rust:'bgm_battle_rust',neon:'bgm_battle_neon',sky:'bgm_battle_sky',boss:'bgm_boss',
-  camp:'bgm_camp',shop:'bgm_shop',story:'bgm_title',ending:'bgm_ending'};   /* (DHL 11-05) 타이틀 곡(Gemini 'Sunlight at the Gates')을 이야기 장면에도 */
+  camp:'bgm_camp',shop:'bgm_shop',story:'bgm_title',ending:'bgm_ending',
+  final_alonso:'bgm_final_alonso',final_windmill:'bgm_final_windmill',final_windmill2:'bgm_final_windmill2'};   /* (DHL 11-05) 최종 보스: 스카이아크 알론소 · 풍차 거인 1 · 2페이지 */   /* (DHL 11-05) 타이틀 곡(Gemini 'Sunlight at the Gates')을 이야기 장면에도 */
 const BGM_ONCE={ending:1};          // 엔딩은 루프 아님: 한 번 흐르고 조용히 끝남
 const BGM_MAKEUP=1.41, BGM_XFADE=1.4, BGM_CACHE=3;
 let audioUnlocked=false,bgmDuck=1,bgmCur=null,bgmScene='title';
@@ -1661,7 +1662,10 @@ function lmBgmScene(){
     if(p.querySelector('.shop'))return 'shop';
     if(p.querySelector('.rest,.night,[class^="camp"],[class*=" camp"]'))return 'camp';
   }
-  if(G.rd===2&&!G.selecting&&G.foe)return 'boss';
+  if(G.rd===2&&!G.selecting&&G.foe){const bk=G.foe.boss;
+    if(bk==='skyAlonso')return 'final_alonso';
+    if(bk==='windmill'){if(!G._wm2&&G.tgt>0&&G.score>=G.tgt*0.5)G._wm2=1;return G._wm2?'final_windmill2':'final_windmill';}   /* 풍차 거인: 체력 절반을 깎으면 2페이지 곡으로 (1.4초 크로스페이드) */
+    return 'boss';}
   const w=G.world||(typeof JANG_WORLD==='function'?JANG_WORLD(G.jang):'rust');
   return BGM_TRACKS[w]?w:'rust';
 }
