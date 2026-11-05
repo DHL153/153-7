@@ -2254,10 +2254,8 @@ function score(cards,ctx){
   orbs.forEach(k=>{if(!G[k])return;const t=G[k]();if(t)steps.push({i:-2,orb:k,txt:ORBS[k].ko+' '+t,pop:t,chips,mult});});
   chips=Math.max(0,chips);               // 마이너스 힘 카드가 있어도 한 런의 총 힘은 0 아래로 안 감
   mult=Math.round(mult*10)/10;
-  /* 거인 규칙: 같은 수 금지 · 고집 → 해당하면 이 런은 0점 */
+  /* (DHL 11-05) 족보를 하나로 묶는 거인 규칙(같은 수 금지 · 고집 · 짓누르는 팔) 삭제 — 겹 족보가 기본이라 안 맞음 */
   const R=ctx.foe&&ctx.foe.rule;let block=null;
-  if(R&&R.k==='eye'&&(ctx.usedHT||[]).includes(ht))block='같은 수 금지 — 이미 낸 족보';
-  if(R&&R.k==='mouth'&&ctx.lockHT&&ctx.lockHT!==ht)block='고집 — '+HT[ctx.lockHT][0]+'만 점수';
   if(block){steps.push({i:-2,txt:block,chips:0,mult:0});return {ht,bonds,label,comboTag,chips:0,mult:0,total:0,steps,block};}
   const gold3=2*SC.filter(c=>S3(c,'sancho')).length, lvUp=SC.some(c=>S3(c,'gris'))?ht:null, disUp=SC.filter(c=>S3B(c,'sancho')).length, promote=SC.filter(c=>S3B(c,'palome')).length, orbUp=SC.filter(c=>S3B(c,'gris')).length;
   const osUp={};if(has('pulse')&&isHT('elf'))osUp.pulse=0.2;if(has('pilgrim')&&isHT('world'))osUp.pilgrim=4;if(has('marchsong')&&isHT('march'))osUp.marchsong=0.3;
@@ -2345,7 +2343,7 @@ const ORB_MUL=['pulse','marchsong','collector','monk','trio','crown','rainbow','
 const ORB_ADD=['pilgrim','diary','parity','bull','roulette','dagger','grow','diet','mill','hammer','ring','spare','small','dawn','wisdom','bignum'];
 const LEADS=['alonso','dulcine','sancho'];
 /* 거인 규칙: 막힌 카드는 '힘 0'이 아니라 출전 불가(덱에서 안 뽑힘) — 보이는 제약을 돌아가는 퍼즐
-   우리 4축마다 하나씩: 이름(부상) · 세계(봉쇄) · 속성(봉쇄) · 족보(고집 · 같은 수 금지) + 안개 · 머지 금지
+   우리 4축마다 하나씩: 이름(부상) · 세계(봉쇄) · 속성(봉쇄) + 안개 · 머지 금지 (족보 규칙은 11-05 삭제 — 새 규칙 자리)
    7~8장 거인은 출전 불가 + 행동 규칙 두 개가 겹친다 */
 const injN=j=>j<=2?1:j<=5?2:3;
 function banRule(kind,j){
@@ -2363,10 +2361,7 @@ const ACT_RULES={
   water:{ic:'🏜',ko:'마른 우물',d:'버리기 0',min:2},
   needle:{ic:'🪡',ko:'단 한 번',d:'런 1번뿐',min:2},
   wall:{ic:'🧱',ko:'성벽',d:'목표 ×2',min:2,tx:2},
-  arm:{ic:'💪',ko:'짓누르는 팔',d:'낸 족보 레벨 −1',min:2},
   hook:{ic:'🪝',ko:'갈고리',d:'런할 때마다 손패 2장이 무작위로 버려짐',min:3},
-  eye:{ic:'👁',ko:'같은 수 금지',d:'이미 낸 족보는 0점',min:4,ht:1},
-  mouth:{ic:'🔒',ko:'고집',d:'처음 낸 족보만 점수',min:4,ht:1},
   plant:{ic:'🥀',ko:'별 시들기',d:'★3 카드 출전 불가',min:5},
   serpent:{ic:'🐍',ko:'뱀',d:'런 · 버리기 뒤 항상 3장만 보충',min:5},
   /* (DHL 10-29) 맞춤과 묶인 거인 규칙 3종 — 단계 갑옷이 켜져 있을 때만 나옴 */
@@ -2387,7 +2382,7 @@ function shuffleA(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.rand
 function bossRule(j,dk){
   j=j||1;
   if(j>=8){const ks=Object.keys(FINAL_RULES),k=ks[Math.random()*ks.length|0];const r=actRule(k);r.final=true;if(k==='leaf')r.on=true;return r;}
-  // 족보를 비트는 규칙(같은 수 금지 · 고집)은 견습엔 없음, 기사는 4장부터, 편력은 처음부터
+  // ht:1 규칙(족보를 비트는 규칙)은 견습엔 없음, 기사는 4장부터, 편력은 처음부터 — 지금은 해당 규칙 없음
   const ok=k=>{const R=ACT_RULES[k];if(R.armor&&!armorOn())return false;if(R.ht)return dk==='errant'||(dk!=='app'&&j>=R.min);return j>=R.min;};
   const pool=['inj','wban','elban'].concat(Object.keys(ACT_RULES).filter(ok));
   const k=pool[Math.random()*pool.length|0];
@@ -2751,7 +2746,7 @@ function nextFoeHTML(f){
     `<div class="nfBot"><span class="nfGs" title="방패가 있는 동안 한 번에 몸체 최대 ${Math.round(ARMOR_HIT*100)}%"><b>${Math.round(ARMOR_HIT*100)}%</b></span><div class="nfSeg">${seg}</div></div>`+
     (f.rule?`<div class="nfRule">${f.rule.ic} <b>${f.rule.ko}</b> <span>${f.rule.d}</span></div>`:'');
 }
-function ruleState(){const R=S.foe&&S.foe.rule;if(!R)return '';if(R.k==='eye'&&S.usedHT.length)return ` · <span class="dim">낸 족보: ${S.usedHT.map(k=>HT[k][0]).join(', ')}</span>`;if(R.k==='mouth'&&S.lockHT)return ` · <span class="dim">고정: ${HT[S.lockHT][0]}</span>`;return '';}
+function ruleState(){return '';}
 function renderFoe(){$('foe').innerHTML=foeLine(S.foe)+ruleState()+(()=>{const h=hurtCount();return h.w||h.s?` · <span class="dim">🩹 부상 ${h.w} · 🗡 상처 ${h.s}</span>`:'';})();}
 /* 카드를 누르면: 힘 = 기본 × ★ × 상성 × 고향 − 상처 */
 const sellPrice=k=>Math.max(1,ORBS[k].cost-1)*((S.ost&&S.ost[k])||1);
@@ -3037,7 +3032,6 @@ function doPlay(merged){
   S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
   const RK=S.foe&&S.foe.rule&&S.foe.rule.k;
-  if(RK==='arm'){const h=handInfo(selCards()).ht;if((S.lv[h]||1)>1){S.lv[h]--;popMsg('💪 '+HT[h][0]+' 레벨 −1');}}
   const cards=selCards(),r=score(cards,ctx()),A_MARK=targets();S.runMerges=0;S.nextMult=0;
   {const hc=hitCap(r);r.sh=hc?{before:hc.before,after:hc.after,max:shMax()}:null;if(hc){S.sh=hc.after;if(hc.brk)r.breakCap=true;else if(hc.absorb>0){r.rawTotal=hc.raw;r.total=hc.cap;r.capHit=true;}}}   // 방패 에너지 깎기
   if(r.keys&&r.keys.n>=3){const kb=$('keyBar');if(kb){kb.classList.remove('flash');void kb.offsetWidth;kb.classList.add('flash');}}
