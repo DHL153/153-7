@@ -1586,7 +1586,8 @@ try{const v=JSON.parse(localStorage.getItem('lm_sound')||'null');if(v&&typeof v.
    곡은 모두 −20 LUFS(효과음 −16보다 아래)라서 예전 곡(−14.4)과 같은 슬라이더에서 비슷하게 들리도록 +3dB 보정 */
 const BGM_DIR='assets/audio/bgm/';
 const BGM_TRACKS={title:'bgm_title',rust:'bgm_battle_rust',neon:'bgm_battle_neon',sky:'bgm_battle_sky',boss:'bgm_boss',
-  camp:'bgm_camp',shop:'bgm_shop',story:'bgm_story',ending:'bgm_ending'};
+  camp:'bgm_camp',shop:'bgm_shop',story:'bgm_title',ending:'bgm_ending',
+  final_alonso:'bgm_final_alonso',final_windmill:'bgm_final_windmill',final_windmill2:'bgm_final_windmill2'};   /* (DHL 11-05) 최종 보스: 스카이아크 알론소 · 풍차 거인 1 · 2페이지 */   /* (DHL 11-05) 타이틀 곡(Gemini 'Sunlight at the Gates')을 이야기 장면에도 */
 const BGM_ONCE={ending:1};          // 엔딩은 루프 아님: 한 번 흐르고 조용히 끝남
 const BGM_MAKEUP=1.41, BGM_XFADE=1.4, BGM_CACHE=3;
 let audioUnlocked=false,bgmDuck=1,bgmCur=null,bgmScene='title';
@@ -1625,6 +1626,7 @@ function bgmElTick(){
 }
 function bgmPlay(key){
   if((bgmCur&&bgmCur.key)===key)return;
+  if(bgmCur&&key&&BGM_TRACKS[bgmCur.key]===BGM_TRACKS[key]){bgmCur.key=key;return;}   // 같은 곡을 쓰는 장면끼리(타이틀 ↔ 이야기)는 처음부터 다시 틀지 않고 이어서
   if(bgmCur)bgmFadeOut(bgmCur);
   bgmCur=key?{key}:null;if(!key)return;
   const me=bgmCur;
@@ -1660,7 +1662,10 @@ function lmBgmScene(){
     if(p.querySelector('.shop'))return 'shop';
     if(p.querySelector('.rest,.night,[class^="camp"],[class*=" camp"]'))return 'camp';
   }
-  if(G.rd===2&&!G.selecting&&G.foe)return 'boss';
+  if(G.rd===2&&!G.selecting&&G.foe){const bk=G.foe.boss;
+    if(bk==='skyAlonso')return 'final_alonso';
+    if(bk==='windmill'){if(!G._wm2&&G.tgt>0&&G.score>=G.tgt*0.5)G._wm2=1;return G._wm2?'final_windmill2':'final_windmill';}   /* 풍차 거인: 체력 절반을 깎으면 2페이지 곡으로 (1.4초 크로스페이드) */
+    return 'boss';}
   const w=G.world||(typeof JANG_WORLD==='function'?JANG_WORLD(G.jang):'rust');
   return BGM_TRACKS[w]?w:'rust';
 }
@@ -1711,8 +1716,7 @@ function ltSetHTML(){
   const chk=(k,label)=>`<label class="ls-chk"><span>${label}</span><input type="checkbox" ${LM_SET[k]?'checked':''} onchange="LM_SET.${k}=this.checked;lmSetSave();lmSetApply()"><i></i></label>`;
   const tab=(k,n)=>`<button type="button" class="ls-tab ${ltSetTab===k?'on':''}" onclick="ltSetTab='${k}';ltPop('set')">${n}</button>`;
   let h=`<div class="ls-tabs">${tab('game','게임')}${tab('gfx','그래픽')}${tab('audio','오디오')}</div><div class="ls-body">`;
-  if(ltSetTab==='game')h+=step('speed','게임 속도',[[1,'1'],[2,'2'],[3,'3'],[4,'4']])+step('btnpos','런/버리기 버튼 위치',[['pd','런/버리기'],['dp','버리기/런']])+sld('shake','화면 흔들기')+chk('rm','동작 감소')+
-    `<div class="ls-pair"><button type="button" class="ls-small" onclick="ltPop('story')">스토리 다시 보기</button><button type="button" class="ls-small" onclick="ltReplayIntro()">첫 실행 연출 다시 보기</button></div>`;
+  if(ltSetTab==='game')h+=step('speed','게임 속도',[[1,'1'],[2,'2'],[3,'3'],[4,'4']])+step('btnpos','런/버리기 버튼 위치',[['pd','런/버리기'],['dp','버리기/런']])+sld('shake','화면 흔들기')+chk('rm','동작 감소');   /* (DHL 11-05) 스토리 · 첫 실행 연출 다시 보기는 컬렉션 › 다시 보기로 옮김 */
   if(ltSetTab==='gfx')h+=step('shadow','그림자',[[true,'켜짐'],[false,'꺼짐']])+step('motion','카드 몸짓',[[true,'켜짐'],[false,'꺼짐']])+step('tbl','테이블 무늬',[[true,'켜짐'],[false,'꺼짐']]);
   if(ltSetTab==='audio')h+=sld('master','마스터 볼륨')+sld('music','음악 볼륨')+sld('sfx','게임 볼륨')+step('fxpol','효과음 다듬기',[[1,'켜짐'],[0,'꺼짐']]);
   return h+`</div>`;
@@ -9300,6 +9304,96 @@ br.lmSb{display:none}
   function all(){document.querySelectorAll('br.lmSb').forEach(br=>{const b=blockOf(br.parentElement);if(b)todo.add(b);});todo.forEach(fit);todo.clear();}
   addEventListener('resize',()=>{clearTimeout(all.t);all.t=setTimeout(all,200);});
   walk(document.body);all();mo.observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+<style id="lm-col-tabs-css">
+/* (DHL 11-05 시안 A) 컬렉션 = 도감 / 다시 보기 탭 · 사운드트랙 */
+#lm-title .lc-tabs{display:flex;gap:8px;justify-content:center;margin:0 0 10px}
+#lm-title .lc-tabs .ls-tab{max-width:180px;flex:1}
+#lm-title .lc-snd .lc-art{display:flex;align-items:center;justify-content:center}
+#lm-title .lc-disc{position:relative;height:78%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#f6cf63 0 9%,#1a1208 10% 14%,#2a2116 15% 100%);box-shadow:0 0 0 3px #c9a24a,0 6px 10px #000a}
+#lm-title .lc-disc::after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,#0000 0 3px,#ffffff10 3px 4px)}
+#lm-title .lc-disc img{position:absolute!important;inset:14%;width:72%!important;height:72%!important;object-fit:contain;filter:none!important}
+#lm-title .lc-disc.spin{animation:lcSpin 6s linear infinite}
+@keyframes lcSpin{to{rotate:360deg}}
+#lm-title .lc-more{display:flex;justify-content:center;margin:8px 0 0}
+#lm-title .lt-card:has(.lc-more) .lc-story.lt-cb.lc-t{height:clamp(52px,calc((92vh - 268px)/4),110px)!important;height:clamp(52px,calc((92dvh - 268px)/4),110px)!important}
+@media (max-height:500px){#lm-title .lt-card:has(.lc-more) .lc-story.lt-cb.lc-t{height:clamp(34px,calc((96dvh - 214px)/4),64px)!important}#lm-title .lc-more{margin-top:3px}#lm-title .lc-more .ls-small{padding-block:3px!important;min-height:0!important}}
+/* 사운드트랙 창 */
+#lm-title .ost{display:flex;flex-direction:column;gap:6px;max-height:min(58vh,520px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin}
+#lm-title .ost-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;min-height:52px;padding:6px 12px 6px 6px;border-radius:12px;background:linear-gradient(180deg,#16264a,#0d1830);border:2px solid #c9a24a66;box-shadow:0 3px 0 #050a14;color:#f8edd0;font:inherit;text-align:left;cursor:pointer}
+#lm-title .ost-row:focus-visible{outline:2px solid #f6cf63;outline-offset:2px}
+#lm-title .ost-row .pb{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0a1222;border:2px solid #c9a24a;color:#f6cf63;font-size:15px;flex:none}
+#lm-title .ost-row b{display:block;font-size:clamp(14px,2.1vh,17px);font-weight:900;line-height:1.25}
+#lm-title .ost-row small{display:block;font-size:12px;color:#a9b4c6;margin-top:1px}
+#lm-title .ost-row em{font-style:normal;font-size:12px;color:#8b97ad;font-variant-numeric:tabular-nums}
+#lm-title .ost-row.on{border-color:#f6cf63;box-shadow:0 0 0 1px #f6cf6366,0 0 14px #f6cf6344,0 3px 0 #050a14}
+#lm-title .ost-row.on .pb{background:#f6cf63;color:#3b2a0c}
+#lm-title .ost-row.lock{cursor:default;opacity:.55}
+#lm-title .ost-row.lock .pb{border-color:#5d6a82;color:#5d6a82}
+#lm-title .ost-note{font-size:12px;color:#a9b4c6;text-align:center;margin:8px 0 2px}
+@media (prefers-reduced-motion:reduce){#lm-title .lc-disc.spin{animation:none}}
+</style>
+<script id="lm-col-tabs-js">
+/* (DHL 11-05 시안 A) 컬렉션: 도감(동료 · 구슬 · 거인 규칙) / 다시 보기(스토리 · 전투 연출 · 사운드트랙)
+   · 설정 › 게임의 '스토리 다시 보기 · 첫 실행 연출 다시 보기'는 여기로 옮김
+   · 사운드트랙: 게임에서 들은 곡만 열림 (LM_STORY_ALL = 테스트 땐 전부) · 누르면 BGM 엔진으로 끊김 없이 반복 재생 */
+var ltColTab='codex';
+const LM_OST=[
+  {k:'title',ko:'Sunlight at the Gates',sub:'타이틀 · 이야기'},
+  {k:'rust',ko:'The Gearwork Ascent',sub:'러스트 전투'},
+  {k:'neon',ko:'Gambit Under Moonlight',sub:'네온 전투'},
+  {k:'sky',ko:'Riding the Currents',sub:'스카이 전투'},
+  {k:'boss',ko:'Colossus at the Gate',sub:'거인 전투'},
+  {k:'camp',ko:'La Mancha Lullaby',sub:'야영'},
+  {k:'shop',ko:'Coins for a Wand',sub:'원정 캠프'},
+  {k:'final_alonso',ko:'Steel Above the Clouds',sub:'스카이아크 알론소'},
+  {k:'final_windmill',ko:'The Colossus of the Windmill',sub:'풍차 거인'},
+  {k:'final_windmill2',ko:'Dance of the Turning Blades',sub:'풍차 거인 · 2'},
+  {k:'ending',ko:'Before the Next Chapter',sub:'엔딩'}];
+(function(){
+  const LS='lm_ost_heard';let heard={};try{heard=JSON.parse(localStorage.getItem(LS)||'{}')||{};}catch(e){}
+  const ostOpen=o=>LM_STORY_ALL||!!heard[o.k];
+  /* 들은 곡 기록: BGM이 실제로 바뀔 때 (곡 이름 기준 — 이야기 장면은 타이틀 곡) */
+  const _bp=bgmPlay;bgmPlay=function(key){const r=_bp.apply(this,arguments);
+    try{if(key&&!window.lmOstKey){const f=BGM_TRACKS[key],o=LM_OST.find(x=>BGM_TRACKS[x.k]===f);if(o&&!heard[o.k]){heard[o.k]=1;localStorage.setItem(LS,JSON.stringify(heard));}}}catch(e){}
+    return r;};
+  /* 듣기 중엔 장면 대신 고른 곡 */
+  const _sc=lmBgmScene;lmBgmScene=function(){if(window.lmOstKey)return window.lmOstKey;return _sc.apply(this,arguments);};
+  const stopOst=()=>{if(!window.lmOstKey)return;window.lmOstKey=null;try{syncBgm();}catch(e){}};
+  const storyN=()=>LM_STORY.filter(s=>LM_STORY_ALL||s.seen()).length;
+  const tab=(k,n)=>`<button type="button" class="ls-tab ${ltColTab===k?'on':''}" role="tab" aria-selected="${ltColTab===k}" onclick="ltColTab='${k}';ltPop('col')">${n}</button>`;
+  const _ch=ltColHTML;
+  ltColHTML=function(){
+    const tabs=`<div class="lc-tabs" role="tablist">${tab('codex','도감')}${tab('replay','다시 보기')}</div>`;
+    if(ltColTab!=='replay'){   /* 도감: 기존 카드 3줄 그대로 (전투 연출 칸이 붙지 않게 자리표시) */
+      return _ch.apply(this,arguments).replace('<div class="lc-list">',tabs+'<div class="lc-list"><i class="lc-fx" hidden></i>');}
+    const nS=storyN(),nO=LM_OST.filter(ostOpen).length,A='mrstage/assets/art/';
+    const R=(cls,fn,art,name,sub,cnt)=>`<button type="button" class="lt-cb lc-t ${cls}" onclick="${fn}"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${cnt||''}</span></button>`;
+    return `<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">컬렉션</div></div>${tabs}<div class="lc-list">`+
+      R('lc-story lc-s1',"ltPop('story')",`<img src="${LM_STORY[0].img}" alt="">`,'스토리','여정의 시작부터 엔딩까지 다시 보기',`<em>${nS} <u>/ ${LM_STORY.length}</u></em>`)+
+      `<button type="button" class="lt-cb lc-t lc-fx"><span class="lc-art"><img class="fb n" src="${A}battle_characters/battle_char_0008_Idle.png" alt=""><canvas aria-hidden="true"></canvas></span><span class="lc-txt"><b>전투 연출 보기</b><small>공격 · 컷인 · 세 세계 합동기 · 처치 컷신을 바로 재생</small></span></button>`+
+      R('lc-snd',"ltPop('ost')",`<span class="lc-disc"><img src="assets/brand/logo_blades.webp" alt=""></span>`,'사운드트랙','게임 음악 듣기',`<em>${nO} <u>/ ${LM_OST.length}</u></em>`)+
+      `</div></div>`;
+  };
+  const _lp=ltPop;
+  ltPop=function(kind){
+    if(kind!=='ost')stopOst();
+    if(kind==='ost'){_lp('col');const card=document.querySelector('#lm-title .lt-pop .lt-card');
+      const row=(o,i)=>{const op=ostOpen(o),on=window.lmOstKey===o.k;
+        return `<button type="button" class="ost-row${on?' on':''}${op?'':' lock'}" ${op?`onclick="lmOstPlay('${o.k}')" aria-pressed="${on}"`:'disabled'}><span class="pb" aria-hidden="true">${op?(on?'❚❚':'▶'):'🔒'}</span><span><b>${op?o.ko:'???'}</b><small>${op?o.sub:'아직 듣지 못한 곡'}</small></span><em>${String(i+1).padStart(2,'0')}</em></button>`;};
+      const mute=(typeof gameSettings!=='undefined'&&(!gameSettings.bgm||!(gameSettings.masterVolume>0)||!(gameSettings.bgmVolume>0)));
+      card.innerHTML=`<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">사운드트랙</div></div><div class="ost">${LM_OST.map(row).join('')}</div>${mute?'<p class="ost-note">설정 › 오디오에서 음악 소리를 켜야 들려요</p>':''}</div><button type="button" class="lt-mb back" onclick="ltPop('col')">뒤로</button>`;
+      card.classList.add('wide');return;}
+    const r=_lp.apply(this,arguments);
+    try{
+      if(kind==='col'&&ltColTab==='replay'){const b=document.querySelector('#lm-title .lt-card .lc-fx:not(i)');if(b&&!b._lm){b._lm=1;b.onclick=()=>ltPop('fxdemo');window.lmFxTile&&lmFxTile(b);}}
+      if(kind==='story'){const card=document.querySelector('#lm-title .lt-pop .lt-card');   /* 스토리 목록: 뒤로 = 컬렉션 · 첫 실행 연출 다시 보기는 목록 아래 */
+        const bk=card&&card.querySelector('.lt-mb.back');if(bk)bk.setAttribute('onclick',"ltPop('col')");
+        const w=card&&card.querySelector('.lc-wrap');if(w&&!w.querySelector('.lc-more'))w.insertAdjacentHTML('beforeend','<div class="lc-more"><button type="button" class="ls-small" onclick="ltReplayIntro()">첫 실행 연출 다시 보기</button></div>');}
+    }catch(e){}
+    return r;};
+  window.lmOstPlay=function(k){window.lmOstKey=window.lmOstKey===k?null:k;try{if(!audioUnlocked)unlockGameAudio();syncBgm();}catch(e){}ltPop('ost');};
 })();
 </script>
 </body></html>
