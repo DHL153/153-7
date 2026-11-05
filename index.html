@@ -9294,7 +9294,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   /* (11-04) 도감에 처음 기록될 때(새 거인 · 원정 캠프에서 처음 본 구슬) 깃펜 '사각' + 반짝 — 연달아 여러 개면 4초에 한 번 */
   W('codexMark',o=>function(kind,key){let fresh=false;try{fresh=!!key&&!CODEX[kind][key];}catch(e){}const r=o.apply(this,arguments);if(fresh)P('sfx_codex_new',{delay:700,vol:.6,gap:4000});return r;});
   /* 야영 화면 동안만 모닥불 배경 — 들어오면 켜고, 라운드로 넘어가거나 타이틀로 나가면 끔 */
-  W('campOpen',o=>function(){const r=o.apply(this,arguments);try{if(S&&S.rd<2)LMS.loop('amb_campfire',{vol:.35});}catch(e){}return r;});
+  W('campOpen',o=>function(){const r=o.apply(this,arguments);try{if(S&&S.rd<2)LMS.loop('amb_campfire',{vol:.175});/* (DHL 11-06) .35 → .175 (50%) */}catch(e){}return r;});
   ['startRound','beginRound','ltShow','newGame'].forEach(k=>W(k,o=>function(){try{LMS.loopStop('amb_campfire');}catch(e){}return o.apply(this,arguments);}));
 
   /* ── 창 · 배우기 · 설명 */
