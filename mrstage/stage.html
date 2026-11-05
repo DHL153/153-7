@@ -5354,6 +5354,8 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
 #battle-panorama{filter:saturate(.56) brightness(.84)!important}
 /* (DHL 11-01) 뒤 배경 레이어(::before)도 앞 땅과 같은 톤 — 전에는 필터가 없어 하늘이 저녁·밤으로 바뀌어도 밝은 채로 남았음. 하늘과 같이 1.8초 동안 천천히 */
 #battle-stage::before{filter:saturate(.56) brightness(.84)!important;transition:filter 1.8s ease,opacity .1s ease!important}
+/* (DHL 11-05 '배경 뒤로 또 같은 배경이 있어서 이상') 뒤에 깔던 같은 배경 그림을 끔 → 153-6처럼 먼 언덕 실루엣 + 풍차(#battle-sky .sky-far)가 보임 */
+#battle-stage::before{display:none!important;content:none!important;animation:none!important}
 #battle-stage[data-sky="0"]::before{filter:saturate(.56) brightness(.84) brightness(.86) saturate(.8) hue-rotate(-6deg)!important}
 #battle-stage[data-sky="2"]::before{filter:saturate(.56) brightness(.84) sepia(.18) saturate(1.12) brightness(.9) hue-rotate(-10deg)!important}
 #battle-stage[data-sky="3"]::before{filter:saturate(.56) brightness(.84) brightness(.55) saturate(.7) contrast(1.05)!important}
