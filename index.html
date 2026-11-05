@@ -1594,7 +1594,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 
 <script id="lm-audio">
 /* 🔊 소리 — 설정은 lm_sound / lm_settings 키에 저장 */
-var gameSettings={masterVolume:70,bgm:true,bgmVolume:28};   // 153-6 DEFAULT_GAME_SETTINGS 값
+var gameSettings={masterVolume:65,bgm:true,bgmVolume:10};   // 153-6 DEFAULT_GAME_SETTINGS 값
 try{const v=JSON.parse(localStorage.getItem('lm_sound')||'null');if(v&&typeof v.masterVolume==='number')gameSettings.masterVolume=v.masterVolume;}catch(e){}
 /* 🎵 BGM — 장면별 9곡 (DHL 11-03). Web Audio로 끊김 없는 루프 + 1.4초 크로스페이드.
    Web Audio를 못 쓰면(file:// 등) <audio> 루프로 대신 틀어요.
@@ -1697,7 +1697,7 @@ setInterval(()=>{if(audioUnlocked)syncBgm();},400);
 window.addEventListener('pointerdown',unlockGameAudio,{passive:true});
 window.addEventListener('keydown',unlockGameAudio,{passive:true});
 window.MR=window.MR||{};
-MR.toggleSound=function(){gameSettings.masterVolume=gameSettings.masterVolume>0?0:70;
+MR.toggleSound=function(){gameSettings.masterVolume=gameSettings.masterVolume>0?0:65;
   try{localStorage.setItem('lm_sound',JSON.stringify({masterVolume:gameSettings.masterVolume}));}catch(e){}
   if(gameSettings.masterVolume>0)unlockGameAudio();else syncBgm();};
 
@@ -1705,7 +1705,7 @@ MR.toggleSound=function(){gameSettings.masterVolume=gameSettings.masterVolume>0?
 <script id="lm-settings">
 /* ⚙ 설정 (발라트로 옵션 → 설정: 게임 · 그래픽 · 오디오 탭) — 2026-10-27
    실제로 동작하는 항목만 넣음. 저장 키 lm_settings */
-const LM_SET_DEF={fxpol:1,armor:true,btnpos:'pd',speed:1,shake:50,rm:false,shadow:true,motion:true,tbl:true,master:70,music:28,sfx:65};
+const LM_SET_DEF={fxpol:1,armor:true,btnpos:'pd',speed:1,shake:50,rm:false,shadow:true,motion:true,tbl:true,master:65,music:10,sfx:10};   /* (DHL 11-06) 첫 실행 소리 기본값: 마스터 65 · 음악 10 · 게임 10 · 효과음 다듬기 켜짐 */
 let LM_SET={...LM_SET_DEF};
 try{Object.assign(LM_SET,JSON.parse(localStorage.getItem('lm_settings')||'{}'));}catch(e){}
 try{const old=JSON.parse(localStorage.getItem('lm_sound')||'null');if(old&&old.masterVolume===0&&localStorage.getItem('lm_settings')==null)LM_SET.master=0;}catch(e){}
@@ -1723,7 +1723,7 @@ function lmSetApply(){
 (()=>{const st=window.setTimeout.bind(window);
   window.setTimeout=(f,ms,...a)=>{const sp=LM_SPEEDS[LM_SET.speed]||1;return st(f,(typeof ms==='number'&&ms>0&&ms<=2000&&sp!==1)?ms/sp:ms,...a);};})();
 // 예전 소리 버튼(스토리 뷰어 M 키)도 같은 설정을 쓰게
-MR.toggleSound=function(){LM_SET.master=LM_SET.master>0?0:70;lmSetSave();lmSetApply();if(LM_SET.master>0)unlockGameAudio();};
+MR.toggleSound=function(){LM_SET.master=LM_SET.master>0?0:65;lmSetSave();lmSetApply();if(LM_SET.master>0)unlockGameAudio();};
 let ltSetTab='game';
 function ltSetHTML(){
   const step=(k,label,vals)=>{const i=vals.findIndex(v=>v[0]===LM_SET[k]);return `<div class="ls-lbl">${label}</div><div class="ls-step"><button type="button" onclick="ltStep('${k}',-1)" aria-label="이전">&lt;</button><b>${vals[i][1]}<i>${vals.map((v,j)=>`<u class="${j===i?'on':''}"></u>`).join('')}</i></b><button type="button" onclick="ltStep('${k}',1)" aria-label="다음">&gt;</button></div>`;};
