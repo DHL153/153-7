@@ -400,7 +400,7 @@ button.elPick{flex:1;color:#fff;font-size:22px;padding:18px 0}
 
 
 /* 📖 배우기(그림 규칙책) — .rb 아래로만 적용 */
-.rb{--paper:#2f2b38;--page:#3a3545;--ink:#f3efe6;--soft:#b8b0c4;--line:#4c4658;--sun:#f0c24b;--sun-ink:#2a1f00;--win:#22c55e;--hurt:#ef4444;--rust:#b45309;--neon:#c026d3;--sky:#0284c7;color:var(--ink);font-size:15px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+.rb{--paper:#2f2b38;--page:#3a3545;--ink:#f3efe6;--soft:#b8b0c4;--line:#4c4658;--sun:#f0c24b;--sun-ink:#2a1f00;--win:#22c55e;--hurt:#ef4444;--rust:#b0552a;--neon:#985a82;--sky:#3f7d99;color:var(--ink);font-size:15px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
 .rb b.k,.rb h2,.rb .hn,.rb .sc,.rb .end,.rb .btn,.rb .pill,.rb .no{font-weight:900}
 .rb .wrap{gap:12px}.rb header h1{font-size:22px}.rb .pg h2{font-size:19px}.rb .say{font-size:15px}.rb .tip{font-size:13px}
 .rb .ord{z-index:3}
@@ -1916,7 +1916,7 @@ lmSetApply();
 /* 라만차 v3 핵심 규칙 — 손패 족보 + 머지 (UI와 분리, node에서도 실행됨) */
 const WORLDS=['rust','neon','sky'];
 const WORLD_KO={rust:'러스트',neon:'네온',sky:'스카이'};
-const WORLD_C={rust:'#b45309',neon:'#c026d3',sky:'#0284c7'};
+const WORLD_C={rust:'#b0552a',neon:'#985a82',sky:'#3f7d99'};   /* (DHL 11-06 아트 바이블) 카드 그림 팔레트 쪽으로 — 형광 자주·쨍한 파랑 대신 바랜 톤 · 흰 글씨 대비 4.5 이상 */
 const NAMES=[['alonso','알론소'],['dulcine','둘시네'],['sancho','산초'],['rosi','로시'],['gris','바실'],
              ['lucia','루시아'],['bruno','브루노'],['nicole','니콜'],['carden','카르덴'],['palome','팔로메']];
 const ELS=['물','불','전기','흙','바람'];
@@ -4482,7 +4482,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r85" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r86" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -8019,7 +8019,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 .rb .lst .gs{position:absolute;left:-6%;top:50%;translate:0 -50%;width:13cqw;aspect-ratio:1;background:url(assets/ui/lamancha/gem_shield.webp) center/contain no-repeat;z-index:3;filter:drop-shadow(0 1px 2px #000a)}
 .rb .lsc.s2 .gs{filter:drop-shadow(0 0 2px #3a2a00) drop-shadow(0 0 6px #fde047) brightness(1.15)}
 .rb .lst .gm{position:absolute;top:56.1%;width:15%;height:15%;border-radius:50%;transform:translate(-50%,-50%);background:#1b2233;filter:grayscale(1) brightness(.5)}
-.rb .lst .gm.on{filter:none;box-shadow:0 0 3px #fde047}.rb .lst .gm.w{left:30%;background:#b45309}.rb .lst .gm.e{left:50.6%;background:#2563eb}.rb .lst .gm.h{left:71.1%;background:#c9a24a}
+.rb .lst .gm.on{filter:none;box-shadow:0 0 3px #fde047}.rb .lst .gm.w{left:30%;background:#b0552a}.rb .lst .gm.e{left:50.6%;background:#2563eb}.rb .lst .gm.h{left:71.1%;background:#c9a24a}
 .rb .lst .sb{position:relative;margin-left:13%;height:4.6cqw;border-radius:3px;background:linear-gradient(#e2e8f0,#94a3b8 45%,#475569);border:1px solid #0f172a;overflow:hidden}
 .rb .lst .sb span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:1px;font-weight:900;font-size:3.3cqw;color:#0f172a;white-space:nowrap}
 .rb .lst .sb svg{width:1em;height:1em}
