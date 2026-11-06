@@ -6585,7 +6585,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const L=all().find(x=>x[0]===k);if(!L)return desc();const I=L[1];
     const nm=k==='guest'?GUESTS[S.campGuest.k].ko:NM[k];
     return `<div class="cpDesc"><b>${nm}</b><span>${I.d}</span>${I.off?`<em>${I.off}</em>`:''}</div>`;}
-  window.restHover=k=>{const d=document.querySelector('.rest .cpDesc');if(!d)return;d.outerHTML=desc(k||S.restSel);};
+  window.restHover=k=>{const d=document.querySelector('.rest .cpDesc');if(!d)return;if(k&&window.lmTutInboxOff)lmTutInboxOff();d.outerHTML=desc(k||S.restSel);};
   window.restTap=k=>{const L=all().find(x=>x[0]===k);if(!L)return;
     if(S.restSel!==k){S.restSel=k;return campOpen();}
     if(L[1].off)return;S.restSel=null;
@@ -8871,6 +8871,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     else box.classList.remove('on');}
   function badge(id){const b=document.getElementById(id);if(!b)return;b.classList.add('lmTutShow');setTimeout(()=>b.classList.remove('lmTutShow'),700);
     if(newOn)newOn.el.remove();const n=document.createElement('span');n.className='lmTutNew';let t='새로!';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}n.textContent=t;document.body.appendChild(n);newOn={id,el:n,until:performance.now()+7000};}
+  window.lmTutInboxOff=()=>{if(cur&&cur.o.inbox)hideNic();};   /* 야영 카드에 손을 올리면(설명이 바뀌면) 니콜은 비킴 */
   function say(k,o){if(!S||!S.tut)return;if(!o.force&&S.tut.seen[k])return;S.tut.seen[k]=1;try{window.LMS&&LMS.play(k==='tut.3_3.grad'?'sfx_tut_grad':'sfx_nicole_pop');}catch(e){}if(!o.anchor)(S.tut.spoke=S.tut.spoke||{})[S.jang+'-'+S.rd]=1;mk();cls();cur={k,o,t:performance.now()};
     bub.innerHTML=tutLine(k);bub.dataset.k='';bub.classList.add('wait');box.classList.add('on');place();if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}
     bub.classList.remove('out');
@@ -9020,10 +9021,11 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     if(!cur&&ovOn&&S.jang===3&&S.rd===2&&T.seen['tut.3_3.bridge']&&!T.seen['tut.3_3.grad']&&q('#ov:not([hidden]) .cashFx'))
       say('tut.3_3.grad',{face:'happy',seq:['wave','hop'],anchor:'#ov:not([hidden]) .cashFx',above:1});
     if(T.seen['tut.3_3.grad']&&!cur){T.learn=LEARN_ORDER.slice();finish();return;}
+    if(cur&&cur.o.inbox&&(S.pick||S.restSel))hideNic();   /* (11-06 외부 피드백 '튜토리얼이 캠프 아이템 설명을 가림') 물건을 고르면 니콜은 비키고 그 칸에 물건 설명이 보이게 */
     if(!cur&&ovOn&&!S.busy){
       if(!T.seen['tut.2_2.shop']&&q('#ov:not([hidden]) .sDesc'))say('tut.2_2.shop',{face:'happy',seq:['hop'],learn:[8],anchor:'#ov:not([hidden]) .sDesc',inbox:1});
       else if(!T.seen['tut.orb.order']&&S.orbs.length>=2&&q('#ov:not([hidden]) .sDesc'))say('tut.orb.order',{face:'focus',seq:['point'],anchor:'#ov:not([hidden]) .sDesc',inbox:1});
-      else if(!T.seen['tut.3_1.rest']&&q('#ov:not([hidden]) .cpDesc'))say('tut.3_1.rest',{face:'relaxed',seq:[],learn:[9],anchor:'#ov:not([hidden]) .cpDesc'});}
+      else if(!T.seen['tut.3_1.rest']&&q('#ov:not([hidden]) .cpDesc'))say('tut.3_1.rest',{face:'relaxed',seq:[],learn:[9],anchor:'#ov:not([hidden]) .cpDesc',inbox:1});   /* (11-06) 야영도 원정 캠프처럼 설명 칸 안에 — 카드 이름을 가리지 않게 */}
     if(cur&&!cur.o.force&&!cur.o.anchor&&cur.k!=='tut.2_1.key'&&played>(cur.p??(cur.p=played)))hideNic();   /* (DHL 11-03) 런하면 바로 닫힘 — 전투 중 · 끝난 뒤 빛이 남지 않게 */
     if(!idle()){if(cur&&!cur.o.force&&!cur.o.anchor&&ovOn)hideNic();if(!(cur&&cur.o.anchor))ring([]);return;}   /* 창 위 안내(원정 캠프 · 야영)의 빛은 남김 */
     const hasHand=S.hand.length>0;
