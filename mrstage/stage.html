@@ -5361,6 +5361,11 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
 #battle-stage[data-sky="3"]::before{filter:saturate(.56) brightness(.84) brightness(.55) saturate(.7) contrast(1.05)!important}
 #battle-stage[data-sky="4"]::before{filter:saturate(.56) brightness(.84) brightness(.82) saturate(.85) hue-rotate(-18deg)!important}
 </style>
+<style id="lm-bg-tone2">
+/* (DHL 11-06 아트 바이블 '전투 무대만 따로 밝음') 배경을 한 단계 더 낮춤 — 캐릭터(2층)가 언제나 배경(1층)보다 또렷하게. 캐릭터 · 빌런 · 효과는 그대로 */
+html body #battle-stage:not(.skill-cutscene) #battle-sky{filter:saturate(.46) brightness(.74) contrast(.94)!important}
+html body #battle-panorama{filter:saturate(.46) brightness(.74) contrast(.94)!important}
+</style>
 <style id="mr-desat-bg">
 /* 2026-10-19 DHL: 캐릭터는 그대로, 배경·소품 채도 -30% (눈 피로 줄이기)
    전투 하늘·땅, 머지 판 배경, 마이룸 배경·이모지 소품, 미니 마이룸 배경 */
