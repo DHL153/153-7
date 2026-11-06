@@ -1594,7 +1594,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 
 <script id="lm-audio">
 /* 🔊 소리 — 설정은 lm_sound / lm_settings 키에 저장 */
-var gameSettings={masterVolume:65,bgm:true,bgmVolume:10};   // 153-6 DEFAULT_GAME_SETTINGS 값
+var gameSettings={masterVolume:65,bgm:true,bgmVolume:25};   // 153-6 DEFAULT_GAME_SETTINGS 값
 try{const v=JSON.parse(localStorage.getItem('lm_sound')||'null');if(v&&typeof v.masterVolume==='number')gameSettings.masterVolume=v.masterVolume;}catch(e){}
 /* 🎵 BGM — 장면별 9곡 (DHL 11-03). Web Audio로 끊김 없는 루프 + 1.4초 크로스페이드.
    Web Audio를 못 쓰면(file:// 등) <audio> 루프로 대신 틀어요.
@@ -1705,9 +1705,10 @@ MR.toggleSound=function(){gameSettings.masterVolume=gameSettings.masterVolume>0?
 <script id="lm-settings">
 /* ⚙ 설정 (발라트로 옵션 → 설정: 게임 · 그래픽 · 오디오 탭) — 2026-10-27
    실제로 동작하는 항목만 넣음. 저장 키 lm_settings */
-const LM_SET_DEF={fxpol:1,armor:true,btnpos:'pd',speed:1,shake:50,rm:false,shadow:true,motion:true,tbl:true,master:65,music:10,sfx:10};   /* (DHL 11-06) 첫 실행 소리 기본값: 마스터 65 · 음악 10 · 게임 10 · 효과음 다듬기 켜짐 */
+const LM_SET_DEF={fxpol:1,armor:true,btnpos:'pd',speed:1,shake:50,rm:false,shadow:true,motion:true,tbl:true,master:65,music:25,sfx:45};   /* (DHL 11-06) 첫 실행 소리 기본값: 마스터 65 · 음악 25 · 게임 45 · 효과음 다듬기 켜짐 (외부 피드백 '처음 소리가 너무 작다' → 10·10에서 올림) */
 let LM_SET={...LM_SET_DEF};
 try{Object.assign(LM_SET,JSON.parse(localStorage.getItem('lm_settings')||'{}'));}catch(e){}
+try{if(!localStorage.getItem('lm_vol25')){if(LM_SET.music===10&&LM_SET.sfx===10){LM_SET.music=25;LM_SET.sfx=45;localStorage.setItem('lm_settings',JSON.stringify(LM_SET));}localStorage.setItem('lm_vol25','1');}}catch(e){}   /* 하루 동안 기본값이던 10·10을 그대로 둔 사람만 한 번 새 기본값으로 */
 try{const old=JSON.parse(localStorage.getItem('lm_sound')||'null');if(old&&old.masterVolume===0&&localStorage.getItem('lm_settings')==null)LM_SET.master=0;}catch(e){}
 const LM_SPEEDS=[null,1,1.5,2,3];
 function lmSetSave(){try{localStorage.setItem('lm_settings',JSON.stringify(LM_SET));}catch(e){}}
