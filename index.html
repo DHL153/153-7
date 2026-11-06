@@ -3308,7 +3308,7 @@ function openShop(){
     h+=`<div class="nextFoe${armorOn()?' nf2':''}"><div class="nfHead"><small>다음 빌런 · ${S.rd<2?S.jang+'장 '+RD_KO[S.rd+1]:(S.jang+1)+'장 망령'}</small>${gear}</div>${armorOn()?nextFoeHTML(nf):foeLine(nf)}</div>`; }
   // 구슬칸 (발라트로의 조커 줄)
   h+=`<div class="sOrbs">`;for(let i=0;i<S.maxOrb;i++){const k=S.orbs[i];h+=k?`<div class="sorb on${S.pick==='own'+i?' up':''}" data-slot="${i}" onclick="pickItem('own${i}')">${orbLabel(k)}</div>`:`<div class="sorb" data-slot="${i}"></div>`;}
-  h+=`</div><div class="sRow1"><span>${S.orbs.length}/${S.maxOrb}</span><button type="button" class="vChip" onclick="vPopToggle(event)" aria-expanded="false" title="내 증서 · 판 내내 유지"><i class="rVIc"></i>증서 <b>${S.vouch.length}</b></button><span class="gold">💰 ${S.gold}</span></div>`;
+  h+=`</div><div class="sRow1"><span>${S.orbs.length}/${S.maxOrb}</span><span class="sChips"><button type="button" class="vChip" onclick="vPopToggle(event)" aria-expanded="false" title="내 증서 · 판 내내 유지"><i class="rVIc"></i>증서 <b>${S.vouch.length}</b></button><button type="button" class="vChip dChip" onclick="deckView()" title="내 덱 보기"><i class="dIc"></i>덱 <b>${S.deck.length}</b></button></span><span class="gold">💰 ${S.gold}</span></div>`;
   // 설명 말풍선
   const inf=S.pick?itemInfo(S.pick):null;
   h+=`<div class="sDesc">${inf?`<b class="sdN">${inf.name}</b><span class="sdT">${inf.desc}</span>`:'물건을 누르거나, 구슬칸으로 끌어서 사세요'}</div>`;
@@ -3631,6 +3631,21 @@ function vPopToggle(ev){if(ev)ev.stopPropagation();const old=document.querySelec
   setTimeout(()=>document.addEventListener('pointerdown',vPopOut,true),0);}
 function vPopOut(e){if(e.target.closest('.vPop,.vChip'))return;vPopClose();}
 function vPopClose(){document.querySelectorAll('.vPop').forEach(e=>e.remove());document.querySelectorAll('.vChip.on').forEach(c=>{c.classList.remove('on');c.setAttribute('aria-expanded','false');});document.removeEventListener('pointerdown',vPopOut,true);}
+/* (11-06 외부 피드백 '원정 캠프에서 내 덱 목록') 내 덱 보기 — 카드 그대로 · 세계별 줄 · 같은 동료끼리 (발라트로 덱 보기, DHL A안)
+   카드마다 번호 · 속성이 판마다 달라서 실제 카드 모양으로 보여 줌 (관통 세 가지를 맞출 카드가 있는지 확인) */
+function deckView(){deckViewClose();vPopClose&&vPopClose();if(!S)return;
+  const ord=id=>NAMES.findIndex(x=>x[0]===TYPES[id].n);
+  const pill=w=>`<span style="--wc:${WORLD_C[w]}">${WORLD_KO[w]} <b>${S.deck.filter(c=>cardW(c)===w).length}</b></span>`;
+  const s2=S.deck.filter(c=>c.star===2).length,s3=S.deck.filter(c=>c.star===3).length;
+  const rows=WORLDS.map(w=>{const cs=S.deck.filter(c=>cardW(c)===w).sort((a,b)=>ord(a.id)-ord(b.id)||b.star-a.star||b.no-a.no);if(!cs.length)return '';
+    return `<div class="dkRow" style="--wc:${WORLD_C[w]}"><b class="dkW">${WORLD_KO[w]}</b><div class="dkCards">`+cs.map(c=>`<div class="card dz s${c.star}" style="border-color:${WORLD_C[cardW(c)]}">${cardFace(c)}</div>`).join('')+`</div></div>`;}).join('');
+  const d=document.createElement('div');d.className='dkV';d.setAttribute('role','dialog');d.setAttribute('aria-label','내 덱');
+  d.onclick=e=>{if(e.target===d)deckViewClose();};
+  d.innerHTML=`<div class="dkBox"><div class="dkHead"><h3>내 덱 <b>${S.deck.length}</b>장</h3><span class="dkPills">${WORLDS.map(pill).join('')}</span>`+
+    `<span class="dkStar">${s2?`<i>★2</i> ${s2}`:''}${s3?` <i>★3</i> ${s3}`:''}</span></div><div class="dkBody">${rows}</div>`+
+    `<button type="button" class="ibBack lmIco dkClose" onclick="deckViewClose()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_back.webp" alt=""></button></div>`;
+  document.body.appendChild(d);d.querySelector('.dkClose').focus({preventScroll:true});}
+function deckViewClose(){document.querySelectorAll('.dkV').forEach(e=>e.remove());}
 function runInfoHTML(){
   if(!S)return '';ensureFoes();
   const stat=(v,k,c)=>`<div><b style="color:${c||'var(--ink)'}">${v}</b><small>${k}</small></div>`;
@@ -3645,8 +3660,7 @@ function runInfoHTML(){
   h+=`<p class="iSub">내 구슬 ${S.orbs.length}/${S.maxOrb}</p><div class="rOrbs">`+(S.orbs.length?S.orbs.map(k=>`<div class="rRow" data-k="${k}"><span><b>${ORBS[k].ko} <i>${dia(S.ost[k]||1)}</i></b><small>${ORBS[k].d}</small></span></div>`).join(''):`<p class="iNote">아직 구슬이 없습니다. 원정 캠프에서 살 수 있습니다.</p>`)+`</div>`;
   const hc=hurtCount(),wc=WORLDS.map(w=>S.deck.filter(c=>cardW(c)===w).length);
   h+=`<div class="rDeck"><div><b>덱 ${S.deck.length}장</b><span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
-  h+=`<details class="iMore"><summary>덱 전체 보기</summary><div class="dk">`+TYPE_IDS.map(id=>{const t=TYPES[id],all=S.deck.filter(c=>c.id===id),left=S.draw.filter(c=>c.id===id).length;if(!all.length)return '';
-      return `<div style="border-color:${WORLD_C[t.w]}"><b>${t.ko}</b><br><small>남음 ${left}/${all.length} ${all.map(c=>`<span style="color:${EL_C[c.el]}">${EL_SYM[c.el]}${c.star>1?(c.mixed?'☆':'★')+c.star:''}${c.out?'🩹':''}</span>`).join(' ')}</small></div>`;}).join('')+`</div></details>`;
+  h+=`<button type="button" class="iMore dkOpen" onclick="deckView()">덱 전체 보기 <small>카드 ${S.deck.length}장</small></button>`;   /* (11-06) 원정 캠프 '덱' 버튼과 같은 창 */
   h+=`<details class="iMore"><summary>장별 목표 점수</summary><table><tr><th>장</th><th>망령</th><th>수문장</th><th>거인</th></tr>`;
   for(let j=1;j<=8;j++)h+=`<tr class="${j===S.jang?'cur':''}"><td>${j}장</td>`+[0,1,2].map(r=>`<td>${j===S.jang&&r===S.rd?'▶ ':''}${tgtFor(j,r,S.diff).toLocaleString()}</td>`).join('')+'</tr>';
   h+=`</table><p class="iNote">보상 · 망령 ${REWARD[0]} · 수문장 ${REWARD[1]} · 거인 ${REWARD[2]}<br>남은 런 1개당 1 · 5골드마다 이자 1 (최대 ${S.interestMax})</p></details>`;
@@ -3993,6 +4007,7 @@ window.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.ge
     if(pop&&!pop.hidden){const b=[...pop.querySelectorAll('.lt-mb.back')].find(vis);if(b)return press(b);stop();ltPop();return;}   // 설정 → 옵션 → 닫기 / 게임 중 옵션은 닫고 계속하기
     if(!t.classList.contains('ingame')&&ov.hidden)return;   // 타이틀 첫 화면: 할 일 없음 (첫 화면에서 연 배우기 · 도감 창은 아래에서 한 단계 뒤로 — DHL 10-29)
   }
+  if(document.querySelector('.dkV')){stop();deckViewClose();return;}   /* 내 덱 창 먼저 닫기 */
   if(document.querySelector('.vPop')){stop();vPopClose();return;}   /* 증서 목록 먼저 닫기 */
   if(!ov.hidden){
     const bs=[...ov.querySelectorAll('button')].filter(vis);
@@ -9515,5 +9530,25 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
 .vPop .rOrbs>.rRow{background:var(--pan2,#1b2a3a)}
 .vPop .rOrbs b{color:var(--cream,#f8edd0);font-size:16px!important;font-weight:800}.vPop .rOrbs small{color:var(--dim,#a9b4c2);font-size:13px!important}.vPop .iSub{font-size:13px!important}.vPop .rOrbs>.rRow{padding:7px 10px!important;min-height:48px}
 .vPop .iNote{margin:0;font-size:13px;color:var(--dim,#a9b4c2)}
+</style>
+<style id="lm-deck-view">
+.sChips{display:inline-flex;gap:8px;align-items:center}
+.dChip .dIc{flex:none;display:block;width:19px;height:26px;background:url(assets/ui/lamancha/card_back.webp) center/100% 100% no-repeat;border-radius:3px;box-shadow:1px 1px 0 #0008}
+.dkOpen{display:flex;width:100%;justify-content:space-between;align-items:center;cursor:pointer;font:inherit;font-weight:800;color:inherit;text-align:left}
+.dkOpen small{color:var(--dim,#a9b4c2);font-weight:400}
+.dkV{position:fixed;inset:0;z-index:450;background:#050a14b3;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
+.dkBox{width:min(1180px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px;padding:14px 16px 12px;border-radius:16px;border:3px solid #c9a24a;background:#0b1424f7;box-shadow:0 20px 60px #000d;color:var(--cream,#f8edd0);font-family:"Noto Sans KR",sans-serif}
+.dkHead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.dkHead h3{margin:0;font-size:22px;color:#ffd66a;font-weight:900}.dkHead h3 b{font-size:1.1em}
+.dkPills{display:inline-flex;gap:6px;flex-wrap:wrap}.dkPills span{padding:3px 11px;border-radius:99px;background:var(--wc);color:#fff;font-size:14px;font-weight:800;text-shadow:0 1px 1px #0008}
+.dkStar{font-size:14px;font-weight:800;color:var(--dim,#c8d0da)}.dkStar i{font-style:normal;color:#ffd66a}
+.dkBody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-right:4px}
+.dkRow{display:flex;gap:10px;align-items:stretch}
+.dkW{flex:none;width:34px;writing-mode:vertical-rl;text-orientation:upright;display:flex;align-items:center;justify-content:center;border-radius:9px;background:var(--wc);color:#fff;font-size:15px;font-weight:900;letter-spacing:2px;text-shadow:0 1px 1px #0008}
+.dkCards{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
+.dkCards .card{width:100%!important;max-width:none!important;height:auto!important;margin:0!important;flex:none;cursor:default}
+.dkClose{align-self:center;min-width:180px}
+@media (max-width:700px){.dkV{padding:8px}.dkBox{padding:10px}.dkRow{flex-direction:column;gap:6px}.dkW{width:auto;writing-mode:horizontal-tb;padding:3px 0}.dkCards{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}.dkHead h3{font-size:18px}}
+@media (max-height:500px){.dkV{padding:6px 2vw}.dkBox{padding:8px 12px;gap:6px}.dkCards{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))}.dkClose{min-height:36px}}
 </style>
 </body></html>
