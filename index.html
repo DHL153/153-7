@@ -3510,14 +3510,27 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 let LEARN_SEEN=lsGet('lm_learn_seen',[]);
 let CODEX=lsGet('lm_codex',{orb:{},giant:{}});
 function codexMark(kind,key){if(!key||CODEX[kind][key])return;CODEX[kind][key]=1;lsSet('lm_codex',CODEX);}
-const infoClose=()=>`<button class="iClose lmIco" onclick="S&&S.selecting?startRound():hideOv()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button>`;
+const infoClose=()=>`<button class="iClose lmIco" onclick="ibBackOut()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button>`;
+/* (11-06 외부 피드백 버그) 원정 캠프 · 야영 · 보상 창 위에서 런 정보 · 배우기를 열고 '뒤로'를 누르면 그 창이 닫혀 버려
+   빌런 없는 전투판이 남고, 그 판을 '이긴 것'으로 처리돼 골드를 또 받던 문제
+   → 안내 창을 열기 전 아래 창을 통째로 보관(이벤트 그대로)하고, 뒤로 누르면 그대로 되돌림 */
+var _ibPark=null;
+function ibPhase(){return S?[S.jang,S.rd,!!S.inShop,!!S.selecting,!!S.packView].join('|'):'';}
+function ibParkSave(){const o=$('ov'),p=$('panel');if(!o||o.hidden||!p||p.querySelector('.ib'))return;
+  _ibPark={S,ph:ibPhase(),cls:o.className,kids:[...p.childNodes]};}
+function ibBackOut(){const pk=_ibPark;_ibPark=null;
+  if(pk&&pk.S===S&&S&&pk.ph===ibPhase()){const o=$('ov');o.className=pk.cls;$('panel').replaceChildren(...pk.kids);o.hidden=false;try{render();}catch(e){}return;}
+  if(S&&S.selecting)return startRound();
+  if(S&&S.inShop)return openShop();
+  hideOv();}
 function openInfo(tab,view,idx){
   const prevTab=infoTab;
   if(tab)infoTab=OLD_TAB[tab]||tab;if(view)learnView=view;if(idx!=null)learnIdx=idx;
   const body=infoTab==='learn'?learnHTML():infoTab==='run'?runInfoHTML():codexHTML();
   const tabs=INFO_TABS.map(([k,n])=>`<button role="tab" aria-selected="${k===infoTab}" class="ibTab${k===infoTab?' on':''}" onclick="openInfo('${k}')">${n}</button>`).join('');
   const keep=prevTab===infoTab&&document.querySelector('.ibBody');const sc=keep?keep.scrollTop:0;
-  showOv(`<div class="ib"><div class="ibTabs" role="tablist">${tabs}</div><div class="ibBody">${body}</div><button class="ibBack lmIco" onclick="(function(){const d=document.querySelector('.ib .cmBackBtn');if(d){d.click();return;}S&&S.selecting?startRound():hideOv();})()" aria-label="뒤로" title="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button></div>`);
+  ibParkSave();
+  showOv(`<div class="ib"><div class="ibTabs" role="tablist">${tabs}</div><div class="ibBody">${body}</div><button class="ibBack lmIco" onclick="(function(){const d=document.querySelector('.ib .cmBackBtn');if(d){d.click();return;}ibBackOut();})()" aria-label="뒤로" title="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button></div>`);
   const nb=document.querySelector('.ibBody');if(nb&&keep&&!document.querySelector('.cmV'))nb.scrollTop=sc;
   if(infoTab==='learn'&&learnView==='page')rbMount();
 }
@@ -3968,7 +3981,7 @@ window.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.repeat||document.ge
   if(!ov.hidden){
     const bs=[...ov.querySelectorAll('button')].filter(vis);
     const sub=bs.find(b=>/^‹.*목록$/.test(txt(b)));if(sub)return press(sub);   // 동료 상세 · 배우기 장 → 목록으로
-    const c=bs.find(b=>/^(취소|닫기|✕|×|뒤로|돌아가기)$/.test(txt(b)));if(c)return press(c);
+    const c=bs.find(b=>/^(취소|닫기|✕|×|뒤로|돌아가기)$/.test(txt(b)||b.getAttribute('aria-label')||''));   /* 아이콘 버튼(글자 없음)은 aria-label로 */if(c)return press(c);
   }else if(S&&S.sel&&S.sel.length&&!S.busy){stop();S.sel=[];render();return;}   // 고른 카드 모두 해제
   stop();gameOpt();
 },true);   // Esc: 한 단계 뒤로 · 취소
