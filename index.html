@@ -4104,7 +4104,7 @@ function ltPop(kind){
     `<p class="lt-note">프로필 여러 개 · 기록 보기는 스팀 연결 단계에서 붙입니다.</p>`+close;
   if(kind==='lang')card.innerHTML=`<h3>언어</h3><div class="lt-row"><span>한국어</span><b>사용 중</b></div>`+
     `<p class="lt-note">다른 언어는 번역표 단계에서 추가합니다. (153-6처럼 첫 실행 만화 다음에 고르게 됩니다)</p>`+close;
-  card.classList.toggle('wide',['set','col','play','hands'].includes(kind));card.classList.toggle('xwide',kind==='stat');pop.hidden=false;(card.querySelector('.ls-tab.on')||card.querySelector('button'))?.focus({preventScroll:true});   /* (DHL 10-29) 키보드 포커스는 지금 열린 탭에 — 다른 탭에 노란 사각형이 남지 않게 */
+  card.classList.toggle('wide',['set','col','play','hands'].includes(kind));card.classList.toggle('lmTabbed',['set','col','play'].includes(kind));card.classList.toggle('xwide',kind==='stat');pop.hidden=false;(card.querySelector('.ls-tab.on')||card.querySelector('button'))?.focus({preventScroll:true});   /* (DHL 10-29) 키보드 포커스는 지금 열린 탭에 — 다른 탭에 노란 사각형이 남지 않게 */
 }
 /* (DHL 10-30) 첫 실행 연출 다시 보기 = 로고 화면만 — 처음처럼 '움직이려다 말고 ×2 → 돌기 시작' 후 그 속도로 계속 돌기 · 3초 뒤 '돌아가기' (새로고침 · 스토리 만화 · 로딩 없음) */
 function ltReplayIntro(){
@@ -9468,5 +9468,13 @@ html.lmB .rest .cpFoot3:not(:has(.cpGo:not(.hid))) .cpLeave{flex:0 1 auto!import
   .rest:has(.nextFoe){gap:1.8cqh!important;padding-top:1.5cqh!important;padding-bottom:1.5cqh!important}
   .rest:has(.nextFoe) .cpRow,.rest:has(.nextFoe) .cpRow.n6{--cw:min(29cqw,calc((100cqh - 430px)/2.8))!important}
 }
+</style>
+<style id="lm-tab-fixed">
+/* (11-06 외부 피드백) 탭이 있는 창(설정 · 컬렉션 · 플레이)은 탭마다 크기가 달라져 누를 자리가 움직임
+   → 창 크기를 하나로 고정하고 넘치는 내용은 창 안에서 스크롤 (탭 줄 · 뒤로 버튼은 제자리) */
+html #lm-title .lt-card.wide.lmTabbed{height:min(92vh,760px)!important;height:min(92dvh,760px)!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
+html #lm-title .lt-card.lmTabbed>*{flex-shrink:0}
+html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-wrap{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain}
+@media (max-height:500px){html #lm-title .lt-card.wide.lmTabbed{height:96vh!important;height:96dvh!important}}
 </style>
 </body></html>
