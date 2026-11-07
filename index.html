@@ -1897,7 +1897,7 @@ lmSetApply();
       <div id="sToken" class="sToken"><span id="sTokIc"></span><small id="sFoeName"></small></div>
       <div class="sTgtBox"><small>최소 득점</small><b id="sTgt">0</b><small id="sRw">보상 💰</small></div>
     </div>
-    <div class="sRow"><small>라운드<br>점수</small><b id="sScore">0</b></div>
+    <div class="sRow"><small>준<br>피해</small><b id="sScore">0</b></div>
     <div class="sScoreBox"><div id="htName">카드를 고르세요</div><div id="scoreRow"><span class="box c" id="vC">0</span><i>×</i><span class="box m" id="vM">0</span></div><div id="tot"></div></div>
     <div class="sGrid">
       <button id="bInfo" class="sBtn red">런<br>정보</button>
@@ -9741,6 +9741,7 @@ const LM_TERMS=[
  ['버리기','고른 카드를 버리고 새 카드로 바꿔요. 라운드마다 정해진 횟수만 할 수 있어요.'],
  ['머지','같은 동료 · 같은 별 두 장을 합쳐 별을 올려요. 별이 늘면 힘이 크게 세져요.'],
  ['최소 득점','적의 체력이에요. 이만큼 점수를 내면 라운드를 이겨요.'],
+ ['준 피해','이번 라운드에 적에게 준 피해의 합계예요. 최소 득점에 닿으면 이겨요.'],
  ['방패','적은 체력의 2배만큼 방패를 들고 나와요. 방패가 있는 동안 몸체는 한 번에 60%까지만 깎여요.'],
  ['고정 피해','적의 세계 · 약점 속성 · 번호 세 가지를 한 런에 모두 맞추면 방패를 뚫고 그대로 들어가요.'],
  ['구슬','판 내내 점수를 키워 주는 장비예요. 왼쪽부터 순서대로 작동해요.'],
@@ -9750,7 +9751,7 @@ const LM_TERMS=[
 (function(){
   const T=k=>{try{return (window.MRLocale&&MRLocale.t&&MRLocale.t(k))||k;}catch(e){return k;}};
   const DEF=Object.fromEntries(LM_TERMS);
-  const BIND=[['.sTgtBox','최소 득점'],['#vC','힘'],['#vM','배수'],['#htName','족보'],['.sCell.cRun','런'],['.sCell.cDis','버리기'],['#orbCnt','구슬'],['#keyBar','방패']];
+  const BIND=[['.sTgtBox','최소 득점'],['.sRow','준 피해'],['#vC','힘'],['#vM','배수'],['#htName','족보'],['.sCell.cRun','런'],['.sCell.cDis','버리기'],['#orbCnt','구슬'],['#keyBar','방패']];
   const tip=document.createElement('div');tip.id='lmTerm';tip.setAttribute('role','tooltip');document.body.appendChild(tip);
   let cur=null,hideT=0,hoverT=0;
   function show(el,k){if(!DEF[k])return;cur=el;tip.innerHTML=`<b>${T(k)}</b>${T(DEF[k])}`;const r=el.getBoundingClientRect(),W=tip.offsetWidth,H=tip.offsetHeight;
