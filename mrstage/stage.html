@@ -5404,6 +5404,10 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-roll.out{opacity:0;translate:-50% -90%}
 .lm-big.brk b{color:#fff;-webkit-text-stroke:5px #6a0010}
 #lm-cine{position:fixed;inset:0;z-index:9990;pointer-events:none}
+.lm-roll b,#lm-combo b{display:inline-flex;align-items:center;white-space:nowrap}
+.dg{display:inline-block;width:1.1em;height:1.1em;margin:0 -.17em;background:url(fx/route/dmg_digits.webp) 0 0/1100% 400% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
+.dg.cm{margin:0 -.3em}
+.lm-roll{-webkit-text-stroke:0!important}.lm-roll b{font-size:34px}#lm-combo b{font-size:30px}
 #lm-cine i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .3s ease-out}#lm-cine i:first-child{top:0}#lm-cine i:last-child{bottom:0}
 #lm-cine.on i{height:11%}
 .lm-dmg.flur{font-size:13px;color:#ffe8c2;-webkit-text-stroke:2.5px #1b1020;animation:lmFlur .85s ease-out forwards}
@@ -7982,11 +7986,14 @@ let isGameOver = false;
       d.innerHTML=`<b>${fmt(ex*w/sum)}</b>`;stage.appendChild(d);setTimeout(()=>d.remove(),900);
       lmSnd('sfx_hit_weak',{vol:.3+.3*(i/n),gap:40});try{MRFX.shake(stage,i>n*.6?'m':'s',false);}catch(e){}
       try{en.animate([{filter:'brightness(2.2)'},{filter:'none'}],{duration:90});}catch(e){}},i*gap));}
+  /* (DHL 11-08) 피해 숫자 그림 (dmg_digits.webp · 11열 × 4행 = 0~9 · 쉼표 / 금 · 주황 · 빨강 · 흰 불꽃) */
+  const DIG='0123456789,';
+  function dig(str,row){return [...String(str)].map(ch=>{const i=DIG.indexOf(ch);if(i<0)return '';return `<i class="dg${ch===','?' cm':''}" style="background-position:${(i/10*100).toFixed(2)}% ${(row/3*100).toFixed(2)}%"></i>`;}).join('');}
   /* A: 연타 카운터 */
   let comboEl=null,comboT=0;
   function comboShow(n,col){if(!comboEl){comboEl=document.createElement('div');comboEl.id='lm-combo';stage.appendChild(comboEl);}
     let w='연타';try{w=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(w))||w;}catch(e){}
-    comboEl.innerHTML=`<b>${n}</b><small>${w}</small>`;comboEl.className='on t'+(n>=7?4:n>=5?3:n>=3?2:1);comboEl.style.setProperty('--s',(1+Math.min(1.1,(n-1)*.13)).toFixed(2));
+    comboEl.innerHTML=`<b>${dig(n,n>=7?2:n>=5?1:0)}</b><small>${w}</small>`;comboEl.className='on t'+(n>=7?4:n>=5?3:n>=3?2:1);comboEl.style.setProperty('--s',(1+Math.min(1.1,(n-1)*.13)).toFixed(2));
     comboEl.style.left=(stage.clientWidth*.36)+'px';comboEl.style.top=(stage.clientHeight*.2)+'px';
     try{comboEl.animate([{scale:'1.7',opacity:.4},{scale:'1',opacity:1}],{duration:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
     flip('fx13',R(0,7),stage.clientWidth*.36,stage.clientHeight*.2,stage.clientHeight*(.5+Math.min(.5,n*.06)),{fps:22});   // 리소스 오면 · 숫자 뒤 터짐
@@ -8002,14 +8009,15 @@ let isGameOver = false;
     if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}
     resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}
     const d=document.createElement('div');d.className='lm-roll t1';if(en){d.style.left=(en.offsetLeft)+'px';d.style.top=(en.offsetTop+en.offsetHeight*.42)+'px';}
-    d.innerHTML=(o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:'')+'<b>0</b>';stage.appendChild(d);const B=d.querySelector('b');
+    d.innerHTML=(o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:'')+'<b>'+dig('0',0)+'</b>';stage.appendChild(d);const B=d.querySelector('b');
     const dur=killed?Math.min(2300,750+Math.log2(1+ok)*480):620;
     let el=0,last=performance.now(),holdTo=0,broke=!killed,tickT=0,tier=1,zoomA=null;
     const step=now=>{const dt=Math.min(60,now-last);last=now;if(now<holdTo||(typeof cutOn==='function'&&cutOn())){requestAnimationFrame(step);return;}el+=dt;   /* 컷인이 덮는 동안은 숫자도 멈춤 */
-      const k=Math.min(1,el/dur),e=1-Math.pow(1-k,2.3),v=total*e;B.textContent=fmt(v);
+      const k=Math.min(1,el/dur),e=1-Math.pow(1-k,2.3),v=total*e;B.innerHTML=dig(fmt(v),killed?{1:0,2:1,5:2,10:3}[tier]:0);
       const hpD=Math.max(hpEnd,Math.min(hpS,hp0-v));if(Math.abs(hpD-hp)>=.5||(k>=1&&hp!==hpEnd)){hp=k>=1?hpEnd:hpD;setHud();}
       if(killed){const r=v/hp0,t=r>=10?10:r>=5?5:r>=2?2:1;if(t!==tier){tier=t;d.className='lm-roll t'+t;try{d.animate([{scale:'1.35'},{scale:'1'}],{duration:200,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}}
         d.style.setProperty('--z',(1+Math.min(.85,Math.log2(1+r)*.2)).toFixed(2));}
+      {const W=stage.clientWidth,z=parseFloat(d.style.getPropertyValue('--z'))||1,hw=d.offsetWidth*z/2,x0=en?en.offsetLeft:W*.7;d.style.left=Math.max(hw+8,Math.min(x0,W-hw-8))+'px';}   /* 숫자가 커져도 무대 밖으로 안 나감 */
       if(now-tickT>60){tickT=now;lmSnd('sfx_combo_tick',{vol:.28,rate:Math.min(2,1+(killed?v/hp0:v/Math.max(1,total))*.08),gap:40});}
       if(!broke&&v>=hp0){broke=true;holdTo=now+(boss?380:200);   // 체력 0 = 격파
         lmSnd('sfx_score_over',{vol:.8});try{MRFX.flash?.(stage,'rgba(255,255,255,.8)');MRFX.shake(stage,'l',true);}catch(e){}
@@ -8021,7 +8029,7 @@ let isGameOver = false;
       try{d.animate([{scale:'1.5'},{scale:'1'}],{duration:240,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
       const hold=killed?(ok>=2?850:450):420;
       setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),400);
-        if(killed){gsDead=true;try{drawGems();}catch(e){}if(en)flip(boss?'fx16':'fx15',R(0,boss?15:11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*(boss?2.4:1.7),{fps:20});
+        if(killed){gsDead=true;try{drawGems();}catch(e){}if(en)flip(boss?'fx16':(FXM['fx15_'+(world==='skyarc'?'sky':world)]?'fx15_'+(world==='skyarc'?'sky':world):'fx15'),R(0,boss?15:11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*(boss?2.4:1.7),{fps:20});
           slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
         else hitStop(170);
         setTimeout(()=>{if(boss){cine(false);if(zoomA){try{zoomA.cancel();}catch(e){}}stage.style.transformOrigin='';}done();rollP=null;},killed?260:0);},hold);};
@@ -8216,7 +8224,11 @@ let isGameOver = false;
   }
   // ── 이펙트 = 받은 플립북 시트 (DHL 10-28 '코드 이펙트 말고 리소스로') · fx/route/fxNN.webp · cutfx.py 로 칸·땅 기준점 맞춤
   const FXM={"fx01":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx02":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]},"fx03":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.493,"ay":0.5},{"ax":0.493,"ay":0.5}]},"fx04":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.0,"ay":0.5},{"ax":0.448,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx05":{"c":4,"r":2,"blend":"key","rows":[{"ax":0.5,"ay":0.7},{"ax":0.5,"ay":0.7}]},"fx06":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.5,"ay":0.77},{"ax":0.5,"ay":0.77}]},"fx07":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.57,"ay":0.5},{"ax":0.57,"ay":0.5}]},"fx08":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.511,"ay":0.5},{"ax":0.511,"ay":0.5}]},"fx09":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.504,"ay":0.5},{"ax":0.504,"ay":0.5}]},"fx10":{"c":4,"r":2,"blend":"unscreen","rows":[{"ax":0.499,"ay":0.5},{"ax":0.499,"ay":0.5}]},"fx12":{"c":4,"r":4,"blend":"unscreen","rows":[{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5},{"ax":0.494,"ay":0.5}]},"fx12w":{"c":4,"r":4,"blend":"tint","rows":[{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5},{"ax":0.5,"ay":0.5}]},"fx11":{"c":4,"r":3,"blend":"key","rows":[{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8},{"ax":0.5,"ay":0.8}]}},FXP='fx/route/';
-  for(const k in FXM){const im=new Image();im.src=FXP+k+'.webp';}   // 미리 받아 두기 (첫 타격 때 빈 칸 방지)
+  /* (DHL 11-08) 막타 · 연타 리소스: fx13 연타 터짐 · fx14 격파 섬광 · fx15 처치 조각 + 금화 · fx16 거인 대폭발 (cut: 칸 320px, 검정 → 투명) */
+  Object.assign(FXM,{fx13:{c:4,r:2,blend:'unscreen',rows:[{ax:.5,ay:.5},{ax:.5,ay:.5}]},fx14:{c:4,r:2,blend:'unscreen',rows:[{ax:.5,ay:.5},{ax:.5,ay:.5}]},
+    fx15:{c:4,r:3,blend:'unscreen',rows:[{ax:.5,ay:.62},{ax:.5,ay:.62},{ax:.5,ay:.62}]},fx15_neon:{c:4,r:3,blend:'unscreen',rows:[{ax:.5,ay:.62},{ax:.5,ay:.62},{ax:.5,ay:.62}]},fx15_sky:{c:4,r:3,blend:'unscreen',rows:[{ax:.5,ay:.62},{ax:.5,ay:.62},{ax:.5,ay:.62}]},fx16:{c:4,r:4,blend:'unscreen',rows:[{ax:.5,ay:.76},{ax:.5,ay:.76},{ax:.5,ay:.76},{ax:.5,ay:.76}]}});
+  for(const k in FXM){const im=new Image();im.src=FXP+k+'.webp';}
+  {const im=new Image();im.src=FXP+'dmg_digits.webp';}   // 미리 받아 두기 (첫 타격 때 빈 칸 방지)
   // flip(시트, 칸 번호 목록, 기준점 x·y(무대 px), 칸 크기 px, {fps, loops, flipX})
   function flip(k,seq,x,y,size,o={}){
     const m=FXM[k];if(!m||!stage||!seq.length)return null;
