@@ -7990,7 +7990,7 @@ let isGameOver = false;
     if(tr>=5){try{MRFX.flash?.(stage,tr>=10?'rgba(255,255,255,.85)':'rgba(255,190,120,.6)');MRFX.shake(stage,'l',true);}catch(e){}if(tr>=10)stage.classList.add('lm-ok10');setTimeout(()=>stage.classList.remove('lm-ok10'),900);}
     const jx=o.final?0:(Math.random()*16-8);
     d.style.left=(en.offsetLeft+jx)+'px';d.style.top=(en.offsetTop+en.offsetHeight*(o.combo?.02:o.final?.55:.2))+'px';
-    d.innerHTML=(tr>=2?`<em class="okx">체력의 ${(o.ok).toFixed(o.ok<10?1:0)}배!</em>`:'')+(o.final&&o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:o.crit==='weak'?'<small>약점!</small>':o.crit==='resist'?'<small>내성</small>':'')+`<b>${fmt(o.dmg)}</b>`;
+    d.innerHTML=(o.final&&o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:o.crit==='weak'?'<small>약점!</small>':o.crit==='resist'?'<small>내성</small>':'')+`<b>${fmt(o.dmg)}</b>`;
     stage.appendChild(d);setTimeout(()=>d.remove(),o.final?(tr>=2?2300:1700):1150);
   }
   function slowmo(){
