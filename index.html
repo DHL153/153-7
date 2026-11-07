@@ -2822,12 +2822,12 @@ function render(){
   renderAtk();
   renderHints();
   // 손패
-  const h=$('hand');h.innerHTML='';const TG=targets();const _ps=window._prevSel||[];window._prevSel=S.sel.slice();
+  const h=$('hand');h.innerHTML='';const TG=targets();const _cmS=!S.busy&&canMerge();   /* (DHL 11-08 '머지 되는데 안 되는 것처럼 보임') 고른 2장이 머지 가능하면 '족보 밖' 회색 대신 머지 초록 테 */const _ps=window._prevSel||[];window._prevSel=S.sel.slice();
   S.hand.forEach(c=>{
     const t=TYPES[c.id],d=document.createElement('div'),o=S.sel.indexOf(c.uid);
     const hl=practiceHL(c)?true:S.hl&&S.hintOn&&hintAvail()?S.hl.u.includes(c.uid):null;
     const tk=canMergeAllowed()?twinKind(c):null, tg=TG.includes(c.uid), mk=S.foe&&S.foe.atype==='mark'&&(S.marks||[]).includes(c.uid), pz=S.foe&&paralyzed(c,S.foe);
-    d.className='card dz s'+c.star+(isFused(c)?' fz':'')+(isLegend(c)?' lg':'')+(tg?' tgt':'')+(pz?' para':'')+(o>=0?' sel':'')+(S.willM&&S.willM.includes(c.uid)?' willm':'')+(o>=0&&S.scoreU&&!S.scoreU.includes(c.uid)?' noscore':'')+(hl===true?' hl':hl===false?' dimc':'');d.style.borderColor=c.fog?'#666':WORLD_C[cardW(c)];if(c.fog)d.classList.add('fogc');
+    d.className='card dz s'+c.star+(isFused(c)?' fz':'')+(isLegend(c)?' lg':'')+(tg?' tgt':'')+(pz?' para':'')+(o>=0?' sel':'')+((S.willM&&S.willM.includes(c.uid))||(_cmS&&o>=0)?' willm':'')+(o>=0&&!_cmS&&S.scoreU&&!S.scoreU.includes(c.uid)?' noscore':'')+(hl===true?' hl':hl===false?' dimc':'');d.style.borderColor=c.fog?'#666':WORLD_C[cardW(c)];if(c.fog)d.classList.add('fogc');
     const kh=armorOn()&&S.foe&&!c.fog&&S.sandbox?keyHit(c,S.foe):null,   /* (DHL 10-29) 실전 카드에는 열쇠 배지 · 테두리 없음(견습 포함) — 어떤 카드가 열쇠인지 찾는 것이 퍼즐 · 연습장 · 해보기에서만 표시 */
     kn=kh?(kh.w?1:0)+(kh.e?1:0)+(kh.h?1:0):0;if(kn)d.classList.add('keyc');
     d.innerHTML=cardFace(c).replace('<!--mg-->',tk?'<span class="mg">⇄</span>':'')+(kn?`<span class="keyb">${kh.w?`<i style="background:${WORLD_C[S.foe.home]}"></i>`:''}${kh.e?`<i style="background:${EL_C[c.el]}">${EL_SYM[c.el]}</i>`:''}${kh.h?`<i class="kh">${KIC('h')}</i>`:''}</span>`:'')+(o>=0?`<span class="ord">${o+1}</span>`:'')+(S.willM&&S.willM.includes(c.uid)?'<span class="wm">🔗</span>':'')+(tg||mk?`<span class="tgm${mk&&!tg?' mk':''}" title="${mk?'표식 — 이번 런에 내야 부상을 피해요':'이대로 런하면 피해를 입는 카드'} (${ATK[S.foe.atype].ic})">${mk&&!tg?'<b class="mkx">!</b>':ICO('target')}</span>`:'');
