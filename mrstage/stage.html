@@ -5394,9 +5394,9 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-dmg.resist{color:#b8c0cc;font-size:11px}
 .lm-dmg.fin{color:#ff5a3c;font-size:22px;-webkit-text-stroke:3px #1b1020;animation:lmDmgFin 1.7s cubic-bezier(.2,1.5,.4,1) forwards}.lm-dmg.fin small{color:#ffe08a;font-size:10px}   /* (DHL 10-28) 마지막 한 방 숫자 30→22px */
 /* (DHL 11-07) 난타 숫자 · 처치 피해 단계 */
-#lm-combo{position:absolute;z-index:42;pointer-events:none;translate:-50% -50%;display:none;align-items:baseline;gap:3px;scale:var(--s,1);transition:scale .2s;
+#lm-combo{position:absolute;z-index:42;pointer-events:none;translate:-50% -50%;display:none;align-items:flex-end;gap:0;scale:var(--s,1);transition:scale .2s;
   font:900 26px/1 'Noto Sans KR',system-ui,sans-serif;color:#fff2c4;-webkit-text-stroke:4px #2a1800;paint-order:stroke fill}
-#lm-combo.on{display:flex}#lm-combo small{font-size:.5em;color:#fff;-webkit-text-stroke:3px #2a1800}
+#lm-combo.on{display:flex}#lm-combo small{font-size:15px;line-height:1;color:#fff;-webkit-text-stroke:3px #2a1800;margin:0 0 .3em -.1em}   /* 숫자 그림 바닥(칸 92%)에 글자 바닥을 맞춤 */
 #lm-combo.t2 b{color:#ffd76a}#lm-combo.t3 b{color:#ff9a3c}#lm-combo.t4 b{color:#ff5a3c}
 .lm-roll{position:absolute;z-index:44;pointer-events:none;translate:-50% -50%;text-align:center;scale:var(--z,1);font:900 26px/1 'Noto Sans KR',system-ui,sans-serif;color:#fff;-webkit-text-stroke:4px #1b1020;paint-order:stroke fill;font-variant-numeric:tabular-nums;transition:opacity .35s,translate .35s}
 .lm-roll small{display:block;font-size:11px;color:#ffe08a;-webkit-text-stroke:3px #1b1020;margin-bottom:2px}
@@ -5405,9 +5405,9 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-big.brk b{color:#fff;-webkit-text-stroke:5px #6a0010}
 #lm-cine{position:fixed;inset:0;z-index:9990;pointer-events:none}
 .lm-roll b,#lm-combo b{display:inline-flex;align-items:center;white-space:nowrap}
-.dg{display:inline-block;width:1.1em;height:1.1em;margin:0 -.17em;background:url(fx/route/dmg_digits.webp) 0 0/1100% 400% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
-.dg.cm{margin:0 -.3em}
-.lm-roll{-webkit-text-stroke:0!important}.lm-roll b{font-size:34px}#lm-combo b{font-size:30px}
+.dg{display:inline-block;width:1em;height:1em;margin:0 -.15em;background:url(fx/route/dmg_digits.webp) 0 0/1100% 400% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
+.dg.cm{margin:0 -.3em}.dg.r3{margin:0 -.11em}.dg.r3.cm{margin:0 -.27em}
+.lm-roll{-webkit-text-stroke:0!important}.lm-roll b{font-size:34px}#lm-combo b{font-size:38px}
 #lm-cine i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .3s ease-out}#lm-cine i:first-child{top:0}#lm-cine i:last-child{bottom:0}
 #lm-cine.on i{height:11%}
 .lm-dmg.flur{font-size:13px;color:#ffe8c2;-webkit-text-stroke:2.5px #1b1020;animation:lmFlur .85s ease-out forwards}
@@ -7988,7 +7988,7 @@ let isGameOver = false;
       try{en.animate([{filter:'brightness(2.2)'},{filter:'none'}],{duration:90});}catch(e){}},i*gap));}
   /* (DHL 11-08) 피해 숫자 그림 (dmg_digits.webp · 11열 × 4행 = 0~9 · 쉼표 / 금 · 주황 · 빨강 · 흰 불꽃) */
   const DIG='0123456789,';
-  function dig(str,row){return [...String(str)].map(ch=>{const i=DIG.indexOf(ch);if(i<0)return '';return `<i class="dg${ch===','?' cm':''}" style="background-position:${(i/10*100).toFixed(2)}% ${(row/3*100).toFixed(2)}%"></i>`;}).join('');}
+  function dig(str,row){return [...String(str)].map(ch=>{const i=DIG.indexOf(ch);if(i<0)return '';return `<i class="dg${ch===','?' cm':''}${row===3?' r3':''}" style="background-position:${(i/10*100).toFixed(2)}% ${(row/3*100).toFixed(2)}%"></i>`;}).join('');}
   /* A: 연타 카운터 */
   let comboEl=null,comboT=0;
   function comboShow(n,col){if(!comboEl){comboEl=document.createElement('div');comboEl.id='lm-combo';stage.appendChild(comboEl);}
@@ -8016,8 +8016,8 @@ let isGameOver = false;
       const k=Math.min(1,el/dur),e=1-Math.pow(1-k,2.3),v=total*e;B.innerHTML=dig(fmt(v),killed?{1:0,2:1,5:2,10:3}[tier]:0);
       const hpD=Math.max(hpEnd,Math.min(hpS,hp0-v));if(Math.abs(hpD-hp)>=.5||(k>=1&&hp!==hpEnd)){hp=k>=1?hpEnd:hpD;setHud();}
       if(killed){const r=v/hp0,t=r>=10?10:r>=5?5:r>=2?2:1;if(t!==tier){tier=t;d.className='lm-roll t'+t;try{d.animate([{scale:'1.35'},{scale:'1'}],{duration:200,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}}
-        d.style.setProperty('--z',(1+Math.min(.85,Math.log2(1+r)*.2)).toFixed(2));}
-      {const W=stage.clientWidth,z=parseFloat(d.style.getPropertyValue('--z'))||1,hw=d.offsetWidth*z/2,x0=en?en.offsetLeft:W*.7;d.style.left=Math.max(hw+8,Math.min(x0,W-hw-8))+'px';}   /* 숫자가 커져도 무대 밖으로 안 나감 */
+        d.style.setProperty('--z',(1+Math.min(.45,Math.log2(1+r)*.12)).toFixed(2));}
+      {const W=stage.clientWidth;let z=parseFloat(d.style.getPropertyValue('--z'))||1;if(d.offsetWidth*z>W*.6){z=W*.6/d.offsetWidth;d.style.setProperty('--z',z.toFixed(3));}const hw=d.offsetWidth*z/2,x0=en?en.offsetLeft:W*.7;d.style.left=Math.max(hw+8,Math.min(x0,W-hw-8))+'px';}   /* 숫자가 커져도 무대 밖으로 안 나감 */
       if(now-tickT>60){tickT=now;lmSnd('sfx_combo_tick',{vol:.28,rate:Math.min(2,1+(killed?v/hp0:v/Math.max(1,total))*.08),gap:40});}
       if(!broke&&v>=hp0){broke=true;holdTo=now+(boss?380:200);   // 체력 0 = 격파
         lmSnd('sfx_score_over',{vol:.8});try{MRFX.flash?.(stage,'rgba(255,255,255,.8)');MRFX.shake(stage,'l',true);}catch(e){}
