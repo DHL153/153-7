@@ -3610,9 +3610,12 @@ function learnHTML(){
     const fresh=!lock&&!seen&&lsGet('lm_learn_new',[]).includes(k);   /* 니콜 졸업 때 표시한 쪽(11쪽 '다음은 기사') — 한 번 보면 사라짐 */
     const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):fresh?'새로!':PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
     return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}${fresh?' fresh':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
-  return `<p class="iLead">한 장씩 넘기며 배웁니다.</p><div class="lList">${rows}</div>`+
+  return `<p class="iLead">한 장씩 넘기며 배웁니다.</p><div class="lList">${rows}<div class="lReplay"><b>니콜과 다시 배우기</b><div class="lBot two"><button type="button" onclick="lmTutReplayBtn(this,'app')">견습 기사 안내</button><button type="button" ${typeof ltDiffOpen==='function'&&!ltDiffOpen('knight')?'disabled':''} onclick="lmTutReplayBtn(this,'knight')">기사 안내 · 머지 & 런</button></div></div></div>`+
     `<div class="lBot two"><button onclick="openInfo('learn','dict')">기호 사전</button><button class="go" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':'이어서 보기 · '+(lPos(next)+1)}</button></div>`;
 }
+function lmTutReplayBtn(b,d){const busy=typeof S!=='undefined'&&S&&!S.practice&&!S.sandbox&&!document.body.classList.contains('lm-titleOn');
+  if(busy&&!b.classList.contains('arm')){b.classList.add('arm');b.dataset.t=b.textContent;b.textContent='한 번 더 누르면 새 판으로';clearTimeout(b._t);b._t=setTimeout(()=>{b.classList.remove('arm');b.textContent=b.dataset.t;},3500);return;}
+  if(window.lmTutReplay)lmTutReplay(d);}
 /* 기호 사전 (예전 '카드' 탭) */
 function dictHTML(){   /* (DHL 10-29) 가독성 + 지금 규칙(번호 · 맞춤 · 방패)으로 다시 씀 — 예전 약점 ×2 · 내성 · 고향 줄은 규칙에서 빠져 삭제 */
   const I=(k,bg)=>`<span class="ic" style="background:${bg}">${ICO(k)}</span>`;
@@ -8768,6 +8771,8 @@ body.lmTutGate.lmTutNum #hand .card.lmTutOk .dzno,body.lmTutGate.lmTutNum #hand 
 .lmTutShow{animation:tutShow .5s ease-out both}
 @keyframes tutShow{from{opacity:0;scale:.6}}
 @media (prefers-reduced-motion:reduce){.lmTutRg{animation:none}#lmNic .bub{animation:none}}
+.lReplay{margin-top:6px;padding:10px 0 4px;border-top:1px dashed #c9a24a55;text-align:center}.lReplay>b{display:block;font-size:13px;color:#f6cf63;margin-bottom:6px}
+.lReplay button.arm{color:#3b2a0c!important;background:#f6cf63!important}
 </style>
 <script id="lm-tut-js">
 /* 첫 판 안내 (DHL 11-02) — 대본 · 규칙: 프로젝트 문서 claude/first-run-flow.md
@@ -8781,12 +8786,17 @@ const TUT_TXT={
   'tut.2_1.start':'{shield}는 큰 한 방을 막아요.','tut.2_1.key':'세계, 속성, 번호를 맞춰 봐요.','tut.2_2.shop':'{orb}은 판 내내 점수를 키워요!','tut.orb.order':'+ 구슬은 앞에, × 구슬은 뒤에!',
   'tut.2_3.rule':'거인은 규칙 하나로 방해해요.','tut.rule.psychic':'이 거인은 다섯 장을 모으면 {run}할 수 있어요!','tut.3_1.rest':'쉬는 동안 {fire_merge}도 돼요.','tut.3_2.awaken':'별 2개 두 장을 머지하면 각성해요!','tut.3_3.bridge':'기사부터는 같이 내면 {run}할 때 {merge}돼요!','tut.3_3.grad':'이제 혼자서도 충분해요, {title}!',
   'tut.2_2.camp':'이번엔 야영하며 정비해 봐요!',
+  /* (DHL 11-07) 기사 첫 판: 머지 & 런 */
+  'tut.k.pair':'기사부터는 {merge} 버튼이 없어요. 똑같은 동료 둘을 같이 골라 봐요!','tut.k.go':'같이 {run}하면 달리면서 {merge}돼요!','tut.k.fuse':'남길 세계 · 속성 · 번호를 골라요. 합치기 싫으면 \'머지 하지 않음\'!',
+  'tut.k.done':'{run} 한 번으로 합치고 공격까지!','tut.k.star':'별 수가 같은 동료끼리만 합쳐져요.','tut.k.grad':'{title}, 이제 머지 & 런도 문제없어요!',
   'tut.rs.first':'적의 체력이 다 없어지면 이겨요!','tut.rs.go':'준비되면 {select}!','tut.rs.boss':'거인을 이기면 다음 장이에요!',
   /* (DHL 11-03) 배울 것이 없는 라운드: 응원 한마디 → 런하면 사라짐 */
   'tut.cheer.1':'이번에도 크게 쳐 봐요!','tut.cheer.2':'같은 번호를 더 모아 봐요!','tut.cheer.3':'{title}이라면 할 수 있어요!','tut.cheer.4':'거의 다 왔어요, 힘내요!'};
 const tutLine=k=>{let t=TUT_TXT[k.split('@')[0]]||'';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}
   return t.replace(/\{(\w+)\}/g,(m,w)=>{let v=TUT_TERM[w]||w;try{v=(window.MRLocale&&MRLocale.t&&MRLocale.t(v))||v;}catch(e){}return w==='title'?v:'<b>'+v+'</b>';});};
-function lmTutOn(){return !!(S&&S.tut&&!S.tut.fin);}
+function lmTutOn(){return !!(S&&S.tut&&!S.tut.fin&&S.tut.mode!=='knight');}
+/* (DHL 11-07) 기사 첫 판 안내 (머지 & 런) — 1장 1~3라운드, 한 번만. 견습 안내와 따로 저장(lm_tut_knight_done) */
+function lmTutKOn(){return !!(S&&S.tut&&!S.tut.fin&&S.tut.mode==='knight');}
 function lmTutCh1(){return lmTutOn()&&S.jang===1;}
 window.lmTutHandTag=null;
 function lmTutNoArmor(){return lmTutOn()&&!S.tut.seen['tut.2_1.start'];}   /* 방패 · 열쇠는 2-1에서 니콜이 알려준 뒤부터 */
@@ -8794,14 +8804,20 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
 (function(){
   let force=false;try{force=new URLSearchParams(location.search).get('tut')==='1';if(force)localStorage.removeItem('lm_tut_done');}catch(e){}
   const done=()=>{try{return localStorage.getItem('lm_tut_done')==='1';}catch(e){return false;}};
-  const finish=()=>{if(!S||!S.tut||S.tut.fin)return;S.tut.fin=1;try{localStorage.setItem('lm_tut_done','1');}catch(e){}cls();hideNic();};
-  const cls=()=>{const b=document.body,T=S&&S.tut,on=T&&!T.fin&&S.jang===1;
+  const finish=()=>{if(!S||!S.tut||S.tut.fin)return;S.tut.fin=1;try{localStorage.setItem(S.tut.mode==='knight'?'lm_tut_knight_done':'lm_tut_done','1');}catch(e){}cls();hideNic();};
+  let forceK=false;
+  /* (DHL 11-07) 배우기 › 니콜과 다시 배우기: 저장값을 지우고 그 난이도 새 판 */
+  window.lmTutReplay=function(d){try{localStorage.removeItem(d==='knight'?'lm_tut_knight_done':'lm_tut_done');}catch(e){}if(d==='knight')forceK=true;else force=true;
+    try{hideOv();}catch(e){}ltDiff=d;if(typeof ltNewRun==='function'&&document.body.classList.contains('lm-titleOn'))ltNewRun();else{try{ltHide&&ltHide();}catch(e){}newGame(d);}};
+  const cls=()=>{const b=document.body,T=S&&S.tut&&S.tut.mode!=='knight'?S.tut:null,on=T&&!T.fin&&S.jang===1;
     b.classList.toggle('lmTutNoDis',!!(on&&!T.seen['tut.1_2.discard']));b.classList.toggle('lmTutNoMerge',!!(on&&!T.seen['tut.1_3.start']));
     const on2=T&&!T.fin;b.classList.toggle('lmTutNoKey',!!(on2&&!T.seen['tut.2_1.start']));b.classList.toggle('lmTutNoOrb',!!(on2&&!T.seen['tut.2_2.shop']));};
   /* 새 판: 조건이 맞으면 안내 켜기 · 안내 중이던 판이 끝나면 다시는 안 나옴 */
   const _ng=newGame;newGame=function(diff){if(S&&S.tut)finish();const r=_ng.apply(this,arguments);
     try{const first=(LM_ST.runs||0)===0&&(LM_ST.bestRound||0)<=1;
-      if(S&&S.diff==='app'&&!S.practice&&!S.sandbox&&!done()&&(first||force)){S.tut={learn:[0,1],seen:{}};force=false;}}catch(e){}
+      if(S&&S.diff==='app'&&!S.practice&&!S.sandbox&&!done()&&(first||force)){S.tut={learn:[0,1],seen:{}};force=false;}
+      let kd=false;try{kd=localStorage.getItem('lm_tut_knight_done')==='1';}catch(e){}
+      if(S&&S.diff==='knight'&&!S.practice&&!S.sandbox&&(!kd||forceK)){S.tut={mode:'knight',learn:LEARN_ORDER.slice(),seen:{}};forceK=false;}}catch(e){}
     cls();return r;};
   const _re=runEndHTML;runEndHTML=function(){try{finish();}catch(e){}return _re.apply(this,arguments);};
   /* (DHL 11-03 피드백 '첫 구슬 고정') 첫 원정 캠프 첫 칸 = 풍차(늘 배수 +4) — 사자마자 다음 런에 보임. 사라고 강제하지는 않음 */
@@ -9052,7 +9068,34 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     const now=performance.now();if(k!==hintKey||S.busy){hintKey=k;hintT0=now;}if(now-hintT0<8000)return [];   /* 연출 중엔 시계 다시 · 니콜이 말하는 동안도 다시(아래 setInterval 맨 앞) */
     if(sel.length){let bh=null;try{bh=bestHint();}catch(e){}if(!bh||!sel.every(u=>bh.cards.some(c=>c.uid===u)))return [];}
     return pickEls();}
+  /* (DHL 11-07) 기사 첫 판 안내: 1라운드 = 같은 동료 둘 골라 머지 & 런 (짝 없으면 덱에서 하나 바꿔 넣음) · 고르기 창 · 2라운드 = 별 수 · 3라운드 = 마무리 */
+  function kPair(shape){const H=S.hand.filter(c=>!c.fog&&c.star<3);
+    for(let i=0;i<H.length;i++)for(let j=i+1;j<H.length;j++)if(mergeKind(H[i],H[j]))return [H[i],H[j]];
+    if(!shape||!S.draw)return null;
+    for(const h of H){const d=S.draw.findIndex(c=>!c.fog&&mergeKind(h,c));if(d<0)continue;const out=S.hand.filter(c=>c!==h).sort((a,b)=>cardNo(a)-cardNo(b))[0];if(!out)continue;
+      const i=S.hand.indexOf(out),b=S.draw[d];S.hand[i]=b;S.draw[d]=out;try{sortHand&&sortHand();render();}catch(e){}return [h,b];}
+    return null;}
+  function kTick(){const T=S.tut,sn=T.seen,played=(S.rs&&S.rs.play)||0;
+    if(S.jang>1||S.rd>2){finish();return;}
+    if(cur&&cur.o.anchor&&!q(cur.o.anchor))hideNic();
+    if(q('#ov:not([hidden]) .mgSkip')){   /* 머지 고르기 창 */
+      if(!sn['tut.k.fuse']&&(!cur||cur.k==='tut.k.pair')){hideNic();say('tut.k.fuse',{face:'focus',seq:['point'],anchor:'#ov:not([hidden]) .mgFoot'});}
+      if(cur&&cur.k==='tut.k.fuse')ring([q('#ov:not([hidden]) .mgGo'),q('#ov:not([hidden]) .mgSkip')]);
+      return;}
+    if(!$('ov').hidden)return;
+    const hasHand=S.hand.length>=4&&!S.busy&&!S.anim;
+    if(S.rd===0){
+      if(!sn['tut.k.pair']&&hasHand&&!cur){const pr=kPair(true);if(pr){T.kp=pr.map(c=>c.uid);T.p0=played;say('tut.k.pair',{face:'surprise',seq:['wave','point']});}}
+      if(cur&&cur.k==='tut.k.pair'){const pr=(T.kp||[]).map(u=>S.hand.find(c=>c.uid===u)).filter(Boolean),sel=S.sel||[],all=pr.length===2&&pr.every(c=>sel.includes(c.uid));
+        ring(all?[$('bPlay')]:pr.filter(c=>!sel.includes(c.uid)).map(cardEl));
+        const bk=all?'go':'pair';if(bub.dataset.k!==bk){bub.dataset.k=bk;bub.innerHTML=tutLine(all?'tut.k.go':'tut.k.pair');}
+        if(played>T.p0||pr.length<2)hideNic();}
+      if(sn['tut.k.pair']&&!sn['tut.k.done']&&played>(T.p0||0)&&!cur&&hasHand)say('tut.k.done',{face:'happy',seq:['hop'],auto:3800});}
+    else if(S.rd===1){if(!sn['tut.k.star']&&hasHand&&!cur)say('tut.k.star',{face:'think',seq:['point'],auto:5200});}
+    else if(S.rd===2){if(!sn['tut.k.grad']&&hasHand&&!cur)say('tut.k.grad',{face:'happy',seq:['wave','hop'],auto:4200});
+      if(sn['tut.k.grad']&&!cur)finish();}}
   setInterval(()=>{try{
+    if(lmTutKOn()){if(document.body.classList.contains('lm-titleOn')){if(cur){const k=cur.k;hideNic();if(k&&S.tut)delete S.tut.seen[k];}return;}kTick();return;}
     if(!lmTutOn()){if(box&&box.classList.contains('on')&&!(cur&&cur.o.force))hideNic();return;}
     if(document.body.classList.contains('lm-titleOn')){if(cur||ringSel.length||(box&&box.classList.contains('on'))){const k=cur&&cur.k;hideNic();leaving=0;if(G)G.an.hidden=true;if(box){box.classList.remove('on');bub.classList.remove('out');}if(k&&S.tut)delete S.tut.seen[k];}return;}   /* (DHL 11-03 '메뉴로 나오니 빛 테두리가 남음') 메뉴 화면에선 니콜 · 빛 숨김 — 하던 말은 돌아오면 다시 */
     cls();const T=S.tut,ch1=S.jang===1,played=(S.rs&&S.rs.play)||0,ovOn=!$('ov').hidden;
@@ -9113,10 +9156,10 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
      안내 기간에만 · 꼭 해야 하는 순간(짝 · 삼총사 · 버리기 · 두 쌍 · 머지 · 열쇠 짝 · 각성)에만:
      빛나는 카드 · 버튼만 또렷하고 눌림, 나머지 버튼 · 카드는 음영 + 눌리지 않음(숨기지 않음).
      늘 되는 것: 이미 고른 카드 다시 눌러 빼기 · 니콜 말풍선 · 옵션(Esc). 행동을 마치면 바로 풀림 · 응원 라운드는 잠그지 않음 */
-  const MUST=new Set(['tut.1_1.pair','tut.1_1.three','tut.1_2.discard','tut.1_2.done','tut.1_3.start','tut.2_1.start','tut.3_2.awaken']);
+  const MUST=new Set(['tut.k.pair','tut.1_1.pair','tut.1_1.three','tut.1_2.discard','tut.1_2.done','tut.1_3.start','tut.2_1.start','tut.3_2.awaken']);
   const NUM=new Set(['tut.1_1.pair','tut.1_1.three','tut.1_2.done']);   /* 같은 번호 고르기 순간 = 왼쪽 번호만 맥박 */
   const GATE_SEL='#btns button,#bInfo,#bLearn,#orbs .orb,.pile';
-  function must(){return !!(cur&&!cur.o.force&&!cur.o.anchor&&MUST.has(cur.k.split('@')[0])&&lmTutOn());}
+  function must(){return !!(cur&&!cur.o.force&&!cur.o.anchor&&MUST.has(cur.k.split('@')[0])&&(lmTutOn()||lmTutKOn()));}
   let gOn=false,okIds=new Set(),okUids=new Set();
   function gate(){const b=document.body,on=!!(must()&&ringSel.length&&!b.classList.contains('lm-titleOn')&&$('ov').hidden);
     if(on!==gOn){gOn=on;b.classList.toggle('lmTutGate',on);
