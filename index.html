@@ -1261,6 +1261,8 @@ html,body{overflow-x:clip}
 .cashFx .cfGold{display:inline-block}.cashFx .cfGold.cfLand{animation:boxbump .25s}
 .cfSpark{position:fixed;z-index:201;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;pointer-events:none;background:radial-gradient(#fff6c8,#ffcf3f 50%,transparent 70%);animation:cfSpark .5s ease-out forwards}
 @keyframes cfSpark{to{transform:scale(6);opacity:0}}
+.cfSpark.big{width:var(--s);height:var(--s);margin:calc(var(--s)/-2) 0 0 calc(var(--s)/-2);background:radial-gradient(#ffffff 0 18%,#fff2b0 32%,#ffcf3fcc 52%,#ffb30044 66%,transparent 72%);mix-blend-mode:screen;animation:cfSpark2 .55s ease-out forwards}
+@keyframes cfSpark2{0%{transform:scale(.4);opacity:1}35%{transform:scale(1.7);opacity:1}100%{transform:scale(2.6);opacity:0}}
 @media (prefers-reduced-motion:reduce){.cfMill,.cashBtn.ready,.cashBtn.ready::after{animation:none}}
 html.lmB #vC .lmN,html.lmB #vM .lmN{display:inline-block}html.lmB #vC .lmN{transform-origin:100% 55%}html.lmB #vM .lmN{transform-origin:0 55%}html.lmB #vC.lmPop,html.lmB #vM.lmPop{animation:none!important}.shop .sDesc{display:flex!important;flex-direction:column;align-items:center;justify-content:center;line-height:1.35}
 
@@ -3270,7 +3272,7 @@ function cashCollect(){
   if(!dst||!box||(typeof LM_SET!=='undefined'&&LM_SET.rm)){collect();return;}
   // 휴대폰 세로(DHL 10-28): 위쪽 골드 칸이 보상 창에 가려 안 보임 → 보상 창 오른쪽 위 골드 배지로 금화가 들어감
   const cg=document.querySelector('.cashFx .cfGold'),tgt=(matchMedia('(orientation:portrait)').matches&&cg)?cg:dst;
-  const d=tgt.getBoundingClientRect(),tx=d.left+d.width/2,ty=d.top+d.height/2;
+  const ic=tgt.querySelector('img'),d=(ic||tgt).getBoundingClientRect(),tx=d.left+d.width/2,ty=d.top+d.height/2,isz=Math.max(18,Math.min(64,ic?d.height:24));   /* (DHL 11-08) 금화가 동전 그림 한가운데로 들어가고, 빛도 거기서 크게 */
   const src=[...box.querySelectorAll('.coins img')];const total=S.cash,g0=S.gold;let landed=0;const N=Math.max(1,src.length);
   box.querySelector('.cfMill')?.classList.add('fast');
   src.forEach((c,i)=>{const r=c.getBoundingClientRect(),fl=document.createElement('img');fl.src=c.src;fl.className='cfFly';
@@ -3279,7 +3281,7 @@ function cashCollect(){
     const an=fl.animate([{transform:'translate(0,0) scale(1) rotate(0)',opacity:1},{transform:`translate(${dx*.45+sw}px,${dy*.45-90}px) scale(1.5) rotate(200deg)`,opacity:1,offset:.45},{transform:`translate(${dx}px,${dy}px) scale(.6) rotate(540deg)`,opacity:.9}],{duration:720+Math.random()*160,delay:i*55,easing:'cubic-bezier(.45,0,.55,1)'});
     an.onfinish=()=>{fl.remove();landed++;lmSfxTick();const g=g0+Math.round(total*landed/N);dst.textContent='💰 '+g;dst.classList.remove('cfLand');void dst.offsetWidth;dst.classList.add('cfLand');
       if(tgt!==dst){const em=$('cfGold');if(em)em.textContent=g;tgt.classList.remove('cfLand');void tgt.offsetWidth;tgt.classList.add('cfLand');}
-      const sp=document.createElement('i');sp.className='cfSpark';sp.style.left=tx+'px';sp.style.top=ty+'px';document.body.appendChild(sp);setTimeout(()=>sp.remove(),500);
+      const sp=document.createElement('i');sp.className='cfSpark big';sp.style.left=tx+'px';sp.style.top=ty+'px';sp.style.setProperty('--s',isz+'px');document.body.appendChild(sp);setTimeout(()=>sp.remove(),560);
       if(landed===N)setTimeout(collect,260);};
   });
   if(!src.length)collect();
@@ -4424,6 +4426,13 @@ html.lmB #lm-title .lt-side:focus-visible{box-shadow:0 0 0 2px #ffd76a,0 0 10px 
 @media (prefers-reduced-motion:reduce){.lmFxSweep,.lmFxStar{display:none}}
 /* 보상 받기: 예전 흰 그라데이션 대신 이펙트 그림으로 1번 */
 .cashBtn.ready::after{display:none!important}
+.cashBtn{position:relative;overflow:hidden}
+.cashBtn .cfSheen{position:absolute;top:0;bottom:0;left:0;width:34%;pointer-events:none;z-index:2;translate:-110% 0;
+  background:linear-gradient(90deg,#fff0 0%,#ffffff1f 28%,#ffffff8c 70%,#fffffff2 90%,#fff 95%,#fff0 100%);
+  animation:cfSheen 1.25s cubic-bezier(.35,.05,.45,1) .15s infinite}
+@keyframes cfSheen{0%{translate:-110% 0}55%,100%{translate:310% 0}}
+.cashBtn[disabled] .cfSheen{display:none}
+@media (prefers-reduced-motion:reduce){.cashBtn .cfSheen{display:none}}
 
 /* ⚔ 전투 무대 (M&R 원본 전투를 그대로 옮긴 mrstage/stage.html) — 2026-10-27
    가로(PC·모바일 가로): 가운데 영역(.midZone) 위쪽을 채움 · 세로: 구슬 칸 바로 아래
@@ -4509,7 +4518,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r87" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r88" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -5050,7 +5059,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     for(const x of [a,b]){x.style.setProperty('--fxd',d+'s');x.style.setProperty('--fxw',w+'px');if(o.tint){x.classList.add('lmFxTint');x.style.setProperty('--fxc',o.tint);}}
     el.append(a,b);setTimeout(()=>{a.remove();b.remove();},d*1000+700);};
   // 보상 받기 버튼이 눌러도 되는 순간(ready) 한 번
-  new MutationObserver(ms=>{for(const m of ms){const t=m.target;if(t.classList&&t.classList.contains('cashBtn')&&t.classList.contains('ready')&&!t._lmShone){t._lmShone=1;setTimeout(()=>lmShine(t),120);}}})
+  /* (DHL 11-08 영상 'UI_Effect_001') 보상 받기 = 흰 빛 띠가 왼쪽 → 오른쪽으로 쓸고 지나감(앞쪽은 또렷 · 뒤로 길게 옅어짐) · 받을 때까지 반복 */
+  new MutationObserver(ms=>{for(const m of ms){const t=m.target;if(t.classList&&t.classList.contains('cashBtn')&&t.classList.contains('ready')&&!t._lmShone){t._lmShone=1;if(!t.querySelector('.cfSheen')){const i=document.createElement('i');i.className='cfSheen';i.setAttribute('aria-hidden','true');t.appendChild(i);}}}})
     .observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
   // 창이 화면보다 조금 크면(가로·세로) 내용 전체를 같은 비율로 줄여 스크롤 없이 한 화면에 — 60%보다 더 줄여야 하는 긴 창은 줄이지 않고 얇은 스크롤
   if(typeof showOv==='function'){
