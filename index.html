@@ -4172,7 +4172,7 @@ function ltPop(kind){
   if(kind==='hands')card.innerHTML=ltHandsHTML()+B('뒤로',"ltPop('stat')",'back');
   if(kind==='play')card.innerHTML=ltPlayHTML()+close;
   if(kind==='deck')card.innerHTML=`<h3>덱 사용자 지정</h3><p class="lt-note">카드 뒷면 · 덱 꾸미기 자리입니다. 카드 뒷면 그림이 확정되면 여기서 고르게 합니다. (준비 중)</p>`+back;
-  if(kind==='credit')card.innerHTML=`<h3>크레딧</h3><p class="lt-note" style="text-align:center;font-size:14px;line-height:1.8">Merge &amp; Run La Mancha<br>음악 · Starlight Atelier<br>(이름 · 역할은 정해 주시면 넣습니다)</p>`+back;
+  if(kind==='credit')card.innerHTML=`<h3>크레딧</h3><p class="lt-note" style="text-align:center;font-size:14px;line-height:1.8">Merge &amp; Run La Mancha<br><b style="font-size:17px">Happy Sole</b><br>DHL</p>`+back;   /* (DHL 11-08) 크레딧은 일단 Happy Sole(DHL)만 */
   if(kind==='prof')card.innerHTML=`<h3>프로필</h3><div class="lt-row"><span>P1</span><b>사용 중</b></div>`+
     `<p class="lt-note">프로필 여러 개 · 기록 보기는 스팀 연결 단계에서 붙입니다.</p>`+close;
   if(kind==='lang')card.innerHTML=`<h3>언어</h3><div class="lt-row"><span>한국어</span><b>사용 중</b></div>`+
