@@ -2984,8 +2984,15 @@ function finishMergeTail(a,k,healed){if(S.orbs.includes('trader'))S.gold+=(S.ost
     const el=[...document.querySelectorAll('#hand .card')].find(x=>x.dataset.uid==a.uid);if(el)el.classList.add('healed');
     $('tip').textContent='✚ '+nm+' 치료 — 머지하면 상태이상이 사라져요 · '+$('tip').textContent;}
 }
+/* (DHL 11-07) 고른 카드 중 뒷면을 앞으로 뒤집어 보여 준 뒤 then() — 런: 족보 이름도 표시 · 버리기: 무엇을 버리는지(덱 파악) */
+function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.length)return false;S.busy=true;fc.forEach(c=>delete c.fog);render();
+  fc.forEach((c,i)=>{const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');if(el){el.style.animationDelay=(i*90)+'ms';el.classList.add('fogRev');}});
+  try{window.LMS&&LMS.play('sfx_card_flip_a',{vol:.8,gap:60});}catch(e){}
+  if(!showHand)try{$('htName').textContent='버리기';$('vC').textContent='0';$('vM').textContent='0';}catch(e){}
+  if(showHand)try{const sc=selCards(),pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length));$('htName').textContent=(r.comboTag?r.comboTag+' ':'')+r.label;}catch(e){}
+  setTimeout(()=>{S.busy=false;document.querySelectorAll('#hand .card.fogRev').forEach(x=>{x.classList.remove('fogRev');x.style.animationDelay='';});then();},420+fc.length*90+(showHand?650:450));return true;}
 function doDiscard(){
-  if(S.busy||!S.sel.length||S.dis<=0)return;if(S.sandbox)S.dis=1000;
+  if(S.busy||!S.sel.length||S.dis<=0)return;if(fogReveal(()=>doDiscard(),false))return;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
   const out=selCards();const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
 }
@@ -3028,11 +3035,7 @@ function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
   if(!merged&&psyShort()){$('tip').textContent='🎯 다섯의 맹세 — 카드 5장 이상 내야 런할 수 있어요 (★2는 2장 · ★3은 3장 · 족보 밖 카드도 세요)';return;}
   /* (DHL 11-07) 뒷면 카드를 내면: 먼저 앞으로 뒤집어 보여 주고 → 족보 이름 확인 → 잠깐 뒤 진행 (머지 & 런 짝도 뒤집힌 뒤 다시 찾음) */
-  if(!merged&&selCards().some(c=>c.fog)){const fc=selCards().filter(c=>c.fog);S.busy=true;fc.forEach(c=>delete c.fog);render();
-    fc.forEach((c,i)=>{const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');if(el){el.style.animationDelay=(i*90)+'ms';el.classList.add('fogRev');}});
-    try{window.LMS&&LMS.play('sfx_card_flip_a',{vol:.8,gap:60});}catch(e){}
-    try{const sc=selCards(),pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length));$('htName').textContent=(r.comboTag?r.comboTag+' ':'')+r.label;}catch(e){}
-    setTimeout(()=>{S.busy=false;document.querySelectorAll('#hand .card.fogRev').forEach(x=>{x.classList.remove('fogRev');x.style.animationDelay='';});doPlay();},420+fc.length*90+650);return;}
+  if(!merged&&fogReveal(()=>doPlay(),true))return;
   if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();S._snap=mrSnap();return runChain();}
   S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
@@ -4900,8 +4903,9 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       }
       const canRun=()=>S&&!S.busy&&S.sel.length&&S.runs>0&&!(typeof psyShort==='function'&&psyShort());
       const willChain=m=>!m&&typeof mergeRun==='function'&&mergeRun()&&!S.mrOff&&typeof runPairs==='function'&&runPairs(selCards()).length>0;   /* (DHL 10-30) 머지 & 런 고르기 전에는 카드를 숨기거나 날리지 않음 — 취소하면 그대로 */
-      const _dp=doPlay;doPlay=function(merged){if(merged===true||!canRun()||willChain(merged))return _dp.apply(this,arguments);return perform('run',_dp,this,arguments);};
-      const _dd=doDiscard;doDiscard=function(){if(!(S&&!S.busy&&S.sel.length&&S.dis>0))return _dd.apply(this,arguments);return perform('dis',_dd,this,arguments);};
+      const hasFog=()=>typeof selCards==='function'&&selCards().some(c=>c.fog);   /* (DHL 11-07) 뒷면 카드는 먼저 뒤집고(fogReveal) 나서 연출 */
+      const _dp=doPlay;doPlay=function(merged){if(merged===true||!canRun()||hasFog()||willChain(merged))return _dp.apply(this,arguments);return perform('run',_dp,this,arguments);};
+      const _dd=doDiscard;doDiscard=function(){if(!(S&&!S.busy&&S.sel.length&&S.dis>0)||hasFog())return _dd.apply(this,arguments);return perform('dis',_dd,this,arguments);};
       const hand=document.getElementById('hand');
       if(hand){let q=false;new MutationObserver(()=>{if(q)return;q=true;queueMicrotask(()=>{q=false;hrSync();});}).observe(hand,{childList:true});hrSync();}
       const st2=document.createElement('style');st2.id='lm-handrig-css';
@@ -9272,7 +9276,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   /* ── 카드 · 손패 */
   W('tapCard',o=>function(c){const b=S&&S.busy,was=S&&S.sel?S.sel.includes(c.uid):false;const r=o.apply(this,arguments);
     if(!b&&S&&S.sel){const now=S.sel.includes(c.uid);if(now&&!was)P('sfx_card_select');else if(!now&&was)P('sfx_card_deselect');else P('sfx_ui_denied',{vol:.7});}return r;});
-  W('doDiscard',o=>function(){try{if(S&&!S.busy)P(S.sel.length&&S.dis>0?'sfx_card_discard':'sfx_ui_denied',S.sel.length&&S.dis>0?{}:{vol:.7});}catch(e){}return o.apply(this,arguments);});   /* 버리기 · 런은 손패 연출을 거쳐 늦게 실행됨 → 누르는 순간 미리 판단 */
+  W('doDiscard',o=>function(){try{if(S&&!S.busy&&!selCards().some(c=>c.fog))P(S.sel.length&&S.dis>0?'sfx_card_discard':'sfx_ui_denied',S.sel.length&&S.dis>0?{}:{vol:.7});}catch(e){}return o.apply(this,arguments);});   /* 버리기 · 런은 손패 연출을 거쳐 늦게 실행됨 → 누르는 순간 미리 판단 */
   W('doMerge',o=>function(){if(typeof canMerge==='function'&&!canMerge())P('sfx_ui_denied',{vol:.7});return o.apply(this,arguments);});
   W('askAwaken',o=>function(){P('sfx_merge_awaken');return o.apply(this,arguments);});
 
