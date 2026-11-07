@@ -3604,7 +3604,7 @@ function cmTap(ev){
 /* 📖 배우기 */
 function learnHTML(){
   const J=window.LM_TEST?99:(S?S.jang:1);
-  if(learnView==='dict')return `<div class="lNav"><button class="lmIco lmIcoNav" onclick="openInfo('learn','list')" aria-label="목록으로" title="목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><b>기호 사전</b><span></span></div>`+dictHTML();
+  if(learnView==='dict')return `<div class="lNav"><button class="lmIco lmIcoNav" onclick="openInfo('learn','list')" aria-label="목록으로" title="목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><b>용어 · 기호 사전</b><span></span></div>`+dictHTML();
   if(learnView==='page'){
     const i=Math.max(0,Math.min(LEARN.length-1,learnIdx));learnIdx=i;
     if(!LEARN_SEEN.includes(i)){LEARN_SEEN.push(i);lsSet('lm_learn_seen',LEARN_SEEN);}
@@ -3622,7 +3622,7 @@ function learnHTML(){
     const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):fresh?'새로!':PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
     return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}${fresh?' fresh':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
   return `<p class="iLead">한 장씩 넘기며 배웁니다.</p><div class="lList">${rows}<div class="lReplay"><b>니콜과 다시 배우기</b><div class="lBot two"><button type="button" onclick="lmTutReplayBtn(this,'app')">견습 기사 안내</button><button type="button" ${typeof ltDiffOpen==='function'&&!ltDiffOpen('knight')?'disabled':''} onclick="lmTutReplayBtn(this,'knight')">기사 안내 · 머지 & 런</button></div></div></div>`+
-    `<div class="lBot two"><button onclick="openInfo('learn','dict')">기호 사전</button><button class="go" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':'이어서 보기 · '+(lPos(next)+1)}</button></div>`;
+    `<div class="lBot two"><button onclick="openInfo('learn','dict')">용어 · 기호 사전</button><button class="go" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':'이어서 보기 · '+(lPos(next)+1)}</button></div>`;
 }
 function lmTutReplayBtn(b,d){const busy=typeof S!=='undefined'&&S&&!S.practice&&!S.sandbox&&!document.body.classList.contains('lm-titleOn');
   if(busy&&!b.classList.contains('arm')){b.classList.add('arm');b.dataset.t=b.textContent;b.textContent='한 번 더 누르면 새 판으로';clearTimeout(b._t);b._t=setTimeout(()=>{b.classList.remove('arm');b.textContent=b.dataset.t;},3500);return;}
@@ -9708,4 +9708,56 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
 @keyframes lmOkShake{0%{transform:translate(0,0)}25%{transform:translate(1.5px,-1px)}50%{transform:translate(-1.5px,1px)}75%{transform:translate(1px,1px)}100%{transform:translate(0,0)}}
 @media (prefers-reduced-motion:reduce){.sScoreBox #scoreRow{animation:none!important}}
 </style>
+<style id="lm-term-css">
+/* (DHL 11-08 외부 피드백 '용어 설명이 없어 난해함') 용어를 누르면(PC는 잠깐 올려도) 짧은 설명 — 배우기 › 기호 사전 맨 위에 '용어' 묶음 */
+.lmTermOn{cursor:help}
+#lmTerm{position:fixed;z-index:95;max-width:min(300px,calc(100vw - 24px));padding:9px 12px 10px;border-radius:10px;pointer-events:none;
+  background:linear-gradient(180deg,#fdf4dc,#f1dfb2);border:2px solid #b5862f;box-shadow:0 8px 20px #0008;color:#3f2709;font:500 13px/1.5 'Noto Sans KR',sans-serif;
+  opacity:0;translate:0 4px;transition:opacity .15s,translate .15s}
+#lmTerm.on{opacity:1;translate:0 0}
+#lmTerm b{display:block;font-weight:900;font-size:14px;color:#7a4a10;margin-bottom:2px}
+.dSec.dTerms .dRow .dIc{min-width:0;width:auto}
+.dTermK{display:inline-block;padding:3px 9px;border-radius:7px;background:#f1dfb2;color:#3f2709;font:900 13px/1.2 'Noto Sans KR',sans-serif;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){#lmTerm{transition:none}}
+</style>
+<script id="lm-term-js">
+/* 용어 설명 — 번역은 MRLocale.t (13개 언어 · 배수는 발라트로 Mult 표기 · claude/glossary-terms.md) */
+const LM_TERMS=[
+ ['힘','카드가 점수에 더하는 값이에요. ★1은 번호가 곧 힘, ★2 · ★3은 더 커요.'],
+ ['배수','힘에 곱하는 수예요. 점수 = 힘 × 배수. 족보가 셀수록 배수가 커져요.'],
+ ['족보','같은 번호를 모은 묶음이에요(짝 · 삼총사 · 행진 …). 결속과 겹치면 모두 더해져요.'],
+ ['결속','같은 세계 5장(세계 결속)이나 같은 속성 5장(원소 결속). 다른 족보에 얹혀 더해져요.'],
+ ['런','고른 카드를 내서 공격해요. 라운드마다 정해진 횟수만 할 수 있어요.'],
+ ['버리기','고른 카드를 버리고 새 카드로 바꿔요. 라운드마다 정해진 횟수만 할 수 있어요.'],
+ ['머지','같은 동료 · 같은 별 두 장을 합쳐 별을 올려요. 별이 늘면 힘이 크게 세져요.'],
+ ['최소 득점','적의 체력이에요. 이만큼 점수를 내면 라운드를 이겨요.'],
+ ['방패','적은 체력의 2배만큼 방패를 들고 나와요. 방패가 있는 동안 몸체는 한 번에 60%까지만 깎여요.'],
+ ['고정 피해','적의 세계 · 약점 속성 · 번호 세 가지를 한 런에 모두 맞추면 방패를 뚫고 그대로 들어가요.'],
+ ['구슬','판 내내 점수를 키워 주는 장비예요. 왼쪽부터 순서대로 작동해요.'],
+ ['증서','판 내내 규칙을 바꿔 주는 보상이에요. 원정 캠프에서 장마다 1장 나와요.'],
+ ['족보서','그 족보의 레벨을 올려 힘과 배수를 키워요.'],
+ ['거인 규칙','거인전에서만 걸리는 방해 규칙이에요. 라운드를 고를 때 미리 보여요.']];
+(function(){
+  const T=k=>{try{return (window.MRLocale&&MRLocale.t&&MRLocale.t(k))||k;}catch(e){return k;}};
+  const DEF=Object.fromEntries(LM_TERMS);
+  const BIND=[['.sTgtBox','최소 득점'],['#vC','힘'],['#vM','배수'],['#htName','족보'],['.sCell.cRun','런'],['.sCell.cDis','버리기'],['#orbCnt','구슬'],['#keyBar','방패']];
+  const tip=document.createElement('div');tip.id='lmTerm';tip.setAttribute('role','tooltip');document.body.appendChild(tip);
+  let cur=null,hideT=0,hoverT=0;
+  function show(el,k){if(!DEF[k])return;cur=el;tip.innerHTML=`<b>${T(k)}</b>${T(DEF[k])}`;const r=el.getBoundingClientRect(),W=tip.offsetWidth,H=tip.offsetHeight;
+    let x=r.left+r.width/2-W/2,y=r.bottom+8;if(y+H>innerHeight-8)y=r.top-H-8;tip.style.left=Math.max(8,Math.min(innerWidth-W-8,x))+'px';tip.style.top=Math.max(8,y)+'px';
+    tip.classList.add('on');clearTimeout(hideT);hideT=setTimeout(hide,4500);}
+  function hide(){tip.classList.remove('on');cur=null;}
+  function keyOf(t){for(const [sel,k] of BIND){const el=t&&t.closest&&t.closest(sel);if(el)return [el,k];}return null;}
+  function mark(){BIND.forEach(([sel,k])=>document.querySelectorAll(sel).forEach(el=>{el.classList.add('lmTermOn');if(!el.title)el.setAttribute('aria-description',T(DEF[k]));}));}
+  mark();setInterval(mark,3000);
+  addEventListener('click',e=>{const h=keyOf(e.target);if(h){if(cur===h[0]&&tip.classList.contains('on'))hide();else show(h[0],h[1]);}else if(!e.target.closest('#lmTerm'))hide();},true);
+  addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const h=keyOf(e.target);clearTimeout(hoverT);if(h)hoverT=setTimeout(()=>show(h[0],h[1]),450);},true);
+  addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;clearTimeout(hoverT);const h=keyOf(e.target);if(h&&cur===h[0]&&!h[0].contains(e.relatedTarget))hide();},true);
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&tip.classList.contains('on'))hide();});
+  /* 배우기 › 기호 사전 맨 위에 '용어' 묶음 */
+  if(typeof dictHTML==='function'){const _d=dictHTML;dictHTML=function(){const h=_d.apply(this,arguments);
+    const sec=`<section class="dSec dTerms"><h3>${T('용어')}</h3>`+LM_TERMS.map(([k,d])=>`<div class="dRow"><div class="dIc"><span class="dTermK">${T(k)}</span></div><div class="dTx"><small>${T(d)}</small></div></div>`).join('')+`</section>`;
+    const i=h.indexOf('</p>');return i<0?sec+h:h.slice(0,i+4)+sec+h.slice(i+4);};}
+})();
+</script>
 </body></html>
