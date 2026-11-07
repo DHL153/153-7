@@ -4503,7 +4503,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r86" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r87" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -9618,4 +9618,45 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
 @media (max-width:700px){.dkV{padding:8px}.dkBox{padding:10px}.dkRow{flex-direction:column;gap:6px}.dkW{width:auto;writing-mode:horizontal-tb;padding:3px 0}.dkCards{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}.dkHead h3{font-size:18px}}
 @media (max-height:500px){.dkV{padding:6px 2vw}.dkBox{padding:8px 12px;gap:6px}.dkCards{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))}.dkClose{min-height:36px}}
 </style>
+<style id="lm-qol-css">
+/* (DHL 11-07 외부 피드백 · 편의 묶음) 마지막 1회 경고 · 머지 가능 반짝 · ★ 안내 */
+#btns .lmBig.lmLast .lmCnt{background:#b3261e;box-shadow:inset 0 0 0 1px #ffb4a8,0 0 10px #ef4444aa;animation:lmLastP 1s ease-in-out infinite}
+#btns .lmBig.lmLast .lmCnt em{color:#fff}
+.sCell.lmLast b{color:#ff6b5a!important;animation:lmLastP 1s ease-in-out infinite;display:inline-block}
+@keyframes lmLastP{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+#lmStarHint{position:fixed;z-index:70;transform:translate(-50%,-100%);pointer-events:none;padding:7px 14px;border-radius:99px;
+  background:linear-gradient(180deg,#fdf4dc,#f1dfb2);border:2px solid #b5862f;color:#3f2709;font:800 14px/1.2 'Noto Sans KR',sans-serif;white-space:nowrap;
+  box-shadow:0 6px 16px #0009;opacity:0;transition:opacity .2s,translate .2s;translate:0 6px}
+#lmStarHint.on{opacity:1;translate:0 0}
+#lmStarHint img{width:15px;height:15px;vertical-align:-2px;margin:0 1px}
+@media (prefers-reduced-motion:reduce){#btns .lmBig.lmLast .lmCnt,.sCell.lmLast b{animation:none}}
+</style>
+<script id="lm-qol-js">
+(function(){
+  if(typeof render!=='function')return;
+  let wasM=false,hintKey='',hintT=0;
+  const hint=document.createElement('div');hint.id='lmStarHint';hint.setAttribute('role','status');document.body.appendChild(hint);
+  function showHint(html){const h=document.getElementById('hand');if(!h)return;const r=h.getBoundingClientRect();hint.innerHTML=html;
+    hint.style.left=(r.left+r.width/2)+'px';hint.style.top=(r.top-8)+'px';hint.classList.add('on');clearTimeout(hintT);hintT=setTimeout(()=>hint.classList.remove('on'),2600);}
+  const STAR='<img src="assets/ui/card/star_g.webp" alt="★">';
+  const _r=render;render=function(){const res=_r.apply(this,arguments);try{if(!S||!S.hand)return res;
+    /* ① 마지막 1회: 버튼 배지 · 왼쪽 숫자 빨갛게 맥박 */
+    const bp=$('bPlay'),bd=$('bDis'),sb=!!S.sandbox;
+    if(bp)bp.classList.toggle('lmLast',!sb&&S.runs===1);if(bd)bd.classList.toggle('lmLast',!sb&&S.dis===1);
+    const cr=document.querySelector('.sCell.cRun'),cd=document.querySelector('.sCell.cDis');if(cr)cr.classList.toggle('lmLast',!sb&&S.runs===1);if(cd)cd.classList.toggle('lmLast',!sb&&S.dis===1);
+    /* ② 머지가 되는 짝을 고른 순간 버튼에 빛 한 번 */
+    const sc=typeof selCards==='function'?selCards():[];
+    const mr=typeof mergeRun==='function'&&mergeRun();
+    const m=!S.busy&&sc.length>=2&&(mr?(!S.mrOff&&runPairs(sc).length>0):!!canMerge());
+    if(m&&!wasM&&window.lmShine){const t=mr?bp:$('bMerge');if(t)lmShine(t,{tint:'#f6cf63'});}
+    wasM=m;
+    /* ③ 같은 동료인데 안 합쳐질 때: 왜인지 한 줄 */
+    if(!S.busy&&sc.length>=2){let why='',k='';
+      for(let i=0;i<sc.length&&!why;i++)for(let j=i+1;j<sc.length;j++){const a=sc[i],b=sc[j];if(a.fog||b.fog||TYPES[a.id].n!==TYPES[b.id].n||mergeKind(a,b))continue;
+        k=a.uid+'_'+b.uid;why=a.star!==b.star?`${STAR} 별 수가 같아야 합쳐져요`:a.star>=3?`${STAR}${STAR}${STAR} 별 3개는 더 합칠 수 없어요`:'';if(why)break;}
+      if(why&&!(m)&&k!==hintKey){hintKey=k;showHint(why);}if(!why)hintKey='';}
+    else hintKey='';
+  }catch(e){console.warn('[편의 묶음]',e);}return res;};
+})();
+</script>
 </body></html>
