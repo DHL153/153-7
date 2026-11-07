@@ -4908,6 +4908,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
           else{r.anim.setExpression('sad');act(r,'sad');wait=Math.max(wait,1050);}
         }
         if(kind!=='run'&&sel.length)wait=Math.max(wait,1050);   // 슬픈 표정을 충분히 본 뒤 카드가 가라앉음
+        if(kind==='dis'&&Date.now()-fogDisT<3000){fogDisT=0;wait=0;}   // 뒷면을 막 뒤집은 버리기: 대기 없이 바로
         const go=()=>{hrWait=false;if(S)S.busy=false;const sn=snap();
           /* 족보 밖 런 카드 (DHL 10-28): 버리기와 똑같이 카드째 아래로 가라앉으며 사라짐 — 게임이 손에서 빼기 전까지 손패 자리는 숨김 */
           if(kind==='run'){const outs=sn.filter(g=>g.out);if(outs.length){outs.forEach(g=>{g.force=true;lmHideU.add(g.uid);});lmHideSync();try{ghost(outs,'dis');}catch(e){console.warn('[손패 리그]',e);}}}
@@ -4919,7 +4920,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       const willChain=m=>!m&&typeof mergeRun==='function'&&mergeRun()&&!S.mrOff&&typeof runPairs==='function'&&runPairs(selCards()).length>0;   /* (DHL 10-30) 머지 & 런 고르기 전에는 카드를 숨기거나 날리지 않음 — 취소하면 그대로 */
       const hasFog=()=>typeof selCards==='function'&&selCards().some(c=>c.fog);   /* (DHL 11-07) 뒷면 카드는 먼저 뒤집고(fogReveal) 나서 연출 */
       const _dp=doPlay;doPlay=function(merged){if(merged===true||!canRun()||hasFog()||willChain(merged))return _dp.apply(this,arguments);return perform('run',_dp,this,arguments);};
-      const _dd=doDiscard;doDiscard=function(){if(!(S&&!S.busy&&S.sel.length&&S.dis>0)||hasFog())return _dd.apply(this,arguments);return perform('dis',_dd,this,arguments);};
+      let fogDisT=0;   /* (DHL 11-08 '뒤집힌 카드를 버리면 앞면 카드를 한 번 더 버리는 것처럼 보임') 뒷면을 뒤집은 바로 뒤 버리기는 시무룩 대기 없이 곧바로 가라앉음 → 뒤집기 + 버리기가 한 동작으로 보이게 */
+      const _dd=doDiscard;doDiscard=function(){if(S&&!S.busy&&S.sel.length&&S.dis>0&&hasFog()){fogDisT=Date.now();return _dd.apply(this,arguments);}if(!(S&&!S.busy&&S.sel.length&&S.dis>0))return _dd.apply(this,arguments);return perform('dis',_dd,this,arguments);};
       const hand=document.getElementById('hand');
       if(hand){let q=false;new MutationObserver(()=>{if(q)return;q=true;queueMicrotask(()=>{q=false;hrSync();});}).observe(hand,{childList:true});hrSync();}
       const st2=document.createElement('style');st2.id='lm-handrig-css';
