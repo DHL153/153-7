@@ -1121,6 +1121,10 @@ body[data-tbl=sky] #mainArea{background-image:url(assets/ui/lamancha/bg_table_sk
 .pileCard{background:url(assets/ui/lamancha/card_back.webp) center/100% 100% no-repeat!important;border:0!important;border-radius:6px}
 .card.dz.fogc .dzb{background:url(assets/ui/lamancha/card_back.webp) center/100% 100% no-repeat!important;box-shadow:0 3px 6px rgba(0,0,0,.5)!important}
 .card.dz.fogc .dzno{opacity:0}
+/* (DHL 11-07) 낸 뒷면 카드가 앞으로 뒤집힘 */
+.card.dz.fogRev{animation:lmFogRev .42s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes lmFogRev{0%{transform:perspective(600px) rotateY(90deg) scale(1.05);filter:brightness(1.8)}60%{filter:brightness(1.3)}100%{transform:perspective(600px) rotateY(0) scale(1);filter:none}}
+@media (prefers-reduced-motion:reduce){.card.dz.fogRev{animation:none}}
 .sToken{position:relative;background:center/contain no-repeat!important;border:0!important;box-shadow:none!important;filter:drop-shadow(0 3px 4px #0008)}
 .sToken[data-rd="0"]{background-image:url(assets/ui/lamancha/token_minion.webp)!important}
 .sToken[data-rd="1"]{background-image:url(assets/ui/lamancha/token_knight.webp)!important}
@@ -3023,6 +3027,12 @@ function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(sel
 function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
   if(!merged&&psyShort()){$('tip').textContent='🎯 다섯의 맹세 — 카드 5장 이상 내야 런할 수 있어요 (★2는 2장 · ★3은 3장 · 족보 밖 카드도 세요)';return;}
+  /* (DHL 11-07) 뒷면 카드를 내면: 먼저 앞으로 뒤집어 보여 주고 → 족보 이름 확인 → 잠깐 뒤 진행 (머지 & 런 짝도 뒤집힌 뒤 다시 찾음) */
+  if(!merged&&selCards().some(c=>c.fog)){const fc=selCards().filter(c=>c.fog);S.busy=true;fc.forEach(c=>delete c.fog);render();
+    fc.forEach((c,i)=>{const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');if(el){el.style.animationDelay=(i*90)+'ms';el.classList.add('fogRev');}});
+    try{window.LMS&&LMS.play('sfx_card_flip_a',{vol:.8,gap:60});}catch(e){}
+    try{const sc=selCards(),pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length));$('htName').textContent=(r.comboTag?r.comboTag+' ':'')+r.label;}catch(e){}
+    setTimeout(()=>{S.busy=false;document.querySelectorAll('#hand .card.fogRev').forEach(x=>{x.classList.remove('fogRev');x.style.animationDelay='';});doPlay();},420+fc.length*90+650);return;}
   if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();S._snap=mrSnap();return runChain();}
   S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
