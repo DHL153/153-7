@@ -5393,6 +5393,20 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-dmg.weak{color:#ffd84a;font-size:19px}.lm-dmg.weak small{color:#fff3b0}
 .lm-dmg.resist{color:#b8c0cc;font-size:11px}
 .lm-dmg.fin{color:#ff5a3c;font-size:22px;-webkit-text-stroke:3px #1b1020;animation:lmDmgFin 1.7s cubic-bezier(.2,1.5,.4,1) forwards}.lm-dmg.fin small{color:#ffe08a;font-size:10px}   /* (DHL 10-28) 마지막 한 방 숫자 30→22px */
+/* (DHL 11-07) 난타 숫자 · 처치 피해 단계 */
+.lm-dmg.flur{font-size:13px;color:#ffe8c2;-webkit-text-stroke:2.5px #1b1020;animation:lmFlur .85s ease-out forwards}
+@keyframes lmFlur{0%{opacity:0;transform:scale(.3) rotate(-8deg)}20%{opacity:1;transform:scale(1.35)}100%{opacity:0;transform:translateY(-22px) scale(.9)}}
+.lm-dmg.fin .okx{display:block;font-style:normal;font-size:11px;color:#fff2a8;-webkit-text-stroke:2.5px #5a1a00;letter-spacing:.02em;margin-bottom:2px}
+.lm-dmg.fin.ok2{font-size:30px;color:#ffb020;-webkit-text-stroke:3.5px #3a1400;filter:drop-shadow(0 0 6px #ff9a3c);animation:lmOkFin2 2.2s cubic-bezier(.2,1.6,.4,1) forwards}
+.lm-dmg.fin.ok5{font-size:40px;color:#ff4d2e;-webkit-text-stroke:4px #2a0600;filter:drop-shadow(0 0 8px #ffcf6a) drop-shadow(0 0 18px #ff3d00);animation:lmOkFin5 2.2s cubic-bezier(.2,1.8,.4,1) forwards}
+.lm-dmg.fin.ok10{font-size:54px;color:#fff6c8;-webkit-text-stroke:5px #6a0010;filter:drop-shadow(0 0 10px #ffe066) drop-shadow(0 0 26px #ff2a00) drop-shadow(0 0 44px #ff0050);animation:lmOkFin10 2.2s cubic-bezier(.2,2,.4,1) forwards}
+.lm-dmg.fin.ok5 .okx,.lm-dmg.fin.ok10 .okx{font-size:14px}
+@keyframes lmOkFin2{0%{opacity:0;transform:scale(.2)}14%{opacity:1;transform:scale(1.6)}28%{transform:scale(1)}80%{opacity:1;transform:translateY(-6px)}100%{opacity:0;transform:translateY(-16px)}}
+@keyframes lmOkFin5{0%{opacity:0;transform:scale(.2) rotate(-6deg)}12%{opacity:1;transform:scale(1.9) rotate(3deg)}22%{transform:scale(.92)}30%{transform:scale(1.05)}36%{transform:scale(1)}82%{opacity:1;transform:translateY(-6px)}100%{opacity:0;transform:translateY(-18px)}}
+@keyframes lmOkFin10{0%{opacity:0;transform:scale(.1)}10%{opacity:1;transform:scale(2.4)}18%{transform:scale(.85)}24%{transform:scale(1.15) rotate(-2deg)}30%{transform:scale(.97) rotate(2deg)}36%{transform:scale(1.03)}42%{transform:scale(1)}84%{opacity:1;transform:translateY(-6px)}100%{opacity:0;transform:translateY(-20px)}}
+#battle-stage.lm-ok10::after{content:"";position:absolute;inset:0;z-index:39;pointer-events:none;background:radial-gradient(circle at 70% 45%,#fff8 0,#ff9a3c55 20%,transparent 60%);animation:lmOk10 .9s ease-out forwards}
+@keyframes lmOk10{0%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.lm-dmg.flur,.lm-dmg.fin.ok2,.lm-dmg.fin.ok5,.lm-dmg.fin.ok10{animation-duration:.01s}}
 @keyframes lmDmg{0%{opacity:0;transform:translateY(8px) scale(.4)}14%{opacity:1;transform:translateY(-4px) scale(1.3)}30%{transform:translateY(-6px) scale(1)}75%{opacity:1;transform:translateY(-14px)}100%{opacity:0;transform:translateY(-22px)}}
 @keyframes lmDmgFin{0%{opacity:0;transform:scale(.3)}12%{opacity:1;transform:scale(1.45)}24%{transform:scale(1)}80%{opacity:1;transform:translateY(-6px)}100%{opacity:0;transform:translateY(-14px)}}
 html.mr-uikit body #app#app#app #boss-hp-track{position:relative}
@@ -7943,7 +7957,21 @@ let isGameOver = false;
     const sb=document.createElement('div');sb.id='lm-sbar';sb.innerHTML='<i class="f"></i><span class="t"></span>';w.parentNode.insertBefore(sb,w);}
   let impact=null,impactT=0,hitCb=null;
   if(window.MRFX&&MRFX.enemyHit){const oh=MRFX.enemyHit;MRFX.enemyHit=function(){const r=oh.apply(this,arguments);land();if(hitCb){const f=hitCb;hitCb=null;try{f();}catch(e){console.warn(e);}}return r;};}
+  /* (DHL 11-07 외부 피드백 · 퍼즐앤드래곤식) 처치 피해가 남은 체력의 1.5배 이상이면: 체력 0인 적에게 작은 숫자 난타 → 단계별 큰 숫자
+     단계 = 2배 금빛 · 5배 붉은 불꽃 + 번쩍 · 10배 화면 번쩍 + 크게 흔들림 + 숫자가 터지듯 */
+  const okTier=k=>k>=10?10:k>=5?5:k>=2?2:k>=1?1:0;
+  function flurN(k){return k<1.5?0:Math.min(14,3+Math.floor(Math.log2(k)*3));}
+  function flurMs(k){const n=flurN(k);return n?n*70+160:0;}
+  function flurry(o){const en=$('enemy');if(!en)return;const n=flurN(o.ok),ex=Math.max(n,o.dmg-(o.dmg/o.ok));
+    const parts=Array.from({length:n},()=>.5+Math.random());const sum=parts.reduce((a,b)=>a+b,0);
+    parts.forEach((w,i)=>setTimeout(()=>{const d=document.createElement('div');d.className='lm-dmg flur';
+      d.style.left=(en.offsetLeft+(Math.random()*.9-.45)*en.offsetWidth)+'px';d.style.top=(en.offsetTop+en.offsetHeight*(.15+Math.random()*.55))+'px';
+      d.innerHTML=`<b>${fmt(ex*w/sum)}</b>`;stage.appendChild(d);setTimeout(()=>d.remove(),900);
+      lmSnd(i%2?'sfx_hit_weak':'sfx_hit_strong',{vol:.35+.3*(i/n),gap:40});try{MRFX.shake(stage,i>n*.6?'m':'s',false);}catch(e){}
+      try{en.animate([{filter:'brightness(2.2)'},{filter:'none'}],{duration:90});}catch(e){}},i*70));}
   function land(){
+    const o0=impact;
+    if(o0&&o0.killed&&o0.ok>=1.5&&!o0._fl){impact=null;clearTimeout(impactT);if(o0.hp!=null){hp=o0.hp;setHud();}flurry(o0);impact={...o0,_fl:1};setTimeout(land,flurMs(o0.ok));return;}
     const o=impact;impact=null;clearTimeout(impactT);if(!o)return;
     if(gsSh&&!gsSh._d&&!gsSh.brk){gsSh._d=1;const sb=$('lm-sbar');if(sb){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');if(gsSh.after>0)sbarSet(gsSh.after,gsSh.max);}}   // (DHL 11-01 깨질 땐 마지막 일격에 0까지 줄어듦) (DHL 10-30) 첫 타격에 방패 에너지부터 깎임 → 그다음 몸체
     if(o.hp!=null){hp=o.hp;setHud();}
@@ -7957,11 +7985,13 @@ let isGameOver = false;
     if(o.combo&&!o._late){setTimeout(()=>popNum({...o,_late:true}),300);return;}
     const en=$('enemy');if(!en)return;
     const d=document.createElement('div');
-    d.className='lm-dmg'+(o.final?' fin':'')+(o.crit?' '+o.crit:'');
+    const tr=o.final&&o.killed?okTier(o.ok||0):0;
+    d.className='lm-dmg'+(o.final?' fin':'')+(o.crit?' '+o.crit:'')+(tr>=2?' ok'+tr:'');
+    if(tr>=5){try{MRFX.flash?.(stage,tr>=10?'rgba(255,255,255,.85)':'rgba(255,190,120,.6)');MRFX.shake(stage,'l',true);}catch(e){}if(tr>=10)stage.classList.add('lm-ok10');setTimeout(()=>stage.classList.remove('lm-ok10'),900);}
     const jx=o.final?0:(Math.random()*16-8);
     d.style.left=(en.offsetLeft+jx)+'px';d.style.top=(en.offsetTop+en.offsetHeight*(o.combo?.02:o.final?.55:.2))+'px';
-    d.innerHTML=(o.final&&o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:o.crit==='weak'?'<small>약점!</small>':o.crit==='resist'?'<small>내성</small>':'')+`<b>${fmt(o.dmg)}</b>`;
-    stage.appendChild(d);setTimeout(()=>d.remove(),o.final?1700:1150);
+    d.innerHTML=(tr>=2?`<em class="okx">체력의 ${(o.ok).toFixed(o.ok<10?1:0)}배!</em>`:'')+(o.final&&o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:o.crit==='weak'?'<small>약점!</small>':o.crit==='resist'?'<small>내성</small>':'')+`<b>${fmt(o.dmg)}</b>`;
+    stage.appendChild(d);setTimeout(()=>d.remove(),o.final?(tr>=2?2300:1700):1150);
   }
   function slowmo(){
     // 쓰러뜨리는 한 방: 0.45초 멈춘 듯 느려지고(연출 시계 정지 · 화면 당김 · 번쩍) → 처치 컷신
@@ -8341,7 +8371,7 @@ let isGameOver = false;
       setMul(ALL,0);await walk(0,-W*.9,520,'in',ALL);setMul(ALL,null);show(ALL,false);
       const heroNum=(hero??-1)+1;
       applyTeam([hero,null,null]);await waitRig([0],3000);
-      const res=await perform(0,heroNum,{enter:true,level:11,impact:{dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:true,heavy:true}});   /* (DHL 11-03 '첫 공격에 점수가 터지는 것 같음') 최종 피해 숫자는 합동기 폭발이 아니라 마지막 일격(주인공 막타)에 */
+      const okC=o.dmg/Math.max(1,hp);const res=await perform(0,heroNum,{enter:true,level:11,impact:{dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:true,heavy:true,ok:okC}});await sleep(flurMs(okC)+(okC>=2?750:0));   /* (DHL 11-03 '첫 공격에 점수가 터지는 것 같음') 최종 피해 숫자는 합동기 폭발이 아니라 마지막 일격(주인공 막타)에 */
       await sleep(520);
       if(!o.demo){
         const en=$('enemy');try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
@@ -8385,9 +8415,10 @@ let isGameOver = false;
     const heroNum=(hero??-1)+1;
     const L=[...new Set(all)];const guests=L.filter(n=>n!==heroNum);
     const heroStrikes=!L.length||L.includes(heroNum)||!!o.killed;
-    const IMP={dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:!!o.killed,heavy:true};
+    const okX=o.killed&&o.dmg>0?o.dmg/Math.max(1,hp):0;   /* (DHL 11-07) 남은 체력의 몇 배를 넣었나 */
+    const IMP={dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:!!o.killed,heavy:true,ok:okX};
     // (DHL 10-28) 적 체력은 공격할 때마다 나눠서 깎임 — 피해 숫자(카운트)는 마지막 일격에 그대로
-    const hp0=hp,hpT=o.hp!=null?o.hp:hp0,K=guests.length+(heroStrikes?1:0),hpAt=i=>Math.max(hpT,Math.round(hp0-(hp0-hpT)*(i+1)/Math.max(1,K)));
+    const hp0=hp,hpT=o.hp!=null?o.hp:hp0,K=guests.length+(heroStrikes?1:0),hpAt=i=>o.killed&&heroStrikes&&okX>=1?Math.max(hpT,Math.round(hp0*.35*Math.pow(.15,i))):Math.max(hpT,Math.round(hp0-(hp0-hpT)*(i+1)/Math.max(1,K)));   /* (DHL 11-07 피드백 '팍팍 깎고 남은 딜은 너덜너덜하게') 처치되는 런: 첫 동료 65% · 다음 85%씩 → 주인공 막타에 난타 */
     await Promise.all(guests.map(loadRigDef));
     let heroOut=false;const outs=[];
     if(guests.length){
@@ -8411,7 +8442,7 @@ let isGameOver = false;
     if(heroStrikes){
       if(heroOut)await waitRig([0],2000);
       const res=await perform(0,heroNum,{enter:heroOut,level:11,impact:IMP});
-      await sleep(o.killed?520:260);
+      await sleep(o.killed?520+flurMs(okX)+(okX>=2?750:0):260);   /* (11-07) 큰 숫자를 볼 시간 */
       if(o.killed&&!o.demo){
         const en=$('enemy');
         try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}

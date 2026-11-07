@@ -3068,6 +3068,8 @@ function tick(now){
   const el=Math.max(0,(now-A.t0)*A.spd), n=A.r.steps.length, idx=Math.max(0,Math.min(n-1,Math.floor(el/STEP)));   // 프레임 시각이 런 시각보다 앞서면 음수가 되어 멈추던 문제 방지
   if(idx!==A.shown){A.shown=idx;const st=A.r.steps[idx],pm=+($('vM').dataset.v||0);rollNum('vC',Math.round(st.chips));rollNum('vM',+st.mult.toFixed(1),1);
     if(st.mult>pm)bump('vM');
+    try{const rem=Math.max(1,(S.tgt||0)-(A.before||0)),cur=st.chips*st.mult,k=cur/rem,t=k>=10?10:k>=5?5:k>=2?2:k>=1?1:0,bx=document.querySelector('.sScoreBox');   /* (DHL 11-07 피드백) 힘 × 배수가 남은 체력을 넘을수록 점수판이 단계별로 달아오름 */
+      if(bx&&String(t)!==bx.dataset.ok){const up=t>(+bx.dataset.ok||0);bx.dataset.ok=t;if(up&&t){bx.classList.remove('okPop');void bx.offsetWidth;bx.classList.add('okPop');try{window.LMS&&LMS.play(t>=5?'sfx_shield_break':'sfx_hit_weak',{vol:t>=5?.6:.45});}catch(e){}}}}catch(e){}
     if(st.i===-1){$('htName').textContent=st.txt;$('tot').textContent='';}
     if(st.orb)flashOrb(st.orb,st.pop);
     if(st.orbs)st.orbs.forEach(k=>flashOrb(k,''));}
@@ -3078,6 +3080,7 @@ function tick(now){
     if(A.r.total>S.best&&S.best>0)setTimeout(()=>popMsg('🏆 신기록! '+A.r.total.toLocaleString()),650);}
   drawStrip(now);
   if(el<n*STEP+END){requestAnimationFrame(tick);return;}
+  {const bx=document.querySelector('.sScoreBox');if(bx){delete bx.dataset.ok;bx.classList.remove('okPop');}}
   S.score=A.before+A.r.total;S.best=Math.max(S.best,A.r.total);try{lmStatHand(A.r)}catch(e){}S.anim=null;S.busy=false;
   S.rv=null;   // 풍차의 룰렛: 런마다 새로 굴림
   if(A.r.osUp&&!A.r.block){S.ostate=S.ostate||{};for(const k in A.r.osUp){S.ostate[k]=Math.round(((S.ostate[k]||0)+A.r.osUp[k])*100)/100;}}
@@ -4503,7 +4506,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r87" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r88" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -9659,4 +9662,17 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
   }catch(e){console.warn('[편의 묶음]',e);}return res;};
 })();
 </script>
+<style id="lm-ok-css">
+/* (DHL 11-07 외부 피드백 '100%를 넘으면 더 화려하게') 점수판: 1배 = 금빛 · 2배 = 주황 불꽃 · 5배 = 붉은 맥박 + 흔들림 · 10배 = 터질 듯 */
+.sScoreBox[data-ok]{transition:filter .2s}
+.sScoreBox[data-ok="1"] #scoreRow{filter:drop-shadow(0 0 6px #f6cf63)}
+.sScoreBox[data-ok="2"] #scoreRow{filter:drop-shadow(0 0 8px #ff9a3c) drop-shadow(0 0 16px #ff6a00aa)}
+.sScoreBox[data-ok="5"] #scoreRow{filter:drop-shadow(0 0 10px #ff4d3d) drop-shadow(0 0 22px #ff2a00cc);animation:lmOkShake .12s linear infinite}
+.sScoreBox[data-ok="10"] #scoreRow{filter:drop-shadow(0 0 12px #fff2a8) drop-shadow(0 0 26px #ff3d00) drop-shadow(0 0 40px #ff0040aa) brightness(1.15);animation:lmOkShake .08s linear infinite}
+.sScoreBox[data-ok="5"] #scoreRow .box,.sScoreBox[data-ok="10"] #scoreRow .box{transform:scale(1.08)}
+.sScoreBox.okPop #scoreRow{animation:lmOkPop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes lmOkPop{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes lmOkShake{0%{transform:translate(0,0)}25%{transform:translate(1.5px,-1px)}50%{transform:translate(-1.5px,1px)}75%{transform:translate(1px,1px)}100%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){.sScoreBox #scoreRow{animation:none!important}}
+</style>
 </body></html>
