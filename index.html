@@ -791,6 +791,12 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 #mr-story .mr-story-frame::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border:solid transparent;border-width:27px 28px;
  border-image:url(assets/ui/theme/ui_frame_main.webp) 106 120 108 120 / 27px 28px / 0 stretch;filter:drop-shadow(0 10px 22px rgba(0,0,0,.7));}
 #mr-story .mr-story-stage{position:absolute;inset:9px;overflow:hidden;background:#efe9dc;cursor:pointer;box-shadow:inset 0 0 18px rgba(60,40,10,.35);}
+/* (DHL 11-08) 컷마다 한 줄 — 그림 아래쪽 크림 띠 */
+#mr-story .mr-story-cap{position:absolute;left:50%;bottom:5%;z-index:6;translate:-50% 0;margin:0;max-width:94%;width:max-content;padding:.4em 1em;border-radius:10px;pointer-events:none;
+  background:linear-gradient(180deg,#fdf4dcf2,#f1dfb2f2);border:2px solid #b5862f;box-shadow:0 6px 18px #0006;color:#3f2709;font:900 clamp(12px,2.4vw,28px)/1.35 'Noto Sans KR',sans-serif;text-align:center;text-wrap:balance}
+#mr-story .mr-story-cap.in{animation:mrCapIn .6s cubic-bezier(.2,1,.3,1) .25s both}
+@keyframes mrCapIn{from{opacity:0;translate:-50% 12px}to{opacity:1;translate:-50% 0}}
+@media (prefers-reduced-motion:reduce){#mr-story .mr-story-cap.in{animation:none}}
 #mr-story .mr-story-stage>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:translateX(14px) scale(1.01);transition:opacity .28s ease,transform .28s ease;}
 #mr-story .mr-story-stage>img.is-current{opacity:1;transform:none;}
 #mr-story .mr-story-stage.is-turning>img{transition:none!important;transform:none!important}
@@ -1754,6 +1760,9 @@ lmSetApply();
 // 조작: 클릭/→/Space/Enter 다음 · ←/Backspace 이전 · Esc 건너뛰기(닫기) · M 음소거 · 컨트롤러 A=다음(포커스), B=Esc
 (()=>{
  const CUTS0=8, SRC0=i=>'assets/art/story/story_'+String(i).padStart(2,'0')+'.webp?v=2'; // v=2: 2026-10-18 3컷 그림 교체(캐시 갱신)
+ /* (DHL 11-08 외부 피드백 '장수가 많아 팍팍 넘기게 됨 · 전달력이 약함') 처음 볼 때 = 3컷 + 컷마다 큰 글씨 한 줄 · 컬렉션 다시 보기 = 8컷 전부 */
+ const FIRST_PICK=[2,3,8];
+ const CAP={2:'고철 더미에서 빛나는 구슬을 주웠다.',3:'구슬 속의 기사가 나를 불렀다.',8:'풍차의 문 너머, 원정이 시작된다.'};
  const SEEN_KEY='mergeRoll.storySeen.v1';
  const ICON={
   prev:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
@@ -1773,7 +1782,8 @@ lmSetApply();
  function play(opts){
   const mode=(opts&&opts.mode)||'replay';
   const first=mode==='first';
-  const SET=opts&&opts.set,CUTS=SET?SET.n:CUTS0,SRC=SET?SET.src:SRC0,scene=!!SET,sceneSeen=scene&&(mode==='replay'||(()=>{try{return localStorage.getItem(SET.key)==='1';}catch(e){return false;}})());   /* (DHL 10-30) 반전 씬 · 엔딩: 처음엔 끝까지(건너뛰기 없음), 본 뒤로는 건너뛰기 */
+  const PICK=!(opts&&opts.set)&&first?FIRST_PICK:null;   // 첫 실행 = 3컷
+  const SET=opts&&opts.set,CUTS=SET?SET.n:PICK?PICK.length:CUTS0,SRC=SET?SET.src:PICK?(i=>SRC0(PICK[i-1])):SRC0,cutNo=i=>SET?null:PICK?PICK[i]:i+1,scene=!!SET,sceneSeen=scene&&(mode==='replay'||(()=>{try{return localStorage.getItem(SET.key)==='1';}catch(e){return false;}})());   /* (DHL 10-30) 반전 씬 · 엔딩: 처음엔 끝까지(건너뛰기 없음), 본 뒤로는 건너뛰기 */
   return new Promise(resolve=>{
    document.getElementById('mr-story')?.remove();
    const host=document.createElement('section');
@@ -1781,7 +1791,7 @@ lmSetApply();
    host.innerHTML=
     '<div class="mr-story-top"><div class="mr-story-title"><span>'+t('스토리')+'</span><span class="mr-story-count"></span></div>'+
     '<div class="mr-story-tools"><button type="button" class="mr-story-icon mr-story-mute"></button><button type="button" class="mr-story-skip"></button></div></div>'+
-    '<div class="mr-story-frame"><div class="mr-story-stage is-loading"><i class="mr-story-spinner"></i>'+
+    '<div class="mr-story-frame"><div class="mr-story-stage is-loading"><i class="mr-story-spinner"></i><p class="mr-story-cap" hidden></p>'+
     '<button type="button" class="mr-story-edge prev" tabindex="-1">'+ICON.prev+'</button><button type="button" class="mr-story-edge next" tabindex="-1">'+ICON.next+'</button></div></div>'+
     '<div class="mr-story-bottom"><button type="button" class="mr-story-prev" aria-label="'+t('이전')+'"></button>'+
     '<div class="mr-story-dots">'+'<i></i>'.repeat(CUTS)+'</div>'+
@@ -1828,6 +1838,7 @@ lmSetApply();
     stage.classList.toggle('is-loading',!(cur.complete&&cur.naturalWidth>0));
     if(!cur.complete)cur.addEventListener('load',()=>{if(idx===imgs.indexOf(cur))stage.classList.remove('is-loading');},{once:true});
     count.textContent=(idx+1)+' / '+CUTS;liveShow();
+    {const cp=stage.querySelector('.mr-story-cap'),tx=CAP[cutNo(idx)];cp.hidden=!tx;if(tx){cp.textContent=t(tx);cp.classList.remove('in');void cp.offsetWidth;cp.classList.add('in');}}
     dots.forEach((d,i)=>{d.classList.toggle('is-on',i===idx);d.classList.toggle('is-done',i<idx);});
     const last=idx===CUTS-1;
     btnPrev.disabled=edgePrev.disabled=idx===0;
