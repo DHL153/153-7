@@ -5467,6 +5467,8 @@ html.mr-uikit body #app#app#app::before,html.mr-uikit body #app#app#app::after{d
 body:has(#battle-stage[data-team-skill="on"]) .lmflip,body:has(#skill-cinematic .mrfc) .lmflip{opacity:0!important}
 /* (DHL 10-30 '컷신 때 방패가 보임') 컷인 · 처치 컷신 동안 적 앞 보석 방패 · 체력 바 관통 선도 숨김 */
 body:has(#battle-stage[data-team-skill="on"]) :is(#lm-gshield,#lm-cap-line),body:has(#battle-stage.skill-cutscene) :is(#lm-gshield,#lm-cap-line),body:has(#skill-cinematic.on) :is(#lm-gshield,#lm-cap-line),body:has(#skill-cinematic .mrfc) :is(#lm-gshield,#lm-cap-line){visibility:hidden!important;opacity:0!important}
+/* (DHL 11-08 '마지막 컷신 위로 처치 숫자가 나옴') 컷인 · 처치 컷신이 덮는 동안 막타 숫자 · 연타 · 격파 글씨 · 난타 숫자도 숨김 — 숫자는 그동안 멈췄다가 컷신이 끝나면 이어서 올라감 */
+body:has(#battle-stage[data-team-skill="on"]) :is(.lm-roll,#lm-combo,.lm-big,.lm-dmg),body:has(#battle-stage.skill-cutscene) :is(.lm-roll,#lm-combo,.lm-big,.lm-dmg),body:has(#skill-cinematic.on) :is(.lm-roll,#lm-combo,.lm-big,.lm-dmg),body:has(#skill-cinematic .mrfc) :is(.lm-roll,#lm-combo,.lm-big,.lm-dmg){visibility:hidden!important}
 </style>
 <style id="lm-capline">/* (DHL 10-29) 관통 — 체력 바 위 🛡 선(이번 런 최대 피해 지점) · 예상 피해 미리보기 */
 #lm-capwrap{position:relative}
@@ -8028,7 +8030,7 @@ let isGameOver = false;
       if(k<1){requestAnimationFrame(step);return;}
       try{d.animate([{scale:'1.5'},{scale:'1'}],{duration:240,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
       const hold=killed?(ok>=2?850:450):420;
-      setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),400);
+      setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),300);
         if(killed){gsDead=true;try{drawGems();}catch(e){}if(en)flip(boss?'fx16':(FXM['fx15_'+(world==='skyarc'?'sky':world)]?'fx15_'+(world==='skyarc'?'sky':world):'fx15'),R(0,boss?15:11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*(boss?2.4:1.7),{fps:20});
           slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
         else hitStop(170);
