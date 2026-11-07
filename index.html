@@ -2376,8 +2376,9 @@ function actRule(k){return {k,...(ACT_RULES[k]||FINAL_RULES[k])};}
 function shuffleA(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function bossRule(j,dk){
   j=j||1;
-  if(j>=8){const ks=Object.keys(FINAL_RULES),k=ks[Math.random()*ks.length|0];const r=actRule(k);r.final=true;if(k==='leaf')r.on=true;return r;}
+  if(j===8||(j>8&&Math.random()<0.4)){const ks=Object.keys(FINAL_RULES),k=ks[Math.random()*ks.length|0];const r=actRule(k);r.final=true;if(k==='leaf')r.on=true;return r;}
   // ht:1 규칙(족보를 비트는 규칙)은 견습엔 없음, 기사는 4장부터, 편력은 처음부터 — 지금은 해당 규칙 없음
+  /* (DHL 11-07) 9장~(무한): 40%는 풍차의 얼굴, 60%는 일반 거인 규칙 */
   const ok=k=>{const R=ACT_RULES[k];if(R.armor&&!armorOn())return false;if(R.ht)return dk==='errant'||(dk!=='app'&&j>=R.min);return j>=R.min;};
   const pool=['inj','wban','elban'].concat(Object.keys(ACT_RULES).filter(ok));
   const k=pool[Math.random()*pool.length|0];
@@ -3172,11 +3173,12 @@ function runEndHTML(won){
   return `<div class="goB${won?' win':''}"><div class="goSide"><div class="goPal">${img?`<img src="${img}" alt="">`:''}</div><div class="goQuip">${lmQuipHTML(quip)}</div></div>`+
    `<div class="goPanel"><h1>${won?(S.finale?'풍차 거인 격파!':'라만차 정복!'):'게임 오버'}</h1>`+
    `<div class="goWide"><span>최고 한 방</span><b class="red">${(S.best||0).toLocaleString()}</b></div>`+
+   (S.endless?`<div class="goWide"><span>무한 원정 최고 · ${DIFF[S.diff].ko}</span><b class="gold">∞ ${Math.max(S.jang,((LM_ST.endless||{})[S.diff]||0))}장</b></div>`:'')+
    `<div class="goWide"><span>가장 많이 낸 족보</span><b>${top&&HT[top[0]]?HT[top[0]][0]+` <small>(${top[1]})</small>`:'—'}</b></div>`+
    `<div class="goGrid"><div class="goCol">${C('낸 카드',rs.play,'blue')}${C('버린 카드',rs.dis,'red')}${C('산 물건',rs.buy,'gold')}${C('리롤',rs.rr,'green')}${C('머지',S.merges||0,'green')}</div>`+
    `<div class="goCol">${C('장',S.jang+(S.endless?'<small>/∞</small>':'<small>/8</small>'),'gold')}${C('라운드',(S.jang-1)*3+S.rd+1,'gold')}`+
    `<div class="goFoe"><span>${won?'마지막 상대':'막아선 상대'}</span><img src="assets/ui/lamancha/${(f&&(window.LM_TOKB||{})[f.boss])||TK[S.rd]}.webp" alt=""><b>${f?f.name:''}</b>${!won&&f?`<small>${(S.score||0).toLocaleString()} / ${(S.tgt||0).toLocaleString()}</small>`:''}</div></div></div>`+
-   `<div class="goBtns">${won&&S.finale&&!S.endless?'<button class="goBtn goEndless" onclick="lmEndless()">원정 계속하기 ∞</button>':''}<button class="goBtn" onclick="lmEndNewRun()">새로운 런</button><button class="goBtn" onclick="goMenu()">메인 메뉴</button></div></div></div>`;
+   `<div class="goBtns">${won&&!S.endless&&(S.finale||S.diff!=='errant')?'<button class="goBtn goEndless" onclick="lmEndless()">원정 계속하기 ∞</button>':''}${won&&!S.endless&&!S.finale&&S.diff!=='errant'?'':'<button class="goBtn" onclick="lmEndNewRun()">새로운 런</button>'}<button class="goBtn" onclick="goMenu()">메인 메뉴</button></div></div></div>`;
 }
 function goMenu(){hideOv();if(S)S._statEnded=1;if(typeof ltShow==='function')ltShow();else newGame();}
 function lose(){
@@ -4025,7 +4027,9 @@ function lmStatHand(r){if(!S||S.practice||S.sandbox||!r)return;
   if(r.total>LM_ST.best){LM_ST.best=r.total;LM_ST.bestLabel=r.label||'';}
   if(r.ht)LM_ST.hands[r.ht]=(LM_ST.hands[r.ht]||0)+1;lmStSave();}
 function lmStatTick(){if(!S||S.practice||S.sandbox)return;const rn=(S.jang-1)*3+S.rd+1;let ch=0;
-  if(rn>LM_ST.bestRound){LM_ST.bestRound=rn;ch=1;}if(S.jang>LM_ST.bestJang){LM_ST.bestJang=S.jang;ch=1;}if(S.gold>LM_ST.maxGold){LM_ST.maxGold=S.gold;ch=1;}if(ch)lmStSave();}
+  if(rn>LM_ST.bestRound){LM_ST.bestRound=rn;ch=1;}if(S.jang>LM_ST.bestJang){LM_ST.bestJang=S.jang;ch=1;}if(S.gold>LM_ST.maxGold){LM_ST.maxGold=S.gold;ch=1;}
+  if(S.endless){const E=LM_ST.endless||(LM_ST.endless={});if(S.jang>(E[S.diff]||0)){E[S.diff]=S.jang;ch=1;}}   /* (DHL 11-07) 난이도마다 무한 원정 최고 장 */
+  if(ch)lmStSave();}
 function lmStatEnd(won){if(!S||S.practice||S.sandbox||S._statEnded)return;S._statEnded=1;LM_ST.runs++;
   if(won){LM_ST.wins++;LM_ST.streak++;LM_ST.maxStreak=Math.max(LM_ST.maxStreak,LM_ST.streak);LM_ST.clears[S.diff]=1;}else LM_ST.streak=0;lmStSave();}
 function ltStatHTML(){
@@ -4040,7 +4044,8 @@ function ltStatHTML(){
   const R=([k,a,b])=>`<div class="st-row"><span>${k}</span><b class="bar" style="--p:${pc(a,b)}%">${pc(a,b)}% <small>(${a}/${b})</small></b></div>`;
   return `<div class="st-grid"><div>`+
     L('최고 한 방',LM_ST.best?LM_ST.best.toLocaleString():'—','red big')+
-    L('최고 라운드',LM_ST.bestRound||'—','gold')+L('최고 장',LM_ST.bestJang?LM_ST.bestJang+' / 8':'—','gold')+
+    L('최고 라운드',LM_ST.bestRound||'—','gold')+L('최고 장',LM_ST.bestJang?(LM_ST.bestJang>8?LM_ST.bestJang+' <small>(∞)</small>':LM_ST.bestJang+' / 8'):'—','gold')+
+    L('무한 원정 최고',(()=>{const E=LM_ST.endless||{},ks=['app','knight','errant'].filter(k=>E[k]);return ks.length?ks.map(k=>`${DIFF[k].ko} ${E[k]}장`).join(' · '):'—';})(),'gold')+
     L('가장 많이 낸 족보',top?`${HT[top[0]]?HT[top[0]][0]:top[0]} <small>(${top[1]})</small>`:'—')+
     L('최고 골드',LM_ST.maxGold?'💰'+LM_ST.maxGold:'—','gold')+
     L('최다 연승',`${LM_ST.maxStreak} <small>(${LM_ST.streak})</small>`)+
