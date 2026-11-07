@@ -2389,8 +2389,14 @@ function bossRule(j,dk){
   return ['inj','wban','elban'].includes(k)?banRule(k,j):actRule(k);
 }
 const ruleTx=foe=>(foe&&foe.rule&&foe.rule.tx)||1;   // 성벽 ×2 · 풍차 축 ×3
+/* (DHL 11-08 '러스트 장에서 러스트 출전 불가') 봉쇄가 그 거인의 열쇠를 막지 않게: 세계 봉쇄는 거인의 세계(= 지금 장 세계)가 아닌 두 세계 중에서, 속성 봉쇄는 거인의 약점 속성이 아닌 것 중에서
+   — 막히면 그 판은 열쇠 3개(방패 무시)가 아예 불가능해져서 '왜 안 되지?'가 됨 */
+function fitBan(f){const R=f&&f.rule,B=R&&R.k==='ban'&&R.ban;if(!B)return f;
+  if(B.w&&B.w===f.home){const o=WORLDS.filter(w=>w!==f.home);B.w=o[Math.random()*o.length|0];R.d=WORLD_KO[B.w]+' 동료 출전 불가';}
+  if(B.el&&typeof weakTo==='function'&&B.el===weakTo(f.el)){const o=ELS.filter(e=>e!==B.el);B.el=o[Math.random()*o.length|0];R.d=B.el+' 카드 출전 불가';}
+  return f;}
 function banned(c,foe){const R=foe&&foe.rule;if(!R)return false;if(R.k==='plant'&&c.star>=3)return true;if(R.k==='pillar'&&R.uids&&R.uids.includes(c.uid))return true;const B=R.ban;if(!B)return false;return (B.n&&B.n.includes(TYPES[c.id].n))||(B.w&&cardW(c)===B.w)||(B.el&&c.el===B.el);}
-function makeFoes(world,j,dk){world=world||'rust';const hs=mixA(NUM_NAME);const fs=makeFoes0(world,j,dk,hs);
+function makeFoes(world,j,dk){world=world||'rust';const hs=mixA(NUM_NAME);const fs=makeFoes0(world,j,dk,hs);fs.forEach(fitBan);
   if(j===8&&dk==='errant'){const b=fs[2];b.name='스카이아크 알론소';b.boss='skyAlonso';}   /* (DHL 10-30) 편력 기사 8장 거인 = 스카이아크 알론소 고정(세계는 무작위) */
   return fs;}
 function makeFoes0(world,j,dk,hs){return [0,1,2].map(r=>{const el=ELS[Math.random()*5|0],ns=FOE_NAMES[world][r];return {rd:r,home:world,hero:hs[r],no:1+(Math.random()*10|0),name:ns[Math.random()*ns.length|0],el,atk:FOE_ATK[r],ints:[],atype:null,   /* (DHL 10-29) 적 공격(반격·표식·베기·독안개) 삭제 — 거인 규칙으로 옮김 */rule:r===2?bossRule(j,dk):null};});}
@@ -2555,7 +2561,7 @@ function campOpen(){if(S.rd>=2)return;S.campSel=[];if(S.campFor!==S.jang*3+S.rd)
 function campPick(k,name){S.campSel=[];
   if(k==='sleep'){const h=hurtCount();S.deck.forEach(c=>{delete c.out;delete c.st;});return campDone(`😴 푹 잤어요 — 부상 ${h.w}장 · 상처 ${h.s}장 회복`);}
   if(k==='walk')return walkStart();
-  if(k==='scout'){if(S.gold<scoutCost())return;S.gold-=scoutCost();S.foes[2].rule=bossRule(S.jang,S.diff);return campDone('🗺 정찰 — 새 거인 규칙: '+S.foes[2].rule.ic+' '+S.foes[2].rule.ko);}
+  if(k==='scout'){if(S.gold<scoutCost())return;S.gold-=scoutCost();S.foes[2].rule=bossRule(S.jang,S.diff);fitBan(S.foes[2]);return campDone('🗺 정찰 — 새 거인 규칙: '+S.foes[2].rule.ic+' '+S.foes[2].rule.ko);}
   const pool=k==='merge'?S.deck.filter(c=>c.star<3):S.deck, by={};pool.forEach(c=>{const n=TYPES[c.id].n;(by[n]=by[n]||[]).push(c);});
   const twin=n=>[1,2].some(st=>(by[n]||[]).filter(c=>c.star===st).length>=2);   // 같은 ★가 2장 이상
   if(!name){const ns=NAMES.map(x=>x[0]).filter(n=>by[n]&&(k!=='merge'||twin(n)));
@@ -3427,7 +3433,7 @@ function applyVoucher(k){
   if(k==='campv')S.campMax=3;
 }
 const price=c=>Math.max(1,Math.round(c*(1-(S.disc||0))));   // 산초의 흥정 할인
-function flagReroll(){if(S.gold<10)return;if(!S.vouch.includes('flagv2')&&S.flagJang===S.jang)return;const tj=S.rd<2?S.jang:S.jang+1,fs=S.rd<2?S.foes:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff));S.gold-=10;S.flagJang=S.jang;fs[2].rule=bossRule(tj,S.diff);popMsg('🚩 '+tj+'장 거인: '+fs[2].rule.ic+' '+fs[2].rule.ko);render();openShop();}
+function flagReroll(){if(S.gold<10)return;if(!S.vouch.includes('flagv2')&&S.flagJang===S.jang)return;const tj=S.rd<2?S.jang:S.jang+1,fs=S.rd<2?S.foes:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff));S.gold-=10;S.flagJang=S.jang;fs[2].rule=bossRule(tj,S.diff);fitBan(fs[2]);popMsg('🚩 '+tj+'장 거인: '+fs[2].rule.ic+' '+fs[2].rule.ko);render();openShop();}
 function reroll(){if(S.freeRR>0){S.freeRR--;S.pick=null;rollTop();render();openShop();return;}if(S.gold<S.rerollCost)return;(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).rr++;S.gold-=S.rerollCost;S.rerollCost++;S.pick=null;rollTop();render();openShop();}
 /* 동료 팩: 3장 중 1장 → 덱에 ★1 한 장 추가 */
 function openPack(){
