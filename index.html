@@ -2261,7 +2261,14 @@ function score(cards,ctx){
   // 머지 콤보: 이번 런에서 머지가 2번이면 ×1.5, 3번 이상이면 ×2
   if((ctx.mcombo||0)>=2){const x=ctx.mcombo>=3?2:1.5;mult*=x;steps.push({i:-2,txt:(ctx.mcombo>=3?'트리플 머지!':'더블 머지!')+' ×'+x+' 배수',pop:'×'+x+' 배수',chips,mult,combo:1});}
   {const L3=(ctx.held||[]).filter(c=>S3(c,'lucia')).length;if(L3){mult+=4*L3;steps.push({i:-2,txt:'✋ 빛나는 손 +'+4*L3+' 배수',pop:'+'+4*L3+' 배수',chips,mult});}}
-  orbs.forEach(k=>{if(!G[k])return;const t=G[k]();if(t)steps.push({i:-2,orb:k,txt:ORBS[k].ko+' '+t,pop:t,chips,mult});});
+  /* (DHL 11-09 '구슬은 머지 되어 있으면 다시 발동') ★2 · ★3 구슬은 ★ 수만큼 나눠서 다시 터짐 — 계산 결과는 그대로, 화면 단계만 나눔
+     더하기 = 같은 값씩 ★ 번 (+6 → +6 → +6) · 곱하기 = 같은 비율씩 ★ 번, 숫자는 마지막에 한 번 (×6) */
+  const perT=(t,n)=>t.replace(/[\d.]+/,x=>String(Math.round(x/n*10)/10));
+  orbs.forEach(k=>{if(!G[k])return;const c0=chips,m0=mult,t=G[k]();if(!t)return;const n=OS(k);
+    if(n<2||(chips===c0&&mult===m0)){steps.push({i:-2,orb:k,txt:ORBS[k].ko+' '+t,pop:t,chips,mult});return;}
+    const mulK=mult!==m0&&/^×/.test(t)&&m0>0;
+    for(let j=1;j<=n;j++){const f=j/n,last=j===n;
+      steps.push({i:-2,orb:k,echo:last?0:j,txt:ORBS[k].ko+' '+t,pop:mulK?(last?t:''):perT(t,n),chips:last?chips:c0+(chips-c0)*f,mult:last?mult:mulK?m0*Math.pow(mult/m0,f):m0+(mult-m0)*f});}});
   chips=Math.max(0,chips);               // 마이너스 힘 카드가 있어도 한 런의 총 힘은 0 아래로 안 감
   mult=Math.round(mult*10)/10;
   /* (DHL 11-05) 족보를 하나로 묶는 거인 규칙(같은 수 금지 · 고집 · 짓누르는 팔) 삭제 — 겹 족보가 기본이라 안 맞음 */
@@ -3075,6 +3082,11 @@ function doPlay(merged){
   render();requestAnimationFrame(tick);
 }
 const STEP=520,END=900;
+/* (DHL 11-09) 단계 길이: 카드 · 배수 = STEP, 구슬 = 0.62배, ★ 재발동 앞 단계 = 0.42배 — 구슬이 많아도 런이 늘어지지 않게 */
+const stepDur=st=>st&&st.orb?STEP*(st.echo?.42:.62):STEP;
+function stepTT(A){if(!A._tt||A._tt.length!==A.r.steps.length+1){let t=0;A._tt=A.r.steps.map(st=>{const a=t;t+=stepDur(st);return a;});A._tt.push(t);}return A._tt;}
+const stepEnd=A=>stepTT(A)[A.r.steps.length];
+function stepIdx(A,el){const tt=stepTT(A),n=A.r.steps.length;let i=0;while(i<n-1&&tt[i+1]<=el)i++;return Math.max(0,Math.min(n-1,i));}
 /* 간단한 주스: 숫자가 굴러 오르고, 배수가 오르면 박스가 튐 */
 function rollNum(id,to,dec=0,pre='',ms=220){
   const el=$(id),from=+(el.dataset.v||0),t0=performance.now();el.dataset.v=to;
@@ -3085,7 +3097,7 @@ function rollNum(id,to,dec=0,pre='',ms=220){
 function bump(id){const el=$(id);el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}
 function tick(now){
   const A=S.anim;if(!A)return;
-  const el=Math.max(0,(now-A.t0)*A.spd), n=A.r.steps.length, idx=Math.max(0,Math.min(n-1,Math.floor(el/STEP)));   // 프레임 시각이 런 시각보다 앞서면 음수가 되어 멈추던 문제 방지
+  const el=Math.max(0,(now-A.t0)*A.spd), n=A.r.steps.length, idx=stepIdx(A,el);   // 프레임 시각이 런 시각보다 앞서면 음수가 되어 멈추던 문제 방지
   if(idx!==A.shown){A.shown=idx;const st=A.r.steps[idx],pm=+($('vM').dataset.v||0);rollNum('vC',Math.round(st.chips));rollNum('vM',+st.mult.toFixed(1),1);
     if(st.mult>pm)bump('vM');
     try{const rem=Math.max(1,(S.tgt||0)-(A.before||0)),cur=st.chips*st.mult,k=cur/rem,t=k>=10?10:k>=5?5:k>=2?2:k>=1?1:0,bx=document.querySelector('.sScoreBox');   /* (DHL 11-07 피드백) 힘 × 배수가 남은 체력을 넘을수록 점수판이 단계별로 달아오름 */
@@ -3093,13 +3105,13 @@ function tick(now){
     if(st.i===-1){$('htName').textContent=st.txt;$('tot').textContent='';}
     if(st.orb)flashOrb(st.orb,st.pop);
     if(st.orbs)st.orbs.forEach(k=>flashOrb(k,''));}
-  if(el>n*STEP&&!A.fin){A.fin=1;rollNum('tot',A.r.total,0,'',600);
+  if(el>stepEnd(A)&&!A.fin){A.fin=1;rollNum('tot',A.r.total,0,'',600);
     if(A.r.capHit){const bl=A.r.sh?Math.max(0,A.r.sh.before-A.r.sh.after):A.r.rawTotal-A.r.total,kn=A.r.keys?A.r.keys.n:0;lmCapFx('cap',`🛡 ${bl.toLocaleString()}`,`방패 ${bl.toLocaleString()} 깎임 · 몸체 ${A.r.total.toLocaleString()} · 맞춤 ${kn}/3`);popMsg(`🛡 방패 ${bl.toLocaleString()} 깎임 · 몸체 ${A.r.total.toLocaleString()}`);const kb=$('keyBar');if(kb){kb.classList.remove('capHit');void kb.offsetWidth;kb.classList.add('capHit');}}
     // (DHL 10-30) 관통 글씨는 무대의 큰 '관통!' 하나만   // 총점이 굴러 오름
     if(A.r.total>=S.tgt*0.5){$('app').classList.remove('shake');void $('app').offsetWidth;$('app').classList.add('shake');}   // 큰 한 방 → 화면 흔들림
     if(A.r.total>S.best&&S.best>0)setTimeout(()=>popMsg('🏆 신기록! '+A.r.total.toLocaleString()),650);}
   drawStrip(now);
-  if(el<n*STEP+END){requestAnimationFrame(tick);return;}
+  if(el<stepEnd(A)+END){requestAnimationFrame(tick);return;}
   {const bx=document.querySelector('.sScoreBox');if(bx){delete bx.dataset.ok;bx.classList.remove('okPop');}}
   S.score=A.before+A.r.total;S.best=Math.max(S.best,A.r.total);try{lmStatHand(A.r)}catch(e){}S.anim=null;S.busy=false;
   S.rv=null;   // 풍차의 룰렛: 런마다 새로 굴림
@@ -3134,9 +3146,9 @@ function drawStrip(now){
   // 적
   const big=S.rd===2, ew=big?96:76, eh=big?88:70, ex=W-ew-16;
   let dealt=S.score;
-  if(A){const el=(now-A.t0)*A.spd,n=A.r.steps.length;if(el>n*STEP){const k=Math.min(1,(el-n*STEP)/400);dealt=A.before+A.r.total*k;}else dealt=A.before;}
+  if(A){const el=(now-A.t0)*A.spd,n=A.r.steps.length;if(el>stepEnd(A)){const k=Math.min(1,(el-stepEnd(A))/400);dealt=A.before+A.r.total*k;}else dealt=A.before;}
   const hp=Math.max(0,1-dealt/S.tgt);
-  const shake=A&&((now-A.t0)*A.spd)>A.r.steps.length*STEP&&((now-A.t0)*A.spd)<A.r.steps.length*STEP+300?Math.sin(now/20)*4:0;
+  const shake=A&&((now-A.t0)*A.spd)>stepEnd(A)&&((now-A.t0)*A.spd)<stepEnd(A)+300?Math.sin(now/20)*4:0;
   g.fillStyle=S.foe?EL_C[S.foe.el]:'#5b5566';g.fillRect(ex+shake,gy-eh,ew,eh);
   g.strokeStyle='#fff8';g.lineWidth=2;g.strokeRect(ex+shake,gy-eh,ew,eh);
   g.fillStyle='#fff';g.font='bold 15px sans-serif';g.textAlign='center';g.font='bold 13px sans-serif';const fn=S.foe?S.foe.name:'',sp=fn.split(' ');sp.forEach((t,i)=>g.fillText(t,ex+ew/2+shake,gy-eh/2+(i-(sp.length-1)/2)*16+5));
@@ -3146,7 +3158,7 @@ function drawStrip(now){
   g.font='bold 11px sans-serif';g.fillStyle='#fff';g.textAlign='right';g.fillText(Math.max(0,Math.ceil(S.tgt-dealt)).toLocaleString(),ex-4,gy-eh-2);g.textAlign='center';
   // 동료
   if(!A){g.textAlign='left';g.font='bold 13px sans-serif';g.fillStyle='#fffd';g.fillText(S.runs>0?'카드 5장을 골라 런!':'',12,20);return;}
-  const el=(now-A.t0)*A.spd, n=A.r.steps.length, cur=Math.floor(el/STEP), f=(el%STEP)/STEP;
+  const el=(now-A.t0)*A.spd, n=A.r.steps.length, cur=el>=stepEnd(A)?n:stepIdx(A,el), f=cur<n?(el-stepTT(A)[cur])/stepDur(A.r.steps[cur]):0;
   A.cards.forEach((c,i)=>{
     const si=A.r.steps.findIndex(s=>s.i===i);
     let x=14+i*42, act=si===cur;
@@ -3159,7 +3171,7 @@ function drawStrip(now){
       g.font='bold 14px sans-serif';g.fillStyle='#93c5fd';g.fillText('+'+st.add,x+sz/2,yy);
       if(st.txt&&si===cur){g.fillStyle='#fca5a5';g.font='bold 12px sans-serif';g.fillText(st.txt,x+sz/2,yy-15);}}
   });
-  if(el>n*STEP){g.font='bold 30px sans-serif';g.fillStyle='#ffd34d';g.textAlign='center';g.fillText(A.r.total.toLocaleString(),ex-80,44);}
+  if(el>stepEnd(A)){g.font='bold 30px sans-serif';g.fillStyle='#ffd34d';g.textAlign='center';g.fillText(A.r.total.toLocaleString(),ex-80,44);}
 }
 cv.onclick=()=>{if(S.anim)S.anim.spd=S.anim.spd===1?3:S.anim.spd;};
 
@@ -4526,7 +4538,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r97" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r98" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4597,10 +4609,12 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     lastNow=now;
     const r=_tick.apply(this,arguments);
     if(A&&A._st){
-      const n=A.r.steps.length,el=Math.max(0,(now-A.t0)*A.spd),idx=Math.max(0,Math.min(n-1,Math.floor(el/STEP)));
+      const n=A.r.steps.length,el=Math.max(0,(now-A.t0)*A.spd),idx=stepIdx(A,el);
       const maxHp=Math.max(1,S.tgt||1);
       for(let i=A._st.done+1;i<=idx;i++){
         const st=A.r.steps[i];A._st.done=i;
+        if(st.orb&&!A.r.block){   /* (DHL 11-09) 구슬 발동(★ 재발동 포함) = 콤보 +1 — 구슬 기운이 주인공에게 모임 (피해 숫자 없음) */
+          A._st.combo++;const combo=A._st.combo,level=Math.max(0,Math.min(11,1+combo*2));hitMode();call(stg=>stg.hit({num:team[0]!=null?team[0]:undefined,level,dmg:0,combo,orb:1}));continue;}
         if(!(st.i>=0)||st.out)continue;
         const c=A.cards[st.i];if(!c)continue;
         const num=numOf(c),dmg=Math.max(0,st.add||0)*A._st.scale;A._st.drained+=dmg;A._st.combo++;

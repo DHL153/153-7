@@ -7995,7 +7995,7 @@ let isGameOver = false;
   let comboEl=null,comboT=0;
   /* (DHL 11-08) 겹 족보 연타 · 숫자 색: 1~5 금 · 6~10 주황 · 11~14 빨강 · 15~ 흰 불꽃 · 겹이 바뀌면 크게 튕김 · 10 · 15에서 소리 */
   function comboShow(n,col,layer){if(!comboEl){comboEl=document.createElement('div');comboEl.id='lm-combo';stage.appendChild(comboEl);}
-    let w='연타';try{w=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(w))||w;}catch(e){}
+    let w='콤보';try{w=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(w))||w;}catch(e){}
     const tier=n>=15?3:n>=11?2:n>=6?1:0;
     comboEl.innerHTML=`<b>${dig(n,tier)}</b><small>${w}</small>`;comboEl.className='on t'+(tier+1)+(layer?' lay':'');comboEl.style.setProperty('--s',(1+Math.min(1.25,(n-1)*.085)).toFixed(2));
     comboEl.style.left=(stage.clientWidth*.36)+'px';comboEl.style.top=(stage.clientHeight*.2)+'px';
