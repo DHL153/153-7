@@ -8030,7 +8030,7 @@ let isGameOver = false;
         lmSnd('sfx_score_over',{vol:.8});try{MRFX.flash?.(stage,'rgba(255,255,255,.8)');MRFX.shake(stage,'l',true);}catch(e){}
         if(en)flip('fx14',R(0,7),en.offsetLeft,en.offsetTop+en.offsetHeight*.5,en.offsetHeight*1.6,{fps:20});
         let t='격파!';try{t=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(t))||t;}catch(e){}bigText(t,'brk');
-        if(boss){cine(true);try{const E=enemyPt();stage.style.transformOrigin=`${E.x}px ${E.y}px`;zoomA=stage.animate([{transform:'scale(1)'},{transform:'scale(1.1)'}],{duration:420,easing:'cubic-bezier(.2,.8,.3,1)',fill:'forwards'});}catch(e){}}
+        if(boss){/* (DHL 11-08) 위아래 검은 띠(레터박스) 뺌 — 무대가 잘려 보임. 화면 당김(줌)만 */try{const E=enemyPt();stage.style.transformOrigin=`${E.x}px ${E.y}px`;zoomA=stage.animate([{transform:'scale(1)'},{transform:'scale(1.1)'}],{duration:420,easing:'cubic-bezier(.2,.8,.3,1)',fill:'forwards'});}catch(e){}}
         if(ok>=1.5)setTimeout(()=>flurry({...o,ok},Math.max(300,dur*(1-k)-120)),boss?380:200);}
       if(k<1){requestAnimationFrame(step);return;}
       try{d.animate([{scale:'1.5'},{scale:'1'}],{duration:240,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
@@ -8040,7 +8040,7 @@ let isGameOver = false;
           else flip(FXM['fx15_'+(world==='skyarc'?'sky':world)]?'fx15_'+(world==='skyarc'?'sky':world):'fx15',R(0,11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*1.7,{fps:20});}
           slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
         else hitStop(170);
-        setTimeout(()=>{if(boss){cine(false);if(zoomA){try{zoomA.cancel();}catch(e){}}stage.style.transformOrigin='';}done();rollP=null;},killed?260:0);},hold);};
+        setTimeout(()=>{if(boss){if(zoomA){try{zoomA.cancel();}catch(e){}}stage.style.transformOrigin='';}done();rollP=null;},killed?260:0);},hold);};
     requestAnimationFrame(step);}
   function land(){
     const o=impact;impact=null;clearTimeout(impactT);if(!o)return;
