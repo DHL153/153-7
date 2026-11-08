@@ -8011,7 +8011,7 @@ let isGameOver = false;
     if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}
     resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}
     const d=document.createElement('div');d.className='lm-roll t1';if(en){d.style.left=(en.offsetLeft)+'px';d.style.top=(en.offsetTop+en.offsetHeight*.42)+'px';}
-    d.innerHTML=(o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:'')+'<b>'+dig('0',0)+'</b>';stage.appendChild(d);const B=d.querySelector('b');
+    d.innerHTML='<b>'+dig('0',0)+'</b>';   /* (DHL 11-08) 막타 숫자 위 ×배수 표시 뺌 — 점수판과 겹치고 헷갈림 */stage.appendChild(d);const B=d.querySelector('b');
     const dur=killed?Math.min(2300,750+Math.log2(1+ok)*480):620;
     let el=0,last=performance.now(),holdTo=0,broke=!killed,tickT=0,tier=1,zoomA=null;
     const step=now=>{const dt=Math.min(60,now-last);last=now;if(now<holdTo||(typeof cutOn==='function'&&cutOn())){requestAnimationFrame(step);return;}el+=dt;   /* 컷인이 덮는 동안은 숫자도 멈춤 */
@@ -8056,7 +8056,7 @@ let isGameOver = false;
     if(tr>=5){try{MRFX.flash?.(stage,tr>=10?'rgba(255,255,255,.85)':'rgba(255,190,120,.6)');MRFX.shake(stage,'l',true);}catch(e){}}
     const jx=o.final?0:(Math.random()*16-8);
     d.style.left=(en.offsetLeft+jx)+'px';d.style.top=(en.offsetTop+en.offsetHeight*(o.combo?.02:o.final?.55:.2))+'px';
-    d.innerHTML=(o.final&&o.mult>1?`<small>×${(+o.mult).toFixed(o.mult%1?1:0)}</small>`:o.crit==='weak'?'<small>약점!</small>':o.crit==='resist'?'<small>내성</small>':'')+`<b>${fmt(o.dmg)}</b>`;
+    d.innerHTML=(false?``:o.crit==='weak'?'<small>약점!</small>':o.crit==='resist'?'<small>내성</small>':'')+`<b>${fmt(o.dmg)}</b>`;
     stage.appendChild(d);setTimeout(()=>d.remove(),o.final?(tr>=2?2300:1700):1150);
   }
   function slowmo(){
