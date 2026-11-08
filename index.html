@@ -1715,7 +1715,7 @@ MR.toggleSound=function(){gameSettings.masterVolume=gameSettings.masterVolume>0?
 <script id="lm-settings">
 /* ⚙ 설정 (발라트로 옵션 → 설정: 게임 · 그래픽 · 오디오 탭) — 2026-10-27
    실제로 동작하는 항목만 넣음. 저장 키 lm_settings */
-const LM_SET_DEF={fxpol:1,armor:true,btnpos:'pd',speed:1,shake:50,rm:false,shadow:true,motion:true,tbl:true,master:65,music:25,sfx:45};   /* (DHL 11-06) 첫 실행 소리 기본값: 마스터 65 · 음악 25 · 게임 45 · 효과음 다듬기 켜짐 (외부 피드백 '처음 소리가 너무 작다' → 10·10에서 올림) */
+const LM_SET_DEF={melody:true,fxpol:1,armor:true,btnpos:'pd',speed:1,shake:50,rm:false,shadow:true,motion:true,tbl:true,master:65,music:25,sfx:45};   /* (DHL 11-06) 첫 실행 소리 기본값: 마스터 65 · 음악 25 · 게임 45 · 효과음 다듬기 켜짐 (외부 피드백 '처음 소리가 너무 작다' → 10·10에서 올림) */
 let LM_SET={...LM_SET_DEF};
 try{Object.assign(LM_SET,JSON.parse(localStorage.getItem('lm_settings')||'{}'));}catch(e){}
 try{if(!localStorage.getItem('lm_vol25')){if(LM_SET.music===10&&LM_SET.sfx===10){LM_SET.music=25;LM_SET.sfx=45;localStorage.setItem('lm_settings',JSON.stringify(LM_SET));}localStorage.setItem('lm_vol25','1');}}catch(e){}   /* 하루 동안 기본값이던 10·10을 그대로 둔 사람만 한 번 새 기본값으로 */
@@ -1744,10 +1744,10 @@ function ltSetHTML(){
   let h=`<div class="ls-tabs">${tab('game','게임')}${tab('gfx','그래픽')}${tab('audio','오디오')}</div><div class="ls-body">`;
   if(ltSetTab==='game')h+=step('speed','게임 속도',[[1,'1'],[2,'2'],[3,'3'],[4,'4']])+step('btnpos','런/버리기 버튼 위치',[['pd','런/버리기'],['dp','버리기/런']])+sld('shake','화면 흔들기')+chk('rm','동작 감소');   /* (DHL 11-05) 스토리 · 첫 실행 연출 다시 보기는 컬렉션 › 다시 보기로 옮김 */
   if(ltSetTab==='gfx')h+=step('shadow','그림자',[[true,'켜짐'],[false,'꺼짐']])+step('motion','카드 몸짓',[[true,'켜짐'],[false,'꺼짐']])+step('tbl','테이블 무늬',[[true,'켜짐'],[false,'꺼짐']]);
-  if(ltSetTab==='audio')h+=sld('master','마스터 볼륨')+sld('music','음악 볼륨')+sld('sfx','게임 볼륨')+step('fxpol','효과음 다듬기',[[1,'켜짐'],[0,'꺼짐']]);
+  if(ltSetTab==='audio')h+=sld('master','마스터 볼륨')+sld('music','음악 볼륨')+sld('sfx','게임 볼륨')+step('fxpol','효과음 다듬기',[[1,'켜짐'],[0,'꺼짐']])+step('melody','멜로디 콤보',[[true,'켜짐'],[false,'꺼짐']])+`<div class="ls-note">콤보가 9번째를 넘으면 동요 한 곡이 한 음씩 연주돼요</div>`;
   return h+`</div>`;
 }
-function ltStep(k,d){const opts={btnpos:['pd','dp'],speed:[1,2,3,4],shadow:[true,false],motion:[true,false],tbl:[true,false],fxpol:[1,0]}[k];const i=opts.indexOf(LM_SET[k]);LM_SET[k]=opts[(i+d+opts.length)%opts.length];lmSetSave();lmSetApply();ltPop('set');}
+function ltStep(k,d){const opts={btnpos:['pd','dp'],speed:[1,2,3,4],shadow:[true,false],motion:[true,false],tbl:[true,false],fxpol:[1,0],melody:[true,false]}[k];const i=opts.indexOf(LM_SET[k]);LM_SET[k]=opts[(i+d+opts.length)%opts.length];lmSetSave();lmSetApply();ltPop('set');}
 function ltSlide(k,el){LM_SET[k]=+el.value;el.style.setProperty('--p',el.value+'%');el.style.setProperty('--pn',el.value/100);el.nextElementSibling.textContent=el.value;lmSetSave();lmSetApply();if(k!=='sfx'&&LM_SET.master>0&&LM_SET.music>0)unlockGameAudio();}
 lmSetApply();
 
@@ -9403,7 +9403,19 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   /* (DHL 11-05) 점수 소리 = 도레미파솔라시도로 한 칸씩 올라감 — 런 한 번에 카드 → 배수 → 구슬 순서대로. 8칸 넘으면 다음 옥타브(레 미 파 …), 두 옥타브 위 '도'에서 멈춤
      (11-03 동요 3곡은 변형마다 음높이가 달라 노래로 안 들려서 바꿈 — 이제 이 구간은 변형 a 하나로 고정) */
   const SCALE=[0,2,4,5,7,9,11,12,14,16,17,19,21,23,24];
-  const note=A=>{const k=A._sc=(A._sc||0)+1;return Math.pow(2,SCALE[Math.min(k-1,SCALE.length-1)]/12);};
+  /* (DHL 11-08 '153-6처럼 노래 3곡') 멜로디 콤보: 1~8번째 = 도레미파솔라시도, 9번째부터 = 동요 3곡 중 하나를 한 옥타브 위에서 한 음씩 (런마다 무작위 · 같은 곡 연달아 X · 끝나면 처음부터)
+     설정 › 오디오 › 멜로디 콤보를 끄면 지금처럼 두 옥타브 위 '도'까지 오르고 멈춤. 세 곡 모두 저작권 없음 (프랑스 민요 · 독일 민요 · 베토벤) — 153-6 MERGE_MELODIES 그대로 */
+  const SONGS=[[0,0,7,7,9,9,7, 5,5,4,4,2,2,0],          // 반짝반짝 작은별
+               [7,4,4, 5,2,2, 0,2,4,5,7,7,7],            // 나비야
+               [4,4,5,7,7,5,4,2, 0,0,2,4,4,2,2]];        // 환희의 송가
+  let lastSong=-1;
+  const note=A=>{const r=note0(A);if(window.__lmsLog)window.__lmsLog.push('note:'+Math.round(12*Math.log2(r)));return r;};   // 시험용 기록
+  const note0=A=>{const k=A._sc=(A._sc||0)+1;
+    if(k>8&&(typeof LM_SET==='undefined'||LM_SET.melody!==false)){
+      if(A._song==null){let i=Math.random()*SONGS.length|0;if(i===lastSong)i=(i+1+(Math.random()*(SONGS.length-1)|0))%SONGS.length;A._song=lastSong=i;}
+      try{if(typeof syncBgm==='function'){bgmDuck=.65;syncBgm();clearTimeout(note._d);note._d=setTimeout(()=>{bgmDuck=1;syncBgm();},1200);}}catch(e){}   // 노래 동안 배경음악 살짝 낮춤
+      const sg=SONGS[A._song];return Math.pow(2,(12+sg[(k-9)%sg.length])/12);}
+    return Math.pow(2,SCALE[Math.min(k-1,SCALE.length-1)]/12);};
   W('tick',o=>function(now){const A=S&&S.anim,sh=A?A.shown:-1,fin=A?A.fin:1,pm=+(document.getElementById('vM')?.dataset.v||0);
     const r=o.apply(this,arguments);
     try{if(A&&!A._snd){A._snd=1;P('sfx_run_charge');const k=A.r&&A.r.keys;if(k&&k.n&&!S.sandbox)P(k.n>=3?'sfx_key_full':'sfx_key_match',{delay:300});}
