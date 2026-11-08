@@ -8002,8 +8002,13 @@ let isGameOver = false;
     clearTimeout(comboT);comboT=setTimeout(comboHide,2600);}
   function comboHide(){if(comboEl)comboEl.className='';}
   /* B · C: 막타 카운트업 */
-  let rollP=null,cineEl=null;
+  let rollP=null,cineEl=null,defRoll=null;
   function rollWait(){return rollP||Promise.resolve();}
+  async function killSeq(){   /* (DHL 11-08) 처치: 처치 컷신 먼저 → 무대로 돌아와 피해 숫자가 0부터 굴러 오르며 체력이 빠짐 → 격파 · 난타 · 폭발 → 쓰러짐 */
+    cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
+    const o=defRoll;defRoll=null;if(o){await sleep(180);rollFinal(o);await rollWait();}
+    const en=$('enemy');try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
+    await sleep(420);}
   function cine(on){if(!cineEl){cineEl=document.createElement('div');cineEl.id='lm-cine';cineEl.innerHTML='<i></i><i></i>';document.body.appendChild(cineEl);}cineEl.classList.toggle('on',!!on);}
   function rollFinal(o){let done;rollP=new Promise(r=>done=r);
     const en=$('enemy'),hpS=hp,hp0=Math.max(1,o.hp0||hpS),hpEnd=o.hp!=null?o.hp:hpS,total=o.dmg,killed=!!o.killed,ok=killed?(o.ok||total/hp0):0,boss=killed&&kind==='boss';
@@ -8039,6 +8044,7 @@ let isGameOver = false;
     requestAnimationFrame(step);}
   function land(){
     const o=impact;impact=null;clearTimeout(impactT);if(!o)return;
+    if(o.final&&o.dmg>0&&!o.combo&&o.defer){defRoll=o;resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}hitStop(170);return;}   /* (DHL 11-08) 처치 막타: 숫자 없이 맞는 순간만 → 처치 컷신 → 그 뒤 숫자가 0부터 */
     if(o.final&&o.dmg>0&&!o.combo){rollFinal(o);return;}   // (11-07) 막타 = 카운트업
     if(gsSh&&!gsSh._d&&!gsSh.brk){gsSh._d=1;const sb=$('lm-sbar');if(sb){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');if(gsSh.after>0)sbarSet(gsSh.after,gsSh.max);}}   // (DHL 11-01 깨질 땐 마지막 일격에 0까지 줄어듦) (DHL 10-30) 첫 타격에 방패 에너지부터 깎임 → 그다음 몸체
     if(o.hp!=null){hp=o.hp;setHud();}
@@ -8443,13 +8449,9 @@ let isGameOver = false;
       setMul(ALL,0);await walk(0,-W*.9,520,'in',ALL);setMul(ALL,null);show(ALL,false);
       const heroNum=(hero??-1)+1;
       applyTeam([hero,null,null]);await waitRig([0],3000);
-      const okC=o.dmg/Math.max(1,hpC0);const res=await perform(0,heroNum,{enter:true,level:11,impact:{dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:true,heavy:true,ok:okC,hp0:hpC0}});await rollWait();   /* (DHL 11-03 '첫 공격에 점수가 터지는 것 같음') 최종 피해 숫자는 합동기 폭발이 아니라 마지막 일격(주인공 막타)에 */
+      const okC=o.dmg/Math.max(1,hpC0);const res=await perform(0,heroNum,{enter:true,level:11,impact:{dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:true,heavy:true,ok:okC,hp0:hpC0,defer:!o.demo}});await rollWait();   /* (DHL 11-03 '첫 공격에 점수가 터지는 것 같음') 최종 피해 숫자는 합동기 폭발이 아니라 마지막 일격(주인공 막타)에 */
       await sleep(520);
-      if(!o.demo){
-        const en=$('enemy');try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
-        cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
-        await exit();return;
-      }
+      if(!o.demo){await killSeq();await exit();return;}
       cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
       await goHome(0,res);return;
     }
@@ -8489,7 +8491,7 @@ let isGameOver = false;
     const L=[...new Set(all)];const guests=L.filter(n=>n!==heroNum);
     const heroStrikes=!L.length||L.includes(heroNum)||!!o.killed;
     const okX=o.killed&&o.dmg>0?o.dmg/Math.max(1,hp):0;   /* (DHL 11-07) 남은 체력의 몇 배를 넣었나 */
-    const IMP={dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:!!o.killed,heavy:true,ok:okX,hp0:hp};
+    const IMP={dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:!!o.killed,heavy:true,ok:okX,hp0:hp,defer:!!o.killed&&!o.demo&&heroStrikes};
     // (DHL 10-28) 적 체력은 공격할 때마다 나눠서 깎임 — 피해 숫자(카운트)는 마지막 일격에 그대로
     const hp0=hp,hpT=o.hp!=null?o.hp:hp0,K=guests.length+(heroStrikes?1:0),hpAt=i=>o.killed&&heroStrikes&&okX>=1?Math.max(hpT,Math.round(hp0*.35*Math.pow(.15,i))):Math.max(hpT,Math.round(hp0-(hp0-hpT)*(i+1)/Math.max(1,K)));   /* (DHL 11-07 피드백 '팍팍 깎고 남은 딜은 너덜너덜하게') 처치되는 런: 첫 동료 65% · 다음 85%씩 → 주인공 막타에 난타 */
     await Promise.all(guests.map(loadRigDef));
@@ -8516,13 +8518,7 @@ let isGameOver = false;
       if(heroOut)await waitRig([0],2000);
       const res=await perform(0,heroNum,{enter:heroOut,level:11,impact:IMP});
       await rollWait();await sleep(o.killed?260:120);   /* (11-07) 막타 카운트업이 끝날 때까지 */
-      if(o.killed&&!o.demo){
-        const en=$('enemy');
-        try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
-        cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');
-        await sleep(80);await waitIdle(4000);cast.finish=false;
-        await exit();
-      }else{
+      if(o.killed&&!o.demo){await killSeq();await exit();}else{
         if(o.killed&&o.demo){cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;demoPh='end';}   // (DHL 11-01) 처치 컷신 보기는 컷신이 끝나면 그대로 끝 — 전투 화면으로 돌아가지 않음 (무대는 바깥에서 감춘 뒤 원래대로)
         else await goHome(0,res);
       }
