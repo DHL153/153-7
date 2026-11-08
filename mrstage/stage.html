@@ -8181,7 +8181,8 @@ let isGameOver = false;
   }
   /* (DHL 11-02) 모은 힘 숫자: 쌓이는 것까지만 보이고, 캐릭터가 공격하러 들어가면 위로 살짝 떠오르며 사라짐 (컷인 · 컷신 위에 남지 않게) */
   let chargeGone=false;
-  function hideCharge(){chargeGone=true;if(!chargeEl||!chargeEl.classList.contains('on')||chargeEl._fading)return;chargeEl._fading=true;
+  function hideCharge(){chargeGone=true;if(auraEl)auraEl.classList.remove('on','full');   /* (DHL 11-08 '공격이 시작돼도 후광이 남아 있음') 모은 힘 후광은 주인공 자리에 고정이라, 캐릭터가 공격하러 움직이면 숫자와 함께 사라짐 */
+    if(!chargeEl||!chargeEl.classList.contains('on')||chargeEl._fading)return;chargeEl._fading=true;
     const a=chargeEl.animate([{opacity:1,transform:'translateY(0) scale(1)'},{opacity:0,transform:'translateY(-14px) scale(1.15)'}],{duration:320,easing:'ease-in',fill:'forwards'});
     a.onfinish=()=>{chargeEl._fading=false;chargeEl.classList.remove('on');chargeEl.textContent='';a.cancel();};}
   function resetCharge(){charge=0;chargeGone=false;if(auraEl){auraEl.classList.remove('on');auraEl.style.setProperty('--k','0');}if(chargeEl){chargeEl.classList.remove('on');chargeEl.textContent='';}}
