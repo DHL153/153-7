@@ -9664,6 +9664,7 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
   background:linear-gradient(180deg,#fdf4dc,#f1dfb2);border:2px solid #b5862f;color:#3f2709;font:800 14px/1.2 'Noto Sans KR',sans-serif;white-space:nowrap;
   box-shadow:0 6px 16px #0009;opacity:0;transition:opacity .2s,translate .2s;translate:0 6px}
 #lmStarHint.on{opacity:1;translate:0 0}
+html body #app.bl #btns>#bMerge.lmWhy{filter:grayscale(.85) brightness(.55)!important;opacity:.75;cursor:not-allowed}
 #lmStarHint img{width:15px;height:15px;vertical-align:-2px;margin:0 1px}
 @media (prefers-reduced-motion:reduce){#btns .lmBig.lmLast .lmCnt,.sCell.lmLast b{animation:none}}
 </style>
@@ -9686,13 +9687,16 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
     const m=!S.busy&&sc.length>=2&&(mr?(!S.mrOff&&runPairs(sc).length>0):!!canMerge());
     if(m&&!wasM&&window.lmShine){const t=mr?bp:$('bMerge');if(t)lmShine(t,{tint:'#f6cf63'});}
     wasM=m;
-    /* ③ 같은 동료인데 안 합쳐질 때: 왜인지 한 줄 */
-    if(!S.busy&&sc.length>=2){let why='',k='';
-      for(let i=0;i<sc.length&&!why;i++)for(let j=i+1;j<sc.length;j++){const a=sc[i],b=sc[j];if(a.fog||b.fog||TYPES[a.id].n!==TYPES[b.id].n||mergeKind(a,b))continue;
-        k=a.uid+'_'+b.uid;why=a.star!==b.star?`${STAR} 별 수가 같아야 합쳐져요`:a.star>=3?`${STAR}${STAR}${STAR} 별 3개는 더 합칠 수 없어요`:'';if(why)break;}
-      if(why&&!(m)&&k!==hintKey){hintKey=k;showHint(why);}if(!why)hintKey='';}
-    else hintKey='';
+    /* ③ 같은 동료인데 안 합쳐질 때: 왜인지 한 줄 — (DHL 11-08) 고를 때가 아니라 '머지'를 눌렀을 때만 잠깐 (버튼은 꺼진 모양 그대로 · 눌리기만 함) */
+    whyNow=(!S.busy&&sc.length>=2&&!m)?whyOf(sc):'';
+    const bm=$('bMerge');if(bm&&!mr){const soft=!!whyNow&&bm.disabled;if(soft)bm.disabled=false;bm.classList.toggle('lmWhy',soft);}
   }catch(e){console.warn('[편의 묶음]',e);}return res;};
+  let whyNow='';
+  function whyOf(sc){for(let i=0;i<sc.length;i++)for(let j=i+1;j<sc.length;j++){const a=sc[i],b=sc[j];if(a.fog||b.fog||TYPES[a.id].n!==TYPES[b.id].n||mergeKind(a,b))continue;
+      if(a.star!==b.star)return `${STAR} 별 수가 같아야 합쳐져요`;if(a.star>=3)return `${STAR}${STAR}${STAR} 별 3개는 더 합칠 수 없어요`;}return '';}
+  const bm0=$('bMerge');
+  if(bm0)bm0.addEventListener('click',e=>{if(!bm0.classList.contains('lmWhy'))return;e.stopImmediatePropagation();e.preventDefault();if(whyNow){showHint(whyNow);try{window.LMS&&LMS.play('sfx_ui_denied',{vol:.7});}catch(x){}}},true);
+
 })();
 </script>
 <style id="lm-ok-css">
