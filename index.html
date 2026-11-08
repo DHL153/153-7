@@ -9850,4 +9850,31 @@ const LM_TERMS=[
     host.addEventListener('click',go);setTimeout(go,2100);};
 })();
 </script>
+<style id="lm-fit-css">
+/* (DHL 11-09 '모바일 세로 버그') 큰 수(2억 등)가 나오면 왼쪽 판 칸이 내용만큼 넓어져 오른쪽이 화면 밖으로 잘림
+   → 칸 폭은 화면에 고정(minmax 0) · 숫자 · 족보 이름은 칸에 맞춰 줄어듦(lmFit) */
+#side>*,.sBlind>*,.sTgtBox,.sRow>*,#scoreRow>*,.sScoreBox>*{min-width:0}
+.sTgtBox,.sRow,#scoreRow .box{overflow:hidden}
+#sTgt,#sScore,#vC,#vM,#tot{white-space:nowrap}
+#sTgt{display:block;max-width:100%;align-self:stretch;text-align:center}
+@media (orientation:portrait){#side{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)!important}}
+</style>
+<script id="lm-fit-js">
+/* 칸보다 넓은 숫자 · 족보 줄은 zoom 으로 줄임 (바뀔 때마다 · 화면 크기 바뀔 때) */
+(function(){
+  const IDS=['sTgt','sScore','vC','vM','tot','htName'];
+  function fit(el){if(!el||!el.isConnected)return;const z=el.id==='htName';   // 숫자 = 글자 크기만 줄임(칸 크기 그대로) · 족보 줄 = zoom
+    if(z)el.style.zoom='';else el.style.removeProperty('font-size');
+    const cs=getComputedStyle(el),w=el.clientWidth-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0);if(w<=0)return;
+    const r=document.createRange();r.selectNodeContents(el);const need=Math.max(r.getBoundingClientRect().width,el.scrollWidth-(el.clientWidth-w));   // 가운데 정렬로 양쪽에 넘친 글자도 잼
+    if(need<=w+1)return;const k=Math.max(.4,(w/need)*.97);
+    if(z)el.style.zoom=k.toFixed(3);else el.style.setProperty('font-size',(parseFloat(cs.fontSize)*k).toFixed(1)+'px','important');}
+  let raf=0;const all=()=>{raf=0;IDS.forEach(id=>fit(document.getElementById(id)));};
+  const later=()=>{if(!raf)raf=requestAnimationFrame(all);};
+  const mo=new MutationObserver(later);
+  function hook(){IDS.forEach(id=>{const el=document.getElementById(id);if(el&&!el._lmFit){el._lmFit=1;mo.observe(el,{childList:true,characterData:true,subtree:true});}});later();}
+  window.addEventListener('resize',later);setTimeout(hook,0);setInterval(hook,2000);
+  window.lmFitNums=all;
+})();
+</script>
 </body></html>
