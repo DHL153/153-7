@@ -9295,7 +9295,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
    · 전투 무대(iframe)도 parent.LMS.play 로 부름 */
 (()=>{
   const VAR=new Set(['sfx_panel_open','sfx_panel_close','sfx_atk_gun','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_coin_drop','sfx_combo_tick','sfx_fire_merge_spin','sfx_hit_neon','sfx_hit_rust','sfx_hit_sky','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_pack_reveal','sfx_page_turn','sfx_score_card','sfx_ui_click']);
-  const GAIN={sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.9,sfx_card_deselect:.9,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
+  const GAIN={sfx_merge_m6:.55,sfx_ui_hover:.5,sfx_card_hover:.35,sfx_combo_tick:.55,sfx_fire_merge_spin:.7,sfx_card_deal:.6,sfx_card_flip:.55,sfx_card_select:.9,sfx_card_deselect:.9,sfx_ui_click:.35,sfx_ui_tab:.6};   // 소리마다 기본 크기 (DHL 11-03: 카드 · 버튼은 음악 아래로)   // 소리마다 기본 크기
   const GAP={sfx_combo_tick:60,sfx_fire_merge_spin:50,sfx_coin_drop:45,sfx_score_card:40,sfx_boss_rule_trigger:400,sfx_ui_click:40};
   const MAXP={sfx_card_deal:6,sfx_card_flip:6,sfx_score_card:4,sfx_coin_drop:4,sfx_combo_tick:3};
   let ctx=null,out=null;const buf={},load={},last={},lastV={},live={};let lastAny=0;
@@ -9312,7 +9312,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     ui:{low:[200,1.5],cut:[3000,.9,-3],high:[5500,-6],lp:9500,rt:.45,pre:.006,wet:.07,make:1.15,ens:0},
     rest:{low:[200,1],cut:[3000,.9,-2.5],high:[7000,-4],lp:12000,rt:.6,pre:.01,wet:.08,make:1.08,ens:0}};
   /* (DHL 11-04) ElevenLabs로 다시 만든 깨끗한 실제 카드 소리는 다듬기(고음 깎기 · 겹치기)를 거치지 않음 — 잡음이 없어서 깎으면 먹먹해짐 */
-  const NOPOL=new Set(['sfx_sky_change','sfx_no_money','sfx_codex_new','sfx_night_walk','sfx_scout','sfx_boss_rule_trigger','sfx_boss_enter','sfx_hp_drain','sfx_hit_sky','sfx_atk_spear','sfx_character_select','sfx_unlock_diff','sfx_guide_glow','sfx_camp_leave','sfx_release','sfx_fire_merge_done','sfx_deed_use','sfx_book_use','sfx_pack_rare','sfx_pack_reveal','sfx_pack_open','sfx_shop_buy','sfx_shop_reroll','sfx_shop_open','sfx_coin_pile','sfx_world_change','sfx_boss_defeat','sfx_boss_rule','sfx_runs_low','sfx_round_start','sfx_round_select','sfx_counter','sfx_finish_cut','sfx_foe_defeat','sfx_shield_break','sfx_shield_block','sfx_hit_weak','sfx_hit_neon','sfx_hit_rust','sfx_run_charge','sfx_atk_dual','sfx_atk_widesword','sfx_atk_shieldaxe','sfx_atk_staff','sfx_atk_fist','sfx_atk_gun','sfx_atk_bigblade','sfx_atk_hammer','sfx_atk_greatsword','sfx_orb_swap','sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_hand_sort','sfx_card_discard','sfx_deck_shuffle','sfx_card_fog','sfx_card_burn','sfx_merge','sfx_orb_trigger_mult','sfx_orb_equip','sfx_fire_merge_spin','sfx_fire_merge_stop']);
+  const NOPOL=new Set(['sfx_merge_m6','sfx_sky_change','sfx_no_money','sfx_codex_new','sfx_night_walk','sfx_scout','sfx_boss_rule_trigger','sfx_boss_enter','sfx_hp_drain','sfx_hit_sky','sfx_atk_spear','sfx_character_select','sfx_unlock_diff','sfx_guide_glow','sfx_camp_leave','sfx_release','sfx_fire_merge_done','sfx_deed_use','sfx_book_use','sfx_pack_rare','sfx_pack_reveal','sfx_pack_open','sfx_shop_buy','sfx_shop_reroll','sfx_shop_open','sfx_coin_pile','sfx_world_change','sfx_boss_defeat','sfx_boss_rule','sfx_runs_low','sfx_round_start','sfx_round_select','sfx_counter','sfx_finish_cut','sfx_foe_defeat','sfx_shield_break','sfx_shield_block','sfx_hit_weak','sfx_hit_neon','sfx_hit_rust','sfx_run_charge','sfx_atk_dual','sfx_atk_widesword','sfx_atk_shieldaxe','sfx_atk_staff','sfx_atk_fist','sfx_atk_gun','sfx_atk_bigblade','sfx_atk_hammer','sfx_atk_greatsword','sfx_orb_swap','sfx_title_logo','sfx_page_turn','sfx_ui_back','sfx_ui_tab','sfx_panel_open','sfx_panel_close','sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_hover','sfx_hand_sort','sfx_card_discard','sfx_deck_shuffle','sfx_card_fog','sfx_card_burn','sfx_merge','sfx_orb_trigger_mult','sfx_orb_equip','sfx_fire_merge_spin','sfx_fire_merge_stop']);
   const catOf=n=>/^sfx_(card_|hand_sort|deck_shuffle)/.test(n)?'card':/^sfx_(ui_|panel_|page_turn|tooltip)/.test(n)?'ui':'rest';
   const polOn=()=>{try{return LM_SET.fxpol!==0;}catch(e){return true;}};
   const chains={};let irs={};
@@ -9342,7 +9342,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
         s.onended=()=>{const k=L.indexOf(s);if(k>=0)L.splice(k,1);};};
       if(buf[f]!==undefined)go(buf[f]);else get(f).then(b=>{if(performance.now()-now<300+(o.delay||0))go(b);});
     }catch(e){}}
-  const ALL=['sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_panel_close','sfx_page_turn','sfx_tooltip','sfx_title_logo','sfx_guide_glow',
+  const ALL=['sfx_merge_m6','sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_panel_close','sfx_page_turn','sfx_tooltip','sfx_title_logo','sfx_guide_glow',
     'sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_discard','sfx_hand_sort','sfx_deck_shuffle','sfx_card_burn','sfx_card_hover','sfx_card_fog',
     'sfx_hand_name','sfx_hand_name_big','sfx_score_card','sfx_score_mult','sfx_score_total','sfx_score_over','sfx_key_match','sfx_key_full','sfx_combo_tick',
     'sfx_merge','sfx_merge_awaken','sfx_star_up','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_orb_equip','sfx_orb_swap','sfx_orb_sell',
@@ -9409,22 +9409,25 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
                [7,4,4, 5,2,2, 0,2,4,5,7,7,7],            // 나비야
                [4,4,5,7,7,5,4,2, 0,0,2,4,4,2,2]];        // 환희의 송가
   let lastSong=-1;
+  /* (DHL 11-08 B안 '이전 느낌') 멜로디 콤보가 켜져 있으면 점수 음계 전체를 153-6 머지 소리(sfx_merge_m6, 기본 0.9배)로 연주 — 끄면 지금 점수 소리 그대로 */
+  const MEL=()=>typeof LM_SET==='undefined'||LM_SET.melody!==false;
+  const PN=(n,rt)=>MEL()?P('sfx_merge_m6',{rate:.9*rt,gap:0}):P(n,{rate:rt,gap:0,v:'a'});
   const note=A=>{const r=note0(A);if(window.__lmsLog)window.__lmsLog.push('note:'+Math.round(12*Math.log2(r)));return r;};   // 시험용 기록
   const note0=A=>{const k=A._sc=(A._sc||0)+1;
-    if(k>8&&(typeof LM_SET==='undefined'||LM_SET.melody!==false)){
+    if(k>8&&MEL()){
       if(A._song==null){let i=Math.random()*SONGS.length|0;if(i===lastSong)i=(i+1+(Math.random()*(SONGS.length-1)|0))%SONGS.length;A._song=lastSong=i;}
       try{if(typeof syncBgm==='function'){bgmDuck=.65;syncBgm();clearTimeout(note._d);note._d=setTimeout(()=>{bgmDuck=1;syncBgm();},1200);}}catch(e){}   // 노래 동안 배경음악 살짝 낮춤
-      const sg=SONGS[A._song];return Math.pow(2,(12+sg[(k-9)%sg.length])/12);}
+      const sg=SONGS[A._song];return Math.pow(2,sg[(k-9)%sg.length]/12);}   // (DHL 11-08 B안) 153-6처럼 높은 도에서 같은 옥타브로 내려와 노래
     return Math.pow(2,SCALE[Math.min(k-1,SCALE.length-1)]/12);};
   W('tick',o=>function(now){const A=S&&S.anim,sh=A?A.shown:-1,fin=A?A.fin:1,pm=+(document.getElementById('vM')?.dataset.v||0);
     const r=o.apply(this,arguments);
     try{if(A&&!A._snd){A._snd=1;P('sfx_run_charge');const k=A.r&&A.r.keys;if(k&&k.n&&!S.sandbox)P(k.n>=3?'sfx_key_full':'sfx_key_match',{delay:300});}
       if(A&&A.shown!==sh){for(let i=Math.max(0,sh+1);i<=A.shown;i++){const st=A.r.steps[i];if(!st)continue;
         if(st.i===-1){P(BIG.has(A.r.ht)||A.r.steps.some(x=>x.i===-1&&x!==st)?'sfx_hand_name_big':'sfx_hand_name');continue;}
-        if(st.orb){const k=typeof orbKind==='function'?orbKind(st.orb):'';{const rt=note(A);P(k==='mul'?'sfx_orb_trigger_mult':'sfx_orb_trigger_add',{rate:rt,gap:0,v:'a'});if(k==='mul'){P('sfx_orb_trigger_mult',{rate:rt*Math.pow(2,4/12),gap:0,v:'a',vol:.7});P('sfx_orb_trigger_mult',{rate:rt*Math.pow(2,7/12),gap:0,v:'a',vol:.6});}}continue;}   // × 구슬 = 도·미·솔 화음으로 '완성!'
-        if(st.orbs&&st.orbs.length){P('sfx_orb_trigger_add',{rate:note(A),gap:0,v:'a'});continue;}
-        if(st.i>=0&&!st.out)P('sfx_score_card',{rate:note(A),gap:0,v:'a'});
-        if(st.mult>pm&&!(st.i>=0))P('sfx_score_mult',{rate:note(A),gap:0,v:'a'});}}
+        if(st.orb){const k=typeof orbKind==='function'?orbKind(st.orb):'';{const rt=note(A);if(MEL()){PN('',rt);continue;}P(k==='mul'?'sfx_orb_trigger_mult':'sfx_orb_trigger_add',{rate:rt,gap:0,v:'a'});if(k==='mul'){P('sfx_orb_trigger_mult',{rate:rt*Math.pow(2,4/12),gap:0,v:'a',vol:.7});P('sfx_orb_trigger_mult',{rate:rt*Math.pow(2,7/12),gap:0,v:'a',vol:.6});}}continue;}   // × 구슬 = 도·미·솔 화음으로 '완성!'
+        if(st.orbs&&st.orbs.length){PN('sfx_orb_trigger_add',note(A));continue;}
+        if(st.i>=0&&!st.out)PN('sfx_score_card',note(A));
+        if(st.mult>pm&&!(st.i>=0))PN('sfx_score_mult',note(A));}}
       if(A&&A.fin&&!fin){P('sfx_score_total');const tot=A.before+A.r.total;
         if(!S.practice&&!S.sandbox&&S.tgt>0&&A.before<S.tgt&&tot>=S.tgt)P('sfx_score_over',{delay:380});
         if(A.r.total>S.best&&S.best>0)P('sfx_new_record',{delay:650});}
