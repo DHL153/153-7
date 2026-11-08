@@ -48,7 +48,8 @@ button:disabled{opacity:.35;cursor:default}
 .card .mg{position:absolute;right:4px;bottom:28px;font-size:11px;font-weight:900;color:#16a34a}
 .card.s2{background:#e7f0ff}.card.s3{background:#fff2c4}
 #btns{display:grid;grid-template-columns:1fr 1fr 1.1fr 1.4fr;gap:6px;padding-bottom:4px}
-#bPlay{background:#2563eb}#bDis{background:#b91c1c}#bMerge{background:#15803d}
+#bPlay{background:#2563eb}
+html body #app #bPlay.lmPsyNo{filter:grayscale(.85) brightness(.75)!important}html body #app #bPlay.lmNo{animation:lmNoShake .38s!important}@keyframes lmNoShake{0%,100%{translate:0}20%{translate:-6px}40%{translate:6px}60%{translate:-4px}80%{translate:4px}}#bDis{background:#b91c1c}#bMerge{background:#15803d}
 .ov{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:9;padding:10px}
 .panel{background:var(--pan);border-radius:14px;width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:14px}
 .panel h2{margin:0 0 8px;font-size:20px}
@@ -2856,6 +2857,7 @@ function render(){
   $('bMerge').disabled=busy||!canMerge();
   const mk=canMerge();$('bMerge').textContent='머지';document.body.classList.toggle('lm-noMergeBtn',!!(S&&DIFF[S.diff]&&DIFF[S.diff].mergeRun));   /* (DHL 10-29 '혼선') 기사 · 편력 기사: 머지 버튼 없음 — 같은 카드를 함께 내면 런에서 합쳐짐 */   /* (DHL 10-29) 버튼 이름은 '머지' 하나로 통일 */
   document.getElementById('runLbl').textContent='런';
+  $('bPlay').classList.toggle('lmPsyNo',!!(psyShort()&&sc.length));   /* 다섯의 맹세: 5장이 안 되면 버튼을 꺼진 모양으로 (누르면 이유가 뜸) */
   $('bPlay').textContent=psyShort()&&sc.length?`🎯 ${wsum(sc)}/5장`:mergeRun()&&runPairs(sc).length?'머지 & 런!':'런!';
   $('bClear').disabled=busy||!sc.length;
   renderKeyBar();
@@ -3050,7 +3052,9 @@ const wsum=cs=>cs.reduce((s,c)=>s+weight(c),0);
 function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(selCards())<5&&wsum(S.hand)>=5;}
 function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
-  if(!merged&&psyShort()){$('tip').textContent='🎯 다섯의 맹세 — 카드 5장 이상 내야 런할 수 있어요 (★2는 2장 · ★3은 3장 · 족보 밖 카드도 세요)';return;}
+  if(!merged&&psyShort()){   /* (DHL 11-08 '런이 되는 것처럼 보이는데 안 됨') 예전엔 숨겨진 안내 줄(#tip)에만 써서 아무 반응 없어 보였음 → 보이는 말풍선 + 버튼 흔들기 */
+    const need=5-wsum(selCards());popMsg('🎯 다섯의 맹세 — '+need+'장 더 골라야 런할 수 있어요 (★2는 2장 · ★3은 3장으로 세요)');
+    const bp=$('bPlay');if(bp){bp.classList.remove('lmNo');void bp.offsetWidth;bp.classList.add('lmNo');}return;}
   /* (DHL 11-07) 뒷면 카드를 내면: 먼저 앞으로 뒤집어 보여 주고 → 족보 이름 확인 → 잠깐 뒤 진행 (머지 & 런 짝도 뒤집힌 뒤 다시 찾음) */
   if(!merged&&fogReveal(()=>doPlay(),true))return;
   if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();S._snap=mrSnap();return runChain();}
@@ -8245,7 +8249,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   }
   window.lmDeckFx={deal,winFx,loseFx};
   // 라운드 시작 = 큰 연출, 그 뒤 손패 채우기 = 새 카드만
-  let seen=null,big=false,cur=null,hold=null,holdP=null,prevDis=null,holdV=false;
+  let seen=null,big=false,cur=null,hold=null,holdP=null,prevDis=null,holdV=false,holdG=0;   /* (DHL 11-08 버그) 라운드가 바뀌면 이전 대기(holdP)는 무효 — 남아 있으면 새 카드가 계속 숨겨짐 */
   /* (DHL 11-08 '버려진 후 → 덱 셋팅 → 카드가 오고 차근차근') 버리기: ① 버린 카드가 가라앉는 동안 남은 카드는 제자리(빈칸 유지)
      → ② 다 가라앉으면 남은 카드가 한 번에 자리 정리(새 카드 칸 열림) → ③ 그다음 새 카드가 덱에서 들어옴 */
   let gap=null,prevVis=[],prevRuns=null;const GAP_MS=620,SET_MS=380;   /* (DHL 11-08 '모바일 세로: 런을 내면 남은 카드가 이동해 다음 패 짜기 어려움') 런도 같은 빈칸 방식 — 전투가 끝날 때까지 남은 카드는 제자리 */
@@ -8259,7 +8263,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   function gapEnd(){gap=null;const H=document.getElementById('hand');if(!H)return;H.querySelectorAll(':scope>.lmDfGap').forEach(e=>e.remove());
     if(hold)cardsOf(hold).forEach(d=>{d.classList.remove('lmDfHold');d.classList.add('lmDfHoldV');});}
   function smooth(){return new Promise(res=>{let last=performance.now(),good=0;const t0=last;const f=now=>{const dt=now-last;last=now;good=dt<34?good+1:0;if(good>=8||now-t0>2500)res();else requestAnimationFrame(f);};requestAnimationFrame(f);});}
-  const _br=beginRound;beginRound=function(){seen=null;big=true;hold=null;prevDis=null;prevRuns=null;gap=null;return _br.apply(this,arguments);};
+  const _br=beginRound;beginRound=function(){seen=null;big=true;hold=null;holdP=null;holdG++;prevDis=null;prevRuns=null;gap=null;return _br.apply(this,arguments);};
   const _rd=render;render=function(){const r=_rd.apply(this,arguments);
     try{if(S&&!S.selecting&&!S.practice&&S.hand&&document.getElementById('hand')){
       const now=new Set(S.hand.map(c=>c.uid));
@@ -8276,8 +8280,8 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
           if(gone.length){const g=gap={idx:gone,run:!isDis};if(isDis){busy(GAP_MS+SET_MS);setTimeout(()=>{if(gap===g)gapEnd();},GAP_MS);}}}   // 런: 새 카드가 채워져 들어올 차례(전투 끝)에 빈칸을 닫음
         if(nw.size){   /* (DHL 11-01) 새로 채워지는 카드는 전투 연출이 끝난 뒤에 들어옴 — 그동안은 자리만 비워 둠 */
           hold=hold||new Set();nw.forEach(u=>hold.add(u));if(isDis)holdV=true;
-          if(!holdP)holdP=(isDis?new Promise(r=>setTimeout(r,RM()?0:GAP_MS+SET_MS)):stageIdle().then(()=>{if(gap)gapEnd();return new Promise(r=>setTimeout(r,RM()?0:SET_MS));})).then(()=>{const u=new Set([...hold].filter(x=>S&&S.hand&&S.hand.some(c=>c.uid==x)));hold=null;holdP=null;holdV=false;cardsOf(null).forEach(d=>d.classList.remove('lmDfHold','lmDfHoldV'));
-            if(u.size){cur={t:performance.now(),big:isDis,u,dur:isDis?1150:620+u.size*70};deal(cardsOf(u),isDis);}});}}
+          if(!holdP){const hg=holdG;holdP=(isDis?new Promise(r=>setTimeout(r,RM()?0:GAP_MS+SET_MS)):stageIdle().then(()=>{if(gap)gapEnd();return new Promise(r=>setTimeout(r,RM()?0:SET_MS));})).then(()=>{if(hg!==holdG||!hold)return;const u=new Set([...hold].filter(x=>S&&S.hand&&S.hand.some(c=>c.uid==x)));hold=null;holdP=null;holdV=false;cardsOf(null).forEach(d=>d.classList.remove('lmDfHold','lmDfHoldV'));
+            if(u.size){cur={t:performance.now(),big:isDis,u,dur:isDis?1150:620+u.size*70};deal(cardsOf(u),isDis);}});}}}
       prevDis=S.dis;prevRuns=S.runs;
       if(hold)cardsOf(hold).forEach(d=>d.classList.add(holdV&&!gap?'lmDfHoldV':'lmDfHold'));
       if(gap&&gap.run&&!hold&&!holdP&&!S.busy&&!(cur&&T-cur.t<cur.dur))gapEnd();   // 채울 카드가 없을 때(덱 바닥) 전투가 끝나면 빈칸 닫기
