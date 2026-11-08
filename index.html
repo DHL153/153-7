@@ -7176,6 +7176,8 @@ html.lmB #lm-title:not(.ingame) .lt-pop{background:linear-gradient(180deg,#070d1
 @keyframes lmPlayBgIn{from{opacity:0}to{opacity:1}}
 /* 가로 화면: 가로로 그린 노을 들판(DHL 10-29 전달) — 풍차 셋이 화면 안에 다 들어옴 */
 @media (min-aspect-ratio:1/1){#lm-title .ltv-bg{background-image:url(assets/ui/title/title_bg_wide.webp)!important;background-position:50% 55%!important}}
+/* (DHL 11-06 아트 바이블 '타이틀 노을이 가장 채도 높음 · 로고와 경쟁') 배경 그림만 한 단계 낮춤 — 로고 · 버튼 · 달리는 동료는 그대로 */
+#lm-title .ltv-bg{filter:saturate(.7) brightness(.9)}
 @media (prefers-reduced-motion:reduce){html.lmB #lm-title:not(.ingame) .lt-pop{animation:none}}
 </style>
 </body></html>
