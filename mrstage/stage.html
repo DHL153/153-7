@@ -5397,7 +5397,7 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 #lm-combo{position:absolute;z-index:42;pointer-events:none;translate:-50% -50%;display:none;align-items:flex-end;gap:0;scale:var(--s,1);transition:scale .2s;
   font:900 26px/1 'Noto Sans KR',system-ui,sans-serif;color:#fff2c4;-webkit-text-stroke:4px #2a1800;paint-order:stroke fill}
 #lm-combo.on{display:flex}#lm-combo small{font-size:15px;line-height:1;color:#fff;-webkit-text-stroke:3px #2a1800;margin:0 0 .3em -.1em}   /* 숫자 그림 바닥(칸 92%)에 글자 바닥을 맞춤 */
-#lm-combo.t2 b{color:#ffd76a}#lm-combo.t3 b{color:#ff9a3c}#lm-combo.t4 b{color:#ff5a3c}
+#lm-combo.t2 b{color:#ffd76a}#lm-combo.t3 b{color:#ff9a3c}#lm-combo.t4 b{color:#ff5a3c}#lm-combo.t4 b{filter:drop-shadow(0 0 6px #ffe7b0) drop-shadow(0 0 14px #ff8a3c)}#lm-combo.lay small{color:#ffe7a0}
 .lm-roll{position:absolute;z-index:44;pointer-events:none;translate:-50% -50%;text-align:center;scale:var(--z,1);font:900 26px/1 'Noto Sans KR',system-ui,sans-serif;color:#fff;-webkit-text-stroke:4px #1b1020;paint-order:stroke fill;font-variant-numeric:tabular-nums;transition:opacity .35s,translate .35s}
 .lm-roll small{display:block;font-size:11px;color:#ffe08a;-webkit-text-stroke:3px #1b1020;margin-bottom:2px}
 .lm-roll.t1{color:#ffe066}.lm-roll.t2{color:#ffb020;-webkit-text-stroke:4.5px #3a1400}.lm-roll.t5{color:#ff4d2e;-webkit-text-stroke:5px #2a0600}.lm-roll.t10{color:#fff6c8;-webkit-text-stroke:5px #6a0010}
@@ -7993,11 +7993,15 @@ let isGameOver = false;
   function dig(str,row){return [...String(str)].map(ch=>{const i=DIG.indexOf(ch);if(i<0)return '';return `<i class="dg${ch===','?' cm':''}${row===3?' r3':''}" style="background-position:${(i/10*100).toFixed(2)}% ${(row/3*100).toFixed(2)}%"></i>`;}).join('');}
   /* A: 연타 카운터 */
   let comboEl=null,comboT=0;
-  function comboShow(n,col){if(!comboEl){comboEl=document.createElement('div');comboEl.id='lm-combo';stage.appendChild(comboEl);}
+  /* (DHL 11-08) 겹 족보 연타 · 숫자 색: 1~5 금 · 6~10 주황 · 11~14 빨강 · 15~ 흰 불꽃 · 겹이 바뀌면 크게 튕김 · 10 · 15에서 소리 */
+  function comboShow(n,col,layer){if(!comboEl){comboEl=document.createElement('div');comboEl.id='lm-combo';stage.appendChild(comboEl);}
     let w='연타';try{w=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(w))||w;}catch(e){}
-    comboEl.innerHTML=`<b>${dig(n,n>=7?2:n>=5?1:0)}</b><small>${w}</small>`;comboEl.className='on t'+(n>=7?4:n>=5?3:n>=3?2:1);comboEl.style.setProperty('--s',(1+Math.min(1.1,(n-1)*.13)).toFixed(2));
+    const tier=n>=15?3:n>=11?2:n>=6?1:0;
+    comboEl.innerHTML=`<b>${dig(n,tier)}</b><small>${w}</small>`;comboEl.className='on t'+(tier+1)+(layer?' lay':'');comboEl.style.setProperty('--s',(1+Math.min(1.25,(n-1)*.085)).toFixed(2));
     comboEl.style.left=(stage.clientWidth*.36)+'px';comboEl.style.top=(stage.clientHeight*.2)+'px';
-    try{comboEl.animate([{scale:'1.7',opacity:.4},{scale:'1',opacity:1}],{duration:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
+    try{comboEl.animate(layer?[{scale:'2.3',opacity:.3,filter:'brightness(2.5)'},{scale:'1',opacity:1,filter:'none'}]:[{scale:'1.7',opacity:.4},{scale:'1',opacity:1}],{duration:layer?420:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
+    if(layer)lmSnd('sfx_key_match',{vol:.7,gap:150});
+    if(n===10)lmSnd('sfx_score_over',{vol:.8});if(n===15)lmSnd('sfx_hand_name_big',{vol:.85});
     flip('fx13',R(0,7),stage.clientWidth*.36,stage.clientHeight*.2,stage.clientHeight*(.5+Math.min(.5,n*.06)),{fps:22});   // 리소스 오면 · 숫자 뒤 터짐
     clearTimeout(comboT);comboT=setTimeout(comboHide,2600);}
   function comboHide(){if(comboEl)comboEl.className='';}
@@ -8192,8 +8196,8 @@ let isGameOver = false;
     const sx=W*(.35+Math.random()*.3),sy=H+6;orb.style.left=sx+'px';orb.style.top=sy+'px';stage.appendChild(orb);
     const dx=h.x-sx,dy=h.y-sy,mx=dx*.4+(Math.random()*40-20),my=dy*.5-H*.25;
     orb.animate([{transform:'translate(-50%,-50%) scale(.5)',opacity:0},{transform:`translate(calc(-50% + ${mx}px),calc(-50% + ${my}px)) scale(1.2)`,opacity:1,offset:.45},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(.6)`,opacity:1}],{duration:360,easing:'cubic-bezier(.4,0,.7,1)'}).onfinish=()=>{
-      orb.remove();charge+=Math.max(0,o.dmg||0);if(o.combo)comboShow(o.combo,c);
-      auraEl.classList.add('on');auraEl.style.setProperty('--k',Math.min(1,(o.combo||1)/5).toFixed(2));auraEl.style.setProperty('--c',c);
+      orb.remove();charge+=Math.max(0,o.dmg||0);if(o.combo)comboShow(o.combo,c,o.layer);
+      auraEl.classList.add('on');auraEl.style.setProperty('--k',Math.min(1,(o.combo||1)/8).toFixed(2));auraEl.style.setProperty('--c',c);
       auraEl.animate([{scale:'1.25'},{scale:'1'}],{duration:220,easing:'ease-out'});
       if(!chargeGone){chargeEl.classList.add('on');chargeEl.innerHTML=`<b>${fmt(charge)}</b>`;}chargeEl.animate([{scale:'1.4'},{scale:'1'}],{duration:200,easing:'ease-out'});
     };
