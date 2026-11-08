@@ -8248,7 +8248,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   let seen=null,big=false,cur=null,hold=null,holdP=null,prevDis=null,holdV=false;
   /* (DHL 11-08 '버려진 후 → 덱 셋팅 → 카드가 오고 차근차근') 버리기: ① 버린 카드가 가라앉는 동안 남은 카드는 제자리(빈칸 유지)
      → ② 다 가라앉으면 남은 카드가 한 번에 자리 정리(새 카드 칸 열림) → ③ 그다음 새 카드가 덱에서 들어옴 */
-  let gap=null,prevVis=[];const GAP_MS=620,SET_MS=380;
+  let gap=null,prevVis=[],prevRuns=null;const GAP_MS=620,SET_MS=380;   /* (DHL 11-08 '모바일 세로: 런을 내면 남은 카드가 이동해 다음 패 짜기 어려움') 런도 같은 빈칸 방식 — 전투가 끝날 때까지 남은 카드는 제자리 */
   const visCards=H=>[...H.children].filter(e=>e.matches&&e.matches('.card[data-uid]')&&!e.classList.contains('lmDfHold'));
   function gapPaint(H){if(!gap)return;H.querySelectorAll(':scope>.lmDfGap').forEach(e=>e.remove());
     const arr=visCards(H);if(!arr.length)return;const r0=arr[0],cs=getComputedStyle(r0);
@@ -8259,7 +8259,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   function gapEnd(){gap=null;const H=document.getElementById('hand');if(!H)return;H.querySelectorAll(':scope>.lmDfGap').forEach(e=>e.remove());
     if(hold)cardsOf(hold).forEach(d=>{d.classList.remove('lmDfHold');d.classList.add('lmDfHoldV');});}
   function smooth(){return new Promise(res=>{let last=performance.now(),good=0;const t0=last;const f=now=>{const dt=now-last;last=now;good=dt<34?good+1:0;if(good>=8||now-t0>2500)res();else requestAnimationFrame(f);};requestAnimationFrame(f);});}
-  const _br=beginRound;beginRound=function(){seen=null;big=true;hold=null;prevDis=null;return _br.apply(this,arguments);};
+  const _br=beginRound;beginRound=function(){seen=null;big=true;hold=null;prevDis=null;prevRuns=null;gap=null;return _br.apply(this,arguments);};
   const _rd=render;render=function(){const r=_rd.apply(this,arguments);
     try{if(S&&!S.selecting&&!S.practice&&S.hand&&document.getElementById('hand')){
       const now=new Set(S.hand.map(c=>c.uid));
@@ -8271,13 +8271,16 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
       else if(cur&&T-cur.t<cur.dur){const u=new Set([...cur.u].filter(x=>now.has(x)));deal(cardsOf(u),cur.big,T-cur.t);seen=now;}   // 연출 중 다시 그려짐 → 같은 시점부터 이어서
       else if(seen){const nw=new Set([...now].filter(u=>!seen.has(u)));seen=now;
         const isDis=prevDis!=null&&S.dis<prevDis;   /* (DHL 11-02) 버리기로 채워짐: 버린 카드가 다 가라앉고 → 잠깐 쉬고 → 라운드 처음처럼(덱에서 한 뭉치 · 번쩍 · 뒤집혀 펼침) 들어옴 */
+        const isRun=!isDis&&prevRuns!=null&&S.runs<prevRuns;
+        if((isDis||isRun)&&!RM()){const gone=prevVis.map((u,i)=>[u,i]).filter(([u])=>!now.has(u)).map(x=>x[1]);
+          if(gone.length){const g=gap={idx:gone,run:!isDis};if(isDis){busy(GAP_MS+SET_MS);setTimeout(()=>{if(gap===g)gapEnd();},GAP_MS);}}}   // 런: 새 카드가 채워져 들어올 차례(전투 끝)에 빈칸을 닫음
         if(nw.size){   /* (DHL 11-01) 새로 채워지는 카드는 전투 연출이 끝난 뒤에 들어옴 — 그동안은 자리만 비워 둠 */
           hold=hold||new Set();nw.forEach(u=>hold.add(u));if(isDis)holdV=true;
-          if(isDis&&!RM()){const gone=prevVis.map((u,i)=>[u,i]).filter(([u])=>!now.has(u)).map(x=>x[1]);if(gone.length){gap={idx:gone};busy(GAP_MS+SET_MS);setTimeout(gapEnd,GAP_MS);}}
-          if(!holdP)holdP=(isDis?new Promise(r=>setTimeout(r,RM()?0:GAP_MS+SET_MS)):stageIdle()).then(()=>{const u=new Set([...hold].filter(x=>S&&S.hand&&S.hand.some(c=>c.uid==x)));hold=null;holdP=null;holdV=false;cardsOf(null).forEach(d=>d.classList.remove('lmDfHold','lmDfHoldV'));
+          if(!holdP)holdP=(isDis?new Promise(r=>setTimeout(r,RM()?0:GAP_MS+SET_MS)):stageIdle().then(()=>{if(gap)gapEnd();return new Promise(r=>setTimeout(r,RM()?0:SET_MS));})).then(()=>{const u=new Set([...hold].filter(x=>S&&S.hand&&S.hand.some(c=>c.uid==x)));hold=null;holdP=null;holdV=false;cardsOf(null).forEach(d=>d.classList.remove('lmDfHold','lmDfHoldV'));
             if(u.size){cur={t:performance.now(),big:isDis,u,dur:isDis?1150:620+u.size*70};deal(cardsOf(u),isDis);}});}}
-      prevDis=S.dis;
+      prevDis=S.dis;prevRuns=S.runs;
       if(hold)cardsOf(hold).forEach(d=>d.classList.add(holdV&&!gap?'lmDfHoldV':'lmDfHold'));
+      if(gap&&gap.run&&!hold&&!holdP&&!S.busy&&!(cur&&T-cur.t<cur.dur))gapEnd();   // 채울 카드가 없을 때(덱 바닥) 전투가 끝나면 빈칸 닫기
       if(gap)gapPaint(H);
       prevVis=visCards(H).map(e=>{const u=e.dataset.uid;return isNaN(+u)?u:+u;});
     }}catch(e){}
@@ -8286,7 +8289,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   const stageIdle=()=>new Promise(res=>{const t0=performance.now();const tick=()=>{let b=false;try{const st=document.querySelector('#lmStage iframe')?.contentWindow?.MRStage;b=!!(st&&(st.busy?.()||st.queued?.()));}catch(e){}
     if(document.getElementById('lmDefeat'))b=true;if(!b||performance.now()-t0>15000)return res();setTimeout(tick,120);};setTimeout(tick,150);});
   let ending=false;
-  const _w=win;win=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;stageIdle().then(winFx).finally(()=>{ending=false;_w.apply(t,a);});};
+  const _w=win;win=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;if(gap){gap=null;document.querySelectorAll('#hand>.lmDfGap').forEach(e=>e.remove());}stageIdle().then(winFx).finally(()=>{ending=false;_w.apply(t,a);});};
   window.lmLoseCards=()=>{seen=null;return loseFx();};   // 패배는 반격 연출 끝(lose 래퍼 안)에서 부름
 })();
 </script>
