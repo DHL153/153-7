@@ -319,7 +319,7 @@ button.elPick{flex:1;color:#fff;font-size:22px;padding:18px 0}
 .card.dz{border:none!important;background:none!important;padding:0!important;aspect-ratio:.72;min-height:0!important;height:auto;container-type:inline-size;overflow:visible!important;display:block!important;box-shadow:none!important;color:#fff}
 .card.dz .dzi{position:absolute;inset:0;display:block}
 .card.dz .dzb{position:absolute;inset:0;border-radius:9cqw;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--wc) 70%,#fff 18%),color-mix(in srgb,var(--wc) 72%,#000) 78%);box-shadow:inset 0 0 0 1.6cqw rgba(255,255,255,.22),0 3px 6px rgba(0,0,0,.5);overflow:hidden}
-.card.dz.s2 .dzb{box-shadow:inset 0 0 0 1.6cqw #dfe5ec,0 0 0 1.5px #9aa3ad,0 3px 6px rgba(0,0,0,.5)}
+
 .card.dz.s3 .dzb{box-shadow:inset 0 0 0 1.6cqw #ffe08a,0 0 0 2px var(--gold),0 0 10px rgba(242,193,78,.7)}
 .card.dz.sel .dzb{box-shadow:inset 0 0 0 1.6cqw rgba(255,255,255,.22),0 0 0 3px var(--gold),0 0 12px rgba(240,194,75,.8)}
 .card.dz.tgt .dzb{box-shadow:inset 0 0 0 1.6cqw rgba(255,255,255,.22),0 0 0 3px #ef4444}
@@ -6090,7 +6090,7 @@ html.lmB body .card.dz .dzi[data-w=sky][data-st="1"] .dzb{background:url(assets/
 html.lmB body .card.dz .dzi[data-w][data-st="1"] .dzpo:not(.up):not(.down),html.lmB body .card.dz .dzi[data-w][data-st="1"] .dzpw:not(.up):not(.down){display:none!important}
 html.lmB body .card.dz .dzi[data-fog] .dzno,html.lmB body .card.dz .dzi[data-fog] .nmbox{display:none!important}
 /* ★ · 선택 · 표적: 사각 그림자 대신 틀 모양 따라 빛 */
-html.lmB body .card.dz.s2 .dzi[data-w] .dzb{filter:drop-shadow(0 0 2px #e8eef7) drop-shadow(0 3px 3px #000a)}
+
 html.lmB body .card.dz.s3 .dzi[data-w] .dzb{filter:drop-shadow(0 0 3px #ffe08a) drop-shadow(0 0 7px #f2c14ecc) drop-shadow(0 3px 3px #000a)}
 html.lmB body .card.dz.sel .dzi .dzb{filter:drop-shadow(0 0 3px #fff3c4) drop-shadow(0 0 8px #ffd76a) drop-shadow(0 3px 3px #000a)!important}
 html.lmB body .card.dz.tgt .dzi .dzb{filter:drop-shadow(0 0 3px #ff6b5a) drop-shadow(0 0 8px #ef4444) drop-shadow(0 3px 3px #000a)!important}
@@ -6163,7 +6163,7 @@ html.lmB body .card.dz .dzi[data-w] .dza{clip-path:inset(-60% 8.3% 0 8.3%)!impor
 /* 🃏 새 카드 마감 (시트 P2): 방패 세계 문장 · ★ 테두리 빛 · 고른 카드 빛 · ★3 포일 · 혼합 별 · 그림 숫자 */
 html.lmB body .card.dz .dzi[data-w] .dzwm{left:5.2%!important;top:82.3%!important;width:16.7%!important;height:14.7%!important;aspect-ratio:auto!important}
 html.lmB body .card.dz .dzi[data-w] .dzb::before{content:"";position:absolute;inset:-4% -5%;pointer-events:none;z-index:1;background:center/100% 100% no-repeat;opacity:0;transition:opacity .2s}
-html.lmB body .card.dz.s2 .dzi[data-w] .dzb::before{background-image:url(assets/ui/card/glow_s2.webp);opacity:.9}
+/* (DHL 11-08) ★2 은색 테두리 빛 없앰 — 별 개수로만 구분 (★3 금빛 테두리는 그대로) */
 html.lmB body .card.dz.s3 .dzi[data-w] .dzb::before{background-image:url(assets/ui/card/glow_s3.webp);opacity:1;animation:lmGlow3 2.4s ease-in-out infinite}
 html.lmB body .card.dz.sel .dzi .dzb::before{background-image:url(assets/ui/card/glow_sel.webp)!important;opacity:1!important;inset:-7% -8%!important}
 @keyframes lmGlow3{50%{opacity:.7}}
