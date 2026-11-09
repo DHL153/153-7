@@ -8058,29 +8058,35 @@ let isGameOver = false;
   function cutPre(){let v='pre';try{v=(window.parent&&parent.LM_KILLCUT)||localStorage.getItem('lm_killcut')||'pre';}catch(e){}return v!=='post';}   // 기본 = 막타 전에 컷신 · 'post' = 예전(막타 → 격파 → 컷신)
   /* ── (DHL 11-10 시안 3개) 막타 연출: 'p5' 페르소나식 · 'ko' 격투 KO식 · 'hades' 하데스식 · 'cur' 지금 (시험: localStorage lm_finish)
      공통: 컷신 뒤 걸어가지 않고 바로 적 앞 · 막타 순간 땅 · 배경 · 달리기가 멈춤 · 음악 잠깐 작게 */
-  function finStyle(){let v='cur';try{v=(window.parent&&parent.LM_FINISH)||localStorage.getItem('lm_finish')||'cur';}catch(e){}return ['p5','ko','hades'].includes(v)?v:'cur';}
-  async function finEnter(sl,num){const W=stage.clientWidth||400,H=stage.clientHeight||145,E=enemyPt(),home=heroPt(sl).x-actors[sl].off,hh=heroPt(sl).h,near=Math.max(-W*.5,E.front-home-hh*.55),st=finStyle();
-    if(st==='p5'){offsetTeam(near-hh*.35,[sl]);actors[sl].oy=H*.55;show([sl],true);afterImg(sl,300);tween(240,k=>{actors[sl].oy=H*.55*(1-k);},EI).then(()=>{actors[sl].oy=0;dust(sl,1);});await sleep(120);}   // 하늘에서 내리꽂힘
-    else if(st==='ko'){offsetTeam(-W*.9,[sl]);show([sl],true);afterImg(sl,400);await dash(-W*.9,near-hh*.3,220,'out',[sl],3.2);}   // 순식간에 돌진
-    else{const p=heroPt(sl);blink(p.x,p.y,p.h);offsetTeam(near-hh*.25,[sl]);show([sl],true);const q=heroPt(sl);blink(q.x,q.y,q.h);await sleep(90);}}   // 하데스: 번쩍 사라졌다 적 앞에 나타남
+  /* (DHL 11-10 '제안대로') 막타 연출 = 주인공 거리: 근거리(알론소 · 산초 · 팔로메) A · 중거리(둘시네 · 바실 · 루시아 · 브루노) B · 원거리(로시 · 카르덴 · 니콜) C
+     시험 중: localStorage lm_finish = 'class'(거리별) · 'p5' · 'ko' · 'hades' 하나로 고정 · 없으면 지금 그대로 */
+  let finHero=0;
+  const FIN_CLASS={1:'p5',3:'p5',9:'p5',2:'ko',5:'ko',7:'ko',10:'ko',4:'hades',6:'hades',8:'hades'};
+  function finStyle(){let v='cur';try{v=(window.parent&&parent.LM_FINISH)||localStorage.getItem('lm_finish')||'cur';}catch(e){}
+    if(v==='class')return FIN_CLASS[POS(finHero||1)]||'p5';return ['p5','ko','hades'].includes(v)?v:'cur';}
+  async function finEnter(sl,num,out){const W=stage.clientWidth||400,H=stage.clientHeight||145,E=enemyPt(),home=heroPt(sl).x-actors[sl].off,hh=heroPt(sl).h,near=Math.max(-W*.5,E.front-home-hh*.55),st=finStyle();
+    if(st==='p5'){offsetTeam(near-hh*.35,[sl]);actors[sl].oy=H*.55;show([sl],true);afterImg(sl,300);tween(240,k=>{actors[sl].oy=H*.55*(1-k);},EI).then(()=>{actors[sl].oy=0;dust(sl,1);});await sleep(120);return false;}   // A: 적 위 공중에서 내리꽂힘
+    if(st==='ko'){afterImg(sl,900);finFast=1.7;return null;}   // B: 각자 동작(도약 · 낙하 · 박치기 · 관통) 그대로, 빠르게 + 잔상
+    if(POS(num)===8){const p=heroPt(sl);if(!out)blink(p.x,p.y,p.h);offsetTeam(near-hh*.25,[sl]);show([sl],true);const q=heroPt(sl);blink(q.x,q.y,q.h);await sleep(90);return false;}   // C 니콜: 순간이동
+    if(out){offsetTeam(0,[sl]);show([sl],true);const q=heroPt(sl);blink(q.x,q.y,q.h);await sleep(120);}return false;}   // C 로시 · 카르덴: 제자리에서 쏨
   function blink(x,y,h){const d=document.createElement('i');d.className='lm-blink';d.style.left=x+'px';d.style.top=y+'px';d.style.setProperty('--s',(h*1.6)+'px');stage.appendChild(d);setTimeout(()=>d.remove(),420);}
   function duck(ms){try{const P=window.parent;if(P&&typeof P.syncBgm==='function'){P.bgmDuck=.25;P.syncBgm();setTimeout(()=>{P.bgmDuck=1;P.syncBgm();},ms);}}catch(e){}}
   function freezeWorld(){stage.classList.add('lm-still');setMul(ALL,0);}
-  function finImpact(){const st=finStyle(),E=enemyPt(),en=$('enemy');freezeWorld();duck(1400);
-    if(st==='p5'){   // 화면을 가로지르는 빨강 · 검정 베기 + 짧은 정지
+  function finImpact(){const st=finStyle(),E=enemyPt(),en=$('enemy'),boss=kind==='boss';freezeWorld();duck(1300);
+    if(st==='p5'){   // A: 화면을 가르는 베기 + 짧은 정지 (FX20 · FX21 오면 그림으로)
       const sl=document.createElement('div');sl.className='lm-slash p5';stage.appendChild(sl);setTimeout(()=>sl.remove(),900);
-      try{MRFX.flash?.(stage,'rgba(255,255,255,.9)');MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_shield_break',{vol:.9});hitStop(170);}
-    else if(st==='ko'){   // 정지 → 흑백 · 적 확대 → 슬로모션
-      stage.classList.add('lm-ko');stage.style.transformOrigin=`${E.x}px ${E.y}px`;
-      const z=stage.animate([{transform:'scale(1)'},{transform:'scale(1.16)',offset:.25},{transform:'scale(1.12)'}],{duration:900,easing:'cubic-bezier(.2,.8,.3,1)',fill:'forwards'});
-      try{MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});hitStop(260);
-      setTimeout(()=>{(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{if(a!==z)try{a.updatePlaybackRate(.25);}catch(e){}});},260);
-      setTimeout(()=>{stage.classList.remove('lm-ko');try{z.cancel();}catch(e){}stage.style.transformOrigin='';(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},900);}
-    else{   // 하데스: 하얀 섬광 · 적 흰 실루엣 · 방사형 속도선
-      const w=document.createElement('div');w.className='lm-whiteout';stage.appendChild(w);setTimeout(()=>w.remove(),260);
-      if(en){en.classList.add('lm-wsil');setTimeout(()=>en.classList.remove('lm-wsil'),380);}
-      const r=document.createElement('i');r.className='lm-radial';r.style.left=E.x+'px';r.style.top=E.y+'px';stage.appendChild(r);setTimeout(()=>r.remove(),600);
-      try{MRFX.shake(stage,'m',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});hitStop(120);}}
+      try{MRFX.flash?.(stage,'rgba(255,255,255,.7)');MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_shield_break',{vol:.9});hitStop(170);}
+    else if(st==='ko'){   // B: 정지 → 흑백 · 확대 → 짧은 슬로모션 (FX23)
+      grayZoom(220,520,E);try{MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});}
+    else{   // C: 눈부심 최소 — 화면 흰색 없음, 적 흰 실루엣 + 속도선 고리 (FX25)
+      if(en){en.classList.add('lm-wsil');setTimeout(()=>en.classList.remove('lm-wsil'),420);}
+      const r=document.createElement('i');r.className='lm-radial';r.style.left=E.x+'px';r.style.top=E.y+'px';stage.appendChild(r);setTimeout(()=>r.remove(),650);
+      try{MRFX.shake(stage,'m',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});hitStop(140);}
+    if(boss&&st!=='ko')setTimeout(()=>grayZoom(160,300,E),180);}   // 거인은 누가 치든 흑백 정지를 짧게 덧붙임
+  function grayZoom(freeze,slow,E){stage.classList.add('lm-ko');stage.style.transformOrigin=`${E.x}px ${E.y}px`;
+    const z=stage.animate([{transform:'scale(1)'},{transform:'scale(1.14)',offset:.3},{transform:'scale(1.1)'}],{duration:freeze+slow,easing:'cubic-bezier(.2,.8,.3,1)',fill:'forwards'});hitStop(freeze);
+    setTimeout(()=>{(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{if(a!==z)try{a.updatePlaybackRate(.3);}catch(e){}});},freeze);
+    setTimeout(()=>{stage.classList.remove('lm-ko');try{z.cancel();}catch(e){}stage.style.transformOrigin='';(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},freeze+slow);}
   function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
   function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
@@ -8452,7 +8458,9 @@ let isGameOver = false;
     cast.slot=null;cast.group=null;cast.cutDur=null;
   }
   // 다가가기 → 치기 → (빠지기). 반환: 끝난 뒤 위치(off)
-  async function perform(sl,num,o={}){
+  let finFast=1;
+  async function perform(sl,num,o={}){const _ff=finFast;finFast=1;if(_ff>1){const _d=dash;dash=(a,b,ms,...r)=>_d(a,b,ms/_ff,...r);try{return await perform0(sl,num,o);}finally{dash=_d;}}return perform0(sl,num,o);}
+  async function perform0(sl,num,o={}){
     const W=stage.clientWidth||400,H=stage.clientHeight||145,r=ROUTE[POS(num)],E=enemyPt();
     const home=heroPt(sl).x-actors[sl].off,hh=heroPt(sl).h;
     const near=Math.max(-W*.5,E.front-home-hh*.55);
@@ -8538,7 +8546,7 @@ let isGameOver = false;
       const heroNum=(hero??-1)+1;
       if(!o.demo&&cutPre()){cutDone=false;await finishCut();await sleep(120);}   /* (DHL 11-09) 합동기 뒤에도 주인공 막타 '전에' 처치 컷신 */
       applyTeam([hero,null,null]);await waitRig([0],3000);
-      let enterC=true;if(!o.demo&&finStyle()!=='cur'){enterC=false;await finEnter(0,heroNum);}
+      finHero=heroNum;let enterC=true;if(!o.demo&&finStyle()!=='cur'){const e=await finEnter(0,heroNum,true);if(e!=null)enterC=e;}
       const okC=o.dmg/Math.max(1,hpC0);const res=await perform(0,heroNum,{enter:enterC,level:11,impact:{dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:true,heavy:true,ok:okC,hp0:hpC0,defer:!o.demo}});await rollWait();   /* (DHL 11-03 '첫 공격에 점수가 터지는 것 같음') 최종 피해 숫자는 합동기 폭발이 아니라 마지막 일격(주인공 막타)에 */
       await sleep(520);
       if(!o.demo){await killSeq();await exit();return;}
@@ -8608,7 +8616,7 @@ let isGameOver = false;
       if(heroOut)await waitRig([0],2000);
       /* (DHL 11-09 시안) 동료들이 두들겨 팬 뒤 → 주인공 마지막 한 방 '전에' 처치 컷신 → 주인공이 치며 체력 0 → 격파 · 폭파 · 퇴장 · 카운트 (기본 · 예전 순서는 lm_killcut='post') */
       if(o.killed&&!o.demo&&cutPre()){await sleep(160);cutDone=false;await finishCut();await sleep(120);}
-      let enterH=heroOut;if(o.killed&&!o.demo&&finStyle()!=='cur'){enterH=false;await finEnter(0,heroNum);}   /* (DHL 11-10 시안) 컷신이 끝나면 걸어가지 않고 바로 적 앞에서 */
+      finHero=heroNum;let enterH=heroOut;if(o.killed&&!o.demo&&finStyle()!=='cur'){const e=await finEnter(0,heroNum,heroOut);if(e!=null)enterH=e;}   /* (DHL 11-10 시안) 컷신이 끝나면 걸어가지 않고 바로 적 앞에서 */
       const res=await perform(0,heroNum,{enter:enterH,level:11,impact:IMP});
       await rollWait();await sleep(o.killed?260:120);   /* (11-07) 막타 카운트업이 끝날 때까지 */
       if(o.killed&&!o.demo){await killSeq();await exit();}else{
