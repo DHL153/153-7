@@ -3300,7 +3300,8 @@ function cashCollect(){
   if(!dst||!box||(typeof LM_SET!=='undefined'&&LM_SET.rm)){collect();return;}
   // 휴대폰 세로(DHL 10-28): 위쪽 골드 칸이 보상 창에 가려 안 보임 → 보상 창 오른쪽 위 골드 배지로 금화가 들어감
   const cg=document.querySelector('.cashFx .cfGold'),tgt=(matchMedia('(orientation:portrait)').matches&&cg)?cg:dst;
-  const d=tgt.getBoundingClientRect(),tx=d.left+d.width/2,ty=d.top+d.height/2;
+  {const em=$('cfGold');if(em&&tgt===cg){em.style.display='inline-block';em.style.minWidth=String(S.gold+S.cash).length+'ch';em.style.textAlign='left';}}   /* (DHL 11-09 '돈과 숫자 사이로 들어감') 6 → 15처럼 자릿수가 늘면 배지가 넓어져 동전 그림이 밀림 → 다 받은 뒤 자릿수만큼 미리 자리 잡기 */
+  const ic=tgt.querySelector('img'),d=(ic||tgt).getBoundingClientRect(),tx=d.left+d.width/2,ty=d.top+d.height/2;   /* 금화는 배지 가운데가 아니라 동전 그림 한가운데로 */
   const src=[...box.querySelectorAll('.coins img')];const total=S.cash,g0=S.gold;let landed=0;const N=Math.max(1,src.length);
   box.querySelector('.cfMill')?.classList.add('fast');
   src.forEach((c,i)=>{const r=c.getBoundingClientRect(),fl=document.createElement('img');fl.src=c.src;fl.className='cfFly';
@@ -4488,6 +4489,9 @@ html.lmB #lm-title .lt-side:focus-visible{box-shadow:0 0 0 2px #ffd76a,0 0 10px 
   #lmFoeTag{font-size:9.5px;gap:2px;max-width:66%}#lmFoeTag .t{padding:0 5px}
 }
 @media (orientation:portrait){
+  /* (DHL 11-09 '모바일 세로에서 가끔 손패가 전투창을 덮음') 무대 칸(1fr)이 무대 높이보다 작게 눌리면 손패가 무대 위로 올라와 겹침 → 세로에선 무대 칸이 무대보다 작아지지 않게 */
+  #app.bl #mainArea>.midZone{min-height:max-content!important}
+  #app.bl #mainArea{grid-template-rows:auto max-content auto auto!important}
   #lmStage{height:clamp(150px,50vw,280px);min-height:0}
   #lmFoeTag{font-size:10px;max-width:72%}
 }
@@ -4539,7 +4543,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r107" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r108" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4605,7 +4609,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     if(A&&A._st&&!A._st.fin){   // 무대가 밀리면 숫자를 기다리게
       const st=ST(),dt=Math.max(0,Math.min(100,now-lastNow));
       if(st&&st.queued&&st.queued()>=2&&A._st.frozen<6000){A.t0+=dt;A._st.frozen+=dt;}
-      if(A._st.xp>0&&(A._st.xf||0)<2600){A.t0+=dt;A._st.xf=(A._st.xf||0)+dt;}   // 겹 족보 연타가 끝날 때까지 계산판이 기다림 (최대 2.6초)
+      if(A._st.xp>0&&(A._st.xf||0)<5200){A.t0+=dt;A._st.xf=(A._st.xf||0)+dt;}   // 겹 족보 연타가 끝날 때까지 계산판이 기다림 (최대 2.6초)
     }
     lastNow=now;
     const r=_tick.apply(this,arguments);
@@ -4639,8 +4643,9 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
               const c=x.c,num=numOf(c),mx=S.foe&&typeof matchX==='function'?matchX(c.el,S.foe):1,crit=mx===2?'weak':mx===0.5?'resist':null;
               const level=Math.max(0,Math.min(11,1+A._st.combo*2+((c.star||1)-1)*2)),combo=A._st.combo;
               hitMode();call(stg=>stg.hit({num,level,dmg:0,crit,combo,el:c.el,layer:x.nl}));
-              setTimeout(next,Math.max(60,150-j*9));};
-            setTimeout(next,240);}
+              try{window.lmComboNote&&lmComboNote(A);}catch(e){}   // (DHL 11-09 '너무 빨라서 노랫소리가 안 들림') 겹 연타마다 멜로디 한 음 — 노래가 들리는 박자로
+              setTimeout(next,260);};
+            setTimeout(next,300);}
         }catch(e){A._st.xp=0;}}
       if(A.fin&&!A._st.fin){   // ③ 족보 배수가 터지는 순간 = 합동 일격
         A._st.fin=1;
@@ -9434,6 +9439,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
   /* (DHL 11-08 B안 '이전 느낌') 멜로디 콤보가 켜져 있으면 점수 음계 전체를 153-6 머지 소리(sfx_merge_m6, 기본 0.9배)로 연주 — 끄면 지금 점수 소리 그대로 */
   const MEL=()=>typeof LM_SET==='undefined'||LM_SET.melody!==false;
   const PN=(n,rt)=>MEL()?P('sfx_merge_m6',{rate:.9*rt,gap:0}):P(n,{rate:rt,gap:0,v:'a'});
+  window.lmComboNote=A=>{try{PN('sfx_score_card',note(A));}catch(e){}};   /* 겹 족보 연타(index 무대 연결)도 같은 음계 · 노래를 이어서 */
   const note=A=>{const r=note0(A);if(window.__lmsLog)window.__lmsLog.push('note:'+Math.round(12*Math.log2(r)));return r;};   // 시험용 기록
   const note0=A=>{const k=A._sc=(A._sc||0)+1;
     if(k>8&&MEL()){
