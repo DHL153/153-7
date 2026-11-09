@@ -8008,13 +8008,19 @@ let isGameOver = false;
   /* B · C: 막타 카운트업 */
   let rollP=null,cineEl=null,defRoll=null;
   function rollWait(){return rollP||Promise.resolve();}
-  /* (DHL 11-09 '체력이 0이 되기 전에 컷신이 나와 어색함') 처치 순서: 막타 → 피해 숫자가 굴러 오르며 체력이 같이 빠짐 → 체력 0 = 격파(멈칫 · 번쩍)
-     → 처치 컷신 → 무대로 돌아와 넘친 피해 · 난타 → 폭발 · 쓰러짐 → 주인공 퇴장 */
+  /* (DHL 11-09 '체력이 0이 되기 전에 컷신이 나와 어색함' + '컷신 전엔 큰 숫자가 올라가지 않게') 처치 순서:
+     막타 → 숫자 없이 체력만 0까지 빠짐 → 격파(멈칫 · 번쩍 · 글씨) → 처치 컷신 → 무대로 돌아와 피해 숫자가 0부터 굴러 오름 · 난타 → 폭발 · 쓰러짐 → 주인공 퇴장 */
+  async function drainBreak(o){const en=$('enemy'),h0=hp,h1=o.hp!=null?Math.min(h0,o.hp):0,boss=kind==='boss',T=boss?520:420,t0=performance.now();
+    await new Promise(res=>{const f=now=>{const k=Math.min(1,(now-t0)/T),e=1-Math.pow(1-k,2);hp=h0+(h1-h0)*e;setHud();if(k<1)requestAnimationFrame(f);else{hp=h1;setHud();res();}};requestAnimationFrame(f);});
+    lmSnd('sfx_score_over',{vol:.8});try{MRFX.flash?.(stage,'rgba(255,255,255,.8)');MRFX.shake(stage,'l',true);}catch(e){}hitStop(boss?260:170);
+    if(en)flip('fx14',R(0,7),en.offsetLeft,en.offsetTop+en.offsetHeight*.5,en.offsetHeight*1.6,{fps:20});
+    let t='격파!';try{t=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(t))||t;}catch(e){}bigText(t,'brk');
+    await sleep(boss?560:400);}
   let cutDone=false;
   async function finishCut(){cutDone=true;cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;}
   async function killSeq(){
     const o=defRoll;defRoll=null;
-    if(o){o.cutAtBreak=true;rollFinal(o);await rollWait();}else{await rollWait();if(!cutDone)await finishCut();}cutDone=false;
+    if(o){await sleep(120);await drainBreak(o);await finishCut();await sleep(160);o.preBroke=true;rollFinal(o);await rollWait();}else{await rollWait();if(!cutDone)await finishCut();}cutDone=false;
     const en=$('enemy');try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
     await sleep(420);}
   function cine(on){if(!cineEl){cineEl=document.createElement('div');cineEl.id='lm-cine';cineEl.innerHTML='<i></i><i></i>';document.body.appendChild(cineEl);}cineEl.classList.toggle('on',!!on);}
@@ -8026,7 +8032,8 @@ let isGameOver = false;
     const d=document.createElement('div');d.className='lm-roll t1';if(en){d.style.left=(en.offsetLeft)+'px';d.style.top=(en.offsetTop+en.offsetHeight*.42)+'px';}
     d.innerHTML='<b>'+dig('0',0)+'</b>';   /* (DHL 11-08) 막타 숫자 위 ×배수 표시 뺌 — 점수판과 겹치고 헷갈림 */stage.appendChild(d);const B=d.querySelector('b');
     const dur=killed?Math.min(1900,650+Math.log2(1+ok)*380):620;
-    let el=0,last=performance.now(),holdTo=0,broke=!killed,tickT=0,tier=1,zoomA=null,cutWait=false;
+    let el=0,last=performance.now(),holdTo=0,broke=!killed||!!o.preBroke,tickT=0,tier=1,zoomA=null,cutWait=false;
+    if(o.preBroke&&ok>=1.5)setTimeout(()=>flurry({...o,ok},Math.max(300,dur-200)),220);   // 격파는 컷신 앞에서 이미 함 → 난타만 숫자와 함께
     const step=now=>{const dt=Math.min(60,now-last);last=now;if(now<holdTo||cutWait||(typeof cutOn==='function'&&cutOn())){requestAnimationFrame(step);return;}el+=dt;   /* 컷인 · 처치 컷신이 덮는 동안은 숫자도 멈춤 */
       const k=Math.min(1,el/dur),e=1-Math.pow(1-k,2.3),v=total*e;B.innerHTML=dig(fmt(v),killed?{1:0,2:1,5:2,10:3}[tier]:0);
       const hpD=Math.max(hpEnd,Math.min(hpS,hp0-v));if(Math.abs(hpD-hp)>=.5||(k>=1&&hp!==hpEnd)){hp=k>=1?hpEnd:hpD;setHud();}
@@ -8039,12 +8046,8 @@ let isGameOver = false;
         if(en)flip('fx14',R(0,7),en.offsetLeft,en.offsetTop+en.offsetHeight*.5,en.offsetHeight*1.6,{fps:20});
         let t='격파!';try{t=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(t))||t;}catch(e){}bigText(t,'brk');
         if(boss){/* (DHL 11-08) 위아래 검은 띠(레터박스) 뺌 — 무대가 잘려 보임. 화면 당김(줌)만 */try{const E=enemyPt();stage.style.transformOrigin=`${E.x}px ${E.y}px`;zoomA=stage.animate([{transform:'scale(1)'},{transform:'scale(1.1)'}],{duration:420,easing:'cubic-bezier(.2,.8,.3,1)',fill:'forwards'});}catch(e){}}
-        const fl=()=>{if(ok>=1.5)flurry({...o,ok},Math.max(300,dur*(1-k)-120));};
-        if(o.cutAtBreak){cutWait=true;   // 체력 0 → 격파 글씨 · 멈칫을 보여 준 뒤 처치 컷신 → 끝나면 넘친 피해가 이어서 올라감
-          setTimeout(async()=>{if(zoomA){try{zoomA.cancel();}catch(e){}zoomA=null;stage.style.transformOrigin='';}try{await finishCut();}catch(e){}cutWait=false;last=performance.now();setTimeout(fl,120);},boss?520:360);}
-        else setTimeout(fl,boss?380:200);}
+        if(ok>=1.5)setTimeout(()=>flurry({...o,ok},Math.max(300,dur*(1-k)-120)),boss?380:200);}
       if(k<1){requestAnimationFrame(step);return;}
-      if(killed&&o.cutAtBreak&&!cutDone&&!o._cutting){o._cutting=1;cutWait=true;finishCut().catch(()=>{}).finally(()=>{cutWait=false;last=performance.now();});requestAnimationFrame(step);return;}   // 체력 칸이 어긋나 0을 못 지났어도 쓰러지기 전에 컷신
       try{d.animate([{scale:'1.5'},{scale:'1'}],{duration:240,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
       const hold=killed?(ok>=2?850:450):420;
       setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),300);
@@ -8056,8 +8059,8 @@ let isGameOver = false;
     requestAnimationFrame(step);}
   function land(){
     const o=impact;impact=null;clearTimeout(impactT);if(!o)return;
-    if(o.final&&o.dmg>0&&!o.combo&&o.defer){defRoll=o;resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}hitStop(170);return;}   /* (DHL 11-08) 처치 막타: 숫자 없이 맞는 순간만 → 처치 컷신 → 그 뒤 숫자가 0부터 */
-    if(o.final&&o.dmg>0&&!o.combo){if(o.killed&&!o.demo){cutDone=false;o.cutAtBreak=true;}rollFinal(o);return;}   // (11-07) 막타 = 카운트업 · (11-09) 쓰러뜨리면 체력 0에서 처치 컷신
+    if(o.final&&o.dmg>0&&!o.combo&&(o.defer||(o.killed&&!o.demo))){defRoll=o;resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}hitStop(170);return;}   /* (DHL 11-08) 처치 막타: 숫자 없이 맞는 순간만 → 처치 컷신 → 그 뒤 숫자가 0부터 */
+    if(o.final&&o.dmg>0&&!o.combo){rollFinal(o);return;}   // (11-07) 막타 = 카운트업 (쓰러뜨리는 막타는 위에서 미룸)
     if(gsSh&&!gsSh._d&&!gsSh.brk){gsSh._d=1;const sb=$('lm-sbar');if(sb){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');if(gsSh.after>0)sbarSet(gsSh.after,gsSh.max);}}   // (DHL 11-01 깨질 땐 마지막 일격에 0까지 줄어듦) (DHL 10-30) 첫 타격에 방패 에너지부터 깎임 → 그다음 몸체
     if(o.hp!=null){hp=o.hp;setHud();}
     if(o.dmg!=null&&o.final){popNum(o);if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}}
