@@ -8008,27 +8008,51 @@ let isGameOver = false;
   /* B · C: 막타 카운트업 */
   let rollP=null,cineEl=null,defRoll=null;
   function rollWait(){return rollP||Promise.resolve();}
-  async function killSeq(){   /* (DHL 11-08) 처치: 처치 컷신 먼저 → 무대로 돌아와 피해 숫자가 0부터 굴러 오르며 체력이 빠짐 → 격파 · 난타 · 폭발 → 쓰러짐 */
-    cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;
-    const o=defRoll;defRoll=null;if(o){await sleep(180);rollFinal(o);await rollWait();}
-    const en=$('enemy');try{lmSnd(kind==='boss'?'sfx_boss_defeat':'sfx_foe_defeat');if(en){window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(kind==='boss'?' boss-enemy':'');}}catch(e){}
-    await sleep(420);}
+  /* (DHL 11-09 '체력이 0이 되기 전에 컷신이 나와 어색함' + '컷신 전엔 큰 숫자가 올라가지 않게') 처치 순서:
+     막타 → 숫자 없이 체력만 0까지 빠짐 → 격파(멈칫 · 번쩍 · 글씨) → 처치 컷신 → 무대로 돌아와 피해 숫자가 0부터 굴러 오름 · 난타 → 폭발 · 쓰러짐 → 주인공 퇴장 */
+  async function drainBreak(o){const en=$('enemy'),h0=hp,h1=o.hp!=null?Math.min(h0,o.hp):0,boss=kind==='boss',T=boss?520:420,t0=performance.now();
+    await new Promise(res=>{const f=now=>{const k=Math.min(1,(now-t0)/T),e=1-Math.pow(1-k,2);hp=h0+(h1-h0)*e;setHud();if(k<1)requestAnimationFrame(f);else{hp=h1;setHud();res();}};requestAnimationFrame(f);});
+    lmSnd('sfx_score_over',{vol:.8});try{MRFX.flash?.(stage,'rgba(255,255,255,.8)');MRFX.shake(stage,'l',true);}catch(e){}hitStop(boss?260:170);
+    if(en)flip('fx14',R(0,7),en.offsetLeft,en.offsetTop+en.offsetHeight*.5,en.offsetHeight*1.6,{fps:20});
+    let t='격파!';try{t=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(t))||t;}catch(e){}bigText(t,'brk');
+    await sleep(boss?560:400);}
+  let cutDone=false;
+  async function finishCut(){cutDone=true;cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;}
+  async function killSeq(){
+    const o=defRoll;defRoll=null;
+    /* (DHL 11-09 '체력 0 · 폭파됐는데 적이 계속 있음') 격파 → 컷신 → 폭파 · 적 사라짐 → (B: 주인공 퇴장) → 피해 숫자 카운트
+       KILL_V: 'B'(기본) = 주인공까지 퇴장한 뒤 빈 무대에서 카운트 · 'A' = 적 사라진 뒤 바로 카운트 (시험: localStorage lm_killv) */
+    if(o){await sleep(120);await drainBreak(o);await finishCut();await sleep(160);
+      const en=$('enemy');o.px=en?en.offsetLeft:stage.clientWidth*.7;o.py=en?en.offsetTop+en.offsetHeight*.42:stage.clientHeight*.4;
+      foeBoom();await sleep(kind==='boss'?1000:760);
+      if(killV()==='B'){await runOff();o.px=stage.clientWidth*.5;}
+      o.preBroke=true;o.noFoe=true;rollFinal(o);await rollWait();}
+    else{await rollWait();if(!cutDone)await finishCut();foeBoom();await sleep(420);}
+    cutDone=false;}
+  function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
+  function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;gsDead=true;try{drawGems();}catch(e){}
+    try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
+    if(en){try{if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}
+      else flip(FXM['fx15_'+(world==='skyarc'?'sky':world)]?'fx15_'+(world==='skyarc'?'sky':world):'fx15',R(0,11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*1.7,{fps:20});
+      window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(boss?' boss-enemy':'');}catch(e){}}
+    slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
   function cine(on){if(!cineEl){cineEl=document.createElement('div');cineEl.id='lm-cine';cineEl.innerHTML='<i></i><i></i>';document.body.appendChild(cineEl);}cineEl.classList.toggle('on',!!on);}
   function rollFinal(o){let done;rollP=new Promise(r=>done=r);
     const en=$('enemy'),hpS=hp,hp0=Math.max(1,o.hp0||hpS),hpEnd=o.hp!=null?o.hp:hpS,total=o.dmg,killed=!!o.killed,ok=killed?(o.ok||total/hp0):0,boss=killed&&kind==='boss';
     if(gsSh&&!gsSh._d&&!gsSh.brk){gsSh._d=1;const sb=$('lm-sbar');if(sb){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');if(gsSh.after>0)sbarSet(gsSh.after,gsSh.max);}}
     if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}
     resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}
-    const d=document.createElement('div');d.className='lm-roll t1';if(en){d.style.left=(en.offsetLeft)+'px';d.style.top=(en.offsetTop+en.offsetHeight*.42)+'px';}
+    const d=document.createElement('div');d.className='lm-roll t1';if(o.px!=null){d.style.left=o.px+'px';d.style.top=o.py+'px';}else if(en){d.style.left=(en.offsetLeft)+'px';d.style.top=(en.offsetTop+en.offsetHeight*.42)+'px';}
     d.innerHTML='<b>'+dig('0',0)+'</b>';   /* (DHL 11-08) 막타 숫자 위 ×배수 표시 뺌 — 점수판과 겹치고 헷갈림 */stage.appendChild(d);const B=d.querySelector('b');
-    const dur=killed?Math.min(2300,750+Math.log2(1+ok)*480):620;
-    let el=0,last=performance.now(),holdTo=0,broke=!killed,tickT=0,tier=1,zoomA=null;
-    const step=now=>{const dt=Math.min(60,now-last);last=now;if(now<holdTo||(typeof cutOn==='function'&&cutOn())){requestAnimationFrame(step);return;}el+=dt;   /* 컷인이 덮는 동안은 숫자도 멈춤 */
+    const dur=killed?Math.min(1900,650+Math.log2(1+ok)*380):620;
+    let el=0,last=performance.now(),holdTo=0,broke=!killed||!!o.preBroke,tickT=0,tier=1,zoomA=null,cutWait=false;
+    if(o.preBroke&&!o.noFoe&&ok>=1.5)setTimeout(()=>flurry({...o,ok},Math.max(300,dur-200)),220);   // 격파는 컷신 앞에서 이미 함 → 난타만 숫자와 함께
+    const step=now=>{const dt=Math.min(60,now-last);last=now;if(now<holdTo||cutWait||(typeof cutOn==='function'&&cutOn())){requestAnimationFrame(step);return;}el+=dt;   /* 컷인 · 처치 컷신이 덮는 동안은 숫자도 멈춤 */
       const k=Math.min(1,el/dur),e=1-Math.pow(1-k,2.3),v=total*e;B.innerHTML=dig(fmt(v),killed?{1:0,2:1,5:2,10:3}[tier]:0);
       const hpD=Math.max(hpEnd,Math.min(hpS,hp0-v));if(Math.abs(hpD-hp)>=.5||(k>=1&&hp!==hpEnd)){hp=k>=1?hpEnd:hpD;setHud();}
       if(killed){const r=v/hp0,t=r>=10?10:r>=5?5:r>=2?2:1;if(t!==tier){tier=t;d.className='lm-roll t'+t;try{d.animate([{scale:'1.35'},{scale:'1'}],{duration:200,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}}
         d.style.setProperty('--z',(1+Math.min(.45,Math.log2(1+r)*.12)).toFixed(2));}
-      {const W=stage.clientWidth;let z=parseFloat(d.style.getPropertyValue('--z'))||1;if(d.offsetWidth*z>W*.6){z=W*.6/d.offsetWidth;d.style.setProperty('--z',z.toFixed(3));}const hw=d.offsetWidth*z/2,x0=en?en.offsetLeft:W*.7;d.style.left=Math.max(hw+8,Math.min(x0,W-hw-8))+'px';}   /* 숫자가 커져도 무대 밖으로 안 나감 */
+      {const W=stage.clientWidth;let z=parseFloat(d.style.getPropertyValue('--z'))||1;if(d.offsetWidth*z>W*.6){z=W*.6/d.offsetWidth;d.style.setProperty('--z',z.toFixed(3));}const hw=d.offsetWidth*z/2,x0=o.px!=null?o.px:en?en.offsetLeft:W*.7;d.style.left=Math.max(hw+8,Math.min(x0,W-hw-8))+'px';}   /* 숫자가 커져도 무대 밖으로 안 나감 */
       if(now-tickT>60){tickT=now;lmSnd('sfx_combo_tick',{vol:.28,rate:Math.min(2,1+(killed?v/hp0:v/Math.max(1,total))*.08),gap:40});}
       if(!broke&&v>=hp0){broke=true;holdTo=now+(boss?380:200);   // 체력 0 = 격파
         lmSnd('sfx_score_over',{vol:.8});try{MRFX.flash?.(stage,'rgba(255,255,255,.8)');MRFX.shake(stage,'l',true);}catch(e){}
@@ -8040,16 +8064,16 @@ let isGameOver = false;
       try{d.animate([{scale:'1.5'},{scale:'1'}],{duration:240,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
       const hold=killed?(ok>=2?850:450):420;
       setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),300);
-        if(killed){gsDead=true;try{drawGems();}catch(e){}if(en){if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}   /* (DHL 11-08 '땅 위에서 터져 이상함') 거인 대폭발은 적이 선 땅에서 솟음 */
+        if(killed&&!o.noFoe){gsDead=true;try{drawGems();}catch(e){}if(en){if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}   /* (DHL 11-08 '땅 위에서 터져 이상함') 거인 대폭발은 적이 선 땅에서 솟음 */
           else flip(FXM['fx15_'+(world==='skyarc'?'sky':world)]?'fx15_'+(world==='skyarc'?'sky':world):'fx15',R(0,11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*1.7,{fps:20});}
           slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
-        else hitStop(170);
+        else if(!killed)hitStop(170);
         setTimeout(()=>{if(boss){if(zoomA){try{zoomA.cancel();}catch(e){}}stage.style.transformOrigin='';}done();rollP=null;},killed?260:0);},hold);};
     requestAnimationFrame(step);}
   function land(){
     const o=impact;impact=null;clearTimeout(impactT);if(!o)return;
-    if(o.final&&o.dmg>0&&!o.combo&&o.defer){defRoll=o;resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}hitStop(170);return;}   /* (DHL 11-08) 처치 막타: 숫자 없이 맞는 순간만 → 처치 컷신 → 그 뒤 숫자가 0부터 */
-    if(o.final&&o.dmg>0&&!o.combo){rollFinal(o);return;}   // (11-07) 막타 = 카운트업
+    if(o.final&&o.dmg>0&&!o.combo&&(o.defer||(o.killed&&!o.demo))){defRoll=o;resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.45)');}catch(e){}hitStop(170);return;}   /* (DHL 11-08) 처치 막타: 숫자 없이 맞는 순간만 → 처치 컷신 → 그 뒤 숫자가 0부터 */
+    if(o.final&&o.dmg>0&&!o.combo){rollFinal(o);return;}   // (11-07) 막타 = 카운트업 (쓰러뜨리는 막타는 위에서 미룸)
     if(gsSh&&!gsSh._d&&!gsSh.brk){gsSh._d=1;const sb=$('lm-sbar');if(sb){sb.classList.remove('flash');void sb.offsetWidth;sb.classList.add('flash');if(gsSh.after>0)sbarSet(gsSh.after,gsSh.max);}}   // (DHL 11-01 깨질 땐 마지막 일격에 0까지 줄어듦) (DHL 10-30) 첫 타격에 방패 에너지부터 깎임 → 그다음 몸체
     if(o.hp!=null){hp=o.hp;setHud();}
     if(o.dmg!=null&&o.final){popNum(o);if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}}
@@ -8661,7 +8685,10 @@ let isGameOver = false;
     show(slots,true);setMul(slots,1.8);
     await walk(-W*.8,0,600,'out',slots);setMul(slots,null);clearOffset(slots);
   }
-  async function exit(){
+  let ranOff=false;
+  async function exit(){if(!ranOff)await runOff();ranOff=false;
+    stage.classList.add('lm-cleared');window.parent?.postMessage?.({mrStage:'cleared'},'*');await sleep(500);}
+  async function runOff(){   // 주인공 · 동료가 화면 밖으로 달려 나감 + 하늘이 밤으로 (보상 신호는 exit 에서)
     const W=stage.clientWidth||400;resetCharge();
     const C={rust:['#ffc58a','#e07a3f'],neon:['#7ff6ff','#ff3fa4'],skyarc:['#ffd27a','#58b8ff']}[world]||['#ffe9a8','#ffc96a'];
     try{window.MRBattleSky?.windSweep?.(C);}catch(e){}lmSnd('sfx_sky_change',{gap:1500});   // (DHL 11-04) 전투가 끝나고 바람이 하늘을 쓸며 하늘이 바뀔 때
@@ -8670,8 +8697,7 @@ let isGameOver = false;
     const base=ALL.map(sl=>actors[sl].off);
     const w=new Promise(res=>{const t0=performance.now();const f=now=>{const k=Math.min(1,(now-t0)/1600),e=k*k;for(const sl of ALL)actors[sl].off=base[sl]+(W*1.1-base[sl])*e;if(k<1)requestAnimationFrame(f);else res();};requestAnimationFrame(f);});
     await sleep(900);skyN=3;window.MRBattleSky?.setStage(3,false);
-    await w;show(ALL,false);
-    stage.classList.add('lm-cleared');window.parent?.postMessage?.({mrStage:'cleared'},'*');await sleep(500);
+    await w;show(ALL,false);ranOff=true;
   }
 
   const api={
