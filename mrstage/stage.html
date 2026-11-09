@@ -5411,6 +5411,7 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-roll.t1{color:#ffe066}.lm-roll.t2{color:#ffb020;-webkit-text-stroke:4.5px #3a1400}.lm-roll.t5{color:#ff4d2e;-webkit-text-stroke:5px #2a0600}.lm-roll.t10{color:#fff6c8;-webkit-text-stroke:5px #6a0010}
 .lm-roll.out{opacity:0;translate:-50% -90%}
 .lm-big.brk b{color:#fff;-webkit-text-stroke:5px #6a0010}
+.lm-big.lm-kill{translate:-50% 0;animation:lmBigIn 1.5s cubic-bezier(.2,1.4,.4,1) forwards}.lm-big.lm-kill b{font-size:30px;color:#ffe9a8}
 #lm-cine{position:fixed;inset:0;z-index:9990;pointer-events:none}
 .lm-roll b,#lm-combo b{display:inline-flex;align-items:center;white-space:nowrap}
 .dg{display:inline-block;width:1em;height:1em;margin:0 -.15em;background:url(fx/route/dmg_digits.webp) 0 0/1100% 400% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
@@ -8041,7 +8042,7 @@ let isGameOver = false;
   function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
     if(en){try{if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}
-      else flip(FXM['fx15_'+(world==='skyarc'?'sky':world)]?'fx15_'+(world==='skyarc'?'sky':world):'fx15',R(0,11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*1.7,{fps:20});
+      /* (DHL 11-09 '적이 죽고 돈이 떨어지는 게 이상함') 망령 · 수문장의 처치 조각 + 금화(fx15)는 일단 숨김 */
       window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(boss?' boss-enemy':'');}catch(e){}}
     slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
   function cine(on){if(!cineEl){cineEl=document.createElement('div');cineEl.id='lm-cine';cineEl.innerHTML='<i></i><i></i>';document.body.appendChild(cineEl);}cineEl.classList.toggle('on',!!on);}
@@ -8054,6 +8055,8 @@ let isGameOver = false;
     d.innerHTML='<b>'+dig('0',0)+'</b>';   /* (DHL 11-08) 막타 숫자 위 ×배수 표시 뺌 — 점수판과 겹치고 헷갈림 */stage.appendChild(d);const B=d.querySelector('b');
     const dur=killed?Math.min(1900,650+Math.log2(1+ok)*380):620;
     let el=0,last=performance.now(),holdTo=0,broke=!killed||!!o.preBroke,tickT=0,tier=1,zoomA=null,cutWait=false;
+    if(o.noFoe&&killed){let t='적 처치!';try{t=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(t))||t;}catch(e){}   /* (DHL 11-09) 빈 무대에서 피해 숫자가 오를 때 '적 처치!' */
+      const k=document.createElement('div');k.className='lm-big brk lm-kill';k.innerHTML='<b>'+t+'</b>';k.style.left='50%';k.style.top='12%';stage.appendChild(k);setTimeout(()=>k.remove(),Math.max(1800,dur+700));}
     if(o.preBroke&&!o.noFoe&&ok>=1.5)setTimeout(()=>flurry({...o,ok},Math.max(300,dur-200)),220);   // 격파는 컷신 앞에서 이미 함 → 난타만 숫자와 함께
     const step=now=>{const dt=Math.min(60,now-last);last=now;if(now<holdTo||cutWait||(typeof cutOn==='function'&&cutOn())){requestAnimationFrame(step);return;}el+=dt;   /* 컷인 · 처치 컷신이 덮는 동안은 숫자도 멈춤 */
       const k=Math.min(1,el/dur),e=1-Math.pow(1-k,2.3),v=total*e;B.innerHTML=dig(fmt(v),killed?{1:0,2:1,5:2,10:3}[tier]:0);
@@ -8073,7 +8076,7 @@ let isGameOver = false;
       const hold=killed?(ok>=2?850:450):420;
       setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),300);
         if(killed&&!o.noFoe){gsDead=true;try{drawGems();}catch(e){}if(en){if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}   /* (DHL 11-08 '땅 위에서 터져 이상함') 거인 대폭발은 적이 선 땅에서 솟음 */
-          else flip(FXM['fx15_'+(world==='skyarc'?'sky':world)]?'fx15_'+(world==='skyarc'?'sky':world):'fx15',R(0,11),en.offsetLeft,en.offsetTop+en.offsetHeight*.55,en.offsetHeight*1.7,{fps:20});}
+          /* fx15(조각 + 금화)는 숨김 (DHL 11-09) */}
           slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
         else if(!killed)hitStop(170);
         setTimeout(()=>{if(boss){if(zoomA){try{zoomA.cancel();}catch(e){}}stage.style.transformOrigin='';}done();rollP=null;},killed?260:0);},hold);};
