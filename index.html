@@ -2063,7 +2063,7 @@ const ORBS={
   dusk:{ko:'해 질 녘',cost:7,r:'u',g:'상황',d:'라운드 마지막 런이면 배수 ×3'},
   grow:{ko:'자라는 망토',cost:6,r:'u',g:'성장',d:'런을 할 때마다 힘 +8 (누적)'},
   horse:{ko:'황금 편자',cost:6,r:'c',g:'돈',d:'라운드를 이길 때마다 💰+4'},
-  quix:{ko:'라만차의 기사',cost:9,r:'r',g:'기본',d:'배수 ×3'},
+  quix:{ko:'라만차의 기사',cost:11,r:'r',g:'기본',d:'배수 ×2.5'},   /* (DHL 11-09 봇: 이 구슬 하나에 기대는 정도 줄이기) 9원 ×3 → 11원 ×2.5 */
   /* 새 구슬 (곱하기 · 빌드 축) */
   anvil:{ko:'대장장이 모루',cost:7,r:'u',g:'머지',d:'이번 판 머지 1번마다 배수 ×0.05씩 (머지 20번 = ×2)'},
   pureel:{ko:'순수한 원소',cost:6,r:'u',g:'속성',d:'낸 카드(2장 이상)가 모두 같은 속성이면 배수 ×1.5'},
@@ -2228,7 +2228,7 @@ function score(cards,ctx){
     map3:()=>worlds.size===3?(mult*=X('map3',2),'×'+X('map3',2)+' 배수'):null,
     letter:()=>names.size===5&&n===5?(mult*=X('letter',2.5),'×'+X('letter',2.5)+' 배수'):null,
     dusk:()=>ctx.runsLeft===1?(mult*=X('dusk',3),'×'+X('dusk',3)+' 배수'):null,
-    quix:()=>(mult*=X('quix',3),'×'+X('quix',3)+' 배수'),
+    quix:()=>(mult*=X('quix',2.5),'×'+X('quix',2.5)+' 배수'),
     dawn:()=>ctx.runsMax&&ctx.runsLeft===ctx.runsMax?(mult+=A('dawn',10),'+'+A('dawn',10)+' 배수'):null,
     wisdom:()=>ctx.discCount?(chips+=A('wisdom',8*ctx.discCount),'+'+A('wisdom',8*ctx.discCount)+' 힘'):null,
     bignum:()=>{const v=2*SC.reduce((s,c)=>s+NUM(c),0);return v?(chips+=A('bignum',v),'+'+A('bignum',v)+' 힘'):null;},
