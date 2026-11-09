@@ -8038,13 +8038,14 @@ let isGameOver = false;
     const o=defRoll;defRoll=null;
     /* (DHL 11-09 '체력 0 · 폭파됐는데 적이 계속 있음') 격파 → 컷신 → 폭파 · 적 사라짐 → (B: 주인공 퇴장) → 피해 숫자 카운트
        KILL_V: 'B'(기본) = 주인공까지 퇴장한 뒤 빈 무대에서 카운트 · 'A' = 적 사라진 뒤 바로 카운트 (시험: localStorage lm_killv) */
-    if(o){await sleep(120);await drainBreak(o);await finishCut();await sleep(160);
+    if(o){await sleep(120);await drainBreak(o);if(!cutDone)await finishCut();await sleep(160);
       const en=$('enemy');o.px=en?en.offsetLeft:stage.clientWidth*.7;o.py=en?en.offsetTop+en.offsetHeight*.42:stage.clientHeight*.4;
       foeBoom();await sleep(kind==='boss'?1000:760);
       if(killV()==='B'){await runOff();o.px=stage.clientWidth*.5;}
       o.preBroke=true;o.noFoe=true;rollFinal(o);await rollWait();}
     else{await rollWait();if(!cutDone)await finishCut();foeBoom();await sleep(420);}
     cutDone=false;}
+  function cutPre(){let v='pre';try{v=(window.parent&&parent.LM_KILLCUT)||localStorage.getItem('lm_killcut')||'pre';}catch(e){}return v!=='post';}   // 기본 = 막타 전에 컷신 · 'post' = 예전(막타 → 격파 → 컷신)
   function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
   function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
@@ -8490,7 +8491,7 @@ let isGameOver = false;
     if(ranged){slots.forEach((sl,i)=>setTimeout(()=>{try{rt==='shoot'?shot(sl,mem[i]):circle(mem[i],700);}catch(e){}},i*140));}
     cast.group=[...battleTeamEntries()].sort((x,y)=>y.slot-x.slot);cast.cutDur=1300;   // (DHL 11-02) 컷인 왼→오 순서 = 전투 화면에 선 순서(뒷자리 왼쪽 · 1번 자리 오른쪽)
     cast.slot=0;
-    impact={dmg:o.killed?null:o.dmg,final:true,mult:o.mult,hp:o.killed?Math.max(o.hp??0,Math.round(hp-(hp-(o.hp??0))*mem.length/(mem.length+1))):o.hp,killed:false,heavy:true,combo:true};   /* 막타(주인공) 몫을 조금 남김 */clearTimeout(impactT);impactT=setTimeout(land,2600);   // (DHL 10-28) 합동기로 쓰러뜨려도 막타는 주인공 → 여기선 쓰러뜨리지 않음
+    impact={dmg:o.killed?null:o.dmg,final:true,mult:o.mult,hp:o.killed?Math.max(o.hp??0,1,Math.ceil(hp*.04),Math.round(hp-(hp-(o.hp??0))*mem.length/(mem.length+1))):o.hp,killed:false,heavy:true,combo:true};   /* 막타(주인공) 몫을 조금 남김 */clearTimeout(impactT);impactT=setTimeout(land,2600);   // (DHL 10-28) 합동기로 쓰러뜨려도 막타는 주인공 → 여기선 쓰러뜨리지 않음
     hitQ.length=0;const ccb=()=>{lmSnd('sfx_hit_weak');lmSnd('sfx_shield_break',{delay:120,vol:.7});const E=enemyPt(),C=RT('combo');flipTint(C.sheet,R(C.from,C.to),E.x,E.y,E.h*C.size,mem,{fps:C.fps});shake(C.shake);mem.forEach((n,i)=>setTimeout(()=>impactFx(n),300+i*110));};   // 세 세계 합류 폭발(fx12) → 각자 계열 효과
     hitCb=ccb;setTimeout(()=>{if(hitCb===ccb)hitCb=null;},5000);
     event({level:11,skill:true});
@@ -8500,6 +8501,7 @@ let isGameOver = false;
       // (DHL 10-28) 막타는 주인공: 합동기 폭발 → 멤버가 빠지고 → 주인공이 들어와 마무리 일격 → 처치
       setMul(ALL,0);await walk(0,-W*.9,520,'in',ALL);setMul(ALL,null);show(ALL,false);
       const heroNum=(hero??-1)+1;
+      if(!o.demo&&cutPre()){cutDone=false;await finishCut();await sleep(120);}   /* (DHL 11-09) 합동기 뒤에도 주인공 막타 '전에' 처치 컷신 */
       applyTeam([hero,null,null]);await waitRig([0],3000);
       const okC=o.dmg/Math.max(1,hpC0);const res=await perform(0,heroNum,{enter:true,level:11,impact:{dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:true,heavy:true,ok:okC,hp0:hpC0,defer:!o.demo}});await rollWait();   /* (DHL 11-03 '첫 공격에 점수가 터지는 것 같음') 최종 피해 숫자는 합동기 폭발이 아니라 마지막 일격(주인공 막타)에 */
       await sleep(520);
@@ -8545,7 +8547,7 @@ let isGameOver = false;
     const okX=o.killed&&o.dmg>0?o.dmg/Math.max(1,hp):0;   /* (DHL 11-07) 남은 체력의 몇 배를 넣었나 */
     const IMP={dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:!!o.killed,heavy:true,ok:okX,hp0:hp,defer:!!o.killed&&!o.demo&&heroStrikes};
     // (DHL 10-28) 적 체력은 공격할 때마다 나눠서 깎임 — 피해 숫자(카운트)는 마지막 일격에 그대로
-    const hp0=hp,hpT=o.hp!=null?o.hp:hp0,K=guests.length+(heroStrikes?1:0),hpAt=i=>o.killed&&heroStrikes&&okX>=1?Math.max(hpT,Math.round(hp0*.35*Math.pow(.15,i))):Math.max(hpT,Math.round(hp0-(hp0-hpT)*(i+1)/Math.max(1,K)));   /* (DHL 11-07 피드백 '팍팍 깎고 남은 딜은 너덜너덜하게') 처치되는 런: 첫 동료 65% · 다음 85%씩 → 주인공 막타에 난타 */
+    const hp0=hp,hpT=o.hp!=null?o.hp:hp0,K=guests.length+(heroStrikes?1:0),hpLeft=o.killed&&heroStrikes?Math.max(hpT,1,Math.ceil(hp0*.04)):hpT,hpAt=i=>o.killed&&heroStrikes&&okX>=1?Math.max(hpLeft,Math.round(hp0*.35*Math.pow(.15,i))):Math.max(hpLeft,Math.round(hp0-(hp0-hpT)*(i+1)/Math.max(1,K)));   /* (DHL 11-09) 주인공 막타 전엔 적 체력이 작게라도 남음 (최소 4% · 1) */   /* (DHL 11-07 피드백 '팍팍 깎고 남은 딜은 너덜너덜하게') 처치되는 런: 첫 동료 65% · 다음 85%씩 → 주인공 막타에 난타 */
     await Promise.all(guests.map(loadRigDef));
     let heroOut=false;const outs=[];
     if(guests.length){
@@ -8568,6 +8570,8 @@ let isGameOver = false;
     cast.finish=false;
     if(heroStrikes){
       if(heroOut)await waitRig([0],2000);
+      /* (DHL 11-09 시안) 동료들이 두들겨 팬 뒤 → 주인공 마지막 한 방 '전에' 처치 컷신 → 주인공이 치며 체력 0 → 격파 · 폭파 · 퇴장 · 카운트 (기본 · 예전 순서는 lm_killcut='post') */
+      if(o.killed&&!o.demo&&cutPre()){await sleep(160);cutDone=false;await finishCut();await sleep(120);}
       const res=await perform(0,heroNum,{enter:heroOut,level:11,impact:IMP});
       await rollWait();await sleep(o.killed?260:120);   /* (11-07) 막타 카운트업이 끝날 때까지 */
       if(o.killed&&!o.demo){await killSeq();await exit();}else{
