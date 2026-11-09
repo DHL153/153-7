@@ -8064,7 +8064,7 @@ let isGameOver = false;
     const dur=killed?Math.min(1900,650+Math.log2(1+ok)*380):620;
     let el=0,last=performance.now(),holdTo=0,broke=!killed||!!o.preBroke,tickT=0,tier=1,zoomA=null,cutWait=false;
     if(o.noFoe&&killed){let t='적 처치!';try{t=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(t))||t;}catch(e){}   /* (DHL 11-09) 빈 무대에서 피해 숫자가 오를 때 '적 처치!' */
-      const k=document.createElement('div');k.className='lm-big brk lm-kill';k.innerHTML='<b>'+t+'</b>';k.style.left='50%';k.style.top='12%';stage.appendChild(k);setTimeout(()=>k.remove(),Math.max(1800,dur+700));}
+      const k=document.createElement('div');k.className='lm-big brk lm-kill';k.innerHTML='<b>'+t+'</b>';k.style.left='50%';k.style.top=Math.max(4,(o.py!=null?o.py:stage.clientHeight*.42)-60)+'px';{const glue=()=>{if(!k.isConnected)return;const z=parseFloat(d.style.getPropertyValue('--z'))||1,top=d.offsetTop-d.offsetHeight*z/2;k.style.left=d.style.left||'50%';k.style.top=Math.max(4,top-k.offsetHeight+2)+'px';requestAnimationFrame(glue);};requestAnimationFrame(glue);}   /* (DHL 11-10 'PC에서도 더 붙게') 숫자 크기가 바뀌어도 늘 숫자 윗변에 딱 붙음 */   /* (DHL 11-09 '적 처치와 숫자 사이가 넓음') 숫자 바로 위에 붙임 */stage.appendChild(k);setTimeout(()=>k.remove(),Math.max(1800,dur+700));}
     if(o.preBroke&&!o.noFoe&&ok>=1.5)setTimeout(()=>flurry({...o,ok},Math.max(300,dur-200)),220);   // 격파는 컷신 앞에서 이미 함 → 난타만 숫자와 함께
     const step=now=>{const dt=Math.min(60,now-last);last=now;if(now<holdTo||cutWait||(typeof cutOn==='function'&&cutOn())){requestAnimationFrame(step);return;}el+=dt;   /* 컷인 · 처치 컷신이 덮는 동안은 숫자도 멈춤 */
       const k=Math.min(1,el/dur),e=1-Math.pow(1-k,2.3),v=total*e;B.innerHTML=dig(fmt(v),killed?{1:0,2:1,5:2,10:3}[tier]:0);
