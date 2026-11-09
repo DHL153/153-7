@@ -6774,7 +6774,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const t=TYPES[a.id];S._ma=a;S._mb=b;
     const ws=[...new Set([cardW(a),cardW(b)])],es=[...new Set([a.el,b.el])],ns=[...new Set([cardNo(a),cardNo(b)])].sort((x,y)=>y-x);
     S._fw=cardW(a);S._fe=a.el;S._fn=ns[0];
-    const draw=()=>{const mixed=ws.length>1;
+    const draw=()=>{const mixed=mergeKind(a,b)==='mix';   /* (DHL 11-10 '★3 머지 때 힘 숫자가 다르게 나옴') 세계가 같아도 재료 중 하나가 혼합 ★2면 결과는 혼합 — 예전엔 세계만 보고 순수(×6)로 미리 보여 줌 */
       showOv(`<div class="mgPk"><h2>${t.ko} <i class="mgStar"></i>${a.star+1}</h2>
         <div class="mgBody">${prev(a,b,S._fw,S._fe,mixed,S._fn)}<div class="mgSide">
           ${ns.length>1?`<div class="mgRow">${ns.map(n=>optNo(S._fn===n,n,`S._fn=${n};S._redraw()`)).join('')}</div>`:''}
@@ -6787,8 +6787,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   if(typeof askEl==='function')askEl=function(a,b){
     const t=TYPES[a.id];S._ma=a;S._mb=b;S._fe=a.el;const es=[a.el,b.el];
     const draw=()=>showOv(`<div class="mgPk"><h2>${t.ko} <i class="mgStar"></i>${a.star+1}</h2>
-      <div class="mgBody">${prev(a,b,cardW(a),S._fe,false)}<div class="mgSide"><div class="mgRow">${es.map(e=>opt(S._fe===e,'el_'+EL_KEY[e],e,`S._fe='${e}';S._redraw()`)).join('')}</div>
-      <p class="mgX2">×${STAR_X[a.star+1]}</p></div></div>${foot('hideOv();finishMerge(S._ma,S._mb,S._fe)')}</div>`);
+      <div class="mgBody">${prev(a,b,cardW(a),S._fe,mergeKind(a,b)==='mix')}<div class="mgSide"><div class="mgRow">${es.map(e=>opt(S._fe===e,'el_'+EL_KEY[e],e,`S._fe='${e}';S._redraw()`)).join('')}</div>
+      <p class="mgX2">${mergeKind(a,b)==='mix'?`혼합 ×${MIX_X[a.star+1]}`:`×${STAR_X[a.star+1]}`}</p></div></div>${foot('hideOv();finishMerge(S._ma,S._mb,S._fe)')}</div>`);
     S._redraw=draw;draw();
   };
 })();
