@@ -5085,9 +5085,16 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     const dress=(b,ic,n)=>{if(!b.querySelector('.lmBr'))b.dataset.lbl=b.textContent.trim();const t=b.dataset.lbl||'';   // 게임이 글자를 새로 쓴 경우(런! · 머지 & 런!)만 이름을 다시 읽음
       b.innerHTML='<span class="lmBr"><img src="'+ic+'" alt=""><b>'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</b></span><span class="lmCnt">남은 <em>'+(typeof S!=='undefined'&&S&&S.sandbox?'∞':n)+'</em>'+(typeof S!=='undefined'&&S&&S.sandbox?'':'회')+'</span>';
       /* 글자가 버튼보다 길면(머지 & 런! · 다른 언어) 한 줄 그대로 글씨만 줄임 (DHL 10-28) */
-      const lmFitLbl=()=>{const br=b.querySelector('.lmBr'),tb=br&&br.querySelector('b');if(!tb)return;tb.style.fontSize='';const av=b.getBoundingClientRect().width-16;   // 테 장식 칸까지는 글자가 들어가도 됨
-        let f=parseFloat(getComputedStyle(tb).fontSize);for(let k=0;k<20&&br.scrollWidth>av&&f>10;k++){f-=1;tb.style.fontSize=f+'px';}};
+      /* (DHL 11-09 '머지 & 런 글자가 깨짐') 버튼 안쪽 여백까지 빼고 잼 (예전엔 버튼 전체 폭 기준이라 휴대폰 세로에서 양옆이 잘림) · 버튼 크기가 바뀌면 다시 맞춤 */
+      const lmFitLbl=()=>{const br=b.querySelector('.lmBr'),tb=br&&br.querySelector('b'),cn=b.querySelector('.lmCnt');if(!tb)return;tb.style.fontSize='';tb.style.whiteSpace='';tb.style.lineHeight='';if(cn)cn.style.zoom='';
+        const av=b.clientWidth+6;if(av<=6)return;   // 안쪽 칸(테두리 그림 안) + 테 장식에 살짝 걸쳐도 됨
+        const wOf=el=>{const r=document.createRange();r.selectNodeContents(el);return r.getBoundingClientRect().width;};
+        const f0=parseFloat(getComputedStyle(tb).fontSize);let f=f0;for(let k=0;k<24&&wOf(br)>av&&f>13;k++){f-=1;tb.style.fontSize=f+'px';}
+        if(wOf(br)>av&&/\s/.test(tb.textContent)){tb.style.whiteSpace='normal';tb.style.lineHeight='1.05';tb.style.textAlign='center';tb.style.wordBreak='keep-all';tb.textContent=tb.textContent.replace(/ & /g,'\u00a0& ');f=Math.min(f0,16);tb.style.fontSize=f+'px';   // 그래도 길면 두 줄 (머지 & / 런!)
+          for(let k=0;k<12&&tb.scrollWidth>av&&f>10;k++){f-=1;tb.style.fontSize=f+'px';}}
+        if(cn){const w=cn.getBoundingClientRect().width;if(w>av)cn.style.zoom=Math.max(.6,av/w).toFixed(3);}};
       lmFitLbl();requestAnimationFrame(lmFitLbl);
+      if(!b._lmRO&&window.ResizeObserver){b._lmRO=new ResizeObserver(()=>requestAnimationFrame(()=>{try{lmFitLbl();}catch(e){}}));b._lmRO.observe(b);}
       b.classList.toggle('lmZero',n<=0);b.classList.add('lmBig');};
     const _r=render;render=function(){const res=_r.apply(this,arguments);try{if(S){dress(bp,IC.p,S.runs);dress(bd,IC.d,S.dis);}}catch(e){}return res;};
   })();
