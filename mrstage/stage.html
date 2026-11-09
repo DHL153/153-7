@@ -5415,7 +5415,7 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-roll b,#lm-combo b{display:inline-flex;align-items:center;white-space:nowrap}
 .dg{display:inline-block;width:1em;height:1em;margin:0 -.15em;background:url(fx/route/dmg_digits.webp) 0 0/1100% 400% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
 .dg.cm{margin:0 -.3em}.dg.r3{margin:0 -.11em}.dg.r3.cm{margin:0 -.27em}
-.lm-roll{-webkit-text-stroke:0!important}.lm-roll b{font-size:34px}#lm-combo b{font-size:38px}
+.lm-roll{-webkit-text-stroke:0!important}.lm-roll b{font-size:34px}#lm-combo b{font-size:32px}#lm-combo small{font-size:13px!important}   /* (DHL 11-09) 콤보 글자 살짝 작게 (38 → 32 · 15 → 13) */
 #lm-cine i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .3s ease-out}#lm-cine i:first-child{top:0}#lm-cine i:last-child{bottom:0}
 #lm-cine.on i{height:11%}
 .lm-dmg.flur{font-size:13px;color:#ffe8c2;-webkit-text-stroke:2.5px #1b1020;animation:lmFlur .85s ease-out forwards}
@@ -8005,14 +8005,15 @@ let isGameOver = false;
   function comboShow(n,col,layer){if(!comboEl){comboEl=document.createElement('div');comboEl.id='lm-combo';stage.appendChild(comboEl);}
     let w='콤보';try{w=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(w))||w;}catch(e){}
     const tier=n>=15?3:n>=11?2:n>=6?1:0;
-    comboEl.innerHTML=`<b>${dig(n,tier)}</b><small>${w}</small>`;comboEl.className='on t'+(tier+1)+(layer?' lay':'');comboEl.style.setProperty('--s',(1+Math.min(1.25,(n-1)*.085)).toFixed(2));
+    try{parent.document.body.classList.add('lmComboOn');}catch(e){}   /* (DHL 11-09) 콤보가 나오는 동안 바깥 '약점' 칸(#keyBar)이 비켜 줌 → 콤보가 위에 보임 */
+    comboEl.innerHTML=`<b>${dig(n,tier)}</b><small>${w}</small>`;comboEl.className='on t'+(tier+1)+(layer?' lay':'');comboEl.style.setProperty('--s',(1+Math.min(1,(n-1)*.07)).toFixed(2));
     comboEl.style.left=(stage.clientWidth*.36)+'px';comboEl.style.top=(stage.clientHeight*.2)+'px';
     try{comboEl.animate(layer?[{scale:'2.3',opacity:.3,filter:'brightness(2.5)'},{scale:'1',opacity:1,filter:'none'}]:[{scale:'1.7',opacity:.4},{scale:'1',opacity:1}],{duration:layer?420:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
     if(layer)lmSnd('sfx_key_match',{vol:.7,gap:150});
     if(n===10)lmSnd('sfx_score_over',{vol:.8});if(n===15)lmSnd('sfx_hand_name_big',{vol:.85});
     flip('fx13',R(0,7),stage.clientWidth*.36,stage.clientHeight*.2,stage.clientHeight*(.5+Math.min(.5,n*.06)),{fps:22});   // 리소스 오면 · 숫자 뒤 터짐
     clearTimeout(comboT);comboT=setTimeout(comboHide,2600);}
-  function comboHide(){if(comboEl)comboEl.className='';}
+  function comboHide(){if(comboEl)comboEl.className='';try{parent.document.body.classList.remove('lmComboOn');}catch(e){}}
   /* B · C: 막타 카운트업 */
   let rollP=null,cineEl=null,defRoll=null;
   function rollWait(){return rollP||Promise.resolve();}

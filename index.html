@@ -1313,6 +1313,7 @@ html:not(.lmB) .otx .oef{display:block;font-size:9px;opacity:.75}
 #sOpt svg{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;display:block;transform-origin:50% 50%;transform-box:fill-box}
 .card.dz.keyc .dzb{outline:2px solid #fde047;outline-offset:-1px}
 #keyBar{position:absolute;left:1%;top:3%;z-index:4;display:flex;flex-direction:column;gap:6px;padding:9px 11px 10px;border-radius:12px;background:linear-gradient(180deg,#1b1530ee,#120e20ee);border:2px solid #c9a24a;box-shadow:0 4px 14px #000a,inset 0 0 0 1px #ffffff14;color:#f3efe6;font:800 13px/1.2 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;pointer-events:none;max-width:46%}
+body.lmComboOn #keyBar:not(.open){opacity:0;pointer-events:none;transition:opacity .15s}#keyBar{transition:opacity .25s}   /* (DHL 11-09) 전투 무대에 콤보가 뜨는 동안 약점 칸은 잠깐 비킴 */
 #keyBar .kic{height:1.25em}
 #keyBar .kbHead{display:flex;align-items:center;gap:5px;font-size:14px;color:#f0c24b;letter-spacing:.04em}
 #keyBar .kbHead b{margin-left:auto;font-size:24px;color:#fff;font-variant-numeric:tabular-nums}#keyBar .kbHead b small{font-size:11px;color:#c9bfa8}
@@ -4538,7 +4539,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r104" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r105" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
