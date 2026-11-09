@@ -2257,6 +2257,14 @@ html.game-booting #app{visibility:hidden!important;}
 #battle-stage .boss-art.lm-flip{scale:-1 1}
 #battle-stage .boss-art.lm-ghost{filter:grayscale(.65) sepia(.35) hue-rotate(135deg) saturate(2.2) brightness(1.08) contrast(1.05) drop-shadow(0 0 6px #7ff6ffcc) drop-shadow(0 0 18px #2ec8ff88);opacity:.86;animation:enemyHover 1.65s ease-in-out infinite,lmGhost 2.4s ease-in-out infinite}
 #battle-stage .boss-art.lm-mill{scale:1.12;transform-origin:50% 100%;filter:drop-shadow(0 0 10px #ff3a3a55)}
+/* (DHL 11-09) 풍차 거인 '2페이지'는 규칙 없이 연출만: 체력 절반 아래 → 붉은 기운이 맥박처럼 · 몸 흔들림 빨라짐 · 화면 가장자리 붉은 어둠 (2페이지 곡과 함께) */
+#battle-stage.lm-mill2 .boss-art.lm-mill.boss-walk{animation:bossSway 1.05s ease-in-out infinite,millRage 1.3s ease-in-out infinite}
+#battle-stage.lm-mill2 .boss-art.lm-mill:not(.boss-walk){animation:millRage 1.3s ease-in-out infinite}
+@keyframes millRage{0%,100%{filter:drop-shadow(0 0 10px #ff3a3a99) brightness(1)}50%{filter:drop-shadow(0 0 28px #ff2a1aee) drop-shadow(0 0 6px #ffb07a) brightness(1.12) saturate(1.25)}}
+#lm-mill-vig{position:absolute;inset:0;pointer-events:none;z-index:6;opacity:0;transition:opacity 1.2s ease;background:radial-gradient(ellipse 75% 70% at 60% 55%,transparent 52%,#5a0606aa 100%)}
+#battle-stage.lm-mill2 #lm-mill-vig{opacity:1;animation:millVig 2.6s ease-in-out infinite}
+@keyframes millVig{50%{opacity:.6}}
+@media(prefers-reduced-motion:reduce){#battle-stage.lm-mill2 .boss-art.lm-mill,#battle-stage.lm-mill2 #lm-mill-vig{animation:none!important}}
 @keyframes lmGhost{0%,100%{opacity:.9}50%{opacity:.68}}
 @media(prefers-reduced-motion:reduce){#battle-stage .boss-art.lm-ghost{animation:none!important}}
 #battle-stage .flying-enemy-art {animation:enemyHover 1.65s ease-in-out infinite;}
@@ -8153,8 +8161,13 @@ let isGameOver = false;
          if(Zh){Zh.style.display='block';Zh.style.left=(lh/M*100)+'%';Zh.style.width=((Math.min(hp,M)-lh)/M*100)+'%';}}
        else{H.style.display='none';if(Zh)Zh.style.display='none';}}}
     if(o.dmg>0){const eff=o.brk||!(o.cap>0)?o.dmg:Math.min(o.dmg,o.hit||o.dmg),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
+  function millPhase2(){if(stage.classList.contains('lm-mill2'))return;stage.classList.add('lm-mill2');
+    if(!$('lm-mill-vig')){const v=document.createElement('div');v.id='lm-mill-vig';stage.appendChild(v);}
+    try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,60,40,.45)');}catch(e){}lmSnd('sfx_boss_rule_trigger',{vol:.8,gap:1000});
+    const ba=document.querySelector('#battle-stage .boss-art.lm-mill');if(ba)try{ba.animate([{scale:'1.12'},{scale:'1.2'},{scale:'1.12'}],{duration:520,easing:'cubic-bezier(.3,1.6,.5,1)'});}catch(e){}}
   function setHud(){
     if(!hud)return;drawCap();
+    if(hp>0&&!gsDead&&hp<=maxHp*.5&&document.querySelector('#battle-stage .boss-art.lm-mill'))millPhase2();
     hud.style.display='block';
     const fill=$('boss-hp-fill'),text=$('boss-hp-text'),name=$('boss-name');
     const pct=Math.max(0,Math.min(100,hp/Math.max(1,maxHp)*100));
@@ -8636,7 +8649,7 @@ let isGameOver = false;
     await sleep(80);
   }
   function setupEnemy(o){
-    stage.classList.remove('lm-foe-dead');gsDead=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
+    stage.classList.remove('lm-foe-dead','lm-mill2');gsDead=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
     clearBattleVisualQueue(true);
     const enemy=$('enemy');
