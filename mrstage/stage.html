@@ -8021,7 +8021,7 @@ let isGameOver = false;
   async function killSeq(){
     const o=defRoll;defRoll=null;
     /* (DHL 11-09 '체력 0 · 폭파됐는데 적이 계속 있음') 격파 → 컷신 → 폭파 · 적 사라짐 → (B: 주인공 퇴장) → 피해 숫자 카운트
-       KILL_V: 'A' = 적 사라진 뒤 바로 카운트 · 'B' = 주인공까지 퇴장한 뒤 카운트 (시험: localStorage lm_killv) */
+       KILL_V: 'B'(기본) = 주인공까지 퇴장한 뒤 빈 무대에서 카운트 · 'A' = 적 사라진 뒤 바로 카운트 (시험: localStorage lm_killv) */
     if(o){await sleep(120);await drainBreak(o);await finishCut();await sleep(160);
       const en=$('enemy');o.px=en?en.offsetLeft:stage.clientWidth*.7;o.py=en?en.offsetTop+en.offsetHeight*.42:stage.clientHeight*.4;
       foeBoom();await sleep(kind==='boss'?1000:760);
@@ -8029,7 +8029,7 @@ let isGameOver = false;
       o.preBroke=true;o.noFoe=true;rollFinal(o);await rollWait();}
     else{await rollWait();if(!cutDone)await finishCut();foeBoom();await sleep(420);}
     cutDone=false;}
-  function killV(){let v='A';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'A';}catch(e){}return v==='B'?'B':'A';}
+  function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
   function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
     if(en){try{if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}
