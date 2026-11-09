@@ -8038,13 +8038,14 @@ let isGameOver = false;
     const o=defRoll;defRoll=null;
     /* (DHL 11-09 '체력 0 · 폭파됐는데 적이 계속 있음') 격파 → 컷신 → 폭파 · 적 사라짐 → (B: 주인공 퇴장) → 피해 숫자 카운트
        KILL_V: 'B'(기본) = 주인공까지 퇴장한 뒤 빈 무대에서 카운트 · 'A' = 적 사라진 뒤 바로 카운트 (시험: localStorage lm_killv) */
-    if(o){await sleep(120);await drainBreak(o);await finishCut();await sleep(160);
+    if(o){await sleep(120);await drainBreak(o);if(!cutDone)await finishCut();await sleep(160);
       const en=$('enemy');o.px=en?en.offsetLeft:stage.clientWidth*.7;o.py=en?en.offsetTop+en.offsetHeight*.42:stage.clientHeight*.4;
       foeBoom();await sleep(kind==='boss'?1000:760);
       if(killV()==='B'){await runOff();o.px=stage.clientWidth*.5;}
       o.preBroke=true;o.noFoe=true;rollFinal(o);await rollWait();}
     else{await rollWait();if(!cutDone)await finishCut();foeBoom();await sleep(420);}
     cutDone=false;}
+  function cutPre(){let v='pre';try{v=(window.parent&&parent.LM_KILLCUT)||localStorage.getItem('lm_killcut')||'pre';}catch(e){}return v!=='post';}   // 기본 = 막타 전에 컷신 · 'post' = 예전(막타 → 격파 → 컷신)
   function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
   function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
@@ -8568,6 +8569,8 @@ let isGameOver = false;
     cast.finish=false;
     if(heroStrikes){
       if(heroOut)await waitRig([0],2000);
+      /* (DHL 11-09 시안) 동료들이 두들겨 팬 뒤 → 주인공 마지막 한 방 '전에' 처치 컷신 → 주인공이 치며 체력 0 → 격파 · 폭파 · 퇴장 · 카운트 (기본 · 예전 순서는 lm_killcut='post') */
+      if(o.killed&&!o.demo&&cutPre()){await sleep(160);cutDone=false;await finishCut();await sleep(120);}
       const res=await perform(0,heroNum,{enter:heroOut,level:11,impact:IMP});
       await rollWait();await sleep(o.killed?260:120);   /* (11-07) 막타 카운트업이 끝날 때까지 */
       if(o.killed&&!o.demo){await killSeq();await exit();}else{
