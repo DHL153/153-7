@@ -5413,8 +5413,8 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-big.brk b{color:#fff;-webkit-text-stroke:5px #6a0010}
 #lm-cine{position:fixed;inset:0;z-index:9990;pointer-events:none}
 .lm-roll b,#lm-combo b{display:inline-flex;align-items:center;white-space:nowrap}
-.dg{display:inline-block;width:1em;height:1em;margin:0 -.15em;background:url(fx/route/dmg_digits.webp) 0 0/1100% 400% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
-.dg.cm{margin:0 -.3em}.dg.r3{margin:0 -.11em}.dg.r3.cm{margin:0 -.27em}
+.dg{display:inline-block;width:.7em;height:1em;margin:0;background:url(fx/route/dmg_digits.webp) 0 0/11em 4em no-repeat;filter:drop-shadow(0 2px 2px #000a)}
+
 .lm-roll{-webkit-text-stroke:0!important}.lm-roll b{font-size:34px}#lm-combo b{font-size:32px}#lm-combo small{font-size:13px!important}   /* (DHL 11-09) 콤보 글자 살짝 작게 (38 → 32 · 15 → 13) */
 #lm-cine i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .3s ease-out}#lm-cine i:first-child{top:0}#lm-cine i:last-child{bottom:0}
 #lm-cine.on i{height:11%}
@@ -7998,7 +7998,10 @@ let isGameOver = false;
       try{en.animate([{filter:'brightness(2.2)'},{filter:'none'}],{duration:90});}catch(e){}},i*gap));}
   /* (DHL 11-08) 피해 숫자 그림 (dmg_digits.webp · 11열 × 4행 = 0~9 · 쉼표 / 금 · 주황 · 빨강 · 흰 불꽃) */
   const DIG='0123456789,';
-  function dig(str,row){return [...String(str)].map(ch=>{const i=DIG.indexOf(ch);if(i<0)return '';return `<i class="dg${ch===','?' cm':''}${row===3?' r3':''}" style="background-position:${(i/10*100).toFixed(2)}% ${(row/3*100).toFixed(2)}%"></i>`;}).join('');}
+  /* (DHL 11-09 '숫자가 정렬되어 있지 않아 예쁨이 없음') 칸(정사각형) 그대로 이어 붙이면 1처럼 좁은 글자 옆이 벌어짐 → 그림마다 실제 글자 폭(테두리 포함)만큼만 잘라 붙임 · 바닥선은 그림에서 이미 같음 */
+  const DGB=[[[0.131,0.869],[0.212,0.787],[0.163,0.838],[0.175,0.825],[0.138,0.863],[0.169,0.825],[0.163,0.831],[0.181,0.812],[0.15,0.844],[0.175,0.819],[0.338,0.662]],[[0.131,0.863],[0.212,0.787],[0.163,0.831],[0.175,0.819],[0.138,0.856],[0.175,0.825],[0.163,0.831],[0.181,0.812],[0.156,0.844],[0.175,0.819],[0.338,0.656]],[[0.163,0.838],[0.231,0.762],[0.188,0.806],[0.2,0.794],[0.169,0.831],[0.2,0.8],[0.194,0.806],[0.206,0.787],[0.181,0.812],[0.2,0.794],[0.35,0.644]],[[0.119,0.875],[0.219,0.781],[0.163,0.831],[0.169,0.831],[0.144,0.856],[0.163,0.831],[0.163,0.838],[0.181,0.819],[0.15,0.844],[0.163,0.838],[0.338,0.662]]];   // [행][글자] = [왼쪽, 오른쪽] (칸 대비)
+  function dig(str,row){row=row|0;const B=DGB[row]||DGB[0];return [...String(str)].map(ch=>{const i=DIG.indexOf(ch);if(i<0)return '';const [l,r]=B[i],ov=ch===','?.02:.05,w=Math.max(.2,r-l-ov*2);
+    return `<i class="dg" style="width:${w.toFixed(3)}em;background-position:${(-(i+l+ov)).toFixed(3)}em ${(-row)}em"></i>`;}).join('');}
   /* A: 연타 카운터 */
   let comboEl=null,comboT=0;
   /* (DHL 11-08) 겹 족보 연타 · 숫자 색: 1~5 금 · 6~10 주황 · 11~14 빨강 · 15~ 흰 불꽃 · 겹이 바뀌면 크게 튕김 · 10 · 15에서 소리 */
@@ -8007,11 +8010,14 @@ let isGameOver = false;
     const tier=n>=15?3:n>=11?2:n>=6?1:0;
     try{parent.document.body.classList.add('lmComboOn');}catch(e){}   /* (DHL 11-09) 콤보가 나오는 동안 바깥 '약점' 칸(#keyBar)이 비켜 줌 → 콤보가 위에 보임 */
     comboEl.innerHTML=`<b>${dig(n,tier)}</b><small>${w}</small>`;comboEl.className='on t'+(tier+1)+(layer?' lay':'');comboEl.style.setProperty('--s',(1+Math.min(1,(n-1)*.07)).toFixed(2));
-    comboEl.style.left=(stage.clientWidth*.36)+'px';comboEl.style.top=(stage.clientHeight*.2)+'px';
-    try{comboEl.animate(layer?[{scale:'2.3',opacity:.3,filter:'brightness(2.5)'},{scale:'1',opacity:1,filter:'none'}]:[{scale:'1.7',opacity:.4},{scale:'1',opacity:1}],{duration:layer?420:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
+    /* (DHL 11-09 '전투창 밖으로 잘림') 커진 크기(--s)까지 계산해 무대 안에 들어오게 자리 잡기 */
+    const SW=stage.clientWidth,SH=stage.clientHeight,sc=parseFloat(comboEl.style.getPropertyValue('--s'))||1,cw=comboEl.offsetWidth*sc*1.08,chh=comboEl.offsetHeight*sc*1.08;
+    const cx=Math.max(cw/2+6,Math.min(SW*.36,SW-cw/2-6)),cy=Math.max(chh/2+6,Math.min(SH*.2,SH-chh/2-6));
+    comboEl.style.left=cx+'px';comboEl.style.top=cy+'px';
+    try{comboEl.animate(layer?[{scale:String(sc*1.3),opacity:.3,filter:'brightness(2.5)'},{scale:String(sc),opacity:1,filter:'none'}]:[{scale:String(sc*1.25),opacity:.4},{scale:String(sc),opacity:1}],{duration:layer?420:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
     if(layer)lmSnd('sfx_key_match',{vol:.7,gap:150});
     if(n===10)lmSnd('sfx_score_over',{vol:.8});if(n===15)lmSnd('sfx_hand_name_big',{vol:.85});
-    flip('fx13',R(0,7),stage.clientWidth*.36,stage.clientHeight*.2,stage.clientHeight*(.5+Math.min(.5,n*.06)),{fps:22});   // 리소스 오면 · 숫자 뒤 터짐
+    flip('fx13',R(0,7),cx,cy,stage.clientHeight*(.5+Math.min(.5,n*.06)),{fps:22});   // 리소스 오면 · 숫자 뒤 터짐
     clearTimeout(comboT);comboT=setTimeout(comboHide,2600);}
   function comboHide(){if(comboEl)comboEl.className='';try{parent.document.body.classList.remove('lmComboOn');}catch(e){}}
   /* B · C: 막타 카운트업 */
