@@ -8065,22 +8065,54 @@ let isGameOver = false;
   function finStyle(){let v='cur';try{v=(window.parent&&parent.LM_FINISH)||localStorage.getItem('lm_finish')||'cur';}catch(e){}
     if(v==='class')return FIN_CLASS[POS(finHero||1)]||'p5';return ['p5','ko','hades'].includes(v)?v:'cur';}
   async function finEnter(sl,num,out){const W=stage.clientWidth||400,H=stage.clientHeight||145,E=enemyPt(),home=heroPt(sl).x-actors[sl].off,hh=heroPt(sl).h,near=Math.max(-W*.5,E.front-home-hh*.55),st=finStyle();
-    if(st==='p5'){offsetTeam(near-hh*.35,[sl]);actors[sl].oy=H*.55;show([sl],true);afterImg(sl,300);tween(240,k=>{actors[sl].oy=H*.55*(1-k);},EI).then(()=>{actors[sl].oy=0;dust(sl,1);});await sleep(120);return false;}   // A: 적 위 공중에서 내리꽂힘
+    if(st==='p5'){offsetTeam(near-hh*.35,[sl]);actors[sl].oy=H*.55;show([sl],true);afterImg(sl,300);tween(240,k=>{actors[sl].oy=H*.55*(1-k);},EI).then(()=>{actors[sl].oy=0;const f=footOf(sl);flipFx('fx21',[0,1,2,3,4,5,6,7],f.x+hh*.25,f.y,hh*2.4,{fps:20,z:42});try{MRFX.shake(stage,'m',true);}catch(e){}});await sleep(120);return false;}   // A: 적 위 공중에서 내리꽂힘
     if(st==='ko'){afterImg(sl,900);finFast=1.7;return null;}   // B: 각자 동작(도약 · 낙하 · 박치기 · 관통) 그대로, 빠르게 + 잔상
-    if(POS(num)===8){const p=heroPt(sl);if(!out)blink(p.x,p.y,p.h);offsetTeam(near-hh*.25,[sl]);show([sl],true);const q=heroPt(sl);blink(q.x,q.y,q.h);await sleep(90);return false;}   // C 니콜: 순간이동
-    if(out){offsetTeam(0,[sl]);show([sl],true);const q=heroPt(sl);blink(q.x,q.y,q.h);await sleep(120);}return false;}   // C 로시 · 카르덴: 제자리에서 쏨
+    if(POS(num)===8){finHero=num;const f0=footOf(sl);if(!out){flipFx('fx24',[0,1,2,3,4,5],f0.x,f0.y,f0.h*1.4,{fps:20});await sleep(180);}show([sl],false);offsetTeam(near-hh*.25,[sl]);const f1=footOf(sl);flipFx('fx24',[6,7,8,9,10,11],f1.x,f1.y,f1.h*1.4,{fps:20});await sleep(120);show([sl],true);await sleep(80);return false;}   // C 니콜: 순간이동 (FX24)
+    if(out){offsetTeam(0,[sl]);const f1=footOf(sl);flipFx('fx24',[6,7,8,9,10,11],f1.x,f1.y,f1.h*1.4,{fps:22});await sleep(110);show([sl],true);await sleep(80);}return false;}   // C 로시 · 카르덴: 제자리에서 쏨
+  /* (DHL 11-10) 막타 이펙트 시트 (흰색으로 받아 코드로 색): fx20 가로 베기 · fx22 돌진 줄기 · fx23 KO 섬광 · fx24 순간이동 · fx25 속도선 고리 · fx26 부서짐 조각
+     색 층(시트 모양 × 세계 색) + 흰 코어 층(밝은 부분만 흰색 그대로) */
+  const FIN_FX={fx21:{c:4,r:2,ar:1,ax:.5,ay:.84},fx20:{c:2,r:4,ar:627/313,ax:.5,ay:.53},fx22:{c:2,r:4,ar:887/221,ax:.99,ay:.53},fx23:{c:4,r:2,ar:1,ax:.5,ay:.5},fx24:{c:4,r:3,ar:1,ax:.5,ay:.86},fx25:{c:4,r:2,ar:1,ax:.5,ay:.48},fx26:{c:4,r:3,ar:1,ax:.55,ay:.9}};
+  const FINP='fx/finish/';for(const k in FIN_FX){[k,k+'_core'].forEach(n=>{const im=new Image();im.src=FINP+n+'.webp';});}
+  const finCol=()=>({rust:'#ff8a2a',neon:'#ff3fb0',sky:'#3fa8ff'})[worldOfNum(finHero||1)];
+  function flipFx(k,seq,x,y,w,o={}){const m=FIN_FX[k];if(!m||!seq.length)return null;const h=w/m.ar*(o.th||1),col=o.col||finCol();
+    const d=document.createElement('div');d.className='lm-ffx';Object.assign(d.style,{position:'absolute',width:w+'px',height:h+'px',left:(x-m.ax*w)+'px',top:(y-m.ay*h)+'px',zIndex:o.z||46,pointerEvents:'none',transformOrigin:`${m.ax*100}% ${m.ay*100}%`});
+    if(o.rot)d.style.rotate=o.rot+'deg';if(o.flipX)d.style.scale='-1 1';
+    const sz=`${m.c*100}% ${m.r*100}%`,url=`url(${FINP}${k}.webp)`;
+    const a=document.createElement('i'),b=document.createElement('i');[a,b].forEach(e=>Object.assign(e.style,{position:'absolute',inset:0}));
+    a.style.background=col;a.style.webkitMaskImage=a.style.maskImage=url;a.style.webkitMaskSize=a.style.maskSize=sz;a.style.webkitMaskRepeat=a.style.maskRepeat='no-repeat';a.style.filter=`drop-shadow(0 0 ${Math.round(w*.012)}px ${col})`;
+    b.style.backgroundImage=`url(${FINP}${k}_core.webp)`;b.style.backgroundSize=sz;b.style.backgroundRepeat='no-repeat';
+    d.append(a,b);
+    const put=f=>{const r=Math.floor(f/m.c),c=f%m.c,pos=`${m.c>1?c/(m.c-1)*100:0}% ${m.r>1?r/(m.r-1)*100:0}%`;a.style.webkitMaskPosition=a.style.maskPosition=pos;b.style.backgroundPosition=pos;};
+    put(seq[0]);stage.appendChild(d);
+    const step=1000/(o.fps||18);let i=0,next=performance.now()+step;
+    const tick=now=>{if(!d.isConnected)return;if(now>=next){i++;if(i>=seq.length){if(o.hold){return;}d.remove();return;}put(seq[i]);next=Math.max(next+step,now+step*.5);}requestAnimationFrame(tick);};
+    requestAnimationFrame(tick);return d;}
+  /* A 가르기: 적을 일자로 둘로 나눠 반대쪽으로 살짝 어긋나게 (세로 = 위에서 내려찍는 알론소 · 팔로메, 가로 = 산초) */
+  function foeBox(){const en=$('enemy');if(!en)return null;const img=en.querySelector('img')||en,r=img.getBoundingClientRect(),sr=stage.getBoundingClientRect(),k=sr.width/(stage.offsetWidth||sr.width)||1;
+    return {img,x:(r.left-sr.left)/k,y:(r.top-sr.top)/k,w:r.width/k,h:r.height/k,cx:(r.left-sr.left+r.width/2)/k,cy:(r.top-sr.top+r.height/2)/k};}
+  let splitEls=null;
+  function enemySplit(vert){const en=$('enemy'),B=foeBox();if(!en||!B)return;const img=B.img,r={left:B.x,top:B.y,width:B.w,height:B.h},sr={left:0,top:0};
+    const mk=(clip,dx,dy)=>{const c=img.cloneNode(true);Object.assign(c.style,{position:'absolute',left:(r.left-sr.left)+'px',top:(r.top-sr.top)+'px',width:r.width+'px',height:r.height+'px',zIndex:44,pointerEvents:'none',clipPath:clip,transition:'translate .28s cubic-bezier(.2,.9,.3,1)',filter:getComputedStyle(img).filter});c.className='lm-half';stage.appendChild(c);requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.translate=dx+'px '+dy+'px';}));return c;};
+    const D=stage.clientWidth*.028;
+    splitEls=vert?[mk('inset(0 50% 0 0)',0,-D*.8),mk('inset(0 0 0 50%)',0,D*.8)]:[mk('inset(0 0 50% 0)',-D,0),mk('inset(50% 0 0 0)',D,0)];
+    en.style.visibility='hidden';}
+  function splitEnd(){if(splitEls){splitEls.forEach(e=>e.remove());splitEls=null;}const en=$('enemy');if(en)en.style.visibility='';}
   function blink(x,y,h){const d=document.createElement('i');d.className='lm-blink';d.style.left=x+'px';d.style.top=y+'px';d.style.setProperty('--s',(h*1.6)+'px');stage.appendChild(d);setTimeout(()=>d.remove(),420);}
   function duck(ms){try{const P=window.parent;if(P&&typeof P.syncBgm==='function'){P.bgmDuck=.25;P.syncBgm();setTimeout(()=>{P.bgmDuck=1;P.syncBgm();},ms);}}catch(e){}}
   function freezeWorld(){stage.classList.add('lm-still');setMul(ALL,0);}
   function finImpact(){const st=finStyle(),E=enemyPt(),en=$('enemy'),boss=kind==='boss';freezeWorld();duck(1300);
     if(st==='p5'){   // A: 화면을 가르는 베기 + 짧은 정지 (FX20 · FX21 오면 그림으로)
-      const sl=document.createElement('div');sl.className='lm-slash p5';stage.appendChild(sl);setTimeout(()=>sl.remove(),900);
-      try{MRFX.flash?.(stage,'rgba(255,255,255,.7)');MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_shield_break',{vol:.9});hitStop(170);}
+      const vert=POS(finHero)!==3,SW=stage.clientWidth,SH=stage.clientHeight;
+      const B=foeBox()||{cx:E.x,cy:E.y};if(vert)flipFx('fx20',[0,1,2,3,4,5,6,7],B.cx,SH*.5,SH*1.6,{rot:90,fps:20,th:3.2});else flipFx('fx20',[0,1,2,3,4,5,6,7],SW*.5,B.cy,SW*1.12,{fps:20,th:2.2});
+      try{MRFX.flash?.(stage,'rgba(255,255,255,.55)');MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_shield_break',{vol:.9});hitStop(170);
+      setTimeout(()=>enemySplit(vert),150);}
     else if(st==='ko'){   // B: 정지 → 흑백 · 확대 → 짧은 슬로모션 (FX23)
+      const SW=stage.clientWidth;flipFx('fx22',[2,3,4,5,6,7],E.front+E.h*.1,E.y,SW*.6,{fps:22,z:43});
+      flipFx('fx23',[1,2,3,4,5,6,7],E.x,E.y,E.h*2.2,{fps:18,z:47});
       grayZoom(220,520,E);try{MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});}
     else{   // C: 눈부심 최소 — 화면 흰색 없음, 적 흰 실루엣 + 속도선 고리 (FX25)
       if(en){en.classList.add('lm-wsil');setTimeout(()=>en.classList.remove('lm-wsil'),420);}
-      const r=document.createElement('i');r.className='lm-radial';r.style.left=E.x+'px';r.style.top=E.y+'px';stage.appendChild(r);setTimeout(()=>r.remove(),650);
+      flipFx('fx25',[0,1,2,3,4,5,6,7],E.x,E.y,E.h*2.6,{fps:18,z:45});
       try{MRFX.shake(stage,'m',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});hitStop(140);}
     if(boss&&st!=='ko')setTimeout(()=>grayZoom(160,300,E),180);}   // 거인은 누가 치든 흑백 정지를 짧게 덧붙임
   function grayZoom(freeze,slow,E){stage.classList.add('lm-ko');stage.style.transformOrigin=`${E.x}px ${E.y}px`;
@@ -8088,7 +8120,8 @@ let isGameOver = false;
     setTimeout(()=>{(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{if(a!==z)try{a.updatePlaybackRate(.3);}catch(e){}});},freeze);
     setTimeout(()=>{stage.classList.remove('lm-ko');try{z.cancel();}catch(e){}stage.style.transformOrigin='';(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},freeze+slow);}
   function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
-  function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;gsDead=true;try{drawGems();}catch(e){}
+  function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;
+    if(finStyle()!=='cur'&&en){const g=enemyGround?enemyGround():null,E=enemyPt();splitEnd();flipFx('fx26',[3,4,5,6,7,8,9,10,11],E.x,g?g.y:E.y+E.h*.45,E.h*1.9,{fps:16,z:44});}gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
     if(en){try{if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}
       /* (DHL 11-09 '적이 죽고 돈이 떨어지는 게 이상함') 망령 · 수문장의 처치 조각 + 금화(fx15)는 일단 숨김 */
