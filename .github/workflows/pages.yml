@@ -1,0 +1,51 @@
+# GitHub Pages 배포 (DHL 11-09 A안)
+# 사이트 묶음에서 게임이 쓰지 않는 파일을 빼고 올림 — 리깅 원본 시트(assets/rig/*/source, 약 450MB) · docs · tests
+# 원본 파일은 저장소에 그대로 남음. 저장소 Settings › Pages › Source = "GitHub Actions" 필요
+name: Pages 배포
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true   # 연달아 머지하면 마지막 것만 올림
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 사이트 묶음 만들기 (게임에 필요한 파일만)
+        run: |
+          mkdir _site
+          rsync -a \
+            --exclude '.git' --exclude '.github' --exclude '_site' \
+            --exclude 'docs/' --exclude 'tests/' \
+            --exclude 'assets/rig/*/source/' \
+            ./ _site/
+          touch _site/.nojekyll
+          du -sh _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 1200000   # 20분 (기본 10분에 자주 걸렸음)
