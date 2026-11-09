@@ -4488,6 +4488,9 @@ html.lmB #lm-title .lt-side:focus-visible{box-shadow:0 0 0 2px #ffd76a,0 0 10px 
   #lmFoeTag{font-size:9.5px;gap:2px;max-width:66%}#lmFoeTag .t{padding:0 5px}
 }
 @media (orientation:portrait){
+  /* (DHL 11-09 '모바일 세로에서 가끔 손패가 전투창을 덮음') 무대 칸(1fr)이 무대 높이보다 작게 눌리면 손패가 무대 위로 올라와 겹침 → 세로에선 무대 칸이 무대보다 작아지지 않게 */
+  #app.bl #mainArea>.midZone{min-height:max-content!important}
+  #app.bl #mainArea{grid-template-rows:auto max-content auto auto!important}
   #lmStage{height:clamp(150px,50vw,280px);min-height:0}
   #lmFoeTag{font-size:10px;max-width:72%}
 }
