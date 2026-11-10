@@ -8596,8 +8596,8 @@ let isGameOver = false;
       // (DHL 10-28) 막타는 주인공: 합동기 폭발 → 멤버가 빠지고 → 주인공이 들어와 마무리 일격 → 처치
       setMul(ALL,0);await walk(0,-W*.9,520,'in',ALL);setMul(ALL,null);show(ALL,false);
       const heroNum=(hero??-1)+1;
+      applyTeam([hero,null,null]);await waitRig([0],3000);   /* (DHL 11-10 '컷신 주인공과 막타 치는 사람이 다름') 합동기 멤버가 무대에 있는 채로 컷신을 부르면 1번 자리(합동기 멤버)가 나왔음 → 주인공을 먼저 세우고 컷신 */
       if(!o.demo&&cutPre()){cutDone=false;await finishCut();await sleep(120);}   /* (DHL 11-09) 합동기 뒤에도 주인공 막타 '전에' 처치 컷신 */
-      applyTeam([hero,null,null]);await waitRig([0],3000);
       finHero=heroNum;let enterC=true;if(!o.demo&&finStyle()!=='cur'){const e=await finEnter(0,heroNum,true);if(e!=null)enterC=e;}
       const okC=o.dmg/Math.max(1,hpC0);const res=await perform(0,heroNum,{enter:enterC,level:11,impact:{dmg:o.dmg,final:true,mult:o.mult,hp:o.hp,killed:true,heavy:true,ok:okC,hp0:hpC0,defer:!o.demo}});await rollWait();   /* (DHL 11-03 '첫 공격에 점수가 터지는 것 같음') 최종 피해 숫자는 합동기 폭발이 아니라 마지막 일격(주인공 막타)에 */
       await sleep(520);
