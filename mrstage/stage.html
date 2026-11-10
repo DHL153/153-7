@@ -2257,8 +2257,8 @@ html.game-booting #app{visibility:hidden!important;}
 #battle-stage .boss-art.lm-flip{scale:-1 1}
 #battle-stage .boss-art.lm-ghost{filter:grayscale(.65) sepia(.35) hue-rotate(135deg) saturate(2.2) brightness(1.08) contrast(1.05) drop-shadow(0 0 6px #7ff6ffcc) drop-shadow(0 0 18px #2ec8ff88);opacity:.86;animation:enemyHover 1.65s ease-in-out infinite,lmGhost 2.4s ease-in-out infinite}
 .lm-finflash{position:absolute;inset:0;z-index:47;pointer-events:none;background:#fff;animation:lmFf .26s linear forwards}@keyframes lmFf{0%,35%{opacity:1}100%{opacity:0}}   /* (DHL 11-10) 진짜 섬광: 완전 흰색 0.09초 유지 → 빠짐 */
-#battle-stage.lm-impact{filter:grayscale(1) brightness(1.25) contrast(18) invert(1)!important}
-#battle-stage.lm-impact2{filter:grayscale(1) contrast(3) brightness(1.4)!important}
+.lm-imp-g{position:absolute;inset:0;z-index:48;pointer-events:none;background:#808080;mix-blend-mode:saturation}.lm-imp-g.hi{background:#9a9a9a;mix-blend-mode:color}
+.lm-imp-v{position:absolute;inset:0;z-index:49;pointer-events:none;background:#fff;mix-blend-mode:difference}
 .lm-tintflash{position:absolute;inset:0;z-index:47;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle 60vmax at var(--x) var(--y),#fff 0,var(--c) 18%,color-mix(in srgb,var(--c) 50%,transparent) 40%,transparent 75%);animation:lmTf .34s ease-out forwards}@keyframes lmTf{0%,25%{opacity:1}100%{opacity:0}}
 #battle-stage.lm-rgb{filter:saturate(1.5) contrast(1.2)!important}#battle-stage.lm-rgb .mr-rig-slot-canvas,#battle-stage.lm-rgb #enemy img,#battle-stage.lm-rgb .lm-ffx{filter:drop-shadow(10px 0 0 rgba(255,30,70,.9)) drop-shadow(-10px 0 0 rgba(30,210,255,.9))!important}
 #battle-stage.lm-rgb::after{content:'';position:absolute;inset:0;z-index:48;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.08) 3px 4px);mix-blend-mode:overlay}
@@ -8114,7 +8114,9 @@ let isGameOver = false;
     finFlashMode(m);}
   function finFlashMode(m){
     if(m==='white'){const w=document.createElement('div');w.className='lm-finflash';stage.appendChild(w);setTimeout(()=>w.remove(),280);return;}
-    if(m==='impact'){stage.classList.add('lm-impact');setTimeout(()=>{stage.classList.remove('lm-impact');stage.classList.add('lm-impact2');setTimeout(()=>stage.classList.remove('lm-impact2'),50);},90);return;}
+    if(m==='impact'){   /* (DHL 11-10 '브루노 때 더 김') 화면 전체 filter 는 무거워 기기 · 장면마다 멈춤 길이가 달라짐 → 가벼운 덮개 2장(회색 · 반전)으로, 길이는 화면 프레임 수로 고정 */
+      const g=document.createElement('i'),v=document.createElement('i');g.className='lm-imp-g';v.className='lm-imp-v';stage.append(g,v);
+      const t0=performance.now();let hi=false;const f=now=>{const e=now-t0;if(!hi&&e>=70){hi=true;v.remove();g.classList.add('hi');}if(e>=110){g.remove();v.remove();return;}requestAnimationFrame(f);};requestAnimationFrame(f);return;}   // 시간 기준 0.07초 반전 → 0.04초 고대비 (느린 화면에서도 길어지지 않게)
     if(m==='tint'){const E=enemyPt(),c=finCol(),w=document.createElement('div');w.className='lm-tintflash';w.style.setProperty('--c',c);w.style.setProperty('--x',E.x+'px');w.style.setProperty('--y',E.y+'px');stage.appendChild(w);setTimeout(()=>w.remove(),340);return;}
     if(m==='rgb'){const E=enemyPt();stage.classList.add('lm-rgb');stage.style.transformOrigin=`${E.x}px ${E.y}px`;const a=stage.animate([{transform:'scale(1)'},{transform:'scale(1.07)',offset:.3},{transform:'scale(1)'}],{duration:220,easing:'cubic-bezier(.2,.9,.3,1)'});setTimeout(()=>{stage.classList.remove('lm-rgb');stage.style.transformOrigin='';},260);}}
   function finImpact(){const st=finStyle(),E=enemyPt(),en=$('enemy'),boss=kind==='boss';freezeWorld();duck(1300);finFlash();
