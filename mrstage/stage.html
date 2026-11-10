@@ -8084,6 +8084,8 @@ let isGameOver = false;
   const FIN_FX={fx21:{c:4,r:2,ar:1,ax:.5,ay:.84},fx20:{c:2,r:4,ar:627/313,ax:.5,ay:.53},fx22:{c:2,r:4,ar:887/221,ax:.99,ay:.53},fx23:{c:4,r:2,ar:1,ax:.5,ay:.5},fx24:{c:4,r:3,ar:1,ax:.5,ay:.86},fx25:{c:4,r:2,ar:1,ax:.5,ay:.48},fx26:{c:4,r:3,ar:1,ax:.55,ay:.9}};
   const FINP='fx/finish/';for(const k in FIN_FX){[k,k+'_core'].forEach(n=>{const im=new Image();im.src=FINP+n+'.webp';});}
   const finCol=()=>({rust:'#ff8a2a',neon:'#ff3fb0',sky:'#3fa8ff'})[worldOfNum(finHero||1)];
+  /* (DHL 11-11 B안) 처치 폭발 · KO 섬광 · 부서짐 조각 · 거인 대폭발은 적(z3) 앞 · 주인공(z7) 뒤 — 주인공이 폭발을 등지고 선 컷. 베기 · 돌진 줄기는 그대로 맨 앞 */
+  const KILL_Z=6;
   function flipFx(k,seq,x,y,w,o={}){const m=FIN_FX[k];if(!m||!seq.length)return null;const h=w/m.ar*(o.th||1),col=o.col||finCol();
     const d=document.createElement('div');d.className='lm-ffx';Object.assign(d.style,{position:'absolute',width:w+'px',height:h+'px',left:(x-m.ax*w)+'px',top:(y-m.ay*h)+'px',zIndex:o.z||46,pointerEvents:'none',transformOrigin:`${m.ax*100}% ${m.ay*100}%`});
     if(o.rot)d.style.rotate=o.rot+'deg';if(o.flipX)d.style.scale='-1 1';
@@ -8129,11 +8131,11 @@ let isGameOver = false;
       setTimeout(()=>enemySplit(vert),150);}
     else if(st==='ko'){   // B: 정지 → 흑백 · 확대 → 짧은 슬로모션 (FX23)
       const SW=stage.clientWidth;flipFx('fx22',[2,3,4,5,6,7],E.front+E.h*.1,E.y,SW*.6,{fps:22,z:43});
-      flipFx('fx23',[1,2,3,4,5,6,7],E.x,E.y,E.h*2.2,{fps:18,z:47});
+      flipFx('fx23',[1,2,3,4,5,6,7],E.x,E.y,E.h*2.2,{fps:18,z:KILL_Z});
       grayZoom(220,520,E);try{MRFX.shake(stage,'l',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});}
     else{   // C: 눈부심 최소 — 화면 흰색 없음, 적 흰 실루엣 + 속도선 고리 (FX25)
       if(en){en.classList.add('lm-wsil');setTimeout(()=>en.classList.remove('lm-wsil'),420);}
-      flipFx('fx25',[0,1,2,3,4,5,6,7],E.x,E.y,E.h*2.6,{fps:18,z:45});
+      flipFx('fx25',[0,1,2,3,4,5,6,7],E.x,E.y,E.h*2.6,{fps:18,z:KILL_Z});
       try{MRFX.shake(stage,'m',true);}catch(e){}lmSnd('sfx_hit_weak',{vol:1});hitStop(140);}
     if(boss&&st!=='ko')setTimeout(()=>grayZoom(160,300,E),180);}   // 거인은 누가 치든 흑백 정지를 짧게 덧붙임
   function grayZoom(freeze,slow,E){stage.classList.add('lm-ko');stage.style.transformOrigin=`${E.x}px ${E.y}px`;
@@ -8142,9 +8144,9 @@ let isGameOver = false;
     setTimeout(()=>{stage.classList.remove('lm-ko');try{z.cancel();}catch(e){}stage.style.transformOrigin='';(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},freeze+slow);}
   function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
   function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;
-    if(finStyle()!=='cur'&&en){const g=enemyGround?enemyGround():null,E=enemyPt();splitEnd();flipFx('fx26',[3,4,5,6,7,8,9,10,11],E.x,g?g.y:E.y+E.h*.45,E.h*1.9,{fps:16,z:44});}gsDead=true;try{drawGems();}catch(e){}
+    if(finStyle()!=='cur'&&en){const g=enemyGround?enemyGround():null,E=enemyPt();splitEnd();flipFx('fx26',[3,4,5,6,7,8,9,10,11],E.x,g?g.y:E.y+E.h*.45,E.h*1.9,{fps:16,z:KILL_Z});}gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
-    if(en){try{if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}
+    if(en){try{if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20,z:KILL_Z});}
       /* (DHL 11-09 '적이 죽고 돈이 떨어지는 게 이상함') 망령 · 수문장의 처치 조각 + 금화(fx15)는 일단 숨김 */
       window.MRFX?.killFinish(en,11,true);en.className='character enemy explode'+(boss?' boss-enemy':'');}catch(e){}}
     slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
@@ -8178,7 +8180,7 @@ let isGameOver = false;
       try{d.animate([{scale:'1.5'},{scale:'1'}],{duration:240,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
       const hold=killed?(ok>=2?850:450):420;
       setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),300);
-        if(killed&&!o.noFoe){gsDead=true;try{drawGems();}catch(e){}if(en){if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20});}   /* (DHL 11-08 '땅 위에서 터져 이상함') 거인 대폭발은 적이 선 땅에서 솟음 */
+        if(killed&&!o.noFoe){gsDead=true;try{drawGems();}catch(e){}if(en){if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20,z:KILL_Z});}   /* (DHL 11-08 '땅 위에서 터져 이상함') 거인 대폭발은 적이 선 땅에서 솟음 */
           /* fx15(조각 + 금화)는 숨김 (DHL 11-09) */}
           slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
         else if(!killed)hitStop(170);
