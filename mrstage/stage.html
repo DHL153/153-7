@@ -8069,7 +8069,7 @@ let isGameOver = false;
      시험 중: localStorage lm_finish = 'class'(거리별) · 'p5' · 'ko' · 'hades' 하나로 고정 · 없으면 지금 그대로 */
   let finHero=0;
   const FIN_CLASS={1:'p5',3:'p5',9:'p5',10:'p5',2:'ko',5:'ko',7:'ko',4:'hades',6:'hades',8:'hades'};   /* (DHL 11-10) 무기별: 검(알론소 · 산초 · 팔로메 · 브루노) · 타격(둘시네 · 바실 · 루시아) · 원거리(로시 · 카르덴 · 니콜) */
-  function finStyle(){let v='cur';try{v=(window.parent&&parent.LM_FINISH)||localStorage.getItem('lm_finish')||'cur';}catch(e){}
+  function finStyle(){let v='class';try{v=(window.parent&&parent.LM_FINISH)||localStorage.getItem('lm_finish')||'class';}catch(e){}
     if(v==='class')return FIN_CLASS[POS(finHero||1)]||'p5';return ['p5','ko','hades'].includes(v)?v:'cur';}
   async function finEnter(sl,num,out){const W=stage.clientWidth||400,H=stage.clientHeight||145,E=enemyPt(),home=heroPt(sl).x-actors[sl].off,hh=heroPt(sl).h,near=Math.max(-W*.5,E.front-home-hh*.55),st=finStyle();
     if(st==='p5'&&POS(num)===10){afterImg(sl,600);finFast=1.5;return null;}   // 브루노: 관통 동작 그대로, 막타만 검 방식
@@ -8109,7 +8109,7 @@ let isGameOver = false;
   function duck(ms){try{const P=window.parent;if(P&&typeof P.syncBgm==='function'){P.bgmDuck=.25;P.syncBgm();setTimeout(()=>{P.bgmDuck=1;P.syncBgm();},ms);}}catch(e){}}
   function freezeWorld(){stage.classList.add('lm-still');setMul(ALL,0);}
   /* (DHL 11-10 비교) 막타 번쩍 방식: lm_finflash = 'impact'(흑백 반전 임팩트 프레임) · 'tint'(세계 색 섬광) · 'rgb'(색 번짐 + 카메라 펀치) · 'white'(완전 흰색) · '0'(없음) */
-  function finFlash(){let m='impact';try{m=(window.parent&&parent.LM_FINFLASH)||localStorage.getItem('lm_finflash')||'impact';}catch(e){}if(m==='1')m='white';if(m==='0')return;
+  function finFlash(){let m='weapon';try{m=(window.parent&&parent.LM_FINFLASH)||localStorage.getItem('lm_finflash')||'weapon';}catch(e){}if(m==='1')m='white';if(m==='0')return;
     if(m==='weapon'){const st=finStyle();m=st==='ko'?'rgb':st==='hades'?'tint':'impact';if(kind==='boss'&&m!=='impact')setTimeout(()=>finFlashMode('impact'),140);}   /* (DHL 11-10) 검 = 임팩트 프레임 · 타격 = 색 번짐 + 카메라 펀치 · 원거리 = 세계 색 섬광 · 거인은 임팩트 프레임 한 번 더 */
     finFlashMode(m);}
   function finFlashMode(m){
