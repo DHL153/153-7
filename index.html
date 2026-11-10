@@ -3012,14 +3012,14 @@ function finishMergeTail(a,k,healed){if(S.orbs.includes('trader'))S.gold+=(S.ost
     $('tip').textContent='✚ '+nm+' 치료 — 머지하면 상태이상이 사라져요 · '+$('tip').textContent;}
 }
 /* (DHL 11-07) 고른 카드 중 뒷면을 앞으로 뒤집어 보여 준 뒤 then() — 런: 족보 이름도 표시 · 버리기: 무엇을 버리는지(덱 파악) */
-function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.length)return false;S.busy=true;fc.forEach(c=>delete c.fog);render();
+function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.length)return false;S.busy=true;S._fogRev=fc.map(c=>c.uid);fc.forEach(c=>delete c.fog);render();
   fc.forEach((c,i)=>{const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');if(el){el.style.animationDelay=(i*90)+'ms';el.classList.add('fogRev');}});
   try{window.LMS&&LMS.play('sfx_card_flip_a',{vol:.8,gap:60});}catch(e){}
   if(!showHand)try{$('htName').textContent='버리기';$('vC').textContent='0';$('vM').textContent='0';}catch(e){}
   if(showHand)try{const sc=selCards(),pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length));$('htName').textContent=(r.comboTag?r.comboTag+' ':'')+r.label;}catch(e){}
   setTimeout(()=>{S.busy=false;document.querySelectorAll('#hand .card.fogRev').forEach(x=>{x.classList.remove('fogRev');x.style.animationDelay='';});then();},420+fc.length*90+(showHand?650:450));return true;}
 function doDiscard(){
-  if(S.busy||!S.sel.length||S.dis<=0)return;if(fogReveal(()=>doDiscard(),false))return;if(S.sandbox)S.dis=1000;
+  if(S.busy||!S.sel.length||S.dis<=0)return;if(fogReveal(()=>doDiscard(),false))return;S._fogRev=null;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
   const out=selCards();const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
 }
@@ -3040,7 +3040,9 @@ function mergedPreview(cs){ // 합쳐진 뒤 달릴 카드들 (점수 미리보�
 function mrSnap(){const cs=S.deck.slice();return {deck:cs,hand:S.hand.slice(),sel:S.sel.slice(),cards:cs.map(c=>[c,JSON.parse(JSON.stringify(c))]),m:[S.merges,S.roundMerges,S.runMerges],gold:S.gold};}
 function mrRollback(){const z=S._snap;S._chain=null;S._skip=null;S._snap=null;if(!z)return;
   z.cards.forEach(([c,o])=>{Object.keys(c).forEach(k=>delete c[k]);Object.assign(c,o);});
-  S.deck=z.deck;S.hand=z.hand;S.sel=z.sel;[S.merges,S.roundMerges,S.runMerges]=z.m;S.gold=z.gold;}
+  S.deck=z.deck;S.hand=z.hand;S.sel=z.sel;[S.merges,S.roundMerges,S.runMerges]=z.m;S.gold=z.gold;
+  /* (DHL 11-11) 뒤집힌 집: 머지 취소 때 미리 뒤집어 보여 준 카드를 다시 뒷면으로 */
+  (z.fog||[]).forEach(u=>{const c=S.hand.find(x=>x.uid===u);if(c)c.fog=true;});}
 function mrGroups3(cs){const m={};cs.filter(c=>!c.fog&&c.star<3).forEach(c=>{const k=TYPES[c.id].n+'|'+c.star;(m[k]=m[k]||[]).push(c);});return Object.values(m).filter(g=>g.length>=3);}
 const mrSame=(a,b)=>cardW(a)===cardW(b)&&a.el===b.el&&cardNo(a)===cardNo(b);
 function runChain(){
@@ -3064,8 +3066,8 @@ function doPlay(merged){
     const need=5-wsum(selCards());popMsg('🎯 다섯의 맹세 — '+need+'장 더 골라야 런할 수 있어요 (★2는 2장 · ★3은 3장으로 세요)');
     const bp=$('bPlay');if(bp){bp.classList.remove('lmNo');void bp.offsetWidth;bp.classList.add('lmNo');}return;}
   /* (DHL 11-07) 뒷면 카드를 내면: 먼저 앞으로 뒤집어 보여 주고 → 족보 이름 확인 → 잠깐 뒤 진행 (머지 & 런 짝도 뒤집힌 뒤 다시 찾음) */
-  if(!merged&&fogReveal(()=>doPlay(),true))return;
-  if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();S._snap=mrSnap();return runChain();}
+  if(!merged&&fogReveal(()=>doPlay(),true))return;const fogRev=merged?null:S._fogRev;if(!merged)S._fogRev=null;
+  if(!merged&&mergeRun()&&!S.mrOff&&runPairs(selCards()).length){S._chain=selCards();S._snap=mrSnap();S._snap.fog=fogRev||[];return runChain();}
   S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
   const RK=S.foe&&S.foe.rule&&S.foe.rule.k;
