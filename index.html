@@ -3016,7 +3016,11 @@ function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.le
   fc.forEach((c,i)=>{const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');if(el){el.style.animationDelay=(i*90)+'ms';el.classList.add('fogRev');}});
   try{window.LMS&&LMS.play('sfx_card_flip_a',{vol:.8,gap:60});}catch(e){}
   if(!showHand)try{$('htName').textContent='버리기';$('vC').textContent='0';$('vM').textContent='0';}catch(e){}
-  if(showHand)try{const sc=selCards(),pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length));$('htName').textContent=(r.comboTag?r.comboTag+' ':'')+r.label;}catch(e){}
+  if(showHand)try{const sc=selCards(),pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length));
+    /* (DHL 11-11 '뒷면에서 앞으로 바뀌어도 약점에 불이 안 들어옴') 뒤집는 동안은 S.busy라 미리보기(맞춤 계산)를 건너뛰었음 → 뒤집은 카드로 맞춤을 바로 다시 계산해 켬 */
+    $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · '+TD():''}`:'');
+    S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;if(typeof renderKeyBar==='function')renderKeyBar();
+    if(r.keys&&r.keys.n){const kb=$('keyBar');if(kb){kb.classList.remove('flash');void kb.offsetWidth;kb.classList.add('flash');}}}catch(e){}
   setTimeout(()=>{S.busy=false;document.querySelectorAll('#hand .card.fogRev').forEach(x=>{x.classList.remove('fogRev');x.style.animationDelay='';});then();},420+fc.length*90+(showHand?650:450));return true;}
 function doDiscard(){
   if(S.busy||!S.sel.length||S.dis<=0)return;if(fogReveal(()=>doDiscard(),false))return;if(S.sandbox)S.dis=1000;
