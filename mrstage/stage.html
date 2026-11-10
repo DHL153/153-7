@@ -5475,7 +5475,9 @@ html body #battle-stage .far-mill{left:5%}
 .lm-aura.full{opacity:1;animation:lmAura .35s ease-in-out infinite;--c:#fff1b8}
 @keyframes lmAura{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 .lm-charge{position:absolute;z-index:31;translate:-50% -100%;pointer-events:none;opacity:0;font:900 13px/1 'Noto Sans KR',system-ui,sans-serif;color:#ffe680;-webkit-text-stroke:3px #2a1406;paint-order:stroke fill;white-space:nowrap}
-.lm-charge.on{opacity:1}.lm-charge b::before{content:'⚡'}
+.lm-charge.on{opacity:1}
+/* (DHL 11-10 '번개 숫자 잘 안 보임 · 없어도 괜찮음') 모은 힘 숫자는 콤보 · 막타 숫자와 겹쳐서 뺌 — 힘은 주인공 후광 · 막타 숫자로 보여 줌 */
+.lm-charge{display:none!important}.lm-charge b::before{content:'⚡'}
 /* 주인공이 오른쪽으로 나간 뒤엔 다음 라운드 입장 전까지 무대에 안 보임 */
 #battle-stage.lm-offstage .battle-team-hero,#battle-stage.lm-offstage #battle-rig-canvas,#battle-stage.lm-offstage .mr-rig-slot-canvas{visibility:hidden!important}
 /* 입장·퇴장 중 카메라 고정: 땅·먼 풍경 흐름 멈춤 */
@@ -8032,7 +8034,7 @@ let isGameOver = false;
     const SW=stage.clientWidth,SH=stage.clientHeight,sc=parseFloat(comboEl.style.getPropertyValue('--s'))||1,cw=comboEl.offsetWidth*sc*1.08,chh=comboEl.offsetHeight*sc*1.08;
     const cx=Math.max(cw/2+6,Math.min(SW*.36,SW-cw/2-6)),cy=Math.max(chh/2+6,Math.min(SH*.2,SH-chh/2-6));
     comboEl.style.left=cx+'px';comboEl.style.top=cy+'px';
-    try{comboEl.animate(layer?[{scale:String(sc*1.3),opacity:.3,filter:'brightness(2.5)'},{scale:String(sc),opacity:1,filter:'none'}]:[{scale:String(sc*1.25),opacity:.4},{scale:String(sc),opacity:1}],{duration:layer?420:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
+    try{comboEl.animate(layer?[{scale:String(sc*1.3),filter:'brightness(2.5)'},{scale:String(sc),opacity:1,filter:'none'}]:[{scale:String(sc*1.25)},{scale:String(sc)}]   /* (DHL 11-10 '숫자가 깨져 보임') 반투명으로 시작하면 뒤 터짐 빛살이 숫자를 뚫고 보여 깨진 듯 보였음 → 처음부터 불투명 */,{duration:layer?420:260,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
     if(layer)lmSnd('sfx_key_match',{vol:.7,gap:150});
     if(n===10)lmSnd('sfx_score_over',{vol:.8});if(n===15)lmSnd('sfx_hand_name_big',{vol:.85});
     flip('fx13',R(0,7),cx,cy,stage.clientHeight*(.5+Math.min(.5,n*.06)),{fps:22});   // 리소스 오면 · 숫자 뒤 터짐
