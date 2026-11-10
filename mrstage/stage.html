@@ -2257,6 +2257,12 @@ html.game-booting #app{visibility:hidden!important;}
 #battle-stage .boss-art.lm-flip{scale:-1 1}
 #battle-stage .boss-art.lm-ghost{filter:grayscale(.65) sepia(.35) hue-rotate(135deg) saturate(2.2) brightness(1.08) contrast(1.05) drop-shadow(0 0 6px #7ff6ffcc) drop-shadow(0 0 18px #2ec8ff88);opacity:.86;animation:enemyHover 1.65s ease-in-out infinite,lmGhost 2.4s ease-in-out infinite}
 .lm-finflash{position:absolute;inset:0;z-index:47;pointer-events:none;background:#fff;animation:lmFf .26s linear forwards}@keyframes lmFf{0%,35%{opacity:1}100%{opacity:0}}   /* (DHL 11-10) 진짜 섬광: 완전 흰색 0.09초 유지 → 빠짐 */
+#battle-stage.lm-impact{filter:grayscale(1) brightness(1.25) contrast(18) invert(1)!important}
+#battle-stage.lm-impact2{filter:grayscale(1) contrast(3) brightness(1.4)!important}
+.lm-tintflash{position:absolute;inset:0;z-index:47;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle 60vmax at var(--x) var(--y),#fff 0,var(--c) 18%,color-mix(in srgb,var(--c) 50%,transparent) 40%,transparent 75%);animation:lmTf .34s ease-out forwards}@keyframes lmTf{0%,25%{opacity:1}100%{opacity:0}}
+#battle-stage.lm-rgb{filter:saturate(1.5) contrast(1.2)!important}#battle-stage.lm-rgb .mr-rig-slot-canvas,#battle-stage.lm-rgb #enemy img,#battle-stage.lm-rgb .lm-ffx{filter:drop-shadow(10px 0 0 rgba(255,30,70,.9)) drop-shadow(-10px 0 0 rgba(30,210,255,.9))!important}
+#battle-stage.lm-rgb::after{content:'';position:absolute;inset:0;z-index:48;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.08) 3px 4px);mix-blend-mode:overlay}
+body.lm-nocutflash #skill-cinematic .mrfc-flash{display:none!important}
 .lm-slash{position:absolute;inset:0;z-index:46;pointer-events:none}
 .lm-slash.p5::before{content:"";position:absolute;left:-20%;right:-20%;top:40%;height:24%;background:linear-gradient(180deg,transparent,#000 22%,#e8132a 40%,#fff 50%,#e8132a 60%,#000 78%,transparent);rotate:-14deg;transform-origin:50% 50%;animation:lmSlash .9s cubic-bezier(.2,.9,.3,1) forwards;box-shadow:0 0 30px #e8132a88}
 @keyframes lmSlash{0%{clip-path:inset(0 100% 0 0);opacity:1}18%{clip-path:inset(0 0 0 0);opacity:1}70%{opacity:1;scale:1 1}100%{opacity:0;scale:1 .2}}
@@ -8044,7 +8050,7 @@ let isGameOver = false;
     let t='격파!';try{t=(parent.MRLocale&&parent.MRLocale.t&&parent.MRLocale.t(t))||t;}catch(e){}bigText(t,'brk');
     await sleep(boss?560:400);}
   let cutDone=false;
-  async function finishCut(){cutDone=true;cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;}
+  async function finishCut(){cutDone=true;try{document.body.classList.toggle('lm-nocutflash',finStyle()!=='cur');}catch(e){}cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;}
   async function killSeq(){
     const o=defRoll;defRoll=null;
     /* (DHL 11-09 '체력 0 · 폭파됐는데 적이 계속 있음') 격파 → 컷신 → 폭파 · 적 사라짐 → (B: 주인공 퇴장) → 피해 숫자 카운트
@@ -8101,8 +8107,12 @@ let isGameOver = false;
   function blink(x,y,h){const d=document.createElement('i');d.className='lm-blink';d.style.left=x+'px';d.style.top=y+'px';d.style.setProperty('--s',(h*1.6)+'px');stage.appendChild(d);setTimeout(()=>d.remove(),420);}
   function duck(ms){try{const P=window.parent;if(P&&typeof P.syncBgm==='function'){P.bgmDuck=.25;P.syncBgm();setTimeout(()=>{P.bgmDuck=1;P.syncBgm();},ms);}}catch(e){}}
   function freezeWorld(){stage.classList.add('lm-still');setMul(ALL,0);}
-  function finFlash(){let on='1';try{on=(window.parent&&parent.LM_FINFLASH)||localStorage.getItem('lm_finflash')||'1';}catch(e){}if(on==='0')return;   /* (DHL 11-10) 마지막 일격에 살짝 흰 번쩍 — 화면을 다 덮지 않게 짧고 옅게 */
-    const w=document.createElement('div');w.className='lm-finflash';stage.appendChild(w);setTimeout(()=>w.remove(),280);}
+  /* (DHL 11-10 비교) 막타 번쩍 방식: lm_finflash = 'impact'(흑백 반전 임팩트 프레임) · 'tint'(세계 색 섬광) · 'rgb'(색 번짐 + 카메라 펀치) · 'white'(완전 흰색) · '0'(없음) */
+  function finFlash(){let m='impact';try{m=(window.parent&&parent.LM_FINFLASH)||localStorage.getItem('lm_finflash')||'impact';}catch(e){}if(m==='1')m='white';if(m==='0')return;
+    if(m==='white'){const w=document.createElement('div');w.className='lm-finflash';stage.appendChild(w);setTimeout(()=>w.remove(),280);return;}
+    if(m==='impact'){stage.classList.add('lm-impact');setTimeout(()=>{stage.classList.remove('lm-impact');stage.classList.add('lm-impact2');setTimeout(()=>stage.classList.remove('lm-impact2'),50);},90);return;}
+    if(m==='tint'){const E=enemyPt(),c=finCol(),w=document.createElement('div');w.className='lm-tintflash';w.style.setProperty('--c',c);w.style.setProperty('--x',E.x+'px');w.style.setProperty('--y',E.y+'px');stage.appendChild(w);setTimeout(()=>w.remove(),340);return;}
+    if(m==='rgb'){const E=enemyPt();stage.classList.add('lm-rgb');stage.style.transformOrigin=`${E.x}px ${E.y}px`;const a=stage.animate([{transform:'scale(1)'},{transform:'scale(1.07)',offset:.3},{transform:'scale(1)'}],{duration:220,easing:'cubic-bezier(.2,.9,.3,1)'});setTimeout(()=>{stage.classList.remove('lm-rgb');stage.style.transformOrigin='';},260);}}
   function finImpact(){const st=finStyle(),E=enemyPt(),en=$('enemy'),boss=kind==='boss';freezeWorld();duck(1300);finFlash();
     if(st==='p5'){   // A: 화면을 가르는 베기 + 짧은 정지 (FX20 · FX21 오면 그림으로)
       const vert=POS(finHero)!==3,SW=stage.clientWidth,SH=stage.clientHeight;
