@@ -1982,7 +1982,7 @@ const STAR3B={
   lucia:{ic:'🔆',ko:'등불',d:'손에 남아 있으면 배수 ×1.2'},
   bruno:{ic:'⚒',ko:'담금질',d:'버릴 때 다음 런 배수 +6'},
   nicole:{ic:'⚡',ko:'상성 증폭',d:'약점 공격이 ×2 → ×3'},
-  carden:{ic:'🏠',ko:'고향의 노래',d:'고향 보너스 ×1.5 → ×2.5'},
+  carden:{ic:'🏠',ko:'고향의 노래',d:'이 카드가 적과 같은 세계면 힘 ×1.5'}   /* (DHL 11-11) 기본 고향 보너스가 없어져 설명을 실제 동작으로 */,
   palome:{ic:'🐣',ko:'작은 날개',d:'족보에 넣어 내면 덱의 ★1 카드 1장이 ★2로'},
   gris:{ic:'🎲',ko:'운명술',d:'족보에 넣어 내면 25% 확률로 무작위 구슬 ◆+1'}
 };
@@ -2192,7 +2192,7 @@ function score(cards,ctx){
     if(SHIELD){ch+=10*SHIELD;notes.push('🛡 +'+10*SHIELD);}
     if(i===0&&S3B(c,'rosi')){ch*=3;notes.push('💨 ×3');}
     if(S3B(c,'nicole')&&isWeakCard(c,ctx.foe)){ch=Math.round(ch*(armorOn()?2:1.5));notes.push(armorOn()?'⚡ 약점 ×2':'⚡ 약점 ×3');}
-    if(S3B(c,'carden')&&ctx.foe&&ctx.foe.home&&cardW(c)===ctx.foe.home){ch=Math.round(armorOn()?ch*1.5:ch/1.5*2.5);notes.push(armorOn()?'🏠 고향 ×1.5':'🏠 고향 ×2.5');}
+    if(S3B(c,'carden')&&ctx.foe&&ctx.foe.home&&cardW(c)===ctx.foe.home){ch=Math.round(armorOn()?ch*1.5:ch/1.5*2.5);notes.push(armorOn()?'🏠 고향의 노래 ×1.5':'🏠 고향 ×2.5');}
     if(i===0&&has('flag')){ch*=X('flag',3);notes.push('돌격 ×'+X('flag',3));fired.push('flag');}
     if(i===2&&has('bell')){ch*=X('bell',4);notes.push('축복 ×'+X('bell',4));fired.push('bell');}
     if(last&&has('echo')&&n>1){ch*=X('echo',2);notes.push('메아리');fired.push('echo');}
