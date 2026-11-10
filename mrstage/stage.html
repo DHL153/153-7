@@ -2256,7 +2256,7 @@ html.game-booting #app{visibility:hidden!important;}
 /* (라만차 10-30) 스카이아크 알론소 = 적: 좌우 반전 + 유령빛(청록 · 반투명 · 빛 테두리) */
 #battle-stage .boss-art.lm-flip{scale:-1 1}
 #battle-stage .boss-art.lm-ghost{filter:grayscale(.65) sepia(.35) hue-rotate(135deg) saturate(2.2) brightness(1.08) contrast(1.05) drop-shadow(0 0 6px #7ff6ffcc) drop-shadow(0 0 18px #2ec8ff88);opacity:.86;animation:enemyHover 1.65s ease-in-out infinite,lmGhost 2.4s ease-in-out infinite}
-.lm-finflash{position:absolute;inset:0;z-index:47;pointer-events:none;background:radial-gradient(ellipse 70% 80% at 65% 55%,#fffffff2,#ffffffa6 45%,#ffffff59 100%);animation:lmFf .24s ease-out forwards}@keyframes lmFf{0%{opacity:.85}100%{opacity:0}}
+.lm-finflash{position:absolute;inset:0;z-index:47;pointer-events:none;background:#fff;animation:lmFf .26s linear forwards}@keyframes lmFf{0%,35%{opacity:1}100%{opacity:0}}   /* (DHL 11-10) 진짜 섬광: 완전 흰색 0.09초 유지 → 빠짐 */
 .lm-slash{position:absolute;inset:0;z-index:46;pointer-events:none}
 .lm-slash.p5::before{content:"";position:absolute;left:-20%;right:-20%;top:40%;height:24%;background:linear-gradient(180deg,transparent,#000 22%,#e8132a 40%,#fff 50%,#e8132a 60%,#000 78%,transparent);rotate:-14deg;transform-origin:50% 50%;animation:lmSlash .9s cubic-bezier(.2,.9,.3,1) forwards;box-shadow:0 0 30px #e8132a88}
 @keyframes lmSlash{0%{clip-path:inset(0 100% 0 0);opacity:1}18%{clip-path:inset(0 0 0 0);opacity:1}70%{opacity:1;scale:1 1}100%{opacity:0;scale:1 .2}}
@@ -8102,7 +8102,7 @@ let isGameOver = false;
   function duck(ms){try{const P=window.parent;if(P&&typeof P.syncBgm==='function'){P.bgmDuck=.25;P.syncBgm();setTimeout(()=>{P.bgmDuck=1;P.syncBgm();},ms);}}catch(e){}}
   function freezeWorld(){stage.classList.add('lm-still');setMul(ALL,0);}
   function finFlash(){let on='1';try{on=(window.parent&&parent.LM_FINFLASH)||localStorage.getItem('lm_finflash')||'1';}catch(e){}if(on==='0')return;   /* (DHL 11-10) 마지막 일격에 살짝 흰 번쩍 — 화면을 다 덮지 않게 짧고 옅게 */
-    const w=document.createElement('div');w.className='lm-finflash';stage.appendChild(w);setTimeout(()=>w.remove(),260);}
+    const w=document.createElement('div');w.className='lm-finflash';stage.appendChild(w);setTimeout(()=>w.remove(),280);}
   function finImpact(){const st=finStyle(),E=enemyPt(),en=$('enemy'),boss=kind==='boss';freezeWorld();duck(1300);finFlash();
     if(st==='p5'){   // A: 화면을 가르는 베기 + 짧은 정지 (FX20 · FX21 오면 그림으로)
       const vert=POS(finHero)!==3,SW=stage.clientWidth,SH=stage.clientHeight;
