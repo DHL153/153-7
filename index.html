@@ -5453,6 +5453,23 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 </body></html>
 </body></html>
 </body></html>
+<style id="lm-ui-scale">
+/* (DHL 11-11 QA ⑧) 큰 화면(1080p · 1440p)에서 타이틀 · 메뉴 창이 화면에 비해 작음 → 1366×768에서 보이는 비율 그대로 키움
+   --lmUi = min(화면 높이/768, 화면 폭/1366) (1.08 넘을 때만 · 가로 화면만 · 최대 2.4) · --lmVh = 키우기 전 기준 높이의 1% */
+html.lmUiOn #lm-title{right:auto!important;bottom:auto!important;width:calc(100vw / var(--lmUi));height:calc(100vh / var(--lmUi));transform:scale(var(--lmUi));transform-origin:0 0}
+html.lmUiOn #lm-title.ltv2 .mr-logo-stage{width:min(calc(36vw / var(--lmUi)),calc(var(--lmVh) * 48 * 1.094))!important}
+html.lmUiOn #lm-title .ltv-run{height:min(calc(var(--lmVh) * 34),300px)}
+html.lmUiOn #lm-title .lt-card,html.lmUiOn #lm-title .lt-card.wide:has(.lc-story),html.lmUiOn #lm-title .lt-card.wide:has(.lc-sum){max-height:calc(var(--lmVh) * 92)!important}
+html.lmUiOn #lm-title .lt-card.fx2{max-height:calc(var(--lmVh) * 100 - 24px)!important}
+/* (QA 11-11) 게임 중 옵션 창 뒤로 타이틀의 플레이 · 옵션 · 컬렉션 버튼이 흐릿하게 비치던 것 — 게임 중에는 창만 보이게 */
+html body #lm-title.ingame.ingame>:not(.lt-pop){display:none!important}
+</style>
+<script>
+(function(){const R=document.documentElement;
+  function fit(){const W=innerWidth,H=innerHeight;let z=Math.min(H/768,W/1366,2.4);const on=W>H&&z>1.08;if(!on)z=1;
+    R.classList.toggle('lmUiOn',on);R.style.setProperty('--lmUi',z.toFixed(4));R.style.setProperty('--lmVh',(H/z/100).toFixed(3)+'px');}
+  fit();addEventListener('resize',fit);window.lmUiScale=()=>+getComputedStyle(R).getPropertyValue('--lmUi')||1;})();
+</script>
 <style id="lm-rs-fit">#ov:has(.rsB)>.panel{overflow:hidden!important;scrollbar-width:none}#ov:has(.rsB)>.panel::-webkit-scrollbar{display:none}</style>
 <script>
 /* 라운드 고르기 (DHL 10-28 "스크롤바가 있네요"): 화면 높이가 모자라면 스크롤 대신 기둥 전체를 살짝 줄여서 한 화면에 */
