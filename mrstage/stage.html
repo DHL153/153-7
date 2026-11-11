@@ -5431,7 +5431,7 @@ html.mr-uikit body #app#app#app #battle-stage#battle-stage{position:relative!imp
 .lm-big.lm-kill{translate:-50% 0;animation:lmBigIn 1.5s cubic-bezier(.2,1.4,.4,1) forwards}.lm-big.lm-kill b{font-size:30px;color:#ffe9a8}
 #lm-cine{position:fixed;inset:0;z-index:9990;pointer-events:none}
 .lm-roll b,#lm-combo b{display:inline-flex;align-items:center;white-space:nowrap}
-.dg{display:inline-block;width:.7em;height:1em;margin:0;background:url(fx/route/dmg_digits.webp) 0 0/11em 4em no-repeat;filter:drop-shadow(0 2px 2px #000a)}
+.dg{display:inline-block;width:.7em;height:1em;margin:0;background:url(fx/route/dmg_digits.webp?v=2) 0 0/11em 4em no-repeat;filter:drop-shadow(0 2px 2px #000a)}
 
 .lm-roll{-webkit-text-stroke:0!important}.lm-roll b{font-size:34px}#lm-combo b{font-size:32px}#lm-combo small{font-size:13px!important}   /* (DHL 11-09) 콤보 글자 살짝 작게 (38 → 32 · 15 → 13) */
 #lm-cine i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .3s ease-out}#lm-cine i:first-child{top:0}#lm-cine i:last-child{bottom:0}
@@ -8021,9 +8021,12 @@ let isGameOver = false;
   /* (DHL 11-09 '숫자가 정렬되어 있지 않아 예쁨이 없음') 칸(정사각형) 그대로 이어 붙이면 1처럼 좁은 글자 옆이 벌어짐 → 그림마다 실제 글자 폭(테두리 포함)만큼만 잘라 붙임 · 바닥선은 그림에서 이미 같음 */
   const DGB=[[[0.131,0.869],[0.212,0.787],[0.163,0.838],[0.175,0.825],[0.138,0.863],[0.169,0.825],[0.163,0.831],[0.181,0.812],[0.15,0.844],[0.175,0.819],[0.338,0.662]],[[0.131,0.863],[0.212,0.787],[0.163,0.831],[0.175,0.819],[0.138,0.856],[0.175,0.825],[0.163,0.831],[0.181,0.812],[0.156,0.844],[0.175,0.819],[0.338,0.656]],[[0.163,0.838],[0.231,0.762],[0.188,0.806],[0.2,0.794],[0.169,0.831],[0.2,0.8],[0.194,0.806],[0.206,0.787],[0.181,0.812],[0.2,0.794],[0.35,0.644]],[[0.119,0.875],[0.219,0.781],[0.163,0.831],[0.169,0.831],[0.144,0.856],[0.163,0.831],[0.163,0.838],[0.181,0.819],[0.15,0.844],[0.163,0.838],[0.338,0.662]]];   // [행][글자] = [왼쪽, 오른쪽] (칸 대비)
   /* (DHL 11-11 '콤보 숫자 외곽선이 잘림') 예전엔 글자 양옆을 .05em씩 잘라 붙여서 첫 · 끝 글자 테두리가 잘림 → 글자는 테두리까지 통째로 두고, 붙이는 간격만 왼쪽 겹침(음수 여백)으로 */
+  /* (DHL 11-11 B안 '숫자가 삐뚤빼뚤') 줄마다 숫자 아래 끝을 한 줄로 — 글자별 아래로 내릴 양(em). 빨강 줄은 1 · 2 · 7만 처져 있던 그림이라 나머지를 내려 맞춤 */
+  const DGY=[[0.0,0.0,0.0,0.006,0.006,0.0,0.0,0.0,0.006,0.006,0],[0.0,0.006,0.0,0.0,0.0,0.006,0.0,0.0,0.0,0.0,0],[0.062,0.0,0.0,0.05,0.062,0.05,0.05,0.0,0.05,0.05,0],[0.0,0.0,0.0,0.0,0.006,0.0,0.0,0.0,0.0,0.0,0]];
   function dig(str,row){row=row|0;const B=DGB[row]||DGB[0];let po=-1;return [...String(str)].map(ch=>{const i=DIG.indexOf(ch);if(i<0)return '';const [l,r]=B[i],ov=ch===','?.02:.05,w=r-l;
     const ml=po>=0?`margin-left:${(-(po+ov)).toFixed(3)}em;`:'';po=ov;
-    return `<i class="dg" style="${ml}width:${w.toFixed(3)}em;background-position:${(-(i+l)).toFixed(3)}em ${(-row)}em"></i>`;}).join('');}
+    const yy=(DGY[row]||[])[i]||0;
+    return `<i class="dg" style="${ml}width:${w.toFixed(3)}em;background-position:${(-(i+l)).toFixed(3)}em ${(-row)}em${yy?`;translate:0 ${yy}em`:''}"></i>`;}).join('');}
   /* A: 연타 카운터 */
   let comboEl=null,comboT=0;
   /* (DHL 11-08) 겹 족보 연타 · 숫자 색: 1~5 금 · 6~10 주황 · 11~14 빨강 · 15~ 흰 불꽃 · 겹이 바뀌면 크게 튕김 · 10 · 15에서 소리 */
@@ -8389,7 +8392,7 @@ let isGameOver = false;
   Object.assign(FXM,{fx13:{c:4,r:2,blend:'unscreen',rows:[{ax:.5,ay:.5},{ax:.5,ay:.5}]},fx14:{c:4,r:2,blend:'unscreen',rows:[{ax:.5,ay:.5},{ax:.5,ay:.5}]},
     fx15:{c:4,r:3,blend:'unscreen',rows:[{ax:.5,ay:.62},{ax:.5,ay:.62},{ax:.5,ay:.62}]},fx15_rust:{c:4,r:3,blend:'unscreen',rows:[{ax:.5,ay:.62},{ax:.5,ay:.62},{ax:.5,ay:.62}]},fx15_neon:{c:4,r:3,blend:'unscreen',rows:[{ax:.5,ay:.62},{ax:.5,ay:.62},{ax:.5,ay:.62}]},fx15_sky:{c:4,r:3,blend:'unscreen',rows:[{ax:.5,ay:.62},{ax:.5,ay:.62},{ax:.5,ay:.62}]},fx16:{c:4,r:4,blend:'unscreen',rows:[{ax:.5,ay:.765},{ax:.5,ay:.712},{ax:.5,ay:.692},{ax:.5,ay:.682}]}});
   for(const k in FXM){const im=new Image();im.src=FXP+k+'.webp';}
-  {const im=new Image();im.src=FXP+'dmg_digits.webp';}   // 미리 받아 두기 (첫 타격 때 빈 칸 방지)
+  {const im=new Image();im.src=FXP+'dmg_digits.webp?v=2';}   // 미리 받아 두기 (첫 타격 때 빈 칸 방지)
   // flip(시트, 칸 번호 목록, 기준점 x·y(무대 px), 칸 크기 px, {fps, loops, flipX})
   function flip(k,seq,x,y,size,o={}){
     const m=FXM[k];if(!m||!stage||!seq.length)return null;
