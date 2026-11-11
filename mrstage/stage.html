@@ -4411,7 +4411,10 @@ html body #app .count .cnt-steam{display:inline-block;width:6px;height:6px;borde
 .sky-cel .cel-portal{background-image:url('assets/art/backgrounds/sky/cel_portal.png');left:46%;top:4%;height:30%;animation:mrSkySpin 14s linear infinite}
 #battle-stage[data-sky="0"] .cel-sun{opacity:1;filter:saturate(.75) brightness(1.08)}
 #battle-stage[data-sky="1"] .cel-sun{opacity:1;left:76%;top:6%;height:22%}
-#battle-stage[data-sky="2"] .cel-sun{opacity:1;left:62%;top:10%;height:26%;filter:hue-rotate(-18deg) saturate(1.25)}
+#battle-stage[data-sky="2"] .cel-sun{opacity:1;left:62%;top:10%;height:26%}
+/* (DHL 11-11) 낮 · 노을 하늘의 동그라미도 바뀐 달 그림으로 · 크기는 예전 해 동그라미 그대로(해 그림은 칸의 63%만 차지 → 달 그림을 66%로 줄여 같은 크기) · 밤 달도 같은 크기 */
+html body #battle-stage .sky-cel .cel-sun{background-image:url('assets/art/backgrounds/sky/cel_moon.png?v=2')}
+html body #battle-stage .sky-cel .cel-sun,html body #battle-stage .sky-cel .cel-moon{background-size:66.4%}
 #battle-stage[data-sky="3"] .cel-moon,#battle-stage[data-sky="4"] .cel-portal{opacity:1}
 @keyframes mrSkySpin{to{transform:rotate(360deg)}}
 /* 먼 실루엣 + 랜드마크 풍차: 타일 반복(풍차는 두 칸에 하나), 땅과 같은 방식으로 흐름 */
