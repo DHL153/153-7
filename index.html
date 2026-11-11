@@ -5140,9 +5140,16 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       if(p.querySelector('.ib,.rsB'))return;   // 도감·배우기(안쪽 목록 스크롤)·라운드 선택은 제외
       // 높이는 '자식 상자들의 실제 높이'로 잼: 카드 밖으로 살짝 튀어나온 장식(별·장수)은 스크롤 이유가 아님
       const need=()=>{const cs=getComputedStyle(p),pt=parseFloat(cs.paddingTop)||0,pb=parseFloat(cs.paddingBottom)||0,top=p.getBoundingClientRect().top;
-        let bot=0;for(const c of p.children){const r=c.getBoundingClientRect();if(r.height)bot=Math.max(bot,r.bottom-top+p.scrollTop);}
+        const zf=parseFloat(cs.zoom)||1;   /* (DHL 11-11) 큰 화면 배율(zoom)이 걸린 창: 화면 px로 잰 값을 창 안쪽 단위로 되돌림 — 안 그러면 넘친 줄 알고 내용을 0.6배로 줄임 */
+        let bot=0;for(const c of p.children){const r=c.getBoundingClientRect();if(r.height)bot=Math.max(bot,(r.bottom-top)/zf+p.scrollTop);}
         const h=bot+pb;return Math.min(h?p.clientHeight/h:1,p.clientWidth/Math.max(1,p.scrollWidth));};
-      let r=need();if(r>=.995){if(p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';return;}
+      let r=need();
+      /* (DHL 11-11 QA ⑧) 큰 화면의 원정 캠프(상점): 세로가 남으면 같은 방식으로 키움 — 1366×768에서는 0.78배로 줄여 맞추던 창이라 1080p · 1440p에서는 반대로 화면에 비해 작았음 */
+      if(r>=.995&&p.querySelector('.shop')&&document.documentElement.classList.contains('lmUiOn')){
+        const cs=getComputedStyle(p),shp=p.querySelector('.shop');let bot=4;for(const c of shp.children){const q=c.getBoundingClientRect();if(q.height)bot+=q.height+6;}   /* 상점은 min-height 100%라 빈 틈을 뺀 '내용 높이'로 잼 */
+        const sw=(p.querySelector('.shop').getBoundingClientRect().width)||860,g=Math.min(p.clientHeight/Math.max(1,bot+(parseFloat(cs.paddingBottom)||0)),p.clientWidth*.94/sw,2.4);
+        if(g>1.03){p.classList.add('lmFit');p.style.setProperty('--lmz',(g*.995).toFixed(3));if(p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';return;}}
+      if(r>=.995){if(p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';return;}
       if(r<.6)return;
       p.classList.add('lmFit');let z=r;
       for(let i=0;i<4;i++){p.style.setProperty('--lmz',z.toFixed(3));const r2=need();if(r2>=.995){if(p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';break;}z*=r2*.995;if(z<.6){z=.6;p.style.setProperty('--lmz','0.6');break;}}
@@ -5461,6 +5468,16 @@ html.lmUiOn #lm-title.ltv2 .mr-logo-stage{width:min(calc(36vw / var(--lmUi)),cal
 html.lmUiOn #lm-title .ltv-run{height:min(calc(var(--lmVh) * 34),300px)}
 html.lmUiOn #lm-title .lt-card,html.lmUiOn #lm-title .lt-card.wide:has(.lc-story),html.lmUiOn #lm-title .lt-card.wide:has(.lc-sum){max-height:calc(var(--lmVh) * 92)!important}
 html.lmUiOn #lm-title .lt-card.fx2{max-height:calc(var(--lmVh) * 100 - 24px)!important}
+/* 2단계: 게임 안 — 왼쪽 정보판 + 창(보상 · 머지 · 각성 · 런 정보/도감/배우기 · 게임 오버). 라운드 고르기 · 야영 · 전투 무대 · 손패는 스스로 화면에 맞추므로 제외 */
+@media (min-width:1000px) and (orientation:landscape){
+  html.lmUiOn.lmB #app.bl{grid-template-columns:calc(clamp(200px,19vw / var(--lmUi),290px) * var(--lmUi)) 1fr!important}
+  html.lmUiOn.lmB .ov{left:calc(clamp(200px,19vw / var(--lmUi),290px) * var(--lmUi))!important}
+  html.lmUiOn #app.bl #side{zoom:var(--lmUi)}
+}
+html.lmUiOn #ov>.panel:not(:has(.rsB,.shop,.goB,.rest,.night)){zoom:var(--lmUi);max-height:calc(var(--lmVh) * 92)}
+html.lmUiOn #ov:has(.ib)>.panel{max-height:none}
+html.lmUiOn #ov .goB{zoom:var(--lmUi)}
+
 /* (QA 11-11) 게임 중 옵션 창 뒤로 타이틀의 플레이 · 옵션 · 컬렉션 버튼이 흐릿하게 비치던 것 — 게임 중에는 창만 보이게 */
 html body #lm-title.ingame.ingame>:not(.lt-pop){display:none!important}
 </style>
