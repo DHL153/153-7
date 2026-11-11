@@ -5504,8 +5504,11 @@ html.lmUiOn #ov:has(.ib)>.panel{max-height:none}
 html.lmUiOn #ov .goB{zoom:var(--lmUi)}
 /* (DHL 11-12 QA 2차) 큰 화면: 덱 전체 보기 · 야영 하위 창(떠나보내기 · 모닥불 머지 · 밤 산책)도 같은 배율 */
 html.lmUiOn .dkBox{zoom:var(--lmUi);width:min(1180px,calc(94vw / var(--lmUi)));max-height:calc(var(--lmVh) * 94)}
-html.lmUiOn .rest .cpSub:has(.campNames){zoom:var(--lmUi);max-width:min(1100px,calc(94vw / var(--lmUi) - 160px));max-height:calc(var(--lmVh) * 72)}
-html.lmUiOn .rest .cpSub:has(.campNames) .cpEvArt{--cw:min(calc(14vw / var(--lmUi)),calc(var(--lmVh) * 30))}   /* 이름 고르는 창만 — 밤 산책 카드는 스스로 화면에 맞춤 */
+/* 야영 하위 창: 길 고르기(카드 3장, .wRow)는 카드가 스스로 화면에 맞추므로 창 폭 상한 · 제목만 배율 / 그 밖(이름 고르기 · 산책 사건 · 결과)은 창 전체를 배율 */
+html.lmUiOn .rest .cpSub:not(:has(.wRow)){zoom:var(--lmUi);max-width:min(1100px,calc(94vw / var(--lmUi) - 160px));max-height:calc(var(--lmVh) * 72)}
+html.lmUiOn .rest .cpSub:not(:has(.wRow)) .cpEvArt{--cw:min(calc(14vw / var(--lmUi)),calc(var(--lmVh) * 30))}
+html.lmUiOn .rest .cpSub:has(.wRow){max-width:min(calc(1100px * var(--lmUi)),94vw)}
+html.lmUiOn .rest .cpSub:has(.wRow) h2{zoom:var(--lmUi)}
 /* (DHL 11-11) 야영: 카드는 화면에 맞게 커지는데 '다음 빌런' 칸 · 설명 줄 · 골드 · 아래 버튼 줄은 고정 크기 → 같은 배율. */
 html.lmUiOn .rest .cpNext,html.lmUiOn .rest .cpDesc,html.lmUiOn .rest .cpGold,html.lmUiOn .rest .cpFoot3,html.lmUiOn .rest>.cpBack{zoom:var(--lmUi)}
 
