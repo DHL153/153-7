@@ -5477,6 +5477,8 @@ html.lmUiOn #lm-title .lt-card.fx2{max-height:calc(var(--lmVh) * 100 - 24px)!imp
 html.lmUiOn #ov>.panel:not(:has(.rsB,.shop,.goB,.rest,.night)){zoom:var(--lmUi);max-height:calc(var(--lmVh) * 92)}
 html.lmUiOn #ov:has(.ib)>.panel{max-height:none}
 html.lmUiOn #ov .goB{zoom:var(--lmUi)}
+/* (DHL 11-11) 야영: 카드는 화면에 맞게 커지는데 '다음 빌런' 칸 · 설명 줄 · 골드 · 아래 버튼 줄은 고정 크기 → 같은 배율. */
+html.lmUiOn .rest .cpNext,html.lmUiOn .rest .cpDesc,html.lmUiOn .rest .cpGold,html.lmUiOn .rest .cpFoot3,html.lmUiOn .rest>.cpBack{zoom:var(--lmUi)}
 
 /* (QA 11-11) 게임 중 옵션 창 뒤로 타이틀의 플레이 · 옵션 · 컬렉션 버튼이 흐릿하게 비치던 것 — 게임 중에는 창만 보이게 */
 html body #lm-title.ingame.ingame>:not(.lt-pop){display:none!important}
