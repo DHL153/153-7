@@ -3254,6 +3254,9 @@ function cashOut(){
   rows.push(`<div class="crow${intr?'':' dim'}"><b class="n gd">${intr}</b><span>5골드당 이자 1 (최대 ${S.interestMax})</span><span class="grow"></span>${coins(intr)}</div>`);
   // 💰 보상 연출 (2026-10-28 DHL): 풍차 날개가 돌며 줄마다 금화가 하나씩 '짤랑' 쌓이고, 버튼 숫자가 굴러 올라감 → 받기를 누르면 금화가 풍차 바람을 타고 왼쪽 골드로 날아감
   const amt=[base,left,(S.foe&&S.foe.bandit)||0,S.orbs.includes('horse')?4*(S.ost.horse||1):0,intr];
+  /* (DHL 11-12 QA 7 A안) 보상 창 위에 승리 문장 + '라운드 승리' 리본 (패배 화면의 짝) · 뒤에서 퍼지는 빛은 장 클리어 빛 그림 재사용 · 글자는 코드(13개 언어) */
+  try{const ov=$('ov');let w=document.getElementById('cfWin');if(!w){w=document.createElement('div');w.id='cfWin';w.setAttribute('aria-hidden','true');w.innerHTML='<i class="cwRays"></i><i class="cwEmb"></i><div class="cwRib"><b></b></div>';ov.insertBefore(w,ov.firstChild);}
+    let t='라운드 승리';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}w.querySelector('b').textContent=t;w.classList.remove('go');void w.offsetWidth;w.classList.add('go');}catch(e){}
   showOv(`<div class="cash cashFx"><div class="cfHead"><img class="cfMill" src="assets/brand/logo_blades.webp" alt=""><b>라운드 보상</b><span class="cfGold">💰 <em id="cfGold">${S.gold}</em></span></div>`+
     `<button class="cashBtn" id="cashBtn" onclick="cashCollect()" disabled>보상 받기: 💰<span id="cashN">0</span></button>${rows.join('')}</div>`);
   cashTally();
@@ -5460,6 +5463,26 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 </body></html>
 </body></html>
 </body></html>
+<style id="lm-cash-win">
+#cfWin{display:none}
+#ov:has(.cashFx){flex-direction:column}
+#ov:has(.cashFx)>#cfWin{display:block;position:relative;flex:none;z-index:2;pointer-events:none;width:min(430px,86%);height:200px;margin-bottom:-34px;zoom:var(--lmUi,1)}
+#ov:has(.cashFx)>.panel{max-height:calc(var(--lmVh,1vh) * 92 - 180px)!important}
+#cfWin .cwRays{position:absolute;left:50%;top:80px;width:420px;aspect-ratio:1;translate:-50% -50%;clip-path:inset(0 0 124px 0);background:url(assets/ui/lamancha/clear_rays.webp) 0 0/400% 200% no-repeat;opacity:0}
+#cfWin .cwEmb{position:absolute;left:50%;top:0;width:190px;aspect-ratio:560/517;translate:-50% 0;background:url(assets/ui/lamancha/win_emblem.webp) center/contain no-repeat;filter:drop-shadow(0 6px 8px #000b);opacity:0}
+#cfWin .cwRib{position:absolute;left:0;right:0;bottom:0;height:60px;background:url(assets/ui/lamancha/win_ribbon.webp) center/100% 100% no-repeat;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 4px 5px #000a);opacity:0}
+#cfWin .cwRib b{font:900 24px/1 'Noto Sans KR',system-ui,sans-serif;letter-spacing:.08em;color:#fff4d6;text-shadow:0 2px 0 #0a1433,0 0 10px #f6cf6366;white-space:nowrap;max-width:72%;overflow:hidden;text-overflow:ellipsis}
+#cfWin.go .cwEmb{animation:cwSlam .5s cubic-bezier(.2,1.5,.4,1) .05s forwards}
+#cfWin.go .cwRib{animation:cwUnroll .4s cubic-bezier(.3,1.3,.5,1) .3s forwards}
+#cfWin.go .cwRays{animation:cwRaysIn .5s steps(1) .2s forwards,cwRaysLoop 1.5s steps(1) .7s infinite}
+@keyframes cwSlam{0%{opacity:0;scale:1.9}60%{opacity:1}100%{opacity:1;scale:1}}
+@keyframes cwUnroll{0%{opacity:0;scale:.2 1}100%{opacity:1;scale:1 1}}
+@keyframes cwRaysIn{0%{opacity:1;background-position:0 0}33%{opacity:1;background-position:33.333% 0}66%,100%{opacity:1;background-position:66.667% 0}}
+@keyframes cwRaysLoop{0%{opacity:.85;background-position:100% 0}33%{opacity:.85;background-position:0 100%}66%,100%{opacity:.85;background-position:33.333% 100%}}
+@media (orientation:portrait){#ov:has(.cashFx)>#cfWin{margin-bottom:-14px}}
+@media (max-height:560px){#ov:has(.cashFx)>#cfWin{height:60px;margin-bottom:-22px}#cfWin .cwEmb,#cfWin .cwRays{display:none}#ov:has(.cashFx)>.panel{max-height:calc(var(--lmVh,1vh) * 92 - 50px)!important}}
+@media (prefers-reduced-motion:reduce){#cfWin.go .cwEmb,#cfWin.go .cwRib{animation:none;opacity:1}#cfWin.go .cwRays{animation:none;opacity:.7;background-position:0 100%}}
+</style>
 <style id="lm-ui-scale">
 /* (DHL 11-11 QA ⑧) 큰 화면(1080p · 1440p)에서 타이틀 · 메뉴 창이 화면에 비해 작음 → 1366×768에서 보이는 비율 그대로 키움
    --lmUi = min(화면 높이/768, 화면 폭/1366) (1.08 넘을 때만 · 가로 화면만 · 최대 2.4) · --lmVh = 키우기 전 기준 높이의 1% */
