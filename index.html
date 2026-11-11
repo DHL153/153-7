@@ -1722,7 +1722,7 @@ try{Object.assign(LM_SET,JSON.parse(localStorage.getItem('lm_settings')||'{}'));
 try{if(!localStorage.getItem('lm_vol25')){if(LM_SET.music===10&&LM_SET.sfx===10){LM_SET.music=25;LM_SET.sfx=45;localStorage.setItem('lm_settings',JSON.stringify(LM_SET));}localStorage.setItem('lm_vol25','1');}}catch(e){}   /* 하루 동안 기본값이던 10·10을 그대로 둔 사람만 한 번 새 기본값으로 */
 try{const old=JSON.parse(localStorage.getItem('lm_sound')||'null');if(old&&old.masterVolume===0&&localStorage.getItem('lm_settings')==null)LM_SET.master=0;}catch(e){}
 const LM_SPEEDS=[null,1,1.5,2,3];
-function lmSetSave(){try{localStorage.setItem('lm_settings',JSON.stringify(LM_SET));}catch(e){}}
+function lmSetSave(){try{localStorage.setItem('lm_settings',JSON.stringify(LM_SET));}catch(e){}try{window.lmStageSpeedSync&&lmStageSpeedSync();}catch(e){}}
 function lmSetApply(){
   const b=document.body;
   b.classList.toggle('lm-rm',!!LM_SET.rm);b.classList.toggle('lm-noshadow',!LM_SET.shadow);
@@ -4557,6 +4557,10 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   const ST=()=>{try{return fr.contentWindow&&fr.contentWindow.MRStage;}catch(e){return null;}};
   function call(fn){const st=ST();if(st)st.ready.then(()=>fn(st)).catch(()=>{});else pend.push(fn);}
   window.lmStageCall=fn=>{lmCapSync._k=lmCapSync._k;call(fn);};
+  /* (DHL 11-11 QA ①) 옵션 '게임 속도'가 전투 무대에는 안 먹던 것 → 무대 시계도 같은 배속으로 (예전엔 점수 세기만 빨라지고 처치 연출 12초는 그대로) */
+  window.lmStageSpeed=()=>{try{const sp=(typeof LM_SPEEDS!=='undefined'&&LM_SPEEDS[LM_SET.speed])||1;return sp;}catch(e){return 1;}};
+  window.lmStageSpeedSync=()=>call(st=>{try{st.speed(lmStageSpeed());}catch(e){}});
+  lmStageSpeedSync();
   // 전투 중(런 연출이 끝날 때까지)엔 적 정보 표를 흐리게 → 피해 숫자·×배수가 표 아래 묻히지 않게 (무대는 iframe이라 숫자를 표 위로 올릴 수 없음)
   let hitT=0;function hitMode(){box.classList.add('lmHit');if(hitT)return;
     hitT=setInterval(()=>{const st=ST();if(!st||!(st.busy?.()||st.queued?.())){box.classList.remove('lmHit');clearInterval(hitT);hitT=0;}},400);}
@@ -6553,9 +6557,9 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   // 남은 연출을 빨리 감아 끝냄 (무대는 감춘 채)
   function rush(st){if(!st)return Promise.resolve();try{st.freeze(false);}catch(e){}
     if(rushing)return rushing;
-    if(!(st.busy&&st.busy())){try{st.speed(1);}catch(e){}return Promise.resolve();}
+    if(!(st.busy&&st.busy())){try{st.speed(window.lmStageSpeed?lmStageSpeed():1);}catch(e){}return Promise.resolve();}
     try{st.speed(16);}catch(e){}
-    return rushing=new Promise(res=>{const t0=performance.now();const tk=setInterval(()=>{if(st.busy()&&performance.now()-t0<8000)return;clearInterval(tk);try{st.speed(1);}catch(e){}rushing=null;res();},60);});}
+    return rushing=new Promise(res=>{const t0=performance.now();const tk=setInterval(()=>{if(st.busy()&&performance.now()-t0<8000)return;clearInterval(tk);try{st.speed(window.lmStageSpeed?lmStageSpeed():1);}catch(e){}rushing=null;res();},60);});}
   function ui(){if(!P)return;const it=ITEMS[cur];
     const ic=it.ico?`<img src="assets/ui/lamancha/icons/${it.ico}.webp" alt="">`:(it.k==='combo'?['rust','neon','sky'].map(w=>`<span class="fxW" style="background:${WORLD_C[w]}">${ICO(w)}</span>`).join(''):`<img src="${porSrc(it.por)}" alt="">`);
     P.querySelector('.fpIc').innerHTML=ic;P.querySelector('.fpTx b').textContent=it.t;P.querySelector('.fpTx small').textContent=it.s;
