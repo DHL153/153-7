@@ -4413,7 +4413,13 @@ html body #app .count .cnt-steam{display:inline-block;width:6px;height:6px;borde
 #battle-stage[data-sky="1"] .cel-sun{opacity:1;left:76%;top:6%;height:22%}
 #battle-stage[data-sky="2"] .cel-sun{opacity:1;left:62%;top:10%;height:26%}
 /* (DHL 11-11) 낮 · 노을 하늘의 동그라미도 바뀐 달 그림으로 · 크기는 예전 해 동그라미 그대로(해 그림은 칸의 63%만 차지 → 달 그림을 66%로 줄여 같은 크기) · 밤 달도 같은 크기 */
-html body #battle-stage .sky-cel .cel-sun{background-image:url('assets/art/backgrounds/sky/cel_moon.png?v=2')}
+/* (DHL 11-11) 새벽 · 낮 · 노을마다 받은 그림(cel_dawn · cel_day · cel_dusk) — 한 동그라미가 자리를 옮기는 동안 그림이 서서히 바뀜 · 밤은 달(cel_moon) 그대로 */
+html body #battle-stage .sky-cel .cel-sun{background-image:none;filter:none!important}
+.sky-cel .cel-sun b{position:absolute;inset:0;background:center/66.4% no-repeat;opacity:0;transition:opacity 1.8s ease}
+.sky-cel .cel-sun .c0{background-image:url('assets/art/backgrounds/sky/cel_dawn.png')}
+.sky-cel .cel-sun .c1{background-image:url('assets/art/backgrounds/sky/cel_day.png')}
+.sky-cel .cel-sun .c2{background-image:url('assets/art/backgrounds/sky/cel_dusk.png')}
+#battle-stage[data-sky="0"] .cel-sun .c0,#battle-stage[data-sky="1"] .cel-sun .c1,#battle-stage[data-sky="2"] .cel-sun .c2{opacity:1}
 html body #battle-stage .sky-cel .cel-sun,html body #battle-stage .sky-cel .cel-moon{background-size:66.4%}
 #battle-stage[data-sky="3"] .cel-moon,#battle-stage[data-sky="4"] .cel-portal{opacity:1}
 @keyframes mrSkySpin{to{transform:rotate(360deg)}}
@@ -5557,7 +5563,7 @@ body:has(#battle-stage[data-team-skill="on"]) :is(.lm-roll,#lm-combo,.lm-big,.lm
 </head>
 <body>
 <div id="app"><div id="main-content"><div class="view-container active" id="view-battle"><div id="board-section">
-<div id="battle-stage"><div id="battle-sky" aria-hidden="true"><div class="sky-grad"><i></i><i></i><i></i><i></i><i></i></div><div class="sky-stars"></div><div class="sky-cel"><i class="cel-sun"></i><i class="cel-moon"></i><i class="cel-portal"></i></div><div class="sky-far" id="battle-sky-far"></div></div><div id="battle-panorama" aria-hidden="true"><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/></div><div id="skill-cinematic" aria-hidden="true"></div><div id="battle-chain-pop" aria-live="polite"></div>
+<div id="battle-stage"><div id="battle-sky" aria-hidden="true"><div class="sky-grad"><i></i><i></i><i></i><i></i><i></i></div><div class="sky-stars"></div><div class="sky-cel"><i class="cel-sun"><b class="c0"></b><b class="c1"></b><b class="c2"></b></i><i class="cel-moon"></i><i class="cel-portal"></i></div><div class="sky-far" id="battle-sky-far"></div></div><div id="battle-panorama" aria-hidden="true"><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/></div><div id="skill-cinematic" aria-hidden="true"></div><div id="battle-chain-pop" aria-live="polite"></div>
 <button id="battle-pause-btn" onclick="toggleManualPause()" title="일시정지">⏸</button>
 <img class="hero" id="hero" onerror="handleAssetImageError(this)" onload="handleAssetImageLoad(this)" src="assets/art/battle_characters/battle_char_0001_Idle.png"/>
 <div id="boss-hud">
