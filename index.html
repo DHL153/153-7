@@ -3255,12 +3255,19 @@ function cashOut(){
   // 💰 보상 연출 (2026-10-28 DHL): 풍차 날개가 돌며 줄마다 금화가 하나씩 '짤랑' 쌓이고, 버튼 숫자가 굴러 올라감 → 받기를 누르면 금화가 풍차 바람을 타고 왼쪽 골드로 날아감
   const amt=[base,left,(S.foe&&S.foe.bandit)||0,S.orbs.includes('horse')?4*(S.ost.horse||1):0,intr];
   /* (DHL 11-12 QA 7 A안) 보상 창 위에 승리 문장 + '라운드 승리' 리본 (패배 화면의 짝) · 뒤에서 퍼지는 빛은 장 클리어 빛 그림 재사용 · 글자는 코드(13개 언어) */
-  try{const ov=$('ov');let w=document.getElementById('cfWin');if(!w){w=document.createElement('div');w.id='cfWin';w.setAttribute('aria-hidden','true');w.innerHTML='<i class="cwRays"></i><i class="cwEmb"></i><div class="cwRib"><b></b></div>';ov.insertBefore(w,ov.firstChild);}
-    let t='라운드 승리';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}w.querySelector('b').textContent=t;w.classList.remove('go');void w.offsetWidth;w.classList.add('go');}catch(e){}
+  try{const ov=$('ov');let w=document.getElementById('cfWin');if(!w){w=document.createElement('div');w.id='cfWin';w.setAttribute('aria-hidden','true');w.innerHTML='<i class="cwRays"></i><i class="cwEmb"></i><div class="cwRib"><b></b></div><div class="cwFoe"><img alt=""><div class="cwStamp"><b></b></div><small></small></div><i class="cwPile"></i>';ov.insertBefore(w,ov.firstChild);}
+    let t='라운드 승리';try{t=(window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){}w.querySelector('.cwRib b').textContent=t;
+    /* (DHL 11-12 B안 전리품) 왼쪽: 쓰러뜨린 적 토큰 + '격파' 도장 · 오른쪽: 금화 더미(보상 줄마다 커짐) */
+    {let k='격파';try{k=(window.MRLocale&&MRLocale.t&&MRLocale.t(k))||k;}catch(e){}w.querySelector('.cwStamp b').textContent=k;
+     const f=S.foes&&S.foes[S.rd];w.querySelector('.cwFoe img').src='assets/ui/lamancha/'+((f&&(window.LM_TOKB||{})[f.boss])||['token_minion','token_knight','token_giant'][S.rd]||'token_minion')+'.webp';
+     w.querySelector('.cwFoe small').textContent=(f&&f.name)||'';w.dataset.pile='0';}
+    w.classList.remove('go');void w.offsetWidth;w.classList.add('go');}catch(e){}
   showOv(`<div class="cash cashFx"><div class="cfHead"><img class="cfMill" src="assets/brand/logo_blades.webp" alt=""><b>라운드 보상</b><span class="cfGold">💰 <em id="cfGold">${S.gold}</em></span></div>`+
     `<button class="cashBtn" id="cashBtn" onclick="cashCollect()" disabled>보상 받기: 💰<span id="cashN">0</span></button>${rows.join('')}</div>`);
+  try{requestAnimationFrame(()=>{const w=document.getElementById('cfWin'),P=document.querySelector('#ov>.panel');if(!w||!P)return;const z=parseFloat(getComputedStyle(P).zoom)||1;w.style.setProperty('--ph',(P.getBoundingClientRect().height/z).toFixed(0)+'px');w.style.setProperty('--pw',(P.getBoundingClientRect().width/z).toFixed(0)+'px');const sd=(document.getElementById('ov').getBoundingClientRect().width-P.getBoundingClientRect().width)/2/z-18;w.style.setProperty('--sd',Math.max(0,sd).toFixed(0)+'px');w.classList.toggle('noSide',sd<104);});}catch(e){}
   cashTally();
 }
+function lmCashPile(n){try{const w=document.getElementById('cfWin');if(!w)return;const st=n<=0?0:n<=4?1:n<=9?2:n<=19?3:4;if(String(st)!==w.dataset.pile){w.dataset.pile=st;const p=w.querySelector('.cwPile');p.classList.remove('pop');void p.offsetWidth;p.classList.add('pop');}}catch(e){}}
 function cashTally(){
   /* (DHL 11-01 '슬롯머신처럼 재밌게 · 누르면 바로') 보상 숫자 = 슬롯머신 릴: 줄이 나올 때마다 자릿수마다 릴이 '드르륵' 돌다 왼쪽부터 '탁' 멈춤(살짝 튕김) + 짤랑 소리 · 마지막엔 잭팟 빛.
      세는 중에 보상 받기를 누르면 → 바로 합계로 멈춤(줄 · 금화 한꺼번에) → 한 번 더 누르면 받기 */
@@ -3272,10 +3279,10 @@ function cashTally(){
   btn.onclick=()=>{if(!done){finish(true);return;}cashCollect();};
   function drop(r,quick){r.classList.add('in');[...r.querySelectorAll('.coins img')].forEach((c,i)=>{if(quick){c.classList.add('cfDrop');return;}later(()=>{c.classList.add('cfDrop');lmSfxTick();},i*90);});}
   rows.forEach(r=>{const n=amtOf(r),k=Math.min(n,10),d=fast?40:Math.max(520,k*90+420);
-    later(()=>{drop(r,fast);if(n>0){acc=Math.min(total,acc+n);lmReel(num,acc,fast?1:Math.min(900,380+k*60));}},t);t+=d;});
+    later(()=>{drop(r,fast);if(n>0){acc=Math.min(total,acc+n);lmReel(num,acc,fast?1:Math.min(900,380+k*60));lmCashPile(acc);}},t);t+=d;});
   later(()=>finish(false),t+260);
   function finish(skip){if(done)return;done=true;T.forEach(clearTimeout);
-    if(skip){rows.forEach(r=>drop(r,true));lmReel(num,total,260);}
+    if(skip){rows.forEach(r=>drop(r,true));lmReel(num,total,260);}lmCashPile(total);
     setTimeout(()=>{btn.classList.add('ready','cfJack');lmSfxChing(true);setTimeout(()=>btn.classList.remove('cfJack'),900);},skip?300:0);}
 }
 /* 슬롯 릴: el 안에 자릿수마다 0~9 띠 3바퀴 · 값이 바뀌면 띠가 아래로 돌다 멈춤 (왼쪽 자리부터 · 끝에 살짝 튕김) */
@@ -5479,9 +5486,26 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 @keyframes cwUnroll{0%{opacity:0;scale:.2 1}100%{opacity:1;scale:1 1}}
 @keyframes cwRaysIn{0%{opacity:1;background-position:0 0}33%{opacity:1;background-position:33.333% 0}66%,100%{opacity:1;background-position:66.667% 0}}
 @keyframes cwRaysLoop{0%{opacity:.85;background-position:100% 0}33%{opacity:.85;background-position:0 100%}66%,100%{opacity:.85;background-position:33.333% 100%}}
+#cfWin .cwFoe,#cfWin .cwPile{display:none}
+#cfWin.noSide .cwFoe,#cfWin.noSide .cwPile{display:none!important}
+@media (min-width:1000px) and (orientation:landscape){
+  #cfWin .cwFoe{display:block;position:absolute;right:calc(50% + var(--pw,520px) / 2 + 14px);top:calc(166px + var(--ph,260px) / 2 - 95px);width:min(150px,var(--sd,150px));text-align:center;opacity:0}
+  #cfWin .cwFoe img{width:88%;aspect-ratio:1;height:auto;object-fit:contain;filter:grayscale(.75) brightness(.7) drop-shadow(0 5px 6px #000b)}
+  #cfWin .cwFoe small{display:block;margin-top:2px;font:800 14px/1.2 'Noto Sans KR',sans-serif;color:#cfd6e4;text-shadow:0 1px 2px #000;white-space:nowrap}
+  #cfWin .cwStamp{position:absolute;left:50%;top:27%;width:100%;aspect-ratio:600/229;translate:-50% 0;rotate:-13deg;background:url(assets/ui/lamancha/win_stamp.webp) center/100% 100% no-repeat;display:flex;align-items:center;justify-content:center;opacity:0;filter:drop-shadow(0 2px 2px #000c)}
+  #cfWin .cwStamp b{font:900 26px/1 'Noto Sans KR',sans-serif;color:#ff4d3d;letter-spacing:.08em;white-space:nowrap;max-width:80%;overflow:hidden}
+  #cfWin.go .cwFoe{animation:cwFoeIn .3s ease-out .45s forwards}
+  #cfWin.go .cwStamp{animation:cwStamp .28s cubic-bezier(.3,1.6,.5,1) .85s forwards}
+  #cfWin .cwPile{display:block;position:absolute;left:calc(50% + var(--pw,520px) / 2 + 6px);top:calc(166px + var(--ph,260px) - min(160px,var(--sd,160px)) + 10px);width:min(160px,var(--sd,160px));aspect-ratio:1;background:url(assets/ui/lamancha/win_coinpile.webp) 0 0/400% 100% no-repeat;opacity:0;transform-origin:50% 88%;filter:drop-shadow(0 4px 5px #000a)}
+  #cfWin[data-pile="1"] .cwPile{opacity:1;background-position:0 0}#cfWin[data-pile="2"] .cwPile{opacity:1;background-position:33.333% 0}#cfWin[data-pile="3"] .cwPile{opacity:1;background-position:66.667% 0}#cfWin[data-pile="4"] .cwPile{opacity:1;background-position:100% 0}
+  #cfWin .cwPile.pop{animation:cwPile .3s cubic-bezier(.2,1.7,.4,1)}
+}
+@keyframes cwFoeIn{from{opacity:0;translate:-12px 0}to{opacity:1;translate:0 0}}
+@keyframes cwStamp{0%{opacity:0;scale:2.4}70%{opacity:1}100%{opacity:1;scale:1}}
+@keyframes cwPile{0%{scale:1 .8}60%{scale:1.06 1.08}100%{scale:1}}
 @media (orientation:portrait){#ov:has(.cashFx)>#cfWin{margin-bottom:-14px}}
 @media (max-height:560px){#ov:has(.cashFx)>#cfWin{height:60px;margin-bottom:-22px}#cfWin .cwEmb,#cfWin .cwRays{display:none}#ov:has(.cashFx)>.panel{max-height:calc(var(--lmVh,1vh) * 92 - 50px)!important}}
-@media (prefers-reduced-motion:reduce){#cfWin.go .cwEmb,#cfWin.go .cwRib{animation:none;opacity:1}#cfWin.go .cwRays{animation:none;opacity:.7;background-position:0 100%}}
+@media (prefers-reduced-motion:reduce){#cfWin.go .cwEmb,#cfWin.go .cwRib{animation:none;opacity:1}#cfWin.go .cwRays{animation:none;opacity:.7;background-position:0 100%}#cfWin.go .cwFoe,#cfWin.go .cwStamp{animation:none;opacity:1}#cfWin .cwPile.pop{animation:none}}
 </style>
 <style id="lm-ui-scale">
 /* (DHL 11-11 QA ⑧) 큰 화면(1080p · 1440p)에서 타이틀 · 메뉴 창이 화면에 비해 작음 → 1366×768에서 보이는 비율 그대로 키움
