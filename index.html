@@ -5454,8 +5454,15 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 /* 라운드 고르기 (DHL 10-28 "스크롤바가 있네요"): 화면 높이가 모자라면 스크롤 대신 기둥 전체를 살짝 줄여서 한 화면에 */
 (function(){
   function fit(){const p=document.querySelector('#ov>.panel'),b=p&&p.querySelector(':scope>.rsB'),r=b&&b.querySelector('.rbRow');if(!r)return;
-    r.style.zoom='';const over=()=>b.scrollHeight>b.clientHeight+1||p.scrollHeight>p.clientHeight+1;let z=1;
-    for(let k=0;k<30&&over()&&z>.55;k++){z-=.015;r.style.zoom=z.toFixed(3);}}
+    r.style.zoom='';{const hd0=b.querySelector('.rbHead');if(hd0)hd0.style.zoom='';}const over=()=>b.scrollHeight>b.clientHeight+1||p.scrollHeight>p.clientHeight+1;let z=1;
+    for(let k=0;k<30&&over()&&z>.55;k++){z-=.015;r.style.zoom=z.toFixed(3);}
+    /* (DHL 11-11 QA) 큰 화면(1080p · 1440p)에서는 기둥 가운데가 크게 비고 글씨가 작음 → 빈 칸이 없어질 때까지 기둥 전체를 키움 (가로 화면만 · 폭은 칸의 94%까지) */
+    if(z===1&&!matchMedia('(orientation:portrait)').matches){const c=r.querySelector('.rb3.cur')||r.querySelector('.rb3');if(!c)return;
+      const gap=()=>{const sk=c.querySelector('.rbSkip'),sc=c.querySelector('.rbScore');return sk&&sc?(sk.getBoundingClientRect().top-sc.getBoundingClientRect().bottom):0;};
+      const wide=()=>{let w=0;r.querySelectorAll('.rb3').forEach(e=>w+=e.getBoundingClientRect().width);return w>b.clientWidth*.94;};
+      for(let k=0;k<60&&z<2.2&&gap()>26*z&&!wide()&&!over();k++){z+=.02;r.style.zoom=z.toFixed(3);}
+      if(over()||wide()){z-=.02;r.style.zoom=z.toFixed(3);}
+      const hd=b.querySelector('.rbHead');if(hd){hd.style.zoom=z>1.05?Math.min(z,1.6).toFixed(3):'';for(let k=0;k<20&&over()&&z>1;k++){z-=.02;r.style.zoom=z.toFixed(3);hd.style.zoom=Math.min(z,1.6).toFixed(3);}}}}
   let q=0;const run=()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;fit();});};
   const hook=()=>{const ov=document.getElementById('ov');if(!ov)return setTimeout(hook,400);
     new MutationObserver(()=>{run();setTimeout(run,200);setTimeout(run,700);}).observe(ov,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
