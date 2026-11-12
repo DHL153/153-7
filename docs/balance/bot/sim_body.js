@@ -11,7 +11,8 @@ const DK=ARGV[0]||'knight', BOT=ARGV[1]||'smart', NG=+(ARGV[2]||100), ENDLESS=+(
    ENEMY: cur | off(의도 없음) | x2(의도 대상 수 2배) | heal(죽이지 못한 런마다 적이 목표의 20% 회복)
    TMUL: 모든 목표 배수 */
 const AFF=process.env.AFF||'base', ENEMY=process.env.ENEMY||'cur', TMUL=+(process.env.TMUL||1);
-if(process.env.STARW3)STAR_W[3]=+process.env.STARW3;if(process.env.STARX){const [a,b]=process.env.STARX.split(',').map(Number);STAR_X[2]=a;STAR_X[3]=b;MIX_X[2]=a*0.8;MIX_X[3]=b*0.75;}
+if(process.env.STARW3)STAR_W[3]=+process.env.STARW3;if(process.env.STARX){const [a,b]=process.env.STARX.split(',').map(Number);STAR_X[2]=a;STAR_X[3]=b;MIX_X[2]=a*0.8;MIX_X[3]=process.env.MIX3?+process.env.MIX3:b*0.75;}
+if(process.env.MIX3&&!process.env.STARX)MIX_X[3]=+process.env.MIX3;
 if(ENEMY==='x2')FOE_ATK.splice(0,3,2,3,4);
 
 /* ---- 열쇠 3개 실험 (2026-10-29): 라운드의 세계 · 빌런 약점 속성 · 주인공 이름 ----
