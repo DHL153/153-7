@@ -65,7 +65,7 @@ function spark(x,y,n,sp,a0,spr,col){for(let i=0;i<n;i++){const a=a0+rnd(-spr,spr
 function makeCracks(cx){cracks=[];for(let i=0;i<10;i++){const dir=i<5?-1:1,pts=[[cx+dir*rnd(10,60),A[1]-2]];let x=pts[0][0],y=pts[0][1];const st=Math.ceil(rnd(5,13));for(let k=0;k<st;k++){x+=dir*rnd(35,60);y+=rnd(-6,12)*(k%2?1:-.5);pts.push([x,Math.min(A[1]+30,Math.max(A[1]-20,y))])}cracks.push({pts,t:0,life:rnd(1.8,2.6),w:rnd(4,7)})}}
 const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
 function poseOff(p){return p==='upper'?[0,-74]:[0,0]}
-function step(dt){OUT=an.update(dt);const o=OUT;const BM=bodyM(o);
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const o=OUT;const BM=bodyM(o);
   if(fx){if(o.shake)shake=Math.max(shake,o.shake);if(o.flash)flashA=Math.max(flashA,o.flash)}shake=Math.max(0,shake-dt*2.2);flashA=Math.max(0,flashA-dt*5);
   if(fx&&!o.frozen){for(const e of an.events){
       if(e==='step')dust(A[0]+o.tx-60,3,120,18);
@@ -126,6 +126,7 @@ w.EN={ready:ok,
  rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
  idle:function(){return this.state()==='idle';},
  hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
  fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
  speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
 try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();

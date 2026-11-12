@@ -65,7 +65,7 @@ function ember(x,y,vx,vy,life,r){parts.push({x,y,vx,vy,t:0,life,col:EMB[(Math.ra
 function burst(x,y,n,sp,up=0){for(let i=0;i<n;i++){const a=rnd(0,6.283),v=rnd(sp*.3,sp);ember(x,y,Math.cos(a)*v,Math.sin(a)*v-up,rnd(.35,.8))}}
 function dust(x,y){for(let i=0;i<14;i++)parts.push({x:x+rnd(-60,60),y:y-4,vx:rnd(-380,380),vy:rnd(-160,-30),t:0,life:rnd(.4,.7),col:'rgba(140,110,100,.5)',r:rnd(12,24),g:200,soft:1})}
 const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
-function step(dt){OUT=an.update(dt);const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
   if(fx){
     emT+=dt;while(emT>.07){emT-=.07;const p=P(A[0]+rnd(40,330),A[1]+rnd(-200,330),L);ember(p[0],p[1],rnd(-30,50),rnd(-160,-60),rnd(.6,1.1),rnd(2.5,5))}
     if(OUT.trail){trT+=dt;while(trT>.012){trT-=.012;const p=P(A[0]+rnd(80,360),A[1]+rnd(60,380),L);ember(p[0],p[1],rnd(60,200),rnd(20,120),rnd(.3,.6),rnd(4,9))}}
@@ -112,6 +112,7 @@ w.EN={ready:ok,
  rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
  idle:function(){return this.state()==='idle';},
  hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
  fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
  speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
 try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();

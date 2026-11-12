@@ -62,7 +62,7 @@ function star(x,y,r,n,inner,col){g.fillStyle=col;g.beginPath();for(let i=0;i<n*2
 function clod(x,y,vx,vy,r){const v=[];for(let i=0;i<6;i++){const a=i/6*6.283;v.push([Math.cos(a)*r*rnd(.7,1.1),Math.sin(a)*r*rnd(.7,1.1)])}parts.push({x,y,vx,vy,t:0,life:rnd(.7,1.1),rock:v,a:0,va:rnd(-8,8),col:['#4a3a2c','#5c4836','#3a2d22'][(Math.random()*3)|0],g:2000,bounce:1})}
 function dust(x,n,sp,size){for(let i=0;i<n;i++)parts.push({x:x+rnd(-160,160),y:A[1]-4,vx:rnd(-sp,sp),vy:rnd(-120,-20),t:0,life:rnd(.4,.7),col:'rgba(120,100,85,.45)',r:rnd(size*.6,size),g:60,soft:1})}
 const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
-function step(dt){OUT=an.update(dt);const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
   // scalpel tip trail (the slash itself, kept with effects OFF)
   trail.push({a:OUT.arm,t:0,on:OUT.slash>0});for(const q of trail)q.t+=dt;trail=trail.filter(q=>q.t<.1);   // arm-angle history: the slash is drawn as a smooth arc around the shoulder
   if(fx){for(const e of an.events){
@@ -114,6 +114,7 @@ w.EN={ready:ok,
  rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
  idle:function(){return this.state()==='idle';},
  hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
  fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
  speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
 try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();

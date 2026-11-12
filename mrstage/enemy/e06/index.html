@@ -69,7 +69,7 @@ function dust(x,y,n,sp){for(let i=0;i<n;i++)parts.push({x:x+rnd(-80,80),y:y-4,vx
 function ember(x,y,vx,vy,life,col){parts.push({x,y,vx,vy,t:0,life,col,r:rnd(3,6),g:-40,glow:1})}
 const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
 let swT=0,healT=0;
-function step(dt){OUT=an.update(dt);const B=OUT.bird,T=OUT.totem;if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2);
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const B=OUT.bird,T=OUT.totem;if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2);
   for(const e of an.events)if(e==='cast'){bolt={from:P(EYE[0],EYE[1],B),rot:B.rot||0}}   // the curse orb is the attack itself: shown with effects OFF too
   if(fx){
     for(const e of an.events){
@@ -131,6 +131,7 @@ w.EN={ready:ok,
  rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
  idle:function(){return this.state()==='idle';},
  hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
  fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
  speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
 try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();

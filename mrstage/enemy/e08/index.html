@@ -63,7 +63,7 @@ function note(x,y,vx,vy,big){parts.push({x,y,vx,vy,t:0,life:rnd(.8,1.2),note:1,r
 function dust(x,n,sp,size){for(let i=0;i<n;i++)parts.push({x:x+rnd(-60,60),y:A[1]-4,vx:rnd(-sp,sp),vy:rnd(-90,-20),t:0,life:rnd(.35,.6),col:'rgba(160,130,110,.45)',r:rnd(size*.6,size),g:60,soft:1})}
 function feather(x,y,vx,vy){parts.push({x,y,vx,vy,t:0,life:rnd(.6,1.1),feather:1,a:rnd(0,6.3),va:rnd(-8,8),col:['#f4cf5c','#e8b440','#fbe39a'][(Math.random()*3)|0],r:rnd(10,16),g:160})}
 const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
-function step(dt){OUT=an.update(dt);const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
   if(fx){for(const e of an.events){
       if(e==='skid')dust(A[0]+(L.tx||0)+120,16,320,22);
       if(e==='wake'){const p=P(HEADP[0],HEADP[1]-60,L);for(let i=0;i<8;i++)feather(p[0],p[1],rnd(-300,300),rnd(-400,-100))}
@@ -119,6 +119,7 @@ w.EN={ready:ok,
  rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
  idle:function(){return this.state()==='idle';},
  hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
  fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
  speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
 try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();

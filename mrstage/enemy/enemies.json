@@ -6,16 +6,16 @@
   "cx": 800,
   "gy": 780,
   "body": [
-   426,
-   328,
+   424,
+   326,
    1066,
    778
   ],
-  "bodyH": 452,
-  "bodyW": 640,
-  "enterMs": 5932,
-  "attackMs": 3283,
-  "hurtMs": 1651
+  "bodyH": 454,
+  "bodyW": 642,
+  "enterMs": 9575,
+  "attackMs": 4872,
+  "hurtMs": 2051
  },
  "e02": {
   "ko": "막대말 랜스 기사",
@@ -26,14 +26,14 @@
   "body": [
    428,
    324,
-   1072,
+   1074,
    866
   ],
   "bodyH": 476,
-  "bodyW": 644,
-  "enterMs": 6509,
-  "attackMs": 3153,
-  "hurtMs": 2664
+  "bodyW": 646,
+  "enterMs": 5260,
+  "attackMs": 3166,
+  "hurtMs": 1940
  },
  "e03": {
   "ko": "유령 석궁 사수",
@@ -42,16 +42,16 @@
   "cx": 820,
   "gy": 800,
   "body": [
-   446,
-   274,
+   448,
+   266,
    1048,
    802
   ],
-  "bodyH": 526,
-  "bodyW": 602,
-  "enterMs": 4931,
-  "attackMs": 4500,
-  "hurtMs": 1574
+  "bodyH": 534,
+  "bodyW": 600,
+  "enterMs": 4416,
+  "attackMs": 3368,
+  "hurtMs": 1750
  },
  "e04": {
   "ko": "불꽃 창 망령",
@@ -62,14 +62,14 @@
   "body": [
    688,
    164,
-   1280,
+   1278,
    700
   ],
   "bodyH": 636,
-  "bodyW": 592,
-  "enterMs": 14737,
-  "attackMs": 5763,
-  "hurtMs": 5095
+  "bodyW": 590,
+  "enterMs": 15095,
+  "attackMs": 8313,
+  "hurtMs": 3164
  },
  "e05": {
   "ko": "산양 궁수",
@@ -85,9 +85,9 @@
   ],
   "bodyH": 472,
   "bodyW": 514,
-  "enterMs": 1898,
-  "attackMs": 1932,
-  "hurtMs": 1606
+  "enterMs": 3905,
+  "attackMs": 3211,
+  "hurtMs": 1166
  },
  "e06": {
   "ko": "까마귀 주술사",
@@ -103,9 +103,9 @@
   ],
   "bodyH": 476,
   "bodyW": 748,
-  "enterMs": 13273,
-  "attackMs": 5787,
-  "hurtMs": 2720
+  "enterMs": 8964,
+  "attackMs": 5727,
+  "hurtMs": 4289
  },
  "e07": {
   "ko": "녹슨 풍차 거인",
@@ -118,16 +118,16 @@
   "cx": 1020,
   "gy": 835,
   "body": [
-   684,
-   68,
-   1450,
-   838
+   704,
+   92,
+   1430,
+   834
   ],
-  "bodyH": 767,
-  "bodyW": 766,
-  "enterMs": 5557,
-  "attackMs": 3006,
-  "hurtMs": 1097
+  "bodyH": 743,
+  "bodyW": 726,
+  "enterMs": 5521,
+  "attackMs": 4976,
+  "hurtMs": 1129
  },
  "e08": {
   "ko": "졸음 북치기 새",
@@ -137,15 +137,15 @@
   "gy": 800,
   "body": [
    570,
-   238,
-   1052,
+   236,
+   1050,
    802
   ],
-  "bodyH": 562,
-  "bodyW": 482,
-  "enterMs": 4756,
-  "attackMs": 2892,
-  "hurtMs": 2575
+  "bodyH": 564,
+  "bodyW": 480,
+  "enterMs": 6138,
+  "attackMs": 3482,
+  "hurtMs": 1587
  },
  "e09": {
   "ko": "타락 천사 사제",
@@ -161,9 +161,9 @@
   ],
   "bodyH": 568,
   "bodyW": 584,
-  "enterMs": 8589,
-  "attackMs": 5686,
-  "hurtMs": 1975
+  "enterMs": 7237,
+  "attackMs": 4738,
+  "hurtMs": 2859
  },
  "e10": {
   "ko": "눈알 두꺼비",
@@ -172,16 +172,16 @@
   "cx": 760,
   "gy": 800,
   "body": [
-   298,
-   362,
-   1000,
+   294,
+   358,
+   998,
    800
   ],
-  "bodyH": 438,
-  "bodyW": 702,
-  "enterMs": 4614,
-  "attackMs": 2398,
-  "hurtMs": 1064
+  "bodyH": 442,
+  "bodyW": 704,
+  "enterMs": 3969,
+  "attackMs": 6840,
+  "hurtMs": 1322
  },
  "e11": {
   "ko": "거북이 몽둥이 전사",
@@ -190,16 +190,16 @@
   "cx": 800,
   "gy": 800,
   "body": [
-   512,
-   264,
+   510,
+   268,
    1166,
    802
   ],
-  "bodyH": 536,
-  "bodyW": 654,
-  "enterMs": 3552,
-  "attackMs": 1764,
-  "hurtMs": 1198
+  "bodyH": 532,
+  "bodyW": 656,
+  "enterMs": 6181,
+  "attackMs": 4083,
+  "hurtMs": 1281
  },
  "e12": {
   "ko": "좀비 의사",
@@ -208,16 +208,16 @@
   "cx": 780,
   "gy": 805,
   "body": [
-   304,
-   196,
+   308,
+   192,
    1084,
    810
   ],
-  "bodyH": 609,
-  "bodyW": 780,
-  "enterMs": 5104,
-  "attackMs": 5466,
-  "hurtMs": 3441
+  "bodyH": 613,
+  "bodyW": 776,
+  "enterMs": 9019,
+  "attackMs": 5317,
+  "hurtMs": 3129
  },
  "e13": {
   "ko": "해골 복서 오우거",
@@ -226,16 +226,16 @@
   "cx": 800,
   "gy": 805,
   "body": [
-   566,
-   352,
-   1086,
-   820
+   558,
+   346,
+   1078,
+   814
   ],
-  "bodyH": 453,
+  "bodyH": 459,
   "bodyW": 520,
-  "enterMs": 3150,
-  "attackMs": 8460,
-  "hurtMs": 1404
+  "enterMs": 2702,
+  "attackMs": 7042,
+  "hurtMs": 1909
  },
  "e14": {
   "ko": "역병 의사 화염방사병",
@@ -251,9 +251,9 @@
   ],
   "bodyH": 441,
   "bodyW": 484,
-  "enterMs": 7365,
-  "attackMs": 11210,
-  "hurtMs": 3251
+  "enterMs": 3966,
+  "attackMs": 9051,
+  "hurtMs": 2121
  },
  "e15": {
   "ko": "해적 게",
@@ -262,15 +262,18 @@
   "cx": 800,
   "gy": 805,
   "body": [
-   608,
-   424,
-   1154,
-   806
+   614,
+   422,
+   1160,
+   804
   ],
-  "bodyH": 381,
+  "bodyH": 383,
   "bodyW": 546,
-  "enterMs": 3565,
-  "attackMs": 2438,
-  "hurtMs": 1482
+  "enterMs": 3610,
+  "attackMs": 2524,
+  "hurtMs": 1162,
+  "hitEv": [
+   "slam"
+  ]
  }
 }

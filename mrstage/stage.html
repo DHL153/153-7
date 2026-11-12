@@ -5493,6 +5493,8 @@ html body #battle-stage .far-mill{left:5%}
 #battle-stage.lm-still::before,#battle-stage.lm-still::after,#battle-stage.lm-still #battle-panorama,#battle-stage.lm-still #battle-panorama *,#battle-stage.lm-still #battle-sky-far,#battle-stage.lm-still #battle-sky-far *{animation-play-state:paused!important}
 /* 처치 후 퇴장이 끝나면 적 · 체력 막대 · 숫자도 치움 (다음 라운드 입장 때 다시) */
 #enemy.lm-rigfoe{overflow:visible!important;filter:none!important}
+.lm-hero-hit{position:absolute;z-index:8;width:var(--s,48px);height:var(--s,48px);margin:calc(var(--s,48px)/-2) 0 0 calc(var(--s,48px)/-2);pointer-events:none;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#ffe9a8cc 30%,#ff9a3c66 52%,#0000 70%);mix-blend-mode:screen;animation:lmHeroHit .3s ease-out forwards}
+@keyframes lmHeroHit{0%{transform:scale(.3);opacity:1}40%{transform:scale(1.15);opacity:.95}100%{transform:scale(1.5);opacity:0}}
 #enemy iframe.lm-foe-rig{position:absolute;border:0;background:transparent;pointer-events:none;max-width:none!important;max-height:none!important;color-scheme:normal;
   -webkit-mask-image:linear-gradient(to right,#0000,#000 7%,#000 93%,#0000),linear-gradient(to bottom,#0000,#000 6%,#000 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,#0000,#000 7%,#000 93%,#0000),linear-gradient(to bottom,#0000,#000 6%,#000 100%);mask-composite:intersect}
 #battle-stage.lm-foe-intro #boss-hud,#battle-stage.lm-foe-intro #normal-enemy-hp,#battle-stage.lm-foe-intro #lm-gshield,#battle-stage.lm-foe-intro #lm-sbar,#battle-stage.lm-foe-intro #lm-cap{opacity:0!important;transition:none!important}
@@ -8811,7 +8813,19 @@ let isGameOver = false;
       await foePlay('enter',((R.enterMs||4000)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,220/foeRate));
       await foePlay((R.attacks||['attack'])[0],((R.attackMs||2500)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,160/foeRate));}}
     finally{stage.classList.remove('lm-foe-intro');}}
-  function foeAttack(){if(!foeKey||gsDead)return Promise.resolve();const R=foeReg[foeKey]||{};const as=R.attacks||['attack'];return foePlay(as[Math.random()*as.length|0],((R.attackMs||2500)*1.4+2500)/foeRate);}
+  /* 적이 공격하면 주인공도 맞는 느낌 (DHL 11-12): 리그가 알려 주는 '맞는 순간'(hit)에 주인공이 뒤로 움찔 + 하얗게 번쩍 + 불꽃 · 화면 살짝 흔들림(설정 따름). 피해는 없음 */
+  let foeAtkOn=false,foeAtkN=0,flinchAt=0;
+  function heroFlinch(){const now=performance.now();if(now-flinchAt<110)return;flinchAt=now;
+    const els=[...stage.querySelectorAll('.mr-rig-slot-canvas,.battle-team-hero')].filter(e=>{try{return !e.hidden&&+getComputedStyle(e).opacity>.05&&e.getBoundingClientRect().width>4;}catch(_){return false;}});
+    if(!els.length)return;const big=els.reduce((a,b)=>a.getBoundingClientRect().width>=b.getBoundingClientRect().width?a:b),r=big.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+    els.forEach(el=>{try{el.animate([{translate:'0 0',rotate:'0deg'},{translate:'-9px -2px',rotate:'-3deg',offset:.18},{translate:'-7px -1px',rotate:'-2.5deg',offset:.4},{translate:'2px 0',rotate:'.6deg',offset:.78},{translate:'0 0',rotate:'0deg'}],{duration:300,easing:'cubic-bezier(.2,.75,.3,1)'});
+      el.animate([{filter:'brightness(1)'},{filter:'brightness(2.4) saturate(.6)',offset:.2},{filter:'brightness(1)'}],{duration:200});}catch(_){}});
+    try{const sp=document.createElement('i');sp.className='lm-hero-hit';sp.style.left=(r.left-sr.left+r.width*.62)+'px';sp.style.top=(r.top-sr.top+r.height*.5)+'px';sp.style.setProperty('--s',Math.max(36,r.height*.5)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),320);}catch(_){}
+    try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate([{translate:'0 0'},{translate:'-4px 1px'},{translate:'3px -1px'},{translate:'-2px 0'},{translate:'0 0'}],{duration:190,easing:'linear'});}catch(_){}
+    try{lmSnd&&lmSnd('sfx_hero_hit',{gap:120});}catch(_){}}
+  function foeAttack(){if(!foeKey||gsDead)return Promise.resolve();const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
+    const hitEv=R.hitEv||['hit'];foeAtkOn=true;try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter')heroFlinch();});}catch(_){}
+    return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).finally(()=>{foeAtkOn=false;});}
   function setupEnemy(o){
     stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');try{splitEnd();}catch(e){}gsDead=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;

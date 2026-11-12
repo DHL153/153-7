@@ -76,6 +76,9 @@
  "e15": {
   "ko": "해적 게",
   "kind": "normal",
-  "size": 1.25
+  "size": 1.25,
+  "hitEv": [
+   "slam"
+  ]
  }
 }

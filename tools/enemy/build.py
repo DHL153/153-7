@@ -7,7 +7,7 @@
   1. 그림 PNG → WebP
   2. 배경 칠하기를 투명으로, 설명 · 버튼 숨김, 캔버스를 창에 꽉 차게
   3. 불러도 바로 보이지 않고, 무대가 EN.play('enter')를 부를 때 나타나게
-  4. 무대용 창구 window.EN = {ready, play, state, idle, fx, speed}
+  4. 무대용 창구 window.EN = {ready, play, state, idle, fx, speed, rage, on, hide}
 그다음 `node tools/enemy/measure.js` 로 크기 · 길이를 재서 mrstage/enemy/enemies.json 을 만듭니다.
 """
 import sys, re, json, shutil, pathlib
@@ -27,6 +27,7 @@ w.EN={ready:ok,
  rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
  idle:function(){return this.state()==='idle';},
  hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},   // 동작 중 사건(hit · shoot · slam …)을 무대에 알림
  fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
  speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
 try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
@@ -66,6 +67,9 @@ def build(pkg):
     b = '*(slow?.25:1);last=t;'
     if s.count(b) != 1: raise SystemExit(f'{name}: 시간 계산 모양이 다름')
     s = s.replace(b, '*(slow?.25:1)*(window.__spd||1);last=t;')
+    u = 'OUT=an.update(dt);'
+    if s.count(u) != 1: raise SystemExit(f'{name}: update() 모양이 다름')
+    s = s.replace(u, u + 'if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}')
     s = s.replace("'.png'", "'.webp'"); s = re.sub(r"(img/[A-Za-z0-9_\-]+)\.png", r"\1.webp", s)
     title = re.search(r'<title>(.*?)</title>', s); title = title.group(1) if title else name
     s = '<!doctype html>\n' + s.replace('</style>', '</style>' + EMBED_CSS, 1) + SHIM
