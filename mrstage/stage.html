@@ -8133,11 +8133,11 @@ let isGameOver = false;
     let src=null;try{src=f.contentDocument.querySelector('canvas');}catch(e){}if(!src||!src.width)return false;
     const cxp=((B.cx-B.fx)/B.fw*100).toFixed(2),cyp=((B.cy-B.fy)/B.fh*100).toFixed(2),D=stage.clientWidth*.028;
     const mk=(clip,dx,dy)=>{const c=document.createElement('canvas');c.width=src.width;c.height=src.height;try{c.getContext('2d').drawImage(src,0,0);}catch(e){}
-      Object.assign(c.style,{position:'absolute',left:B.fx+'px',top:B.fy+'px',width:B.fw+'px',height:B.fh+'px',zIndex:44,pointerEvents:'none',clipPath:clip,transition:'translate .28s cubic-bezier(.2,.9,.3,1)'});c.className='lm-half';stage.appendChild(c);requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.translate=dx+'px '+dy+'px';}));return c;};
+      Object.assign(c.style,{position:'absolute',left:B.fx+'px',top:B.fy+'px',width:B.fw+'px',height:B.fh+'px',zIndex:KILL_Z,pointerEvents:'none',clipPath:clip,transition:'translate .28s cubic-bezier(.2,.9,.3,1)'});c.className='lm-half';stage.appendChild(c);requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.translate=dx+'px '+dy+'px';}));return c;};
     splitEls=vert?[mk(`inset(0 ${100-cxp}% 0 0)`,0,-D*.8),mk(`inset(0 0 0 ${cxp}%)`,0,D*.8)]:[mk(`inset(0 0 ${100-cyp}% 0)`,-D,0),mk(`inset(${cyp}% 0 0 0)`,D,0)];
     en.style.visibility='hidden';return true;}
   function enemySplit(vert){if(enemySplitRig(vert))return;const en=$('enemy'),B=foeBox();if(!en||!B)return;const img=B.img,r={left:B.x,top:B.y,width:B.w,height:B.h},sr={left:0,top:0};
-    const mk=(clip,dx,dy)=>{const c=img.cloneNode(true);Object.assign(c.style,{position:'absolute',left:(r.left-sr.left)+'px',top:(r.top-sr.top)+'px',width:r.width+'px',height:r.height+'px',zIndex:44,pointerEvents:'none',clipPath:clip,transition:'translate .28s cubic-bezier(.2,.9,.3,1)',filter:getComputedStyle(img).filter});c.className='lm-half';stage.appendChild(c);requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.translate=dx+'px '+dy+'px';}));return c;};
+    const mk=(clip,dx,dy)=>{const c=img.cloneNode(true);Object.assign(c.style,{position:'absolute',left:(r.left-sr.left)+'px',top:(r.top-sr.top)+'px',width:r.width+'px',height:r.height+'px',zIndex:KILL_Z,pointerEvents:'none',clipPath:clip,transition:'translate .28s cubic-bezier(.2,.9,.3,1)',filter:getComputedStyle(img).filter});c.className='lm-half';stage.appendChild(c);requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.translate=dx+'px '+dy+'px';}));return c;};
     const D=stage.clientWidth*.028;
     splitEls=vert?[mk('inset(0 50% 0 0)',0,-D*.8),mk('inset(0 0 0 50%)',0,D*.8)]:[mk('inset(0 0 50% 0)',-D,0),mk('inset(50% 0 0 0)',D,0)];
     en.style.visibility='hidden';}
@@ -8401,7 +8401,10 @@ let isGameOver = false;
   function enemyPt(){
     const en=$('enemy'),W=stage.clientWidth||400,H=stage.clientHeight||145;
     if(!en)return {x:W*.72,y:H*.6,front:W*.62,foot:H*.86,h:H*.4};
-    return {x:en.offsetLeft+en.offsetWidth*.5,y:en.offsetTop+en.offsetHeight*.55,front:en.offsetLeft+en.offsetWidth*.2,foot:en.offsetTop+en.offsetHeight*.9,h:en.offsetHeight};
+    let front=en.offsetLeft+en.offsetWidth*.2;
+    /* (DHL 11-12) 새 적(리그): 주인공이 다가서는 자리 = 실제 몸의 앞 가장자리 (예전 네모 칸 기준이면 큰 적의 몸 안쪽까지 들어가 겹침) */
+    try{const f=en.querySelector('iframe.lm-foe-rig'),R=f&&foeReg&&foeReg[foeKey];if(R&&f._k)front=en.offsetLeft+en.offsetWidth*.5-(R.frontW||(R.coreH||R.bodyH)*.34)*f._k;}catch(e){}
+    return {x:en.offsetLeft+en.offsetWidth*.5,y:en.offsetTop+en.offsetHeight*.55,front,foot:en.offsetTop+en.offsetHeight*.9,h:en.offsetHeight};
   }
   // (DHL 10-28) 코드로 그린 이펙트는 끔 — 이펙트는 리소스(플립북 시트)를 받아서 넣음. 동선·흔들림·적 밀림은 그대로
   const CODE_FX=false;
