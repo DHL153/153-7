@@ -4602,7 +4602,7 @@ html.lmB #lm-title .lt-side:focus-visible{box-shadow:0 0 0 2px #ffd76a,0 0 10px 
 #app .topRow>#foe{display:none!important}
 /* 적 정보: 무대 오른쪽 위 (적 머리 쪽) — 두 줄: 이름·속성·약점/내성 / 의도·규칙 */
 #lmFoeTag{position:absolute;right:1%;top:3%;z-index:3;display:flex;flex-direction:column;align-items:flex-end;gap:3px;max-width:62%;font:800 11px/1.25 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#fff;text-shadow:0 1px 2px #000;pointer-events:none}
-#lmFoeTag{transition:opacity .25s}#lmStage.lmHit #lmFoeTag{opacity:0;pointer-events:none}   /* 전투 중엔 숨김: 피해 숫자가 보이게 */
+#lmFoeTag{transition:opacity .25s}   /* 콤보 중에도 계속 보임(타격마다 깜빡이지 않게) · 연출 재생 때만 lmFxDemo로 숨김 */
 #lmFoeTag .row{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
 #lmFoeTag .t{display:inline-flex;align-items:center;gap:3px;background:#000a;border:1px solid #ffffff2e;border-radius:99px;padding:1px 7px;white-space:nowrap;pointer-events:auto}
 #lmFoeTag .t.it{background:#7f1d1de6;border-color:#fca5a5;cursor:pointer}
