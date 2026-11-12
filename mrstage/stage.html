@@ -8122,10 +8122,17 @@ let isGameOver = false;
     const tick=now=>{if(!d.isConnected)return;if(now>=next){i++;if(i>=seq.length){if(o.hold){return;}d.remove();return;}put(seq[i]);next=Math.max(next+step,now+step*.5);}requestAnimationFrame(tick);};
     requestAnimationFrame(tick);return d;}
   /* A 가르기: 적을 일자로 둘로 나눠 반대쪽으로 살짝 어긋나게 (세로 = 위에서 내려찍는 알론소 · 팔로메, 가로 = 산초) */
-  function foeBox(){const en=$('enemy');if(!en)return null;const img=en.querySelector('img')||en,r=img.getBoundingClientRect(),sr=stage.getBoundingClientRect(),k=sr.width/(stage.offsetWidth||sr.width)||1;
+  function foeBox(){const en=$('enemy');if(!en)return null;try{const RB=en.querySelector('iframe.lm-foe-rig')&&typeof foeRigBox==='function'?foeRigBox():null;if(RB)return {img:en,x:RB.x,y:RB.y,w:RB.w,h:RB.h,cx:RB.cx,cy:RB.cy};}catch(e){}const img=en.querySelector('img')||en,r=img.getBoundingClientRect(),sr=stage.getBoundingClientRect(),k=sr.width/(stage.offsetWidth||sr.width)||1;
     return {img,x:(r.left-sr.left)/k,y:(r.top-sr.top)/k,w:r.width/k,h:r.height/k,cx:(r.left-sr.left+r.width/2)/k,cy:(r.top-sr.top+r.height/2)/k};}
   let splitEls=null;
-  function enemySplit(vert){const en=$('enemy'),B=foeBox();if(!en||!B)return;const img=B.img,r={left:B.x,top:B.y,width:B.w,height:B.h},sr={left:0,top:0};
+  function enemySplitRig(vert){const en=$('enemy'),f=en&&en.querySelector('iframe.lm-foe-rig'),B=typeof foeRigBox==='function'?foeRigBox():null;if(!f||!B)return false;
+    let src=null;try{src=f.contentDocument.querySelector('canvas');}catch(e){}if(!src||!src.width)return false;
+    const cxp=((B.cx-B.fx)/B.fw*100).toFixed(2),cyp=((B.cy-B.fy)/B.fh*100).toFixed(2),D=stage.clientWidth*.028;
+    const mk=(clip,dx,dy)=>{const c=document.createElement('canvas');c.width=src.width;c.height=src.height;try{c.getContext('2d').drawImage(src,0,0);}catch(e){}
+      Object.assign(c.style,{position:'absolute',left:B.fx+'px',top:B.fy+'px',width:B.fw+'px',height:B.fh+'px',zIndex:44,pointerEvents:'none',clipPath:clip,transition:'translate .28s cubic-bezier(.2,.9,.3,1)'});c.className='lm-half';stage.appendChild(c);requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.translate=dx+'px '+dy+'px';}));return c;};
+    splitEls=vert?[mk(`inset(0 ${100-cxp}% 0 0)`,0,-D*.8),mk(`inset(0 0 0 ${cxp}%)`,0,D*.8)]:[mk(`inset(0 0 ${100-cyp}% 0)`,-D,0),mk(`inset(${cyp}% 0 0 0)`,D,0)];
+    en.style.visibility='hidden';return true;}
+  function enemySplit(vert){if(enemySplitRig(vert))return;const en=$('enemy'),B=foeBox();if(!en||!B)return;const img=B.img,r={left:B.x,top:B.y,width:B.w,height:B.h},sr={left:0,top:0};
     const mk=(clip,dx,dy)=>{const c=img.cloneNode(true);Object.assign(c.style,{position:'absolute',left:(r.left-sr.left)+'px',top:(r.top-sr.top)+'px',width:r.width+'px',height:r.height+'px',zIndex:44,pointerEvents:'none',clipPath:clip,transition:'translate .28s cubic-bezier(.2,.9,.3,1)',filter:getComputedStyle(img).filter});c.className='lm-half';stage.appendChild(c);requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.translate=dx+'px '+dy+'px';}));return c;};
     const D=stage.clientWidth*.028;
     splitEls=vert?[mk('inset(0 50% 0 0)',0,-D*.8),mk('inset(0 0 0 50%)',0,D*.8)]:[mk('inset(0 0 50% 0)',-D,0),mk('inset(50% 0 0 0)',D,0)];
@@ -8792,13 +8799,18 @@ let isGameOver = false;
   const foeRegP=fetch('enemy/enemies.json').then(r=>r.ok?r.json():{}).then(j=>{foeReg=j||{};return foeReg;}).catch(()=>{foeReg={};return foeReg;});
   const foeFrame=()=>$('enemy')?.querySelector('iframe.lm-foe-rig')||null;
   const foeEN=()=>{try{const f=foeFrame(),E=f&&f.contentWindow&&f.contentWindow.EN;return E&&E.ready()?E:null;}catch(e){return null;}};
+  /* 크기 (DHL 11-12 '적이 너무 큼 · 주인공의 110~120%'): 몸통(coreH = 무기 · 뿔 · 날개 뺀 높이)을 주인공 키의 size 배로. 일반 1.15 · 보스 1.45 · 풍차 거인 1.8(날개는 화면 밖으로 나가도 됨) */
   function foeSize(){const f=foeFrame(),R=foeReg&&foeReg[foeKey];if(!f||!R||!R.bodyH)return;
-    const H=stage.clientHeight||1,S=parseFloat(stage.style.getPropertyValue('--lm-enemy-size'))||H*.4;
-    const body=Math.min(S*(R.size||1.2),H*(1-BATTLE_GROUND_LINE)*.94),k=body/R.bodyH,w=1600*k,h=900*k;
-    f.style.width=w.toFixed(1)+'px';f.style.height=h.toFixed(1)+'px';f.style.left=(S/2-R.cx*k).toFixed(1)+'px';f.style.top=(S*.9-R.gy*k).toFixed(1)+'px';
-    const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,eb=parseFloat(stage.style.getPropertyValue('--lm-enemy-bottom'))||0;
-    stage.style.setProperty('--lm-hud-w',Math.max(70*gk,Math.min(S*1.6,(R.bodyW||R.bodyH)*k*.8)).toFixed(1)+'px');
-    stage.style.setProperty('--lm-hud-bottom',Math.min(H-17*gk-6*gk,eb+S*.1+body*1.04).toFixed(1)+'px');}
+    const H=stage.clientHeight||1,S=parseFloat(stage.style.getPropertyValue('--lm-enemy-size'))||H*.4,hero=S/(kind==='boss'?1.15:1)*.62;
+    const core=R.coreH||R.bodyH,body=Math.min(hero*(R.size||1.15),H*(1-BATTLE_GROUND_LINE)*.98),k=body/core,w=1600*k,h=900*k;
+    f.style.width=w.toFixed(1)+'px';f.style.height=h.toFixed(1)+'px';f.style.left=(S/2-R.cx*k).toFixed(1)+'px';f.style.top=(S*.9-R.gy*k).toFixed(1)+'px';f._k=k;
+    const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,eb=parseFloat(stage.style.getPropertyValue('--lm-enemy-bottom'))||0,tall=Math.min(R.bodyH*k,H*(1-BATTLE_GROUND_LINE)-17*gk-10*gk);
+    stage.style.setProperty('--lm-hud-w',Math.max(70*gk,Math.min(S*1.4,(R.bodyW||R.bodyH)*k*.7)).toFixed(1)+'px');
+    stage.style.setProperty('--lm-hud-bottom',Math.min(H-17*gk-6*gk,eb+S*.1+tall+6*gk).toFixed(1)+'px');}
+  /* 리그 적의 몸 상자(무대 좌표) — 가르기 · 처치 이펙트 자리용 */
+  function foeRigBox(){const f=foeFrame(),R=foeReg&&foeReg[foeKey];if(!f||!R||!R.body)return null;const r=f.getBoundingClientRect(),sr=stage.getBoundingClientRect(),z=sr.width/(stage.offsetWidth||sr.width)||1,kx=r.width/1600,ky=r.height/900;
+    const top=R.gy-(R.coreH||R.bodyH),x=(r.left-sr.left+R.body[0]*kx)/z,y=(r.top-sr.top+top*ky)/z,w=(R.body[2]-R.body[0])*kx/z,h=(R.gy-top)*ky/z;
+    return {x,y,w,h,cx:x+w/2,cy:y+h/2,fx:(r.left-sr.left)/z,fy:(r.top-sr.top)/z,fw:r.width/z,fh:r.height/z};}
   function foeMount(key){const en=$('enemy');if(!en)return false;const R=foeReg&&foeReg[key];if(!R){foeKey=null;window.LM_FOE_RIG=null;en.classList.remove('lm-rigfoe');const o=foeFrame();if(o)o.remove();return false;}
     let f=foeFrame();
     if(f&&foeKey===key){try{f.contentWindow.EN&&f.contentWindow.EN.hide();}catch(e){}}

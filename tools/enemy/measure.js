@@ -1,4 +1,5 @@
 // 적 리그의 크기 · 연출 길이를 재서 mrstage/enemy/enemies.json 을 만듭니다.
+// size = 주인공 키의 몇 배(몸통 기준) · coreH = 무기 · 뿔 · 날개를 뺀 몸통 높이(캔버스 px, enemies.meta.json 에 손으로 적음 — 없으면 bodyH)
 // 사용: (저장소 폴더에서) python3 -m http.server 8784 를 띄워 두고  node tools/enemy/measure.js [키 ...]
 const {chromium}=require('playwright');const fs=require('fs'),path=require('path');
 const ROOT=path.resolve(__dirname,'../..'),DIR=path.join(ROOT,'mrstage/enemy');
