@@ -1,0 +1,113 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>산양 궁수 리그</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#141820;--panel:#1d2330;--ink:#eef1f6;--mute:#9aa4b5;--line:#2c3446;--acc:#ff8a3d;--acc-ink:#1e0c02}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141820}}
+:root[data-theme="dark"]{--bg:#141820}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.7;margin-left:5px}
+.stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#16121c}
+canvas{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#ff8a7a;white-space:pre-wrap}
+</style><style id="lm-embed">html,body{margin:0!important;background:transparent!important;overflow:hidden!important}.wrap{max-width:none!important;padding:0!important;margin:0!important}.wrap>*:not(.stage){display:none!important}.stage{border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}canvas{display:block;width:100vw!important;height:100vh!important}</style>
+<div class="wrap">
+  <h1>산양 궁수 리그</h1>
+  <p class="sub">원화 한 장을 끊김 없는 망으로 움직여요. 긴 머리카락이 물결치고 꼬리가 살랑거려요. 얼굴, 뿔, 손, 활, 화살은 절대 휘지 않아요. 이펙트 OFF를 누르면 캐릭터 움직임만 보여요. 원안: PORKSODA</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bAtk">공격<kbd>J</kbd></button><button id="bHurt">피격<kbd>H</kbd></button></div>
+    <div class="grp"><button id="bFace" aria-pressed="true">게임 방향(왼쪽 보기)</button><button id="bSlow">느리게</button><button id="bOv">원화 겹쳐 보기</button></div>
+    <div class="grp"><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1600" height="900"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장</b> 산양처럼 화면 밖에서 한 번에 크게 도약해요. 올라갈 땐 고개를 들고 내려올 땐 숙이며, 착지하면서 쿵 눌린 뒤 앞으로 미끄러져 멈춰요. ON이면 흙먼지와 미끄럼 자국이 남아요.</div>
+    <div class="note"><b>대기</b> 발굽을 바닥에 붙인 채 숨 쉬고, 조준이 아주 살짝 흔들려요. 긴 머리카락은 끝으로 갈수록 물결치고, 꼬리는 가끔씩 살랑살랑 흔들려요.</div>
+    <div class="note"><b>공격 · 피격</b> 공격은 뒷다리에 무게를 싣고 시위를 더 당김(떨림, ON이면 화살촉 반짝임) → 쏙! 손을 펴는 그림으로 바뀌며 반동, 화살 발사 → 다시 화살을 메기며 대기예요. 피격은 3번 얼굴로 바뀌며 뒤로 밀리고 꼬리가 바짝 튀어요.</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="w.js"></script>
+<script src="goat.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const imgs={};for(const n of['stance','release','hit'])imgs[n]=await load('img/'+n+'.webp');
+const Wt=window.GOAT_W,rig=new GoatRig(Wt,imgs),an=new GoatAnim();
+const c=document.getElementById('c'),g=c.getContext('2d'),W=c.width,H=c.height,GY=800,CX=820,K=.86,A=Wt.anchor;
+const TIP=[852,610],NOCK=[425,503],BOW=[712,520],CHEST=[505,525],ADIR=Math.atan2(TIP[1]-NOCK[1],TIP[0]-NOCK[0]);
+let fx=true,face=-1,slow=false,ov=false,shake=0,parts=[],OUT=null,last=performance.now(),arrowFrom=null,arrowRot=0,skidT=0;
+const tog=(id,f)=>{const b=document.getElementById(id);b.onclick=()=>b.setAttribute('aria-pressed',f())};
+tog('bFace',()=>{face=-face;return face<0});tog('bSlow',()=>slow=!slow);tog('bOv',()=>ov=!ov);
+{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx){parts=[];shake=0}}}
+document.getElementById('bEnter').onclick=()=>an.play('enter');document.getElementById('bAtk').onclick=()=>an.state==='idle'&&an.play('attack');document.getElementById('bHurt').onclick=()=>an.state!=='enter'&&an.play('hurt');
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e')an.play('enter');if(k==='j'&&an.state==='idle')an.play('attack');if(k==='h'&&an.state!=='enter')an.play('hurt')});
+const rnd=(a,b)=>a+Math.random()*(b-a),ease=t=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,3)};
+// image-space point -> image-space point after the rig's whole-body transform
+function P(x,y,L){const r=L.rot||0,cs=Math.cos(r),sn=Math.sin(r),sx=L.sx??1,sy=L.sy??1,qx=x-A[0],qy=y-A[1];return[A[0]+cs*sx*qx-sn*sy*qy+(L.tx||0),A[1]+sn*sx*qx+cs*sy*qy+(L.ty||0)]}
+function star(x,y,r,n,inner,col){g.fillStyle=col;g.beginPath();for(let i=0;i<n*2;i++){const a=i/(n*2)*6.283,rr=i%2?r*inner:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill()}
+function dust(x,n,sp){for(let i=0;i<n;i++)parts.push({x:x+rnd(-150,150),y:A[1]-4,vx:rnd(-sp,sp),vy:rnd(-110,-20),t:0,life:rnd(.35,.65),col:'rgba(160,130,110,.5)',r:rnd(10,22),g:60,soft:1})}
+function sparks(x,y,n,col,sp,a0,spread){for(let i=0;i<n;i++){const a=a0+rnd(-spread,spread),v=rnd(sp*.4,sp);parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:rnd(.2,.4),col,r:rnd(3,6),g:500})}}
+const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
+function step(dt){OUT=an.update(dt);const L=OUT.layers[OUT.layers.length-1];
+  for(const e of an.events)if(e==='shoot'){arrowFrom=P(TIP[0],TIP[1],L);arrowRot=(L.rot||0)+ADIR}   // the arrow is part of the attack, shown with effects OFF too
+ if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
+  if(fx){for(const e of an.events){
+      if(e==='land')dust(A[0]+(L.tx||0),16,260);
+      if(e==='shoot'){const b=P(BOW[0],BOW[1],L);sparks(b[0],b[1],10,'#ffe3b0',520,(L.rot||0)+ADIR,.5)}
+      if(e==='hurt'){const p=P(CHEST[0],CHEST[1],L);sparks(p[0],p[1],16,'#fff1e6',420,3.14,3.14)}}
+    if(OUT.skid>=0&&OUT.skid<.85){skidT+=dt;while(skidT>.03){skidT-=.03;parts.push({x:A[0]+(L.tx||0)+rnd(-120,90),y:A[1]-2,vx:rnd(-160,-40),vy:rnd(-70,-10),t:0,life:rnd(.3,.5),col:'rgba(160,130,110,.45)',r:rnd(6,13),g:40,soft:1})}}}
+  for(const p of parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt}parts=parts.filter(p=>p.t<p.life)}
+function drawArrow(x,y,rot,alpha){g.save();g.translate(x,y);g.rotate(rot);g.globalAlpha=alpha;g.lineCap='round';
+  g.strokeStyle='#2a1a14';g.lineWidth=11;g.beginPath();g.moveTo(-330,0);g.lineTo(-30,0);g.stroke();g.strokeStyle='#8a5a3a';g.lineWidth=6;g.beginPath();g.moveTo(-330,0);g.lineTo(-30,0);g.stroke();
+  g.fillStyle='#2a1a14';g.beginPath();g.moveTo(30,0);g.lineTo(-48,-22);g.lineTo(-34,0);g.lineTo(-48,22);g.closePath();g.fill();g.fillStyle='#efe6cc';g.beginPath();g.moveTo(22,0);g.lineTo(-42,-15);g.lineTo(-30,0);g.lineTo(-42,15);g.closePath();g.fill();
+  g.fillStyle='#e0582a';for(const s of[-1,1]){g.beginPath();g.moveTo(-300,0);g.lineTo(-350,s*20);g.lineTo(-322,s*2);g.closePath();g.fill()}g.restore()}
+function draw(now){bg();const sx=shake>0?Math.sin(now/17)*10*shake:0,sy=shake>0?Math.cos(now/23)*6*shake:0;
+  const L=OUT.layers[OUT.layers.length-1],mtx=L.tx||0,mty=L.ty||0;
+  g.setTransform(1,0,0,1,sx,sy);const lift=Math.min(1,-mty/300);g.fillStyle=`rgba(0,0,0,${.36-.24*lift})`;g.beginPath();g.ellipse(CX+face*K*mtx,GY+6,200*(1-.4*lift),22*(1-.4*lift),0,0,7);g.fill();
+  const M=new DOMMatrix([K*face,0,0,K,CX+sx,GY+sy]).translate(-A[0],-A[1]);g.setTransform(M);
+  // leap speed lines
+  if(fx&&OUT.speed>0){g.save();g.globalCompositeOperation='lighter';g.lineCap='round';for(let i=0;i<8;i++){const y=A[1]-120-i*60+mty,x=A[0]+mtx-150-((i*53)%140),len=220+((i*67)%160);g.strokeStyle=`rgba(255,200,150,${.4*OUT.speed})`;g.lineWidth=3+(i%3)*2;g.beginPath();g.moveTo(x,y);g.lineTo(x-len,y);g.stroke()}g.restore()}
+  const rel=OUT.layers.map(Q=>Object.assign({},Q,{tx:(Q.tx||0)-mtx,ty:(Q.ty||0)-mty}));const cv=rig.render(rel);
+  g.imageSmoothingQuality='high';g.drawImage(cv,mtx-256,mty-128);
+  if(ov){g.globalAlpha=.35;g.drawImage(imgs.stance,0,0);g.globalAlpha=1}
+  if(OUT.arrow>=0&&OUT.arrow<1&&arrowFrom){const d=2600*OUT.arrow;drawArrow(arrowFrom[0]+Math.cos(arrowRot)*d,arrowFrom[1]+Math.sin(arrowRot)*d,arrowRot,1);
+    if(fx){g.save();g.globalCompositeOperation='lighter';g.translate(arrowFrom[0],arrowFrom[1]);g.rotate(arrowRot);const lg=g.createLinearGradient(d-560,0,d-300,0);lg.addColorStop(0,'rgba(255,190,120,0)');lg.addColorStop(1,`rgba(255,220,170,${.8*(1-OUT.arrow)*Math.min(1,d/700)})`);g.strokeStyle=lg;g.lineWidth=7;g.lineCap='round';g.beginPath();g.moveTo(d-560,0);g.lineTo(d-300,0);g.stroke();g.restore()}}
+  if(fx){g.save();g.globalCompositeOperation='lighter';
+    if(OUT.charge>=0&&OUT.charge<1){const t=P(TIP[0],TIP[1],L),k=OUT.charge,a=Math.min(1,k*1.5)*.9;star(t[0],t[1],10+34*k,4,.16,`rgba(255,235,190,${a})`);star(t[0],t[1],6+14*k,4,.3,`rgba(255,255,255,${a})`)}
+    if(OUT.snap>=0&&OUT.snap<1){const b=P(BOW[0],BOW[1],L),p=OUT.snap;g.strokeStyle=`rgba(255,210,150,${1-p})`;g.lineWidth=9*(1-p);g.beginPath();g.ellipse(b[0],b[1],20+60*ease(p),40+150*ease(p),(L.rot||0)+ADIR,0,7);g.stroke()}
+    if(OUT.hitspark>=0&&OUT.hitspark<1){const p=P(CHEST[0],CHEST[1],L),k=OUT.hitspark;star(p[0],p[1],30+90*ease(k),8,.35,`rgba(255,250,240,${1-k})`)}
+    g.restore();g.save();for(const p of parts){g.globalCompositeOperation=p.soft?'source-over':'lighter';g.fillStyle=p.col;g.globalAlpha=Math.max(0,1-p.t/p.life);g.beginPath();g.arc(p.x,p.y,p.r*(p.soft?1+p.t*2:1),0,7);g.fill()}g.restore();
+    if(OUT.flash>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,240,225,${OUT.flash*.06})`;g.fillRect(0,0,W,H)}}}
+window.QA={fx:v=>{fx=v;an.fxOn=v;if(!v)parts=[]},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
+window.__rig=rig;window.__P=(x,y)=>{const L=OUT.layers[OUT.layers.length-1];const p=P(x,y,L);return[CX+K*face*(p[0]-A[0]),GY+K*(p[1]-A[1])]};
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}const dt=Math.min(.05,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;step(dt);draw(t)}
+an.play('enter');step(0);requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
+
+<script>/* 무대용 창구 (tools/enemy/build.py 가 붙임) */
+(function(){var w=window;function ok(){return !!(w.__ready&&w.QA)}
+w.EN={ready:ok,
+ play:function(s){if(!ok())return false;w.__vis=1;try{w.QA.play(s);}catch(e){return false;}return true;},
+ state:function(){try{if(!ok())return '';return w.QA.state?w.QA.state():(w.QA.anim&&w.QA.anim.state)||'';}catch(e){return '';}},
+ rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
+ idle:function(){return this.state()==='idle';},
+ hide:function(){w.__vis=0;},
+ fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
+ speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
+try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
+</script>

@@ -1,0 +1,81 @@
+{
+ "e01": {
+  "ko": "클로 망령",
+  "kind": "normal",
+  "size": 1.25
+ },
+ "e02": {
+  "ko": "막대말 랜스 기사",
+  "kind": "normal",
+  "size": 1.3
+ },
+ "e03": {
+  "ko": "유령 석궁 사수",
+  "kind": "normal",
+  "size": 1.25
+ },
+ "e04": {
+  "ko": "불꽃 창 망령",
+  "kind": "normal",
+  "size": 1.3
+ },
+ "e05": {
+  "ko": "산양 궁수",
+  "kind": "normal",
+  "size": 1.25
+ },
+ "e06": {
+  "ko": "까마귀 주술사",
+  "kind": "boss",
+  "size": 1.6
+ },
+ "e07": {
+  "ko": "녹슨 풍차 거인",
+  "kind": "final",
+  "size": 2.2,
+  "attacks": [
+   "slam",
+   "gale"
+  ]
+ },
+ "e08": {
+  "ko": "졸음 북치기 새",
+  "kind": "normal",
+  "size": 1.3
+ },
+ "e09": {
+  "ko": "타락 천사 사제",
+  "kind": "boss",
+  "size": 1.7
+ },
+ "e10": {
+  "ko": "눈알 두꺼비",
+  "kind": "normal",
+  "size": 1.15
+ },
+ "e11": {
+  "ko": "거북이 몽둥이 전사",
+  "kind": "normal",
+  "size": 1.2
+ },
+ "e12": {
+  "ko": "좀비 의사",
+  "kind": "normal",
+  "size": 1.25
+ },
+ "e13": {
+  "ko": "해골 복서 오우거",
+  "kind": "boss",
+  "size": 1.7
+ },
+ "e14": {
+  "ko": "역병 의사 화염방사병",
+  "kind": "normal",
+  "size": 1.3
+ },
+ "e15": {
+  "ko": "해적 게",
+  "kind": "normal",
+  "size": 1.25
+ }
+}

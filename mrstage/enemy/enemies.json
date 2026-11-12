@@ -1,0 +1,276 @@
+{
+ "e01": {
+  "ko": "클로 망령",
+  "kind": "normal",
+  "size": 1.25,
+  "cx": 800,
+  "gy": 780,
+  "body": [
+   426,
+   328,
+   1066,
+   778
+  ],
+  "bodyH": 452,
+  "bodyW": 640,
+  "enterMs": 5932,
+  "attackMs": 3283,
+  "hurtMs": 1651
+ },
+ "e02": {
+  "ko": "막대말 랜스 기사",
+  "kind": "normal",
+  "size": 1.3,
+  "cx": 820,
+  "gy": 800,
+  "body": [
+   428,
+   324,
+   1072,
+   866
+  ],
+  "bodyH": 476,
+  "bodyW": 644,
+  "enterMs": 6509,
+  "attackMs": 3153,
+  "hurtMs": 2664
+ },
+ "e03": {
+  "ko": "유령 석궁 사수",
+  "kind": "normal",
+  "size": 1.25,
+  "cx": 820,
+  "gy": 800,
+  "body": [
+   446,
+   274,
+   1048,
+   802
+  ],
+  "bodyH": 526,
+  "bodyW": 602,
+  "enterMs": 4931,
+  "attackMs": 4500,
+  "hurtMs": 1574
+ },
+ "e04": {
+  "ko": "불꽃 창 망령",
+  "kind": "normal",
+  "size": 1.3,
+  "cx": 1010,
+  "gy": 800,
+  "body": [
+   688,
+   164,
+   1280,
+   700
+  ],
+  "bodyH": 636,
+  "bodyW": 592,
+  "enterMs": 14737,
+  "attackMs": 5763,
+  "hurtMs": 5095
+ },
+ "e05": {
+  "ko": "산양 궁수",
+  "kind": "normal",
+  "size": 1.25,
+  "cx": 820,
+  "gy": 800,
+  "body": [
+   472,
+   328,
+   986,
+   802
+  ],
+  "bodyH": 472,
+  "bodyW": 514,
+  "enterMs": 1898,
+  "attackMs": 1932,
+  "hurtMs": 1606
+ },
+ "e06": {
+  "ko": "까마귀 주술사",
+  "kind": "boss",
+  "size": 1.6,
+  "cx": 1010,
+  "gy": 800,
+  "body": [
+   602,
+   324,
+   1350,
+   818
+  ],
+  "bodyH": 476,
+  "bodyW": 748,
+  "enterMs": 13273,
+  "attackMs": 5787,
+  "hurtMs": 2720
+ },
+ "e07": {
+  "ko": "녹슨 풍차 거인",
+  "kind": "final",
+  "size": 2.2,
+  "attacks": [
+   "slam",
+   "gale"
+  ],
+  "cx": 1020,
+  "gy": 835,
+  "body": [
+   684,
+   68,
+   1450,
+   838
+  ],
+  "bodyH": 767,
+  "bodyW": 766,
+  "enterMs": 5557,
+  "attackMs": 3006,
+  "hurtMs": 1097
+ },
+ "e08": {
+  "ko": "졸음 북치기 새",
+  "kind": "normal",
+  "size": 1.3,
+  "cx": 820,
+  "gy": 800,
+  "body": [
+   570,
+   238,
+   1052,
+   802
+  ],
+  "bodyH": 562,
+  "bodyW": 482,
+  "enterMs": 4756,
+  "attackMs": 2892,
+  "hurtMs": 2575
+ },
+ "e09": {
+  "ko": "타락 천사 사제",
+  "kind": "boss",
+  "size": 1.7,
+  "cx": 1100,
+  "gy": 820,
+  "body": [
+   832,
+   252,
+   1416,
+   826
+  ],
+  "bodyH": 568,
+  "bodyW": 584,
+  "enterMs": 8589,
+  "attackMs": 5686,
+  "hurtMs": 1975
+ },
+ "e10": {
+  "ko": "눈알 두꺼비",
+  "kind": "normal",
+  "size": 1.15,
+  "cx": 760,
+  "gy": 800,
+  "body": [
+   298,
+   362,
+   1000,
+   800
+  ],
+  "bodyH": 438,
+  "bodyW": 702,
+  "enterMs": 4614,
+  "attackMs": 2398,
+  "hurtMs": 1064
+ },
+ "e11": {
+  "ko": "거북이 몽둥이 전사",
+  "kind": "normal",
+  "size": 1.2,
+  "cx": 800,
+  "gy": 800,
+  "body": [
+   512,
+   264,
+   1166,
+   802
+  ],
+  "bodyH": 536,
+  "bodyW": 654,
+  "enterMs": 3552,
+  "attackMs": 1764,
+  "hurtMs": 1198
+ },
+ "e12": {
+  "ko": "좀비 의사",
+  "kind": "normal",
+  "size": 1.25,
+  "cx": 780,
+  "gy": 805,
+  "body": [
+   304,
+   196,
+   1084,
+   810
+  ],
+  "bodyH": 609,
+  "bodyW": 780,
+  "enterMs": 5104,
+  "attackMs": 5466,
+  "hurtMs": 3441
+ },
+ "e13": {
+  "ko": "해골 복서 오우거",
+  "kind": "boss",
+  "size": 1.7,
+  "cx": 800,
+  "gy": 805,
+  "body": [
+   566,
+   352,
+   1086,
+   820
+  ],
+  "bodyH": 453,
+  "bodyW": 520,
+  "enterMs": 3150,
+  "attackMs": 8460,
+  "hurtMs": 1404
+ },
+ "e14": {
+  "ko": "역병 의사 화염방사병",
+  "kind": "normal",
+  "size": 1.3,
+  "cx": 800,
+  "gy": 805,
+  "body": [
+   744,
+   364,
+   1228,
+   806
+  ],
+  "bodyH": 441,
+  "bodyW": 484,
+  "enterMs": 7365,
+  "attackMs": 11210,
+  "hurtMs": 3251
+ },
+ "e15": {
+  "ko": "해적 게",
+  "kind": "normal",
+  "size": 1.25,
+  "cx": 800,
+  "gy": 805,
+  "body": [
+   608,
+   424,
+   1154,
+   806
+  ],
+  "bodyH": 381,
+  "bodyW": 546,
+  "enterMs": 3565,
+  "attackMs": 2438,
+  "hurtMs": 1482
+ }
+}
