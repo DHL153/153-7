@@ -10,7 +10,8 @@
   "kind": "normal",
   "size": 1.15,
   "coreH": 462,
-  "run": true
+  "run": true,
+  "float": true
  },
  "e03": {
   "ko": "유령 석궁 사수",
