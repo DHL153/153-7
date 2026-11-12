@@ -5492,7 +5492,7 @@ html body #battle-stage .far-mill{left:5%}
 /* 입장·퇴장 중 카메라 고정: 땅·먼 풍경 흐름 멈춤 */
 #battle-stage.lm-still::before,#battle-stage.lm-still::after,#battle-stage.lm-still #battle-panorama,#battle-stage.lm-still #battle-panorama *,#battle-stage.lm-still #battle-sky-far,#battle-stage.lm-still #battle-sky-far *{animation-play-state:paused!important}
 /* 처치 후 퇴장이 끝나면 적 · 체력 막대 · 숫자도 치움 (다음 라운드 입장 때 다시) */
-#enemy.lm-rigfoe,html body #app #battle-stage #enemy.lm-rigfoe.boss-enemy{overflow:visible!important;filter:none!important}   /* 새 보스: 예전 보스용 붉은 테두리 빛 없음 (DHL 11-12) */
+#enemy.lm-rigfoe,#enemy:has(iframe.lm-foe-rig),html body #app #battle-stage #enemy.boss-enemy:has(iframe.lm-foe-rig){overflow:visible!important;filter:none!important}   /* 새 보스: 예전 보스용 붉은 테두리 빛 없음 (DHL 11-12) */
 .lm-hero-hit{position:absolute;z-index:8;width:var(--s,48px);height:var(--s,48px);margin:calc(var(--s,48px)/-2) 0 0 calc(var(--s,48px)/-2);pointer-events:none;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#ffe9a8cc 30%,#ff9a3c66 52%,#0000 70%);mix-blend-mode:screen;animation:lmHeroHit .3s ease-out forwards}
 @keyframes lmHeroHit{0%{transform:scale(.3);opacity:1}40%{transform:scale(1.15);opacity:.95}100%{transform:scale(1.5);opacity:0}}
 #enemy iframe.lm-foe-rig{position:absolute;border:0;background:transparent;pointer-events:none;max-width:none!important;max-height:none!important;color-scheme:normal;
