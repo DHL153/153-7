@@ -3,6 +3,8 @@
   "ko": "클로 망령",
   "kind": "normal",
   "size": 1.15,
+  "coreH": 425,
+  "mx": 769,
   "cx": 800,
   "gy": 780,
   "body": [
@@ -13,307 +15,399 @@
   ],
   "bodyH": 454,
   "bodyW": 642,
-  "enterMs": 9575,
-  "attackMs": 4872,
-  "hurtMs": 2051,
-  "coreH": 425,
-  "mx": 769
+  "enterMs": 2473,
+  "attackMs": 1085,
+  "hurtMs": 774,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_magic",
+    200
+   ]
+  ]
  },
  "e02": {
   "ko": "막대말 랜스 기사",
   "kind": "normal",
   "size": 1.15,
+  "coreH": 462,
+  "run": true,
+  "float": true,
+  "mx": 798,
   "cx": 820,
   "gy": 800,
   "body": [
    428,
-   324,
-   1074,
+   322,
+   1072,
    866
   ],
-  "bodyH": 476,
-  "bodyW": 646,
-  "enterMs": 5260,
-  "attackMs": 3166,
-  "hurtMs": 1940,
-  "coreH": 462,
-  "run": true,
-  "float": true,
-  "mx": 798
+  "bodyH": 478,
+  "bodyW": 644,
+  "enterMs": 2105,
+  "attackMs": 1252,
+  "hurtMs": 733,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_hop",
+    850
+   ]
+  ]
  },
  "e03": {
   "ko": "유령 석궁 사수",
   "kind": "normal",
   "size": 1.15,
-  "cx": 820,
-  "gy": 800,
-  "body": [
-   448,
-   266,
-   1048,
-   802
-  ],
-  "bodyH": 534,
-  "bodyW": 600,
-  "enterMs": 4416,
-  "attackMs": 3368,
-  "hurtMs": 1750,
   "coreH": 470,
   "float": true,
   "run": true,
-  "mx": 815
+  "mx": 815,
+  "cx": 820,
+  "gy": 800,
+  "body": [
+   450,
+   262,
+   1046,
+   802
+  ],
+  "bodyH": 538,
+  "bodyW": 596,
+  "enterMs": 1915,
+  "attackMs": 1137,
+  "hurtMs": 803,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_magic",
+    300
+   ]
+  ]
  },
  "e04": {
   "ko": "불꽃 창 망령",
   "kind": "normal",
   "size": 1.15,
-  "cx": 1010,
-  "gy": 800,
-  "body": [
-   688,
-   164,
-   1278,
-   700
-  ],
-  "bodyH": 636,
-  "bodyW": 590,
-  "enterMs": 15095,
-  "attackMs": 8313,
-  "hurtMs": 3164,
   "coreH": 480,
   "float": true,
   "run": true,
-  "mx": 1062
+  "mx": 1062,
+  "cx": 1010,
+  "gy": 800,
+  "body": [
+   684,
+   170,
+   1286,
+   696
+  ],
+  "bodyH": 630,
+  "bodyW": 602,
+  "enterMs": 1714,
+  "attackMs": 1451,
+  "hurtMs": 940,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_magic",
+    0
+   ]
+  ]
  },
  "e05": {
   "ko": "산양 궁수",
   "kind": "normal",
   "size": 1.15,
+  "coreH": 440,
+  "mx": 784,
   "cx": 820,
   "gy": 800,
   "body": [
    472,
-   328,
+   326,
    986,
    802
   ],
-  "bodyH": 472,
+  "bodyH": 474,
   "bodyW": 514,
-  "enterMs": 3905,
-  "attackMs": 3211,
-  "hurtMs": 1166,
-  "coreH": 440,
-  "mx": 784
+  "enterMs": 1375,
+  "attackMs": 1191,
+  "hurtMs": 821,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_hop",
+    300
+   ]
+  ]
  },
  "e06": {
   "ko": "까마귀 주술사",
   "kind": "boss",
   "size": 1.45,
+  "coreH": 381,
+  "mx": 999,
   "cx": 1010,
   "gy": 800,
   "body": [
    602,
-   324,
-   1350,
+   316,
+   1348,
    818
   ],
-  "bodyH": 476,
-  "bodyW": 748,
-  "enterMs": 8964,
-  "attackMs": 5727,
-  "hurtMs": 4289,
-  "coreH": 381,
-  "mx": 999
+  "bodyH": 484,
+  "bodyW": 746,
+  "enterMs": 2698,
+  "attackMs": 1348,
+  "hurtMs": 884,
+  "enterSfx": [
+   [
+    "sfx_boss_enter_crow",
+    290
+   ],
+   [
+    "sfx_boss_enter_crow_caw",
+    1570
+   ]
+  ]
  },
  "e07": {
   "ko": "녹슨 풍차 거인",
   "kind": "final",
-  "size": 2.0,
+  "size": 2,
   "attacks": [
    "slam",
    "gale"
   ],
-  "cx": 1020,
-  "gy": 835,
-  "body": [
-   704,
-   92,
-   1430,
-   834
-  ],
-  "bodyH": 743,
-  "bodyW": 726,
-  "enterMs": 5521,
-  "attackMs": 4976,
-  "hurtMs": 1129,
   "coreH": 515,
   "hud": 0.97,
   "hudW": 0.36,
-  "mx": 1059
+  "mx": 1059,
+  "cx": 1020,
+  "gy": 835,
+  "body": [
+   684,
+   68,
+   1450,
+   838
+  ],
+  "bodyH": 767,
+  "bodyW": 766,
+  "enterMs": 4095,
+  "attackMs": 2353,
+  "hurtMs": 929,
+  "enterSfx": [
+   [
+    "sfx_boss_enter_mill",
+    810
+   ]
+  ]
  },
  "e08": {
   "ko": "졸음 북치기 새",
   "kind": "normal",
   "size": 1.15,
+  "coreH": 455,
+  "mx": 808,
   "cx": 820,
   "gy": 800,
   "body": [
    570,
-   236,
+   240,
    1050,
    802
   ],
-  "bodyH": 564,
+  "bodyH": 560,
   "bodyW": 480,
-  "enterMs": 6138,
-  "attackMs": 3482,
-  "hurtMs": 1587,
-  "coreH": 455,
-  "mx": 808
+  "enterMs": 2180,
+  "attackMs": 1449,
+  "hurtMs": 863,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_hop",
+    750
+   ]
+  ]
  },
  "e09": {
   "ko": "타락 천사 사제",
   "kind": "boss",
   "size": 1.45,
+  "coreH": 430,
+  "float": true,
+  "run": true,
+  "mx": 1132,
   "cx": 1100,
   "gy": 820,
   "body": [
    832,
    252,
-   1416,
-   826
+   1414,
+   822
   ],
   "bodyH": 568,
-  "bodyW": 584,
-  "enterMs": 7237,
-  "attackMs": 4738,
-  "hurtMs": 2859,
-  "coreH": 430,
-  "float": true,
-  "run": true,
-  "mx": 1132
+  "bodyW": 582,
+  "enterMs": 2486,
+  "attackMs": 2046,
+  "hurtMs": 883,
+  "enterSfx": [
+   [
+    "sfx_boss_enter_angel",
+    750
+   ]
+  ]
  },
  "e10": {
   "ko": "눈알 두꺼비",
   "kind": "normal",
   "size": 0.95,
+  "coreH": 356,
+  "mx": 708,
   "cx": 760,
   "gy": 800,
   "body": [
-   294,
-   358,
-   998,
+   292,
+   370,
+   1002,
    800
   ],
-  "bodyH": 442,
-  "bodyW": 704,
-  "enterMs": 3969,
-  "attackMs": 6840,
-  "hurtMs": 1322,
-  "coreH": 356,
-  "mx": 708
+  "bodyH": 430,
+  "bodyW": 710,
+  "enterMs": 2346,
+  "attackMs": 2064,
+  "hurtMs": 887,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_roll",
+    1150
+   ]
+  ]
  },
  "e11": {
   "ko": "거북이 몽둥이 전사",
   "kind": "normal",
   "size": 1.15,
+  "coreH": 430,
+  "mx": 726,
   "cx": 800,
   "gy": 800,
   "body": [
-   510,
-   268,
-   1166,
+   514,
+   260,
+   1164,
    802
   ],
-  "bodyH": 532,
-  "bodyW": 656,
-  "enterMs": 6181,
-  "attackMs": 4083,
-  "hurtMs": 1281,
-  "coreH": 430,
-  "mx": 726
+  "bodyH": 540,
+  "bodyW": 650,
+  "enterMs": 2191,
+  "attackMs": 1401,
+  "hurtMs": 1048,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_roll",
+    1100
+   ]
+  ]
  },
  "e12": {
   "ko": "좀비 의사",
   "kind": "normal",
   "size": 1.15,
+  "coreH": 470,
+  "mx": 713,
   "cx": 780,
   "gy": 805,
   "body": [
-   308,
-   192,
+   312,
+   188,
    1084,
-   810
+   812
   ],
-  "bodyH": 613,
-  "bodyW": 776,
-  "enterMs": 9019,
-  "attackMs": 5317,
-  "hurtMs": 3129,
-  "coreH": 470,
-  "mx": 713
+  "bodyH": 617,
+  "bodyW": 772,
+  "enterMs": 2425,
+  "attackMs": 1568,
+  "hurtMs": 1207,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_ground",
+    850
+   ]
+  ]
  },
  "e13": {
   "ko": "해골 복서 오우거",
   "kind": "boss",
   "size": 1.45,
+  "coreH": 377,
+  "mx": 829,
   "cx": 800,
   "gy": 805,
   "body": [
-   558,
+   560,
    346,
    1078,
    814
   ],
   "bodyH": 459,
-  "bodyW": 520,
-  "enterMs": 2702,
-  "attackMs": 7042,
-  "hurtMs": 1909,
-  "coreH": 377,
-  "mx": 829
+  "bodyW": 518,
+  "enterMs": 2541,
+  "attackMs": 3784,
+  "hurtMs": 913,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_drop",
+    350
+   ]
+  ]
  },
  "e14": {
   "ko": "역병 의사 화염방사병",
   "kind": "normal",
   "size": 1.15,
+  "coreH": 399,
+  "mx": 1034,
   "cx": 800,
   "gy": 805,
   "body": [
-   744,
-   364,
+   746,
+   362,
    1228,
    806
   ],
-  "bodyH": 441,
-  "bodyW": 484,
-  "enterMs": 3966,
-  "attackMs": 9051,
-  "hurtMs": 2121,
-  "coreH": 399,
-  "mx": 1034
+  "bodyH": 443,
+  "bodyW": 482,
+  "enterMs": 2875,
+  "attackMs": 2508,
+  "hurtMs": 912,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_ground",
+    0
+   ]
+  ]
  },
  "e15": {
   "ko": "해적 게",
   "kind": "normal",
   "size": 0.98,
-  "cx": 800,
-  "gy": 805,
-  "body": [
-   614,
-   422,
-   1160,
-   804
-  ],
-  "bodyH": 383,
-  "bodyW": 546,
-  "enterMs": 3610,
-  "attackMs": 2524,
-  "hurtMs": 1162,
   "hitEv": [
    "slam"
   ],
   "coreH": 351,
-  "mx": 957
+  "mx": 957,
+  "cx": 800,
+  "gy": 805,
+  "body": [
+   608,
+   424,
+   1154,
+   806
+  ],
+  "bodyH": 381,
+  "bodyW": 546,
+  "enterMs": 2917,
+  "attackMs": 1853,
+  "hurtMs": 915,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_ground",
+    1030
+   ]
+  ]
  }
 }

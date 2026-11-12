@@ -8831,7 +8831,7 @@ let isGameOver = false;
     const t0=performance.now();let began=false;   // 동작이 실제로 시작된 것을 본 뒤에 끝나기를 기다림 (프레임이 느린 기기에서 바로 끝난 것으로 잘못 보지 않게)
     while(performance.now()-t0<max){let s='';try{s=E.state();}catch(e){break;}if(s&&s!=='idle')began=true;else if(began||performance.now()-t0>900)break;await new Promise(r=>setTimeout(r,40));}return true;}
   async function foeIntro(){if(!foeKey)return;const R=foeReg[foeKey]||{};stage.classList.add('lm-foe-intro');
-    try{if(await foeWait(9000)){foeSize();const E=foeEN();try{E.rage(false);}catch(e){}if(kind!=='boss')try{lmSnd('sfx_boss_enter',{vol:.45});}catch(e){}try{E.fx(!(typeof gameSettings!=='undefined'&&gameSettings.reduceFx));}catch(e){}
+    try{if(await foeWait(9000)){foeSize();const E=foeEN();try{E.rage(false);}catch(e){}(R.enterSfx||[]).forEach(([n,ms])=>setTimeout(()=>{try{if(foeKey&&stage.classList.contains('lm-foe-intro'))lmSnd(n,{rate:foeRate>1?Math.min(1.5,foeRate):1});}catch(e){}},ms||0));   /* (DHL 11-12) 적 전용 등장음 — enemies.json 의 enterSfx [[이름, 등장 시작 뒤 ms]] · 무대 시계라 게임 속도를 따라감 */try{E.fx(!(typeof gameSettings!=='undefined'&&gameSettings.reduceFx));}catch(e){}
       await foePlay('enter',((R.enterMs||4000)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,220/foeRate));
       await foePlay((R.attacks||['attack'])[0],((R.attackMs||2500)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,160/foeRate));}}
     finally{stage.classList.remove('lm-foe-intro');}}

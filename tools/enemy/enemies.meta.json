@@ -4,7 +4,13 @@
   "kind": "normal",
   "size": 1.15,
   "coreH": 425,
-  "mx": 769
+  "mx": 769,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_magic",
+    200
+   ]
+  ]
  },
  "e02": {
   "ko": "막대말 랜스 기사",
@@ -13,7 +19,13 @@
   "coreH": 462,
   "run": true,
   "float": true,
-  "mx": 798
+  "mx": 798,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_hop",
+    850
+   ]
+  ]
  },
  "e03": {
   "ko": "유령 석궁 사수",
@@ -22,7 +34,13 @@
   "coreH": 470,
   "float": true,
   "run": true,
-  "mx": 815
+  "mx": 815,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_magic",
+    300
+   ]
+  ]
  },
  "e04": {
   "ko": "불꽃 창 망령",
@@ -31,21 +49,43 @@
   "coreH": 480,
   "float": true,
   "run": true,
-  "mx": 1062
+  "mx": 1062,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_magic",
+    0
+   ]
+  ]
  },
  "e05": {
   "ko": "산양 궁수",
   "kind": "normal",
   "size": 1.15,
   "coreH": 440,
-  "mx": 784
+  "mx": 784,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_hop",
+    300
+   ]
+  ]
  },
  "e06": {
   "ko": "까마귀 주술사",
   "kind": "boss",
   "size": 1.45,
   "coreH": 381,
-  "mx": 999
+  "mx": 999,
+  "enterSfx": [
+   [
+    "sfx_boss_enter_crow",
+    290
+   ],
+   [
+    "sfx_boss_enter_crow_caw",
+    1570
+   ]
+  ]
  },
  "e07": {
   "ko": "녹슨 풍차 거인",
@@ -58,14 +98,26 @@
   "coreH": 515,
   "hud": 0.97,
   "hudW": 0.36,
-  "mx": 1059
+  "mx": 1059,
+  "enterSfx": [
+   [
+    "sfx_boss_enter_mill",
+    810
+   ]
+  ]
  },
  "e08": {
   "ko": "졸음 북치기 새",
   "kind": "normal",
   "size": 1.15,
   "coreH": 455,
-  "mx": 808
+  "mx": 808,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_hop",
+    750
+   ]
+  ]
  },
  "e09": {
   "ko": "타락 천사 사제",
@@ -74,42 +126,78 @@
   "coreH": 430,
   "float": true,
   "run": true,
-  "mx": 1132
+  "mx": 1132,
+  "enterSfx": [
+   [
+    "sfx_boss_enter_angel",
+    750
+   ]
+  ]
  },
  "e10": {
   "ko": "눈알 두꺼비",
   "kind": "normal",
   "size": 0.95,
   "coreH": 356,
-  "mx": 708
+  "mx": 708,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_roll",
+    1150
+   ]
+  ]
  },
  "e11": {
   "ko": "거북이 몽둥이 전사",
   "kind": "normal",
   "size": 1.15,
   "coreH": 430,
-  "mx": 726
+  "mx": 726,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_roll",
+    1100
+   ]
+  ]
  },
  "e12": {
   "ko": "좀비 의사",
   "kind": "normal",
   "size": 1.15,
   "coreH": 470,
-  "mx": 713
+  "mx": 713,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_ground",
+    850
+   ]
+  ]
  },
  "e13": {
   "ko": "해골 복서 오우거",
   "kind": "boss",
   "size": 1.45,
   "coreH": 377,
-  "mx": 829
+  "mx": 829,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_drop",
+    350
+   ]
+  ]
  },
  "e14": {
   "ko": "역병 의사 화염방사병",
   "kind": "normal",
   "size": 1.15,
   "coreH": 399,
-  "mx": 1034
+  "mx": 1034,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_ground",
+    0
+   ]
+  ]
  },
  "e15": {
   "ko": "해적 게",
@@ -119,6 +207,12 @@
    "slam"
   ],
   "coreH": 351,
-  "mx": 957
+  "mx": 957,
+  "enterSfx": [
+   [
+    "sfx_foe_enter_ground",
+    1030
+   ]
+  ]
  }
 }
