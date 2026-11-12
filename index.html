@@ -1958,23 +1958,23 @@ const cardNo=c=>(c&&c.no)||BASE_POW[TYPES[c.id].n];
 const DECKS={
   lamancha:{ko:'라만차 덱',t:'',d:'기본 규칙'},
   merchant:{ko:'상인 덱',t:'b',d:'시작 골드 15 · 이자 최대 10'},
-  forge:{ko:'대장간 덱',t:'b',d:'시작 덱에 ★2 동료 6장'},
+  forge:{ko:'대장간 덱',t:'b',d:'시작 덱에 ★2 동료 10장'},
   collector:{ko:'수집가 덱',t:'b',d:'구슬 칸 6개'},
   gambler:{ko:'승부사 덱',t:'x',d:'런 3번 · 버리기 6번'},
   three:{ko:'구슬 셋 덱',t:'d',d:'구슬 칸 3개'},
   restless:{ko:'쉼 없는 덱',t:'d',d:'야영을 할 수 없음'},
   poor:{ko:'가난한 덱',t:'d',d:'라운드 보상 절반 · 이자 없음'},
-  pricey:{ko:'비싼 캠프 덱',t:'d',d:'원정 캠프 값 1.5배 · 리롤 값 2배'},
+  pricey:{ko:'비싼 캠프 덱',t:'d',d:'원정 캠프 값 1.25배 · 리롤 값 2배'},
   thinpurse:{ko:'얇은 지갑 덱',t:'d',d:'원정 캠프를 떠날 때 골드 5 초과분이 사라짐'},
   duel:{ko:'결투 덱',t:'d',d:'런 3번'},
   onepath:{ko:'외길 덱',t:'d',d:'버리기 2번'},
   campfire:{ko:'모닥불 덱',t:'d',d:'머지는 야영의 모닥불 머지에서만'},
   debt:{ko:'빚 덱',t:'d',d:'골드 −15로 시작 · 빚이 있는 동안 이자 없음'},
   wounded:{ko:'상처 입은 덱',t:'d',d:'시작 동료 20장이 상처 (힘 절반)'},
-  lownum:{ko:'낮은 번호 덱',t:'d',d:'번호 1~5 동료만 나옴'}
+  lownum:{ko:'낮은 번호 덱',t:'x',d:'번호 1~5 동료만 나옴'}
 };
 const DECK_IMG=k=>k&&k!=='lamancha'&&DECKS[k]?`assets/ui/kit/decks/deck_${k}.webp`:'assets/ui/kit/card_back.webp?v=3';
-const DECK_V={forge:6,wounded:20,woundX:0.5,thin:5,priceX:1.5,onepath:2,debt:-15};   // 덱 숫자 (봇 튜닝용)
+const DECK_V={forge:10,wounded:20,woundX:0.5,thin:5,priceX:1.25,onepath:2,debt:-15};   // (11-12 봇 2차) 대장간 6→10 · 비싼 캠프 1.5→1.25   // 덱 숫자 (봇 튜닝용)
 const deckIs=k=>{try{return !!S&&S.deckK===k;}catch(e){return false;}};
 /* 판을 만든 직후 한 번: 덱 규칙 중 시작 숫자를 바꾸는 것 */
 function deckApply(S){const k=S.deckK;

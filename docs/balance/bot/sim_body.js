@@ -308,10 +308,10 @@ function shop(){
 function maybeCamp(){
   if(S.rd>=2||deckIs('restless'))return false;
   /* 모닥불 덱: 머지는 야영에서만 → 망령 라운드(보상이 가장 적음)에 머지할 쌍이 2개 이상 있고 돈이 되면 야영해서 모닥불 머지 2번 (번호는 랜덤, ★2 💰2 · ★3 💰3) */
-  if(deckIs('campfire')){if(process.env.CAMPRD!=='any'&&S.rd!==+(process.env.CAMPRD||0))return false;let left=S.campMax||2,n=0;
+  if(deckIs('campfire')){if(process.env.CAMPRD!=='any'&&S.rd!==+(process.env.CAMPRD||0))return false;let left=process.env.CAMPFREE?+process.env.CAMPFREE:(S.campMax||2),n=0;const FL=+(process.env.CAMPFLAT||0);const CC=process.env.CAMPCOST!=null?+process.env.CAMPCOST:1;
     const pairs=()=>{const by={};S.deck.forEach(c=>{const k=TYPES[c.id].n+'|'+c.star;(by[k]=by[k]||[]).push(c);});return Object.values(by).filter(a=>a.length>=2&&a[0].star<3).sort((a,b)=>b[0].star-a[0].star||BASE_POW[TYPES[b[0].id].n]-BASE_POW[TYPES[a[0].id].n]);};
-    if(pairs().length<2||S.gold<4)return false;
-    while(left-->0){const pr=pairs().find(a=>S.gold>=a[0].star+1);if(!pr)break;S.gold-=pr[0].star+1;applyMerge(pr[0],pr[1],null,null,rndNo());S.deck.splice(S.deck.indexOf(pr[1]),1);S.merges++;n++;}
+    if(pairs().length<+(process.env.CAMPMIN||2)||(CC&&S.gold<4))return false;
+    while(left-->0){const pr=pairs().find(a=>!CC||S.gold>=(FL||a[0].star+1));if(!pr)break;if(CC)S.gold-=(FL||pr[0].star+1);applyMerge(pr[0],pr[1],null,null,rndNo());S.deck.splice(S.deck.indexOf(pr[1]),1);S.merges++;n++;}
     ST.camp++;S.foes[S.rd].camped=true;return true;}
   return false;   // 잠자기는 10-29에 없어짐 → 그 밖의 덱에서 봇은 야영하지 않음
   const h=hurtCount();
