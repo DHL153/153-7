@@ -8304,11 +8304,11 @@ let isGameOver = false;
     if(o.dmg>0){const eff=o.brk||!(o.cap>0)?o.dmg:Math.min(o.dmg,o.hit||o.dmg),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
   function millPhase2(){if(stage.classList.contains('lm-mill2'))return;stage.classList.add('lm-mill2');try{foeEN()?.rage(true);}catch(e){}   /* (DHL 11-12) 새 풍차 거인: 분노 2페이즈 (날개 달아오름 · 증기 · 균열) */
     if(!$('lm-mill-vig')){const v=document.createElement('div');v.id='lm-mill-vig';stage.appendChild(v);}
-    try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,60,40,.45)');}catch(e){}lmSnd('sfx_boss_rule_trigger',{vol:.8,gap:1000});
+    try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,60,40,.45)');}catch(e){}lmSnd(foeKey?'sfx_mill_rage':'sfx_boss_rule_trigger',{vol:foeKey?1:.8,gap:1000});
     const ba=document.querySelector('#battle-stage .boss-art.lm-mill');if(ba)try{ba.animate([{scale:'1.12'},{scale:'1.2'},{scale:'1.12'}],{duration:520,easing:'cubic-bezier(.3,1.6,.5,1)'});}catch(e){}}
   function setHud(){
     if(!hud)return;drawCap();
-    if(hp>0&&!gsDead&&hp<=maxHp*.5&&document.querySelector('#battle-stage .boss-art.lm-mill'))millPhase2();
+    if(hp>0&&!gsDead&&hp<=maxHp*.5&&(document.querySelector('#battle-stage .boss-art.lm-mill')||(foeKey&&foeReg&&foeReg[foeKey]&&foeReg[foeKey].kind==='final')))millPhase2();   /* (11-12 버그) 새 풍차 거인(리그)은 예전 그림이 없어 2페이즈가 시작되지 않던 문제 */
     hud.style.display='block';
     const fill=$('boss-hp-fill'),text=$('boss-hp-text'),name=$('boss-name');
     const pct=Math.max(0,Math.min(100,hp/Math.max(1,maxHp)*100));
@@ -8830,10 +8830,12 @@ let isGameOver = false;
   async function foePlay(st,max){const E=foeEN();if(!E)return false;try{E.speed(foeRate);E.play(st);}catch(e){return false;}
     const t0=performance.now();let began=false;   // 동작이 실제로 시작된 것을 본 뒤에 끝나기를 기다림 (프레임이 느린 기기에서 바로 끝난 것으로 잘못 보지 않게)
     while(performance.now()-t0<max){let s='';try{s=E.state();}catch(e){break;}if(s&&s!=='idle')began=true;else if(began||performance.now()-t0>900)break;await new Promise(r=>setTimeout(r,40));}return true;}
+  /* (DHL 11-12) 적 전용 공격음 — enemies.json 의 atkSfx {공격 이름: [[소리, 공격 시작 뒤 ms]]} · 소리의 큰 부분이 '맞는 순간'에 오도록 시각을 잡아 둠 */
+  function foeAtkSnd(a){const R=foeReg[foeKey]||{},L=(R.atkSfx||{})[a]||[],key=foeKey;L.forEach(([n,ms])=>setTimeout(()=>{try{if(foeKey===key&&!gsDead)lmSnd(n,{gap:50,rate:foeRate>1?Math.min(1.5,foeRate):1});}catch(e){}},ms||0));}
   async function foeIntro(){if(!foeKey)return;const R=foeReg[foeKey]||{};stage.classList.add('lm-foe-intro');
-    try{if(await foeWait(9000)){foeSize();const E=foeEN();try{E.rage(false);}catch(e){}if(kind!=='boss')try{lmSnd('sfx_boss_enter',{vol:.45});}catch(e){}try{E.fx(!(typeof gameSettings!=='undefined'&&gameSettings.reduceFx));}catch(e){}
+    try{if(await foeWait(9000)){foeSize();const E=foeEN();try{E.rage(false);}catch(e){}(R.enterSfx||[]).forEach(([n,ms])=>setTimeout(()=>{try{if(foeKey&&stage.classList.contains('lm-foe-intro'))lmSnd(n,{rate:foeRate>1?Math.min(1.5,foeRate):1});}catch(e){}},ms||0));   /* (DHL 11-12) 적 전용 등장음 — enemies.json 의 enterSfx [[이름, 등장 시작 뒤 ms]] · 무대 시계라 게임 속도를 따라감 */try{E.fx(!(typeof gameSettings!=='undefined'&&gameSettings.reduceFx));}catch(e){}
       await foePlay('enter',((R.enterMs||4000)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,220/foeRate));
-      await foePlay((R.attacks||['attack'])[0],((R.attackMs||2500)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,160/foeRate));}}
+      foeAtkSnd((R.attacks||['attack'])[0]);await foePlay((R.attacks||['attack'])[0],((R.attackMs||2500)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,160/foeRate));}}
     finally{stage.classList.remove('lm-foe-intro');}}
   /* 적이 공격하면 주인공도 맞는 느낌 (DHL 11-12): 리그가 알려 주는 '맞는 순간'(hit)에 주인공이 뒤로 움찔 + 하얗게 번쩍 + 불꽃 · 화면 살짝 흔들림(설정 따름). 피해는 없음 */
   let foeAtkOn=false,foeAtkN=0,flinchAt=0;
@@ -8849,7 +8851,7 @@ let isGameOver = false;
     const hitEv=R.hitEv||['hit'],modeC=standMode()==='C'&&!standNow;let halted=false;foeAtkOn=true;
     try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter'){heroFlinch();
       if(modeC&&!halted){halted=true;standNow=true;stage.classList.add('lm-still');setMul(ALL,null);}}});}catch(_){}   // C: 달리던 주인공이 맞는 순간에 멈춤 (미리 멈추면 맞을 줄 알고 기다리는 것처럼 보임 — DHL 11-12)
-    return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).then(()=>halted?new Promise(r=>setTimeout(r,380)):0).finally(()=>{foeAtkOn=false;if(halted){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}   // 맞고 잠깐 선 뒤 다시 달림
+    foeAtkSnd(a);return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).then(()=>halted?new Promise(r=>setTimeout(r,380)):0).finally(()=>{foeAtkOn=false;if(halted){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}   // 맞고 잠깐 선 뒤 다시 달림
   function setupEnemy(o){
     stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');try{splitEnd();}catch(e){}gsDead=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
