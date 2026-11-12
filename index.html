@@ -3772,7 +3772,7 @@ function runInfoHTML(){
   h+=`<p class="iSub">내 증서 ${S.vouch.length} · 판 내내 유지</p>`+vouchRowsHTML();
   h+=`<p class="iSub">내 구슬 ${S.orbs.length}/${S.maxOrb}</p><div class="rOrbs">`+(S.orbs.length?S.orbs.map(k=>`<div class="rRow" data-k="${k}"><span><b>${ORBS[k].ko} <i>${dia(S.ost[k]||1)}</i></b><small>${ORBS[k].d}</small></span></div>`).join(''):`<p class="iNote">아직 구슬이 없습니다. 원정 캠프에서 살 수 있습니다.</p>`)+`</div>`;
   const hc=hurtCount(),wc=WORLDS.map(w=>S.deck.filter(c=>cardW(c)===w).length);
-  h+=`<div class="rDeck"><div><b>${S.deckK&&S.deckK!=='lamancha'&&DECKS[S.deckK]?DECKS[S.deckK].ko+' · ':'덱 '}${S.deck.length}장</b><span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
+  h+=`<div class="rDeck"><div><b>${S.deckK&&S.deckK!=='lamancha'&&DECKS[S.deckK]?DECKS[S.deckK].ko+' · ':'덱 '}${S.deck.length}장</b>${S.deckK&&S.deckK!=='lamancha'&&DECKS[S.deckK]?`<small class="rDeckRule">${DECKS[S.deckK].d}</small>`:''}<span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
   h+=`<button type="button" class="iMore dkOpen" onclick="deckView()">덱 전체 보기 <small>카드 ${S.deck.length}장</small></button>`;   /* (11-06) 원정 캠프 '덱' 버튼과 같은 창 */
   h+=`<details class="iMore"><summary>장별 목표 점수</summary><table><tr><th>장</th><th>망령</th><th>수문장</th><th>거인</th></tr>`;
   for(let j=1;j<=8;j++)h+=`<tr class="${j===S.jang?'cur':''}"><td>${j}장</td>`+[0,1,2].map(r=>`<td>${j===S.jang&&r===S.rd?'▶ ':''}${tgtFor(j,r,S.diff).toLocaleString()}</td>`).join('')+'</tr>';
@@ -5572,6 +5572,7 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 #lm-title .pl-dk .pl-dkC img{width:22px;height:22px;object-fit:contain;filter:grayscale(1) brightness(.75);opacity:.35}
 #lm-title .pl-dk .pl-dkC img.got{filter:none;opacity:1}
 .rbSkip.noCamp b{color:#8fa0aa!important}
+.rDeck .rDeckRule{display:block;margin:1px 0 2px;color:#ffd257;font-size:12px;font-weight:800}
 #lm-title .pl-dk .pl-dkD.lk em{font-style:normal;color:#d9800b}
 #lm-title .pl-dk.lock .pl-dkD{min-height:4.4em;display:grid;place-items:center;font-size:14px;color:#2a2118}
 #lm-title .pl-dk.lock .pl-dkD>span{display:block;min-width:0;text-align:center;line-height:1.45}
@@ -5584,8 +5585,9 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 .goNewDeck{margin:6px auto 2px;text-align:center}.goNewDeck>b{display:block;color:#ffd257;font-size:15px;margin-bottom:4px}
 .goNewDeck>div{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.goNewDeck span{display:flex;flex-direction:column;align-items:center;gap:2px}
 .goNewDeck img{width:46px;aspect-ratio:512/712;object-fit:contain;filter:drop-shadow(0 2px 0 #0008)}.goNewDeck small{font-size:11px;color:#e8e2d2;font-weight:800}
-@media (max-height:700px) and (orientation:landscape){#lm-title .pl-dk .pl-dkImg{width:56px}#lm-title .pl-dk .pl-dkD{font-size:12px;min-height:2.8em}#lm-title .pl-dk .pl-dkS{font-size:11px}}
-@media (max-height:460px){#lm-title .pl-dk .pl-dkImg{width:48px}#lm-title .pl-dk .pl-dkC img{width:16px;height:16px}}
+@media (max-height:700px) and (orientation:landscape){#lm-title .pl-wrap{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)!important}#lm-title .pl-dk .pl-info,#lm-title .pl-dk .pl-dkW{min-width:0}#lm-title .pl-dk .pl-name b{font-size:15px}#lm-title .pl-stake .pl-name b{white-space:nowrap}#lm-title .pl-dk .pl-dkW p{white-space:normal!important}#lm-title .pl-dk .pl-dkS i{white-space:nowrap}   /* (11-12 버그) 낮은 화면: 긴 덱 설명이 한 줄로 버텨 난이도 칸을 누르고 플레이 버튼이 잘리던 문제 */
+#lm-title .pl-dk .pl-dkImg{width:56px}#lm-title .pl-dk .pl-dkD{font-size:12px;min-height:2.8em}#lm-title .pl-dk .pl-dkS{font-size:11px}}
+@media (max-height:460px){#lm-title .pl-wrap{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}#lm-title .pl-dk .pl-dkImg{width:44px}#lm-title .pl-dk .pl-dkC{display:none}#lm-title .pl-dk .pl-dkD{min-height:0!important;font-size:11px}#lm-title .pl-dk .pl-dkS{font-size:10.5px;padding-top:2px}#lm-title .pl-dk .pl-dkW{padding:4px 6px;gap:2px}#lm-title .pl-dk .pl-info{gap:3px;padding:4px 6px}}
 </style>
 <style id="lm-cash-win">
 #cfWin{display:none}
