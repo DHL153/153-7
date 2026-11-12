@@ -1974,19 +1974,19 @@ const DECKS={
   lownum:{ko:'낮은 번호 덱',t:'d',d:'번호 1~5 동료만 나옴'}
 };
 const DECK_IMG=k=>k&&k!=='lamancha'&&DECKS[k]?`assets/ui/kit/decks/deck_${k}.webp`:'assets/ui/kit/card_back.webp?v=3';
-const DECK_V={forge:6,wounded:20,woundX:0.5,thin:5};   // 덱 숫자 (봇 튜닝용)
+const DECK_V={forge:6,wounded:20,woundX:0.5,thin:5,priceX:1.5,onepath:2,debt:-15};   // 덱 숫자 (봇 튜닝용)
 const deckIs=k=>{try{return !!S&&S.deckK===k;}catch(e){return false;}};
 /* 판을 만든 직후 한 번: 덱 규칙 중 시작 숫자를 바꾸는 것 */
 function deckApply(S){const k=S.deckK;
   if(k==='merchant'){S.gold=15;S.interestMax=10;}
   if(k==='collector')S.maxOrb=6;if(k==='three')S.maxOrb=3;
-  if(k==='gambler'){S.runsMax=3;S.disMax=6;}if(k==='duel')S.runsMax=3;if(k==='onepath')S.disMax=2;
-  if(k==='poor')S.interestMax=0;if(k==='debt')S.gold=-15;
+  if(k==='gambler'){S.runsMax=3;S.disMax=6;}if(k==='duel')S.runsMax=3;if(k==='onepath')S.disMax=DECK_V.onepath;
+  if(k==='poor')S.interestMax=0;if(k==='debt')S.gold=DECK_V.debt;
   if(k==='pricey')S.rerollBase=4;
   S.runs=S.runsMax;S.dis=S.disMax;return S;}
 const deckInterest=S=>S.deckK==='poor'||S.gold<0?0:Math.min(S.interestMax,Math.floor(S.gold/5));   // 가난한 덱 = 없음 · 빚(골드 음수) = 없음
 const deckReward=(S,base)=>S.deckK==='poor'?Math.ceil(base/2):base;
-const deckPriceX=()=>deckIs('pricey')?1.5:1;
+const deckPriceX=()=>deckIs('pricey')?DECK_V.priceX:1;
 const deckBanV=k=>(deckIs('poor')&&(k==='vault'||k==='vault2'))||(deckIs('merchant')&&k==='vault')||(deckIs('restless')&&(k==='campv'||k==='campv2'));   // 이 덱에서 뜻이 없는 증서
 const rndNo=()=>1+(Math.random()*(deckIs('lownum')?5:10)|0);
 const STAR_X=[0,1,2.5,6];               // ★ 배율: 재료 합보다 크게 (★2 = 재료 2장 ×2 → ×2.5, ★3 = 재료 4장 ×4 → ×6)
