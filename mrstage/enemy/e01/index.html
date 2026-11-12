@@ -89,7 +89,7 @@ function draw(now){bg();const sx=shake>0?Math.sin(now/17)*10*shake:0,sy=shake>0?
     g.save();g.globalCompositeOperation='lighter';for(const p of parts){g.fillStyle=p.col;g.globalAlpha=1-p.t/p.life;g.beginPath();g.arc(p.x,p.y,p.r,0,7);g.fill()}g.restore();
     if(OUT.flash>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,255,255,${OUT.flash*.12})`;g.fillRect(0,0,W,H)}}}
 window.QA={fx:v=>{fx=v;an.fxOn=v},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},state:()=>an.state,anim:an};
-function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}const dt=Math.min(.05,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;step(dt);draw(t)}
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
 an.play('enter');requestAnimationFrame(frame);window.__ready=true;
 })().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
 </script>

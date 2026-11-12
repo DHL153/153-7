@@ -171,7 +171,7 @@ function draw(now){const o=OUT;bg();const sx=shake>0?Math.sin(now/15)*13*shake:0
     if(flashA>0){g.fillStyle=`rgba(225,240,255,${flashA*.07})`;g.fillRect(0,0,W,H)}
     if(o.rage){const v=g.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,20,120,0)');v.addColorStop(1,`rgba(10,40,160,${.26+.05*Math.sin(now/200)})`);g.fillStyle=v;g.fillRect(0,0,W,H)}}}
 window.QA={fx:v=>{fx=v;an.fxOn=v;if(!v){parts=[];smoke=[];scorch=[]}},manual:false,play:s=>{if(s==='enter')flames=[];an.play(s)},rage:v=>an.rage=v,step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
-function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}const dt=Math.min(.05,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;step(dt);draw(t)}
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
 an.play('enter');step(0);requestAnimationFrame(frame);window.__ready=true;
 })().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
 </script>

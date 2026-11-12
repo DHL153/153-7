@@ -64,9 +64,10 @@ def build(pkg):
     a = 'if(QA.manual)return;'
     if s.count(a) != 1: raise SystemExit(f'{name}: frame() 모양이 다름')
     s = s.replace(a, a + "if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}")
-    b = '*(slow?.25:1);last=t;'
+    b = 'const dt=Math.min(.05,(t-last)/1000)*(slow?.25:1);last=t;step(dt);draw(t)'
     if s.count(b) != 1: raise SystemExit(f'{name}: 시간 계산 모양이 다름')
-    s = s.replace(b, '*(slow?.25:1)*(window.__spd||1);last=t;')
+    # 느린 기기에서도 실제 시간과 맞게: 밀린 시간은 0.05초씩 나눠 따라잡고 한 번만 그림 (예전: 0.05초로 잘라 느린 화면이 됨)
+    s = s.replace(b, 'let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)')
     u = 'OUT=an.update(dt);'
     if s.count(u) != 1: raise SystemExit(f'{name}: update() 모양이 다름')
     s = s.replace(u, u + 'if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}')

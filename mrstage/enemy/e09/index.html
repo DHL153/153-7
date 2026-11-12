@@ -119,7 +119,7 @@ function draw(now){bg();const sx=shake>0?Math.sin(now/17)*12*shake:0,sy=shake>0?
     if(flashA>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,240,215,${flashA*.08})`;g.fillRect(0,0,W,H)}}}
 window.QA={fx:v=>{fx=v;an.fxOn=v;if(!v)parts=[]},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
 window.__rig=rig;
-function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}const dt=Math.min(.05,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;step(dt);draw(t)}
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
 an.play('enter');step(0);requestAnimationFrame(frame);window.__ready=true;
 })().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
 </script>

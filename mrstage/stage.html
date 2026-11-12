@@ -8842,7 +8842,7 @@ let isGameOver = false;
       curEnemyId=o.art||1+Math.floor(Math.random()*FLYING_ENEMY_ART.length);
       MR.setEnemy(curEnemyId);enemy.className='character enemy slide-in';
     }
-    if(foeMount(o.rig)){enemy.className='character enemy slide-in lm-rigfoe'+(kind==='boss'?' boss-enemy':'');}
+    if(foeMount(o.rig)){enemy.className='character enemy slide-in lm-rigfoe'+(kind==='boss'?' boss-enemy':'');stage.classList.add('lm-foe-intro');}   // 적이 나타나기 전에는 체력 · 방패 표시를 숨김
     setHud();sizeEnemy();foeSize();
   }
   // 라운드 시작 (한 번에): 밤 · 모두 숨김 → 땅 · 적 · 팀 → 리그 준비 → 하늘 밝아지며 왼쪽에서 걸어 들어옴
@@ -8932,7 +8932,7 @@ let isGameOver = false;
     queued(){return pending;},
     pause(on){globalPause=!!on;},
     freeze(on){window.MRClock?.pause(on);},   // (DHL 10-31) 연출 보기 플레이어: 멈춤/계속
-    speed(n){window.MRClock?.rate(n);foeRate=Math.max(.5,Math.min(4,+n||1));try{foeEN()?.speed(foeRate);}catch(e){}},
+    speed(n){window.MRClock?.rate(n);foeRate=Math.max(.2,Math.min(4,+n||1));try{foeEN()?.speed(foeRate);}catch(e){}},
     clear(){clearBattleVisualQueue(true);}
   };
 
