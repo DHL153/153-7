@@ -8780,7 +8780,9 @@ let isGameOver = false;
   function offsetTeam(dx,slots=ALL){for(const sl of slots)actors[sl].off=dx;if(slots===ALL)curOff=dx;}
   function clearOffset(slots=ALL){offsetTeam(0,slots);}
   const show=(slots,v)=>{for(const sl of slots)actors[sl].vis=!!v;};
-  const setMul=(slots,m)=>{for(const sl of slots)actors[sl].mul=m;};
+  /* (DHL 11-12 시안) 대치 방식 — A: 계속 달림(예전) · B: 도착하면 배경 · 주인공이 멈추고 마주 섬 · C: 적이 공격하는 동안만 멈춤.  parent.LM_STAND 또는 localStorage lm_stand */
+  let standNow=false;const standMode=()=>{let v='A';try{v=(window.parent&&parent.LM_STAND)||localStorage.getItem('lm_stand')||'A';}catch(e){}return ['A','B','C'].includes(v)?v:'A';};
+  const setMul=(slots,m)=>{for(const sl of slots)actors[sl].mul=(m==null&&standNow)?0:m;};
   function walk(from,to,ms,ease,slots=ALL){
     return new Promise(res=>{const t0=performance.now();
       const f=now=>{const k=Math.min(1,(now-t0)/ms),e=ease==='in'?k*k:1-Math.pow(1-k,2);offsetTeam(from+(to-from)*e,slots);if(k<1)requestAnimationFrame(f);else res();};
@@ -8837,7 +8839,8 @@ let isGameOver = false;
     try{lmSnd('sfx_hit_weak',{gap:120,vol:.8});}catch(_){}}   // 임시: 지금 있는 약한 타격음 (전용 피격음은 요청 예정)
   function foeAttack(){if(!foeKey||gsDead)return Promise.resolve();const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
     const hitEv=R.hitEv||['hit'];foeAtkOn=true;try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter')heroFlinch();});}catch(_){}
-    return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).finally(()=>{foeAtkOn=false;});}
+    const halt=standMode()==='C'&&!standNow;if(halt){standNow=true;stage.classList.add('lm-still');setMul(ALL,null);}
+    return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).finally(()=>{foeAtkOn=false;if(halt){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}
   function setupEnemy(o){
     stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');try{splitEnd();}catch(e){}gsDead=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
@@ -8860,7 +8863,7 @@ let isGameOver = false;
   // 라운드 시작 (한 번에): 밤 · 모두 숨김 → 땅 · 적 · 팀 → 리그 준비 → 하늘 밝아지며 왼쪽에서 걸어 들어옴
   async function round(o){
     const W=stage.clientWidth||400;window.LM_PACK=Array.isArray(o.pack)?o.pack:null;
-    show(ALL,false);setMul(ALL,null);offsetTeam(-W*.75);resetCharge();
+    standNow=false;show(ALL,false);setMul(ALL,null);offsetTeam(-W*.75);resetCharge();
     stage.classList.remove('lm-cleared','lm-foe-dead');stage.classList.add('lm-still');
     window.MRBattleSky?.setStage(3,true);skyN=3;
     if(o.ground)setBattleStageBackground(backgroundPath('battle',Math.max(1,Math.min(30,o.ground|0))));
@@ -8874,6 +8877,7 @@ let isGameOver = false;
     skyN=ROUND_SKY[o.rd|0]??1;window.MRBattleSky?.setStage(skyN,false);
     await walk(-W*.75,0,1500,'out');
     stage.classList.remove('lm-still');   // 자리에 서면 땅이 흐르기 시작(달리기)
+    if(standMode()==='B'){standNow=true;stage.classList.add('lm-still');setMul(ALL,null);}
   }
   // 런 시작: 이번 런 카드의 동료(최대 2명). 자리를 내주는 동료는 멈춰 땅과 함께 뒤로 빠지고 → 새 동료가 빠른 달리기로 들어옴
   async function joinRun(nums){
@@ -8895,7 +8899,7 @@ let isGameOver = false;
   async function exit(){if(!ranOff)await runOff();ranOff=false;
     stage.classList.add('lm-cleared');window.parent?.postMessage?.({mrStage:'cleared'},'*');await sleep(500);}
   async function runOff(){   // 주인공 · 동료가 화면 밖으로 달려 나감 + 하늘이 밤으로 (보상 신호는 exit 에서)
-    const W=stage.clientWidth||400;resetCharge();setMul(ALL,null);
+    standNow=false;const W=stage.clientWidth||400;resetCharge();setMul(ALL,null);
     const C={rust:['#ffc58a','#e07a3f'],neon:['#7ff6ff','#ff3fa4'],skyarc:['#ffd27a','#58b8ff']}[world]||['#ffe9a8','#ffc96a'];
     try{window.MRBattleSky?.windSweep?.(C);}catch(e){}lmSnd('sfx_sky_change',{gap:1500});   // (DHL 11-04) 전투가 끝나고 바람이 하늘을 쓸며 하늘이 바뀔 때
     if(skyN!==2){skyN=2;window.MRBattleSky?.setStage(2,false);}
