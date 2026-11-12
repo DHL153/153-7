@@ -8844,7 +8844,7 @@ let isGameOver = false;
       el.animate([{filter:'brightness(1)'},{filter:'brightness(2.4) saturate(.6)',offset:.2},{filter:'brightness(1)'}],{duration:200});}catch(_){}});
     try{const sp=document.createElement('i');sp.className='lm-hero-hit';sp.style.left=(r.left-sr.left+r.width*.62)+'px';sp.style.top=(r.top-sr.top+r.height*.5)+'px';sp.style.setProperty('--s',Math.max(36,r.height*.5)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),320);}catch(_){}
     try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate([{translate:'0 0'},{translate:'-4px 1px'},{translate:'3px -1px'},{translate:'-2px 0'},{translate:'0 0'}],{duration:190,easing:'linear'});}catch(_){}
-    try{lmSnd('sfx_hit_weak',{gap:120,vol:.8});}catch(_){}}   // 임시: 지금 있는 약한 타격음 (전용 피격음은 요청 예정)
+    try{lmSnd(kind==='boss'?'sfx_hero_hit_heavy':'sfx_hero_hit',{gap:90});}catch(_){}}   // (DHL 11-12) 전용 피격음: 일반 적 = 가벼운 타격 · 보스 · 풍차 거인 = 무거운 타격
   function foeAttack(){if(!foeKey||gsDead)return Promise.resolve();const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
     const hitEv=R.hitEv||['hit'],modeC=standMode()==='C'&&!standNow;let halted=false;foeAtkOn=true;
     try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter'){heroFlinch();
