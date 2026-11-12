@@ -4676,7 +4676,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r139" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r140" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -9657,7 +9657,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     'sfx_hand_name','sfx_hand_name_big','sfx_score_card','sfx_score_mult','sfx_score_total','sfx_score_over','sfx_key_match','sfx_key_full','sfx_combo_tick',
     'sfx_merge','sfx_merge_awaken','sfx_star_up','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_orb_equip','sfx_orb_swap','sfx_orb_sell',
     'sfx_atk_greatsword','sfx_atk_hammer','sfx_atk_bigblade','sfx_atk_gun','sfx_atk_fist','sfx_atk_staff','sfx_atk_shieldaxe','sfx_atk_spear','sfx_atk_widesword','sfx_atk_dual','sfx_run_charge',
-    'sfx_hit_rust','sfx_hit_neon','sfx_hit_sky','sfx_hit_weak','sfx_hero_hit','sfx_hero_hit_heavy','sfx_foe_enter_magic','sfx_foe_enter_roll','sfx_foe_enter_hop','sfx_foe_enter_ground','sfx_foe_enter_drop','sfx_boss_enter_crow','sfx_boss_enter_crow_caw','sfx_boss_enter_angel','sfx_boss_enter_mill','sfx_shield_block','sfx_shield_break','sfx_foe_defeat','sfx_finish_cut','sfx_counter',
+    'sfx_hit_rust','sfx_hit_neon','sfx_hit_sky','sfx_hit_weak','sfx_hero_hit','sfx_hero_hit_heavy','sfx_foe_enter_magic','sfx_foe_enter_roll','sfx_foe_enter_hop','sfx_foe_enter_ground','sfx_foe_enter_drop','sfx_boss_enter_crow','sfx_boss_enter_crow_caw','sfx_boss_enter_angel','sfx_boss_enter_mill','sfx_mill_rage','sfx_shield_block','sfx_shield_break','sfx_foe_defeat','sfx_finish_cut','sfx_counter',
     'sfx_round_select','sfx_round_start','sfx_round_win','sfx_runs_low','sfx_boss_enter','sfx_boss_rule','sfx_boss_rule_trigger','sfx_boss_defeat','sfx_chapter_clear','sfx_world_change','sfx_sky_change',
     'sfx_coin_drop','sfx_coin_pile','sfx_coin_jackpot','sfx_spend','sfx_no_money','sfx_shop_open','sfx_shop_reroll','sfx_shop_buy','sfx_pack_open','sfx_pack_reveal','sfx_pack_rare','sfx_book_use','sfx_deed_use',
     'sfx_camp_enter','sfx_fire_merge_spin','sfx_fire_merge_stop','sfx_fire_merge_done','sfx_release','sfx_scout','sfx_night_walk','sfx_camp_leave',

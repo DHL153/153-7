@@ -8304,11 +8304,11 @@ let isGameOver = false;
     if(o.dmg>0){const eff=o.brk||!(o.cap>0)?o.dmg:Math.min(o.dmg,o.hit||o.dmg),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
   function millPhase2(){if(stage.classList.contains('lm-mill2'))return;stage.classList.add('lm-mill2');try{foeEN()?.rage(true);}catch(e){}   /* (DHL 11-12) 새 풍차 거인: 분노 2페이즈 (날개 달아오름 · 증기 · 균열) */
     if(!$('lm-mill-vig')){const v=document.createElement('div');v.id='lm-mill-vig';stage.appendChild(v);}
-    try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,60,40,.45)');}catch(e){}lmSnd('sfx_boss_rule_trigger',{vol:.8,gap:1000});
+    try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,60,40,.45)');}catch(e){}lmSnd(foeKey?'sfx_mill_rage':'sfx_boss_rule_trigger',{vol:foeKey?1:.8,gap:1000});
     const ba=document.querySelector('#battle-stage .boss-art.lm-mill');if(ba)try{ba.animate([{scale:'1.12'},{scale:'1.2'},{scale:'1.12'}],{duration:520,easing:'cubic-bezier(.3,1.6,.5,1)'});}catch(e){}}
   function setHud(){
     if(!hud)return;drawCap();
-    if(hp>0&&!gsDead&&hp<=maxHp*.5&&document.querySelector('#battle-stage .boss-art.lm-mill'))millPhase2();
+    if(hp>0&&!gsDead&&hp<=maxHp*.5&&(document.querySelector('#battle-stage .boss-art.lm-mill')||(foeKey&&foeReg&&foeReg[foeKey]&&foeReg[foeKey].kind==='final')))millPhase2();   /* (11-12 버그) 새 풍차 거인(리그)은 예전 그림이 없어 2페이즈가 시작되지 않던 문제 */
     hud.style.display='block';
     const fill=$('boss-hp-fill'),text=$('boss-hp-text'),name=$('boss-name');
     const pct=Math.max(0,Math.min(100,hp/Math.max(1,maxHp)*100));
