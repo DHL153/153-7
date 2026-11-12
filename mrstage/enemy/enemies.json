@@ -16,7 +16,8 @@
   "enterMs": 9575,
   "attackMs": 4872,
   "hurtMs": 2051,
-  "coreH": 425
+  "coreH": 425,
+  "mx": 769
  },
  "e02": {
   "ko": "막대말 랜스 기사",
@@ -37,7 +38,8 @@
   "hurtMs": 1940,
   "coreH": 462,
   "run": true,
-  "float": true
+  "float": true,
+  "mx": 798
  },
  "e03": {
   "ko": "유령 석궁 사수",
@@ -58,7 +60,8 @@
   "hurtMs": 1750,
   "coreH": 470,
   "float": true,
-  "run": true
+  "run": true,
+  "mx": 815
  },
  "e04": {
   "ko": "불꽃 창 망령",
@@ -79,7 +82,8 @@
   "hurtMs": 3164,
   "coreH": 480,
   "float": true,
-  "run": true
+  "run": true,
+  "mx": 1062
  },
  "e05": {
   "ko": "산양 궁수",
@@ -98,7 +102,8 @@
   "enterMs": 3905,
   "attackMs": 3211,
   "hurtMs": 1166,
-  "coreH": 440
+  "coreH": 440,
+  "mx": 784
  },
  "e06": {
   "ko": "까마귀 주술사",
@@ -117,7 +122,8 @@
   "enterMs": 8964,
   "attackMs": 5727,
   "hurtMs": 4289,
-  "coreH": 381
+  "coreH": 381,
+  "mx": 999
  },
  "e07": {
   "ko": "녹슨 풍차 거인",
@@ -142,7 +148,8 @@
   "hurtMs": 1129,
   "coreH": 515,
   "hud": 0.97,
-  "hudW": 0.36
+  "hudW": 0.36,
+  "mx": 1059
  },
  "e08": {
   "ko": "졸음 북치기 새",
@@ -161,7 +168,8 @@
   "enterMs": 6138,
   "attackMs": 3482,
   "hurtMs": 1587,
-  "coreH": 455
+  "coreH": 455,
+  "mx": 808
  },
  "e09": {
   "ko": "타락 천사 사제",
@@ -182,7 +190,8 @@
   "hurtMs": 2859,
   "coreH": 430,
   "float": true,
-  "run": true
+  "run": true,
+  "mx": 1132
  },
  "e10": {
   "ko": "눈알 두꺼비",
@@ -201,7 +210,8 @@
   "enterMs": 3969,
   "attackMs": 6840,
   "hurtMs": 1322,
-  "coreH": 356
+  "coreH": 356,
+  "mx": 708
  },
  "e11": {
   "ko": "거북이 몽둥이 전사",
@@ -220,7 +230,8 @@
   "enterMs": 6181,
   "attackMs": 4083,
   "hurtMs": 1281,
-  "coreH": 430
+  "coreH": 430,
+  "mx": 726
  },
  "e12": {
   "ko": "좀비 의사",
@@ -239,7 +250,8 @@
   "enterMs": 9019,
   "attackMs": 5317,
   "hurtMs": 3129,
-  "coreH": 470
+  "coreH": 470,
+  "mx": 713
  },
  "e13": {
   "ko": "해골 복서 오우거",
@@ -258,7 +270,8 @@
   "enterMs": 2702,
   "attackMs": 7042,
   "hurtMs": 1909,
-  "coreH": 377
+  "coreH": 377,
+  "mx": 829
  },
  "e14": {
   "ko": "역병 의사 화염방사병",
@@ -277,7 +290,8 @@
   "enterMs": 3966,
   "attackMs": 9051,
   "hurtMs": 2121,
-  "coreH": 399
+  "coreH": 399,
+  "mx": 1034
  },
  "e15": {
   "ko": "해적 게",
@@ -299,6 +313,7 @@
   "hitEv": [
    "slam"
   ],
-  "coreH": 351
+  "coreH": 351,
+  "mx": 957
  }
 }

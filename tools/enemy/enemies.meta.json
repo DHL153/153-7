@@ -3,7 +3,8 @@
   "ko": "클로 망령",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 425
+  "coreH": 425,
+  "mx": 769
  },
  "e02": {
   "ko": "막대말 랜스 기사",
@@ -11,7 +12,8 @@
   "size": 1.15,
   "coreH": 462,
   "run": true,
-  "float": true
+  "float": true,
+  "mx": 798
  },
  "e03": {
   "ko": "유령 석궁 사수",
@@ -19,7 +21,8 @@
   "size": 1.15,
   "coreH": 470,
   "float": true,
-  "run": true
+  "run": true,
+  "mx": 815
  },
  "e04": {
   "ko": "불꽃 창 망령",
@@ -27,19 +30,22 @@
   "size": 1.15,
   "coreH": 480,
   "float": true,
-  "run": true
+  "run": true,
+  "mx": 1062
  },
  "e05": {
   "ko": "산양 궁수",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 440
+  "coreH": 440,
+  "mx": 784
  },
  "e06": {
   "ko": "까마귀 주술사",
   "kind": "boss",
   "size": 1.45,
-  "coreH": 381
+  "coreH": 381,
+  "mx": 999
  },
  "e07": {
   "ko": "녹슨 풍차 거인",
@@ -51,13 +57,15 @@
   ],
   "coreH": 515,
   "hud": 0.97,
-  "hudW": 0.36
+  "hudW": 0.36,
+  "mx": 1059
  },
  "e08": {
   "ko": "졸음 북치기 새",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 455
+  "coreH": 455,
+  "mx": 808
  },
  "e09": {
   "ko": "타락 천사 사제",
@@ -65,37 +73,43 @@
   "size": 1.45,
   "coreH": 430,
   "float": true,
-  "run": true
+  "run": true,
+  "mx": 1132
  },
  "e10": {
   "ko": "눈알 두꺼비",
   "kind": "normal",
   "size": 0.95,
-  "coreH": 356
+  "coreH": 356,
+  "mx": 708
  },
  "e11": {
   "ko": "거북이 몽둥이 전사",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 430
+  "coreH": 430,
+  "mx": 726
  },
  "e12": {
   "ko": "좀비 의사",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 470
+  "coreH": 470,
+  "mx": 713
  },
  "e13": {
   "ko": "해골 복서 오우거",
   "kind": "boss",
   "size": 1.45,
-  "coreH": 377
+  "coreH": 377,
+  "mx": 829
  },
  "e14": {
   "ko": "역병 의사 화염방사병",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 399
+  "coreH": 399,
+  "mx": 1034
  },
  "e15": {
   "ko": "해적 게",
@@ -104,6 +118,7 @@
   "hitEv": [
    "slam"
   ],
-  "coreH": 351
+  "coreH": 351,
+  "mx": 957
  }
 }
