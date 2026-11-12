@@ -1,5 +1,7 @@
 # 니콜 안내 NPC (nicole-guide) — 상태
 
+- **2026-11-12 딸기 축제 옷으로 교체.** 받은 묶음 `nicole_npc_strawberry_final.zip` (DHL) — README · preview · source(outfit_13 · faces_12 · 흰 원피스 마스터) · orders · tools · qa 를 통째로 바꿈. 그림 좌표(680×1024, 발 300,992)는 같아서 이펙트 위치 그대로. 엔진 `npc.js`도 새 것(웃으며 말할 때 웃음 ↔ 흐뭇 머리 통째 교체). `guide.def.js` v=d852be2c (약 5MB, 무손실).
+
 - **2026-11-03 게임 반영.** 첫 판 안내(견습 1~3장)의 니콜을 러스트 니콜 전투 리그(rust-fork-girl)에서 이 안내 NPC로 바꿈.
 - 받은 묶음: `npc01_nicole_guide.zip` (DHL) — `preview/`(실행되는 리그) · `source/`(마스터·표정 12·몸짓 4·중간 그림 7) · `orders/`(제미나이 주문서) · `tools/`(누끼 → 표정 → 몸 보정 → 팔층 → 가중치, 검사) · `qa/`.
 - 엔진은 받은 그대로: `preview/npc.js` = `mrstage/assets/rig/nicole-guide/npc.js` (NicoleRig = WebGL 메시 몸 + 표정 조각 + 팔 그림 바꿔 끼우기, NicoleAnim = 동작 시간표).
