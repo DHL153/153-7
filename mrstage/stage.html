@@ -8804,7 +8804,7 @@ let isGameOver = false;
     const H=stage.clientHeight||1,S=parseFloat(stage.style.getPropertyValue('--lm-enemy-size'))||H*.4,hero=S/(kind==='boss'?1.15:1)*.62;
     const core=R.coreH||R.bodyH,body=Math.min(hero*(R.size||1.15),H*(1-BATTLE_GROUND_LINE)*.98),k=body/core,w=1600*k,h=900*k;
     f.style.width=w.toFixed(1)+'px';f.style.height=h.toFixed(1)+'px';f.style.left=(S/2-R.cx*k).toFixed(1)+'px';f.style.top=(S*.9-R.gy*k).toFixed(1)+'px';f._k=k;
-    const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,eb=parseFloat(stage.style.getPropertyValue('--lm-enemy-bottom'))||0,tall=Math.min(R.bodyH*k,H*(1-BATTLE_GROUND_LINE)-17*gk-10*gk);
+    const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,eb=parseFloat(stage.style.getPropertyValue('--lm-enemy-bottom'))||0,tall=Math.min(R.bodyH*k,(R.coreH||R.bodyH)*k*1.12,H*(1-BATTLE_GROUND_LINE)-17*gk-10*gk);   // (DHL 11-12) 체력 · 방패 표시는 몸통 바로 위 — 날개 · 뿔이 높은 적(풍차 거인)도 화면 위쪽 벽에 붙지 않게
     stage.style.setProperty('--lm-hud-w',Math.max(70*gk,Math.min(S*1.4,(R.bodyW||R.bodyH)*k*.7)).toFixed(1)+'px');
     stage.style.setProperty('--lm-hud-bottom',Math.min(H-17*gk-6*gk,eb+S*.1+tall+6*gk).toFixed(1)+'px');}
   /* 리그 적의 몸 상자(무대 좌표) — 가르기 · 처치 이펙트 자리용 */
