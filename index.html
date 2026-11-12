@@ -2651,7 +2651,7 @@ function campTap(uid){const s=S.campSel,i=s.indexOf(uid),max=S.campK==='merge'?2
 function campApply(){const s=S.campSel.map(u=>S.deck.find(c=>c.uid===u));
   if(S.campK==='merge'){const [a,b]=s;if(!a||!b||!mergeKind(a,b))return;const cost=CAMP_MC[a.star+1];if(S.gold<cost)return;
     const w=[cardW(a),cardW(b)].includes(S.campW)?S.campW:cardW(a);S.gold-=cost;
-    const k=applyMerge(a,b,ELS[Math.random()*5|0],w,1+(Math.random()*10|0));S.deck.splice(S.deck.indexOf(b),1);S.merges++;
+    const k=applyMerge(a,b,ELS[Math.random()*5|0],w,rndNo());S.deck.splice(S.deck.indexOf(b),1);S.merges++;
     S.campRoll={uid:a.uid,k,re:1};return campRoll();}
   const c=s[0];if(!c)return;S.deck.splice(S.deck.indexOf(c),1);return campDone(`🚪 ${TYPES[c.id].ko} (${WORLD_KO[cardW(c)]} · ${c.el})이(가) 떠났어요 — 덱 ${S.deck.length}장`);}
 /* (DHL 11-02 시안 B) 모닥불 머지 굴리기 — 카드 위 번호 → 속성 → 힘이 하나씩 탁 멈춤 · 💰1 내고 한 번 다시 */
@@ -2663,7 +2663,7 @@ function campRoll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a)
   campSpin(a);}
 async function campSpin(a){const R=S.campRoll,my=R.tk=(R.tk||0)+1;R.busy=true;
   const C=document.getElementById('campRC');if(!C)return;const I=C.querySelector('.dzi'),no=C.querySelector('.dzno'),pw=C.querySelector('.dzpw'),el=C.querySelector('.dzel');
-  const X=(a.mixed?MIX_X:STAR_X)[a.star],pwOf=n=>Math.round(n*X),rn=()=>1+(Math.random()*10|0);
+  const X=(a.mixed?MIX_X:STAR_X)[a.star],pwOf=n=>Math.round(n*X),rn=()=>rndNo();
   const setEl=e=>{if(!I)return;I.dataset.el=EL_KEY[e];I.style.setProperty('--ec',EL_C[e]);if(el){el.title=e;el.innerHTML=ICO(EL_KEY[e]);}};
   const tx=(x,v)=>{if(!x)return;delete x.dataset.dg;x.textContent=v;};   // 그림 숫자 다시 그리게
   const pop=x=>{if(!x)return;x.classList.remove('crPop');void x.offsetWidth;x.classList.add('crPop');};
@@ -2679,7 +2679,7 @@ async function campSpin(a){const R=S.campRoll,my=R.tk=(R.tk||0)+1;R.busy=true;
   const ok=document.getElementById('campRO'),rr=document.getElementById('campRR');if(ok)ok.disabled=false;
   if(rr){rr.hidden=!(R.re>0);rr.disabled=S.gold<1;if(S.gold<1)rr.innerHTML='다시 굴리기 <span class="crPrice">💰1</span>';}}
 function campReroll(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a||R.busy||R.re<1||S.gold<1)return;
-  S.gold-=1;R.re--;a.no=1+(Math.random()*10|0);a.el=ELS[Math.random()*5|0];
+  S.gold-=1;R.re--;a.no=rndNo();a.el=ELS[Math.random()*5|0];
   const ok=document.getElementById('campRO'),rr=document.getElementById('campRR');if(ok)ok.disabled=true;if(rr)rr.hidden=true;try{render();}catch(e){}campSpin(a);}
 function campRollOk(){const R=S.campRoll,a=R&&S.deck.find(c=>c.uid===R.uid);if(!a||R.busy)return;S.campRoll=null;
   campDone(`🔨 모닥불 머지 — ${TYPES[a.id].ko} 별 ${a.star}개${R.k==='mix'?' 혼합':''} (${WORLD_KO[cardW(a)]} · ${cardNo(a)} · ${a.el})`);}
@@ -8383,7 +8383,7 @@ async function lmFinale(){
   const shown=await lmScene('reveal');
   if(!shown&&typeof popMsg==='function')popMsg('풍차가 깨어납니다…');
   const old=S.foes[2],el=ELS[Math.random()*5|0];
-  S.foes[2]={rd:2,home:old.home,hero:old.hero,no:1+(Math.random()*10|0),name:'풍차 거인',el,atk:old.atk,ints:[],atype:null,rule:bossRule(8,S.diff),boss:'windmill',tx:1};
+  S.foes[2]={rd:2,home:old.home,hero:old.hero,no:rndNo(),name:'풍차 거인',el,atk:old.atk,ints:[],atype:null,rule:bossRule(8,S.diff),boss:'windmill',tx:1};
   {const prev=S.tgt||0,base=roundTgt(2)||1;S.foes[2].tx=Math.max(1.5,prev*1.25/base);}   // 스카이아크 알론소보다 늘 높게 (최소 ×1.25)
   S.finale=1;S.busy=false;beginRound();
 }
