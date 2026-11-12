@@ -8298,7 +8298,7 @@ let isGameOver = false;
          if(Zh){Zh.style.display='block';Zh.style.left=(lh/M*100)+'%';Zh.style.width=((Math.min(hp,M)-lh)/M*100)+'%';}}
        else{H.style.display='none';if(Zh)Zh.style.display='none';}}}
     if(o.dmg>0){const eff=o.brk||!(o.cap>0)?o.dmg:Math.min(o.dmg,o.hit||o.dmg),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
-  function millPhase2(){if(stage.classList.contains('lm-mill2'))return;stage.classList.add('lm-mill2');
+  function millPhase2(){if(stage.classList.contains('lm-mill2'))return;stage.classList.add('lm-mill2');try{foeEN()?.rage(true);}catch(e){}   /* (DHL 11-12) 새 풍차 거인: 분노 2페이즈 (날개 달아오름 · 증기 · 균열) */
     if(!$('lm-mill-vig')){const v=document.createElement('div');v.id='lm-mill-vig';stage.appendChild(v);}
     try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,60,40,.45)');}catch(e){}lmSnd('sfx_boss_rule_trigger',{vol:.8,gap:1000});
     const ba=document.querySelector('#battle-stage .boss-art.lm-mill');if(ba)try{ba.animate([{scale:'1.12'},{scale:'1.2'},{scale:'1.12'}],{duration:520,easing:'cubic-bezier(.3,1.6,.5,1)'});}catch(e){}}
@@ -8821,7 +8821,7 @@ let isGameOver = false;
     const t0=performance.now();let began=false;   // 동작이 실제로 시작된 것을 본 뒤에 끝나기를 기다림 (프레임이 느린 기기에서 바로 끝난 것으로 잘못 보지 않게)
     while(performance.now()-t0<max){let s='';try{s=E.state();}catch(e){break;}if(s&&s!=='idle')began=true;else if(began||performance.now()-t0>900)break;await new Promise(r=>setTimeout(r,40));}return true;}
   async function foeIntro(){if(!foeKey)return;const R=foeReg[foeKey]||{};stage.classList.add('lm-foe-intro');
-    try{if(await foeWait(9000)){foeSize();const E=foeEN();try{E.fx(!(typeof gameSettings!=='undefined'&&gameSettings.reduceFx));}catch(e){}
+    try{if(await foeWait(9000)){foeSize();const E=foeEN();try{E.rage(false);}catch(e){}if(kind!=='boss')try{lmSnd('sfx_boss_enter',{vol:.45});}catch(e){}try{E.fx(!(typeof gameSettings!=='undefined'&&gameSettings.reduceFx));}catch(e){}
       await foePlay('enter',((R.enterMs||4000)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,220/foeRate));
       await foePlay((R.attacks||['attack'])[0],((R.attackMs||2500)*1.4+1500)/foeRate);await new Promise(r=>setTimeout(r,160/foeRate));}}
     finally{stage.classList.remove('lm-foe-intro');}}
@@ -8834,7 +8834,7 @@ let isGameOver = false;
       el.animate([{filter:'brightness(1)'},{filter:'brightness(2.4) saturate(.6)',offset:.2},{filter:'brightness(1)'}],{duration:200});}catch(_){}});
     try{const sp=document.createElement('i');sp.className='lm-hero-hit';sp.style.left=(r.left-sr.left+r.width*.62)+'px';sp.style.top=(r.top-sr.top+r.height*.5)+'px';sp.style.setProperty('--s',Math.max(36,r.height*.5)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),320);}catch(_){}
     try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate([{translate:'0 0'},{translate:'-4px 1px'},{translate:'3px -1px'},{translate:'-2px 0'},{translate:'0 0'}],{duration:190,easing:'linear'});}catch(_){}
-    try{lmSnd&&lmSnd('sfx_hero_hit',{gap:120});}catch(_){}}
+    try{lmSnd('sfx_hit_weak',{gap:120,vol:.8});}catch(_){}}   // 임시: 지금 있는 약한 타격음 (전용 피격음은 요청 예정)
   function foeAttack(){if(!foeKey||gsDead)return Promise.resolve();const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
     const hitEv=R.hitEv||['hit'];foeAtkOn=true;try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter')heroFlinch();});}catch(_){}
     return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).finally(()=>{foeAtkOn=false;});}
