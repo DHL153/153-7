@@ -2587,7 +2587,7 @@ function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h
     if(sub===0)return end('샘을 그냥 지나쳤어요');
     const others=S.orbs.filter(o=>o!==sub),gone=others[Math.random()*others.length|0];S.ost[sub]=(S.ost[sub]||1)+1;S.orbs.splice(S.orbs.indexOf(gone),1);delete S.ost[gone];if(S.ostate)delete S.ostate[gone];
     return end(`샘 — ${ORBS[sub].ko} ◆+1, ${ORBS[gone].ko} 사라짐`);}
-  if(k==='gamble'){const bet=Math.floor(S.gold/2);if(sub==null)return H('풍차 아래 노름꾼이 주사위를 흔들어요. 반반이래요.',wBtn('walkEv(1)',`🎲 💰${bet} 걸기`,`이기면 💰${bet*2} · 지면 💰0`)+wBtn('walkEv(0)','안 해요'));
+  if(k==='gamble'){const bet=Math.max(0,Math.floor(S.gold/2));if(sub==null)return H('풍차 아래 노름꾼이 주사위를 흔들어요. 반반이래요.',wBtn('walkEv(1)',`🎲 💰${bet} 걸기`,`이기면 💰${bet*2} · 지면 💰0`)+wBtn('walkEv(0)','안 해요'));
     if(sub===0)return end('노름판을 지나쳤어요');S.gold-=bet;if(Math.random()<0.5){S.gold+=bet*2;return end(`풍차 도박 승리! 💰+${bet}`);}return end(`풍차 도박 패배… 💰-${bet}`);}
   if(k==='trap'){const c=w.lost;if(sub==null)return H('발밑이 꺼졌어요!',c?`<div class="packRow"><div class="card dz s1" style="border-color:${WORLD_C[cardW(c)]}">${cardFace(c)}</div></div><p class="omNote">${TYPES[c.id].ko}이(가) 구덩이에 빠져 길을 잃었어요.</p>`+wBtn('walkEv(1)','…계속 간다'):wBtn('walkEv(1)','겨우 빠져나왔다'));
     if(c)S.deck.splice(S.deck.indexOf(c),1);return end(c?`함정 — ${TYPES[c.id].ko} 이탈 (덱 ${S.deck.length}장)`:'함정을 겨우 피했어요');}
@@ -2863,6 +2863,7 @@ function renderAtk(){
 }
 /* ───────── 렌더 ───────── */
 function render(){
+  try{const bk=(S&&S.deckK)||'';if(window._lmBk!==bk){window._lmBk=bk;lmDeckBack();}}catch(e){}   // (DHL 11-12) 카드 뒷면 = 지금 판의 덱 (연습 · 연습장으로 바뀌면 기본 뒷면으로)
   if(S.orbs&&S.orbs.some(k=>!ORBS[k]))S.orbs=S.orbs.filter(k=>ORBS[k]);
   // 진행 표시줄: 3장 ✔망령 ━ ⚔수문장 ━ 👑거인
   $('pJang').innerHTML=`<b>${S.jang}장</b> `+RD_KO.map((n,r)=>`<span class="stp${r<S.rd?' done':r===S.rd?' now':''}" title="${n}">${r<S.rd?'✔':r===S.rd?(r===2?'👑':'⚔')+n:r===2?'👑':'○'}</span>`).join('<i class="lnk">━</i>');
@@ -2876,7 +2877,7 @@ function render(){
     if(sc.some(c=>c.fog)){$('htName').textContent='? 가려진 카드';$('vC').textContent='?';$('vM').textContent='?';$('tot').textContent='';}
     else if(sc.length){const pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length)),L=(S.lv[r.ht]||1)-1;
       S.scoreU=[].concat(...[r.ht].concat(r.bonds||[]).flatMap(k=>scoringCards(pv,k,S.foe)).map(c=>c._u||[c.uid]));   // 점수에 들어가는 카드 (겹친 족보 모두)
-      const G3=mergeRun()&&!S.mrOff?mrGroups3(sc):[];if(G3.length)S.scoreU=S.scoreU.concat(...G3.map(g=>g.map(c=>c.uid)));   // (DHL 10-30) 같은 카드 3장 이상 = 어느 둘을 합칠지 아직 안 정함 → '족보 밖' 회색 표시 안 함
+      const G3=mergeRun()&&!S.mrOff&&canMergeAllowed()?mrGroups3(sc):[];if(G3.length)S.scoreU=S.scoreU.concat(...G3.map(g=>g.map(c=>c.uid)));   // (DHL 10-30) 같은 카드 3장 이상 = 어느 둘을 합칠지 아직 안 정함 → '족보 밖' 회색 표시 안 함
       $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(pv.length<sc.length?' · 머지 & 런':'')+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · '+TD():''}`:'');S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;
       if(mergeRun()&&pv.length<sc.length){S.willM=[].concat(...pv.filter(c=>c._u&&c._u.length>1).map(c=>c._u));
         if(S.bOrb==null&&G3.length)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+G3.map(g=>`<b>${TYPES[g[0].id].ko} ${g.length}장</b> → 두 장 골라 ★${g[0].star+1}`).join(' · ')+' — 런할 때 골라요';
@@ -4225,7 +4226,7 @@ function ltDeckHTML(){
   const b=deckApply({deckK:k,gold:4,runsMax:4,disMax:4,maxOrb:5,interestMax:5,rerollBase:2}),dc=lmDeckClears()[k]||{},TK=['diff_app','diff_knight','diff_errant'];
   const tag={b:['유리','tb'],x:['교환','tx'],d:['불리','td']}[D.t];
   const st=(n,v,base)=>`<i class="${v>base?'up':v<base?'dn':''}">${n} <b>${v}</b></i>`;
-  return `<div class="pl-deck pl-dk${open?'':' lock'}"><span class="pl-dkImg"><img src="${DECK_IMG(k)}" alt="">${open?'':'<span class="pl-lkb" role="img" aria-label="잠김"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg></span>'}</span><div class="pl-info">`+
+  return `<div class="pl-deck pl-dk${open?'':' lock'}"><span class="pl-dkImg"><img src="${open?DECK_IMG(k):'assets/ui/kit/decks/deck_locked.webp'}" alt=""></span><div class="pl-info">`+
     `<div class="pl-name"><button type="button" onclick="ltDeckStep(-1)" aria-label="이전 덱">&lt;</button><b>${open?D.ko+(isNew?' <em class="pl-dkNew">NEW</em>':''):'잠김'}</b><button type="button" onclick="ltDeckStep(1)" aria-label="다음 덱">&gt;</button></div>`+
     `<div class="pl-white pl-dkW">`+(open?`<p class="pl-dkD">${tag?`<em class="pl-dkT ${tag[1]}">${tag[0]}</em>`:''}${D.d}</p>`:`<p class="pl-dkD lk"><span>${ltDeckNeedTx(k)}</span></p>`)+
     (open?`<p class="pl-dkS">${st('런',b.runsMax,4)}${st('버리기',b.disMax,4)}${st('구슬 칸',b.maxOrb,5)}${st('💰',b.gold,4)}</p>`:'')+
@@ -5555,7 +5556,6 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 <style id="lm-deck-pick">/* 🂠 (DHL 11-12) 덱 고르기 칸 */
 #lm-title .pl-dk .pl-dkImg{position:relative;flex:none;width:84px;align-self:center;display:block}
 #lm-title .pl-dk .pl-dkImg>img{display:block;width:100%;aspect-ratio:512/712;object-fit:contain;filter:drop-shadow(0 3px 0 #0008)}
-#lm-title .pl-dk.lock .pl-dkImg>img{filter:grayscale(1) brightness(.5)}
 #lm-title .pl-dk .pl-dkImg .pl-lkb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 #lm-title .pl-dk .pl-name b{font-size:17px;white-space:nowrap}
 #lm-title .pl-dk .pl-dkW{display:flex;flex-direction:column;gap:4px;flex:1;padding:6px 8px}
