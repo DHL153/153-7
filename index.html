@@ -10174,4 +10174,17 @@ const LM_TERMS=[
   window.lmFitNums=all;
 })();
 </script>
+<script id="lm-win-once">
+/* (11-12 버그 · 8장 자동 점검에서 발견) 적을 쓰러뜨린 뒤 보상 창이 뜨기 전(처치 연출을 기다리는 동안) 런 · 버리기 · 머지가 다시 눌리던 문제
+   → 남은 런이 헛되이 줄고, 승리 처리가 겹치면 다음 라운드 선택 화면 위에 보상 창이 한 번 더 뜰 수 있음.
+   · 이긴 라운드에서는 보상 창이 뜰 때까지 런 · 버리기 · 머지를 받지 않음  · 같은 라운드의 승리 처리는 한 번만(15초 뒤에는 '막힌 승리 다시 처리'를 위해 허용) */
+(function(){
+  const won=()=>{try{return !!(S&&!S.practice&&!S.sandbox&&!S.selecting&&!S.inShop&&S.tgt>0&&S.score>=S.tgt);}catch(e){return false;}};
+  try{const _dp=doPlay;doPlay=function(){if(won())return;return _dp.apply(this,arguments);};}catch(e){}
+  try{const _dd=doDiscard;doDiscard=function(){if(won())return;return _dd.apply(this,arguments);};}catch(e){}
+  try{const _dm=doMerge;doMerge=function(){if(won())return;return _dm.apply(this,arguments);};}catch(e){}
+  try{const _w=win;win=function(){try{const key=(S.endless?'e':'')+(S.finale?'f':'')+S.jang+'-'+S.rd,now=Date.now();if(S._winKey===key&&now-(S._winAt||0)<15000)return;S._winKey=key;S._winAt=now;}catch(e){}return _w.apply(this,arguments);};}catch(e){}
+  try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(won()){['bPlay','bDis','bMerge'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});}}catch(e){}return r;};}catch(e){}
+})();
+</script>
 </body></html>
