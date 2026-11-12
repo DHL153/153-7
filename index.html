@@ -7271,9 +7271,9 @@ html.lmB #lm-title .lt-cb.lc-t,#lm-title .lt-cb.lc-t{position:relative;flex:1;mi
       return `<button type="button" class="lt-cb lc-t ${cls}${done?' done':''}" onclick="ltPop();window._lmBack=()=>ltPop('col');codexSub='${k}';codexSel=null;openInfo('codex')"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${k==='mate'?`<em>${t}<u>명</u></em>`:`<span class="lc-bar"><i style="--p:${p}%"></i></span><em>${n} <u>/ ${t}</u></em>`}</span>${done?'<span class="lc-badge">★ 완성</span>':''}</button>`;};
     const emb=['mill','crown','bell'].map(e=>`<span><img src="assets/ui/orb/emb_${e}.webp" alt=""></span>`).join('');
     return `<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">컬렉션</div><div class="lc-sum"><span>전체 수집</span><span class="lc-bar"><i style="--p:${pc}%"></i></span><b>${pc}%</b></div></div><div class="lc-list">`+
-      T('mate','lc-mate','동료','처음부터 모두 함께 달려요 · 눌러서 보기',nM,tM,`<img src="${A}characters/char_0004.png" alt=""><img src="${A}characters/char_0009.png" alt=""><img src="${A}characters/char_0001.png" alt="">`)+
+      T('mate','lc-mate','동료','처음부터 모두 함께 달려요',nM,tM,`<img src="${A}characters/char_0004.png" alt=""><img src="${A}characters/char_0009.png" alt=""><img src="${A}characters/char_0001.png" alt="">`)+
       T('orb','lc-orb','구슬','원정 캠프에서 만난 구슬',nOrb,orbKeys.length,emb)+
-      T('foe','lc-foe','적','전투에서 만난 적 · 눌러서 움직이는 모습 보기',nF,FK.length,`<img src="assets/ui/foe/e10.webp" alt=""><img src="assets/ui/foe/e06.webp" alt=""><img src="assets/ui/foe/e01.webp" alt="">`)+
+      T('foe','lc-foe','적','전투에서 만난 적',nF,FK.length,`<img src="assets/ui/foe/e10.webp" alt=""><img src="assets/ui/foe/e06.webp" alt=""><img src="assets/ui/foe/e01.webp" alt="">`)+
       T('giant','lc-giant','거인 규칙','거인이 건 규칙과 저주',nG,G.length,`<img class="bg" src="${A}villains/boss_0007.png" alt=""><img class="tk" src="assets/ui/lamancha/token_giant.webp" alt="">`)+
       `</div></div>`;
   };
@@ -8462,7 +8462,9 @@ function lmEndless(){hideOv();delete S._bgmEnd;S.endless=true;S._statEnded=1;cas
 @media (max-height:500px){#lm-title .lt-card.wide:has(.lc-story){max-height:96vh;max-height:96dvh}#lm-title .lc-story.lt-cb.lc-t{height:clamp(44px,calc((96dvh - 150px)/4),72px)!important}}
 /* (DHL 11-02) 컬렉션 목록도 같은 방식 — 노트북(높이 760 이하)에서 뒤로 버튼이 판 밖으로 나가지 않게 */
 #lm-title .lt-card.wide:has(.lc-sum){max-height:92vh;max-height:92dvh}
-#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{flex:none!important;min-height:0!important;height:clamp(56px,calc((92vh - 420px)/4),100px);height:clamp(56px,calc((92dvh - 420px)/4),100px)}   /* (11-12) 칸이 4개(동료 · 구슬 · 적 · 거인 규칙)가 되어 높이를 줄임 */
+#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{flex:1 1 0!important;min-height:56px!important;max-height:118px;height:auto}
+#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{position:relative}#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t .lc-txt>em{position:absolute;right:14px;top:9px;margin:0}#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t.done .lc-txt>em{top:auto;bottom:8px}
+@media (max-height:700px){#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t .lc-txt>small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}}   /* 개수는 제목 줄 오른쪽으로 — 칸이 낮아도 잘리지 않게 (완성 배지가 있으면 아래쪽) */   /* (11-13 DHL 모바일 세로 버그) 칸 높이를 화면 높이 계산식으로 잡았더니 세로 화면에서 칸이 납작해져 글자 · 진행 막대가 잘림 → 남는 높이를 네 칸이 나눠 가짐 (56~118px) */   /* (11-12) 칸이 4개(동료 · 구슬 · 적 · 거인 규칙)가 되어 높이를 줄임 */
 @media (max-height:500px){#lm-title .lt-card.wide:has(.lc-sum){min-height:0!important;max-height:96vh;max-height:96dvh}#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{height:clamp(40px,calc((96dvh - 175px)/4),72px)!important}#lm-title .lt-card:has(.lc-sum) .lc-head{padding:0}#lm-title .lt-card:has(.lc-sum) .lc-wrap,#lm-title .lt-card:has(.lc-sum) .lc-list{gap:6px}#lm-title .lt-card:has(.lc-sum) .lt-mb.back{margin-top:6px;min-height:36px}}
 #lm-title .lt-cb.lc-t.lock{pointer-events:none}
 #lm-title .lc-t.lock .lc-art img{filter:grayscale(1) brightness(.4) blur(.5px)}
