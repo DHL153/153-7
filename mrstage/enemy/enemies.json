@@ -54,7 +54,8 @@
   "enterMs": 4416,
   "attackMs": 3368,
   "hurtMs": 1750,
-  "coreH": 470
+  "coreH": 470,
+  "float": true
  },
  "e04": {
   "ko": "불꽃 창 망령",
@@ -73,7 +74,8 @@
   "enterMs": 15095,
   "attackMs": 8313,
   "hurtMs": 3164,
-  "coreH": 480
+  "coreH": 480,
+  "float": true
  },
  "e05": {
   "ko": "산양 궁수",
@@ -172,7 +174,8 @@
   "enterMs": 7237,
   "attackMs": 4738,
   "hurtMs": 2859,
-  "coreH": 430
+  "coreH": 430,
+  "float": true
  },
  "e10": {
   "ko": "눈알 두꺼비",

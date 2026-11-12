@@ -15,13 +15,15 @@
   "ko": "유령 석궁 사수",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 470
+  "coreH": 470,
+  "float": true
  },
  "e04": {
   "ko": "불꽃 창 망령",
   "kind": "normal",
   "size": 1.15,
-  "coreH": 480
+  "coreH": 480,
+  "float": true
  },
  "e05": {
   "ko": "산양 궁수",
@@ -55,7 +57,8 @@
   "ko": "타락 천사 사제",
   "kind": "boss",
   "size": 1.45,
-  "coreH": 430
+  "coreH": 430,
+  "float": true
  },
  "e10": {
   "ko": "눈알 두꺼비",
