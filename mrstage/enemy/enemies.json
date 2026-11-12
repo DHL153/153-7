@@ -35,7 +35,8 @@
   "enterMs": 5260,
   "attackMs": 3166,
   "hurtMs": 1940,
-  "coreH": 462
+  "coreH": 462,
+  "run": true
  },
  "e03": {
   "ko": "유령 석궁 사수",
@@ -55,7 +56,8 @@
   "attackMs": 3368,
   "hurtMs": 1750,
   "coreH": 470,
-  "float": true
+  "float": true,
+  "run": true
  },
  "e04": {
   "ko": "불꽃 창 망령",
@@ -75,7 +77,8 @@
   "attackMs": 8313,
   "hurtMs": 3164,
   "coreH": 480,
-  "float": true
+  "float": true,
+  "run": true
  },
  "e05": {
   "ko": "산양 궁수",
@@ -177,7 +180,8 @@
   "attackMs": 4738,
   "hurtMs": 2859,
   "coreH": 430,
-  "float": true
+  "float": true,
+  "run": true
  },
  "e10": {
   "ko": "눈알 두꺼비",

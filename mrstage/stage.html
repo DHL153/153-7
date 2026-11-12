@@ -8786,7 +8786,7 @@ let isGameOver = false;
   const show=(slots,v)=>{for(const sl of slots)actors[sl].vis=!!v;};
   /* (DHL 11-12 시안) 대치 방식 — A: 계속 달림(예전) · B: 도착하면 배경 · 주인공이 멈추고 마주 섬 · C: 적이 공격하는 동안만 멈춤.  parent.LM_STAND 또는 localStorage lm_stand */
   let standNow=false;const standMode=()=>{let v='';try{v=(window.parent&&parent.LM_STAND)||localStorage.getItem('lm_stand')||'';}catch(e){}if(['A','B','C'].includes(v))return v;   // 시험용 강제
-    const R=foeKey&&foeReg&&foeReg[foeKey];return !R?'A':R.float?'C':'B';};   // (DHL 11-12 결정) 땅을 딛은 적 = B(도착하면 멈춰 마주 섬) · 떠 있는 적 = C(달리다가 맞는 순간 멈춤)
+    const R=foeKey&&foeReg&&foeReg[foeKey];return !R?'A':R.run?'C':'B';};   // run = 달리는 방식(C) 4종: 막대말 랜스 기사 · 유령 석궁 사수 · 불꽃 창 망령 · 타락 천사 사제 / float = 살짝 떠다니는 움직임(랜스 기사 제외)   // (DHL 11-12 결정) 땅을 딛은 적 = B(도착하면 멈춰 마주 섬) · 떠 있는 적 = C(달리다가 맞는 순간 멈춤)
   const setMul=(slots,m)=>{for(const sl of slots)actors[sl].mul=(m==null&&standNow)?0:m;};
   function walk(from,to,ms,ease,slots=ALL){
     return new Promise(res=>{const t0=performance.now();
