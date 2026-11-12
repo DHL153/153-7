@@ -4,7 +4,7 @@ exec(open('stat.py').read())
 p=sys.argv[1];e=sys.argv[2] if len(sys.argv)>2 and sys.argv[2]!='-' else None;m=sys.argv[3] if len(sys.argv)>3 and sys.argv[3]!='-' else None
 S=comp(p,e,m)
 K=cv2.imread(f'k_{p}.png',-1).astype(np.float32);a=K[...,3:]/255.;K=(K[...,:3]*a+np.array([215,228,236])*(1-a)).astype(np.uint8)
-d=np.abs(S.astype(int)-K.astype(int)).max(2)>40;d[:345]=False
+d=np.abs(S.astype(int)-K.astype(int)).max(2)>40;d[:240]=False;d[np.load('face_hull.npy')>0]=False
 tiles=[]
 for y in range(300,700,80):
   for x in range(60,600,80):

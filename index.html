@@ -9165,8 +9165,8 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   const loadJs=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
   const NG='mrstage/assets/rig/nicole-guide/';
   let ready=null;
-  function load(){if(ready)return ready;ready=(window.NicoleRig?Promise.resolve():loadJs(NG+'npc.js?v=n1'))
-    .then(()=>window.NICOLE_GUIDE_DEF?0:loadJs(NG+'guide.def.js?v=e84471bb'))
+  function load(){if(ready)return ready;ready=(window.NicoleRig?Promise.resolve():loadJs(NG+'npc.js?v=n2'))
+    .then(()=>window.NICOLE_GUIDE_DEF?0:loadJs(NG+'guide.def.js?v=d852be2c'))
     .then(()=>window.NicoleGuide?0:loadJs(NG+'guide.js?v=n1'))
     .then(()=>NicoleGuide.load()).then(img=>{G=NicoleGuide.create(img);}).catch(e=>{console.warn('[니콜]',e);});return ready;}
   const noMotion=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;

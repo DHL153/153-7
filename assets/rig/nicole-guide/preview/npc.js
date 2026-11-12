@@ -38,7 +38,8 @@
   const EXPR = { smile: [null, null], laugh: ["laugh", "laugh"], surprise: ["surprise", "surprise"], sad: ["sad", "sad"], cry: ["cry", "cry"],
     worried: ["worried", "worried"], think: ["think", "think"], content: ["content", "content"] };
   const BLINK = { smile: ["half", "blink"], think: ["half", "blink"], sad: [null, "sadclosed"], cry: [null, "sadclosed"], worried: [null, "sadclosed"] };   // [half, closed]
-  const TALK = { smile: "talk", think: "talk", sad: "sadtalk", cry: "sadtalk", worried: "sadtalk", laugh: "content", content: "talk", surprise: null };
+  const TALK = { smile: "talk", think: "talk", sad: "sadtalk", cry: "sadtalk", worried: "sadtalk", laugh: null, content: "talk", surprise: null };
+  const TALKHEAD = { laugh: "content" };   // laughing talk: swap the whole head (open laugh <-> closed smile), never mix mouths
 
   class NicoleRig {
     constructor(canvas, assets) {
@@ -155,6 +156,7 @@
       const ex = EXPR[this.expr] || EXPR.smile; let eyes = ex[0], mouth = ex[1];
       if (bl && BLINK[this.expr] && pe > .5) { const b = BLINK[this.expr]; eyes = bl === 2 ? b[1] : (b[0] || b[1]) }
       if (this.mouthOpen && TALK[this.expr] !== undefined && TALK[this.expr]) mouth = TALK[this.expr];
+      if (!this.mouthOpen && this.talking && TALKHEAD[this.expr]) { eyes = TALKHEAD[this.expr]; mouth = null }
       o.patches = []; if (eyes) o.patches.push("eyes_" + eyes); if (mouth) o.patches.push("mouth_" + mouth);
       // arms: drawn frames. A gesture plays its in-between drawings in order, then holds the target drawing.
       const g = this.g, k = clamp((T - g.t0) / g.dur, 0, 1), seq = g.seq || [g.to], n = seq.length;

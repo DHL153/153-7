@@ -9,8 +9,8 @@ def comp(e,m):
   return bg
 L=[('smile',None,None),('laugh','laugh','laugh'),('content','content','content'),('blink','blink',None),('half','half',None),('surprise','surprise','surprise'),
    ('sad','sad','sad'),('sadclosed','sadclosed','sad'),('sadtalk','sad','sadtalk'),('cry','cry','cry'),('worried','worried','worried'),('think','think','think'),('talk',None,'talk')]
-t=[cv2.resize(comp(e,m)[150:330,200:450],None,fx=1.4,fy=1.4).astype(np.uint8) for _,e,m in L]
-fl=cv2.imread('faceless.png');t.append(cv2.resize(fl[150:330,200:450],None,fx=1.4,fy=1.4))
+t=[cv2.resize(comp(e,m)[80:360,150:500],None,fx=1.4,fy=1.4).astype(np.uint8) for _,e,m in L]
+fl=cv2.imread('faceless.png');t.append(cv2.resize(fl[80:360,150:500],None,fx=1.4,fy=1.4))
 for i,(n,_,_) in enumerate(L):cv2.putText(t[i],n,(3,14),0,.45,(0,0,255),1)
 t.append(np.zeros_like(t[0]))
 cv2.imwrite(sys.argv[1] if len(sys.argv)>1 else 'face3_chk.png',np.vstack([np.hstack(t[i:i+5]) for i in (0,5,10)]))
