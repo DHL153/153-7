@@ -1,0 +1,105 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>막대말 랜스 기사 리그</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#141820;--panel:#1d2330;--ink:#eef1f6;--mute:#9aa4b5;--line:#2c3446;--acc:#a070ff;--acc-ink:#120820}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141820}}
+:root[data-theme="dark"]{--bg:#141820}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.7;margin-left:5px}
+.stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#1a1420}
+canvas{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#ff8a7a;white-space:pre-wrap}
+</style><style id="lm-embed">html,body{margin:0!important;background:transparent!important;overflow:hidden!important}.wrap{max-width:none!important;padding:0!important;margin:0!important}.wrap>*:not(.stage){display:none!important}.stage{border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}canvas{display:block;width:100vw!important;height:100vh!important}</style>
+<div class="wrap">
+  <h1>막대말 랜스 기사 리그</h1>
+  <p class="sub">원화 한 장을 끊김 없는 망으로 살짝 휘게 해서 머리카락과 보라 불꽃이 일렁이고, 큰 동작은 받아 온 자세 그림을 가장 빠른 순간에 바꿔 끼워요. 이펙트 OFF를 누르면 캐릭터 움직임만 보여요. 원안: PORKSODA</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bAtk">공격<kbd>J</kbd></button><button id="bHurt">피격<kbd>H</kbd></button></div>
+    <div class="grp"><button id="bFace" aria-pressed="true">게임 방향(왼쪽 보기)</button><button id="bSlow">느리게</button><button id="bOv">원화 겹쳐 보기</button></div>
+    <div class="grp"><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1600" height="900"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장</b> 뒤쪽 화면 밖에서 막대말을 타고 네 번 깡총깡총 뛰어 들어와요. 멈추면서 말 머리를 치켜들고 랜스를 번쩍 든 뒤(히이잉), 전투 대기 자세로 내려앉아요. ON이면 착지마다 먼지, 치켜들 때 보라 불꽃이 터져요.</div>
+    <div class="note"><b>대기</b> 막대말을 타듯 0.9초마다 통통 들썩이고, 내려앉을 때 살짝 눌려요. 머리카락, 말 갈기 불꽃, 꼬리 불꽃은 뿌리를 고정한 채 끝으로 갈수록 일렁여요. 랜스는 절대 휘지 않고 몸과 같이만 움직여요.</div>
+    <div class="note"><b>공격 · 피격</b> 공격은 몸을 낮춤 → 말 머리를 치켜들며 랜스 들기(떨림) → 앞으로 돌진하며 일직선 찌르기 → 깡총깡총 뒤로 복귀예요(ON이면 잔상, 속도선, 랜스 끝 섬광, 흔들림). 피격은 3번 자세로 바뀌며 뒤로 밀렸다가 돌아와요.</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="w.js"></script>
+<script src="lance.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const imgs={};for(const n of['stance','windup','thrust','hit'])imgs[n]=await load('img/'+n+'.webp');
+const rig=new LanceRig(window.LANCE_W,imgs),an=new LanceAnim();
+const c=document.getElementById('c'),g=c.getContext('2d'),W=c.width,H=c.height,GY=800,CX=820,K=.74,A=window.LANCE_W.anchor;
+let fx=true,face=-1,slow=false,ov=false,shake=0,parts=[],last=performance.now(),OUT=null;
+const tog=(id,f)=>{const b=document.getElementById(id);b.onclick=()=>b.setAttribute('aria-pressed',f())};
+tog('bFace',()=>{face=-face;return face<0});tog('bSlow',()=>slow=!slow);tog('bOv',()=>ov=!ov);
+{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx){parts=[];shake=0}}}
+document.getElementById('bEnter').onclick=()=>an.play('enter');document.getElementById('bAtk').onclick=()=>an.state==='idle'&&an.play('attack');document.getElementById('bHurt').onclick=()=>an.state!=='enter'&&an.play('hurt');
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e')an.play('enter');if(k==='j'&&an.state==='idle')an.play('attack');if(k==='h'&&an.state!=='enter')an.play('hurt')});
+const rnd=(a,b)=>a+Math.random()*(b-a),ease=t=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,3)};
+// particles live in image space (they follow the knight's facing)
+function burst(x,y,n,col,sp,life,up=0,grav=900){for(let i=0;i<n;i++){const a=rnd(0,6.283),v=rnd(sp*.3,sp);parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-up,t:0,life:rnd(life*.5,life),col,r:rnd(3,7),g:grav})}}
+function dust(x){for(let i=0;i<10;i++)parts.push({x:x+rnd(-170,170),y:A[1]-4,vx:rnd(-160,160),vy:rnd(-90,-20),t:0,life:rnd(.35,.6),col:'rgba(150,120,100,.55)',r:rnd(10,20),g:0,soft:1})}
+function speedLines(p,tx){if(p<0||p>=1)return;g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+  for(let i=0;i<9;i++){const y=330+i*48+((i*37)%20),len=260+((i*73)%160),x1=tx+380-((i*53)%120),a=(1-p)*.75;g.strokeStyle=`rgba(200,160,255,${a})`;g.lineWidth=4+(i%3)*2;g.beginPath();g.moveTo(x1-len*(1.2-p*.6),y);g.lineTo(x1,y);g.stroke()}g.restore()}
+function tipSpark(p,tx){if(p<0||p>=1)return;const x=1015+tx,y=482;g.save();g.globalCompositeOperation='lighter';
+  const r=40+150*ease(p);g.fillStyle=`rgba(240,220,255,${1-p})`;g.beginPath();for(let i=0;i<14;i++){const a=i/14*6.283,rr=i%2?r*.28:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr*.75)}g.closePath();g.fill();
+  g.strokeStyle=`rgba(190,130,255,${(1-p)*.9})`;g.lineWidth=10*(1-p);g.beginPath();g.ellipse(x,y,30+180*ease(p),20+90*ease(p),0,0,7);g.stroke();g.restore()}
+function flameBurst(p){if(p<0||p>=1)return;g.save();g.globalCompositeOperation='lighter';const gr=g.createRadialGradient(560,420,10,560,420,320);gr.addColorStop(0,`rgba(190,130,255,${.55*(1-p)})`);gr.addColorStop(1,'rgba(150,90,255,0)');g.fillStyle=gr;g.beginPath();g.arc(560,420,320,0,7);g.fill();
+  g.strokeStyle=`rgba(220,180,255,${1-p})`;g.lineWidth=9*(1-p);g.beginPath();g.ellipse(560,430,60+300*ease(p),40+170*ease(p),0,0,7);g.stroke();g.restore()}
+function hitspark(p){if(p<0||p>=1)return;g.save();g.globalCompositeOperation='lighter';const x=470,y=470,r=30+90*ease(p);g.fillStyle=`rgba(255,250,240,${1-p})`;g.beginPath();for(let i=0;i<16;i++){const a=i/16*6.283,rr=i%2?r*.35:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill();g.restore()}
+const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.2);
+  const m=OUT.layers[OUT.layers.length-1];
+  if(fx)for(const e of an.events){if(e==='land')dust(420+(m.tx||0));if(e==='rear')burst(560,430,36,'#c79bff',520,.7,120,500);if(e==='hit')burst(1015+(m.tx||0),482,24,'#e2c8ff',560,.5,0,700);if(e==='hurt')burst(470,470,18,'#fff2e0',420,.4)}
+  for(const p of parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt}parts=parts.filter(p=>p.t<p.life)}
+function draw(now){bg();const sx=shake>0?Math.sin(now/17)*10*shake:0,sy=shake>0?Math.cos(now/23)*6*shake:0;
+  const m=OUT.layers[OUT.layers.length-1],mtx=m.tx||0,mty=m.ty||0;
+  // shadow shrinks while the knight is in the air
+  g.setTransform(1,0,0,1,sx,sy);const lift=Math.min(1,-mty/50);g.fillStyle=`rgba(0,0,0,${.38-.18*lift})`;g.beginPath();g.ellipse(CX+face*K*mtx,GY+6,250*(1-.25*lift),26*(1-.25*lift),0,0,7);g.fill();
+  const M=new DOMMatrix([K*face,0,0,K,CX+sx,GY+sy]).translate(-A[0],-A[1]);g.setTransform(M);
+  if(fx)speedLines(OUT.speed,mtx);
+  const rel=OUT.layers.map(L=>Object.assign({},L,{tx:(L.tx||0)-mtx,ty:(L.ty||0)-mty}));   // big moves are applied in 2D so the GL canvas never clips
+  const cv=rig.render(rel);g.imageSmoothingQuality='high';g.drawImage(cv,mtx-256,mty-128);
+  if(ov){g.globalAlpha=.35;g.drawImage(imgs.stance,0,0);g.globalAlpha=1}
+  if(fx){flameBurst(OUT.burst);tipSpark(OUT.spark,mtx);hitspark(OUT.hitspark);
+    g.save();for(const p of parts){g.globalCompositeOperation=p.soft?'source-over':'lighter';g.fillStyle=p.col;g.globalAlpha=1-p.t/p.life;g.beginPath();g.arc(p.x,p.y,p.r*(p.soft?1+p.t*2:1),0,7);g.fill()}g.restore();
+    if(OUT.flash>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,255,255,${OUT.flash*.06})`;g.fillRect(0,0,W,H)}}}
+window.QA={fx:v=>{fx=v;an.fxOn=v},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
+window.__rig=rig;
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
+an.play('enter');requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
+
+<script>/* 무대용 창구 (tools/enemy/build.py 가 붙임) */
+(function(){var w=window;function ok(){return !!(w.__ready&&w.QA)}
+w.EN={ready:ok,
+ play:function(s){if(!ok())return false;w.__vis=1;try{w.QA.play(s);}catch(e){return false;}return true;},
+ state:function(){try{if(!ok())return '';return w.QA.state?w.QA.state():(w.QA.anim&&w.QA.anim.state)||'';}catch(e){return '';}},
+ rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
+ idle:function(){return this.state()==='idle';},
+ hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
+ fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
+ speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
+try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
+</script>

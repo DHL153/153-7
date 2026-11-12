@@ -1,0 +1,191 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>역병 의사 화염방사병</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#121619;--panel:#1b2228;--ink:#eef1f6;--mute:#9aa6b2;--line:#2a343d;--acc:#3f8cff;--acc-ink:#04122a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121619}}
+:root[data-theme="dark"]{--bg:#121619}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.7;margin-left:5px}
+.stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#101418}
+canvas{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#ff8a7a;white-space:pre-wrap}
+</style><style id="lm-embed">html,body{margin:0!important;background:transparent!important;overflow:hidden!important}.wrap{max-width:none!important;padding:0!important;margin:0!important}.wrap>*:not(.stage){display:none!important}.stage{border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}canvas{display:block;width:100vw!important;height:100vh!important}</style>
+<div class="wrap">
+  <h1>역병 의사 화염방사병 · 적 리그</h1>
+  <p class="sub">까마귀 부리 가면을 쓰고 등에 연료통을 멘 화염방사병이에요. 놋쇠 나팔 총에서 파란 불꽃을 길게 뿜어요. 가면, 총, 통은 단단한 물건이라 휘지 않고 그림이 통째로 움직여요. 이펙트 OFF를 누르면 캐릭터 움직임과 불길만 보여요.</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bAtk">화염 방사<kbd>J</kbd></button><button id="bHurt">피격<kbd>H</kbd></button></div>
+    <div class="grp"><button id="bFace" aria-pressed="true">게임 방향(왼쪽 보기)</button><button id="bSlow">느리게</button><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1600" height="900"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장</b> 땅 틈에서 증기가 칙칙 새어 나와 연기 구름이 피어올라요. 연기 속에 검은 그림자가 서고, 렌즈 눈이 파랗게 번쩍! 그다음 무거운 걸음으로 연기를 헤치고 걸어 나와 자리를 잡고, 나팔 입구에서 김을 한 번 뿜어요.</div>
+    <div class="note"><b>대기</b> 무거운 숨에 맞춰 몸이 천천히 오르내리고, 가끔 렌즈가 반짝이며 나팔 입구에서 김이 피어올라요.</div>
+    <div class="note"><b>화염 방사 (공격)</b> 게이지 바늘이 끝까지 올라가며 몸이 덜덜 떨리고 통에서 증기가 새요. 나팔 입구에 작은 파란 불씨가 붙고, 자세를 낮추며 파란 불꽃을 화르르륵 길게 뿜어요(반동으로 뒤로 밀림, 0.25초마다 타격). 끝나면 불이 꺼지며 연기가 퐁 나와요.</div>
+    <div class="note"><b>피격</b> 뒤로 젖혀지는 자세로 휘청하며 하얗게 번쩍, 총이 하늘로 들려요. 통에서 증기가 픽 새고, 다시 자세를 잡아요.</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="plague.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const IM={};for(const n of['stance','fire','hit'])IM[n]=await load('img/'+n+'.webp');
+const an=new PlagueAnim();
+const c=document.getElementById('c'),g=c.getContext('2d'),W=c.width,H=c.height,GY=805,K=.8;
+const A=[500,797],DEG=Math.PI/180;
+// points measured on the drawings (1024² stance coordinates)
+const MOUTH={stance:[766,684,24.6],fire:[784,630,13.6],hit:[692,168,-41]};   // bell mouth centre + the way it points (deg)
+const LENS={stance:[484,441],fire:[485,440],hit:[334,319]};
+const DIAL={stance:[503,558.5,21.5,16],fire:[504,553.5,22.5,17]};   // centre, half width, half height of the dial face                                 // pressure gauge on the gun
+const TANK={stance:[262,415],fire:[262,412],hit:[195,560]};                    // top of the fuel barrel on his back
+const OFF=document.createElement('canvas'),OP=200;OFF.width=OFF.height=1024+OP*2;const oc=OFF.getContext('2d');
+let fx=true,face=-1,slow=false,shake=0,flashA=0,parts=[],smoke=[],flames=[],scorch=[],OUT=null,last=performance.now(),emitAcc=0;
+const tog=(id,f)=>{const b=document.getElementById(id);b.onclick=()=>b.setAttribute('aria-pressed',f())};
+tog('bFace',()=>{face=-face;flames=[];return face<0});tog('bSlow',()=>slow=!slow);
+{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx){parts=[];smoke=[];scorch=[];shake=0}}}
+const idle=()=>an.state==='idle';
+document.getElementById('bEnter').onclick=()=>{flames=[];an.play('enter')};document.getElementById('bAtk').onclick=()=>idle()&&an.play('attack');document.getElementById('bHurt').onclick=()=>an.state!=='enter'&&an.play('hurt');
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e'){flames=[];an.play('enter')}if(k==='j'&&idle())an.play('attack');if(k==='h'&&an.state!=='enter')an.play('hurt')});
+const rnd=(a,b)=>a+Math.random()*(b-a),ease=t=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,3)};
+// soft round sprites for flame and smoke (drawn once, then stamped)
+function blob(stops){const s=document.createElement('canvas');s.width=s.height=128;const x=s.getContext('2d'),gr=x.createRadialGradient(64,64,0,64,64,64);stops.forEach(([p,c])=>gr.addColorStop(p,c));x.fillStyle=gr;x.fillRect(0,0,128,128);return s}
+const FL=[blob([[0,'rgba(255,255,255,1)'],[.35,'rgba(215,250,255,.9)'],[1,'rgba(150,230,255,0)']]),   // white-hot core
+          blob([[0,'rgba(170,240,255,1)'],[.4,'rgba(80,190,255,.75)'],[1,'rgba(40,120,255,0)']]),     // cyan
+          blob([[0,'rgba(70,150,255,.95)'],[.45,'rgba(40,90,240,.6)'],[1,'rgba(30,40,200,0)']]),      // blue
+          blob([[0,'rgba(80,60,220,.7)'],[.5,'rgba(50,30,160,.35)'],[1,'rgba(30,10,90,0)']])];        // indigo tips
+const FLR=[blob([[0,'rgba(255,255,255,1)'],[.35,'rgba(240,225,255,.9)'],[1,'rgba(200,170,255,0)']]),
+           blob([[0,'rgba(215,190,255,1)'],[.4,'rgba(150,110,255,.75)'],[1,'rgba(110,60,255,0)']]),
+           blob([[0,'rgba(120,120,255,.95)'],[.45,'rgba(80,70,240,.6)'],[1,'rgba(60,30,200,0)']]),
+           blob([[0,'rgba(120,50,220,.7)'],[.5,'rgba(80,20,160,.35)'],[1,'rgba(40,10,90,0)']])];
+const SM=blob([[0,'rgba(170,180,186,.55)'],[.55,'rgba(140,150,158,.32)'],[1,'rgba(120,130,140,0)']]),
+      ST=blob([[0,'rgba(235,242,246,.75)'],[.5,'rgba(215,225,232,.35)'],[1,'rgba(200,210,220,0)']]),
+      GL=blob([[0,'rgba(120,200,255,1)'],[.3,'rgba(60,140,255,.45)'],[1,'rgba(30,80,255,0)']]);
+const bodyM=o=>new DOMMatrix().translate(A[0]+o.tx,A[1]+o.ty).rotate(o.rot*180/Math.PI).scale(o.sx,o.sy).translate(-A[0],-A[1]);
+const ap=(m,x,y)=>{const p=m.transformPoint(new DOMPoint(x,y));return[p.x,p.y]};
+const mouthOf=(o,BM)=>{const m=MOUTH[o.pose],d=(m[2]*DEG+o.rot),p=ap(BM,m[0]+Math.cos(m[2]*DEG)*8,m[1]+Math.sin(m[2]*DEG)*8);return[p[0],p[1],d]};
+function puff(x,y,n,o){for(let i=0;i<n;i++){const a=(o.a??-Math.PI/2)+rnd(-(o.spr??.6),o.spr??.6),v=rnd(o.v0??40,o.v1??140);smoke.push({x:x+rnd(-(o.jx??10),o.jx??10),y:y+rnd(-(o.jy??10),o.jy??10),vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:rnd(o.l0??.8,o.l1??1.5),r0:rnd(o.r0??14,(o.r0??14)*1.5),r1:rnd(o.r1??60,(o.r1??60)*1.4),spr:o.steam?ST:SM,front:o.front??(Math.random()<.5),drag:o.drag??1.2,rise:o.rise??-40,a:o.al??1})}}
+function spark(x,y,n,sp,a0,spr,col){for(let i=0;i<n;i++){const a=a0+rnd(-spr,spr),v=rnd(sp*.4,sp);parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:rnd(.25,.55),col:col||'#bfe8ff',r:rnd(2.5,5),g:600,streak:1})}}
+function ember(x,y){parts.push({x:x+rnd(-30,30),y:y+rnd(-30,30),vx:rnd(-90,90),vy:-rnd(60,220),t:0,life:rnd(.5,1),col:Math.random()<.5?'#9fe3ff':'#5aa6ff',r:rnd(2,4),g:-40,dot:1})}
+const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
+let S=null,BMc=null;
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const o=OUT;const BM=bodyM(o);BMc=BM;
+  if(fx){if(o.shake)shake=Math.max(shake,o.shake);if(o.flash)flashA=Math.max(flashA,o.flash)}shake=Math.max(0,shake-dt*2.4);flashA=Math.max(0,flashA-dt*5);
+  const ddt=o.frozen?0:dt;
+  // ---- the flame itself (always drawn: it IS the attack, not decoration)
+  if(o.flame>0&&!o.frozen){const [mx,my,d]=mouthOf(o,BM),L=o.rage?1.18:1;emitAcc+=dt*650*o.flame;
+    while(emitAcc>=1){emitAcc--;const a=d+rnd(-.13,.13),v=(Math.random()<.5?rnd(1500,1950):rnd(950,1400))*L,j=Math.random()*dt;   // j: spread births across the frame so the stream has no gaps at any frame rate
+      flames.push({x:mx+rnd(-5,5)+Math.cos(a)*v*j,y:my+rnd(-5,5)+Math.sin(a)*v*j,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:j,life:rnd(.4,.55)*L,r0:rnd(10,16),r1:rnd(80,125)*L,wob:rnd(0,6.28)})}}
+  if(o.pilot>0&&!o.frozen&&Math.random()<.9){const [mx,my,d]=mouthOf(o,BM);for(let i=0;i<2;i++){const a=d+rnd(-.4,.4),v=rnd(60,160)*o.pilot;flames.push({x:mx,y:my,vx:Math.cos(a)*v,vy:Math.sin(a)*v-40,t:0,life:rnd(.14,.24),r0:4+6*o.pilot,r1:12+18*o.pilot,pilot:1})}}
+  for(const p of flames){p.t+=ddt;const dr=Math.exp(-1.7*ddt);p.vx*=dr;p.vy=p.vy*dr-420*ddt;if(p.wob!==undefined){const w=Math.sin(p.wob+p.t*28)*520*ddt*p.t/p.life;p.vx+=-Math.sin(Math.atan2(p.vy,p.vx))*w;p.vy+=Math.cos(Math.atan2(p.vy,p.vx))*w}p.x+=p.vx*ddt;p.y+=p.vy*ddt;
+    if(p.y>A[1]-8&&p.vy>0){p.y=A[1]-8;p.vy*=-.15;p.vx*=1.02;if(fx&&!p.lick&&Math.random()<.05){scorch.push({x:p.x,t:0,life:rnd(1.6,2.4),w:rnd(30,70)});p.lick=1}}}
+  flames=flames.filter(p=>p.t<p.life);
+  if(fx&&!o.frozen){
+    for(const e of an.events){
+      if(e==='step')puff(A[0]+o.tx-40,A[1]-6,4,{a:-Math.PI/2,spr:1.4,v0:60,v1:160,r0:12,r1:45,l0:.4,l1:.7,rise:-10});
+      if(e==='hiss')for(let i=0;i<5;i++){const x=A[0]-380+rnd(-170,170);puff(x,A[1]-4,6,{steam:1,spr:.18,v0:280,v1:560,r0:4,r1:42,l0:.5,l1:.9,jx:4,jy:2,al:.55})}
+      if(e==='glint'){const p=ap(BM,...LENS[o.pose]);spark(p[0],p[1],8,420,-Math.PI/2,3.2,'#d8f4ff')}
+      if(e==='vent'||e==='choke'){const [mx,my,d]=mouthOf(o,BM);puff(mx,my,e==='choke'?14:7,{a:d,spr:.5,v0:80,v1:260,r0:10,r1:e==='choke'?70:45,l0:.6,l1:1.2,front:true})}
+      if(e==='pump'){const p=ap(BM,...TANK[o.pose]);puff(p[0],p[1],5,{steam:1,a:-Math.PI/2-.4,spr:.4,v0:160,v1:300,r0:6,r1:34,l0:.4,l1:.7,front:false})}
+      if(e==='ignite'){const [mx,my,d]=mouthOf(o,BM);spark(mx,my,22,1100,d,.5,'#e9f9ff');puff(mx,my,6,{a:d+Math.PI*.8,spr:.6,v0:80,v1:200,r0:12,r1:50,l0:.5,l1:.9,front:true})}
+      if(e==='hit'){const [mx,my,d]=mouthOf(o,BM),R=560*(o.rage?1.15:1),tx=mx+Math.cos(d)*R,ty=Math.min(A[1]-30,my+Math.sin(d)*R);spark(tx,ty,14,700,d,1.3,'#cdeeff');for(let i=0;i<6;i++)ember(tx,ty)}
+      if(e==='hurt'){const p=ap(BM,...LENS.hit);spark(p[0]-40,p[1],14,650,Math.PI,1.1,'#fff4e6');const q=ap(BM,...TANK.hit);puff(q[0],q[1],8,{steam:1,a:-Math.PI/2-.7,spr:.5,v0:200,v1:420,r0:6,r1:40,l0:.4,l1:.8,front:false})}}
+    // entrance smoke cloud: keeps billowing while o.smoke is rising
+    if(o.smoke>0&&o.smoke<1&&an.state==='enter'&&an.st<1.3){for(let i=0;i<4;i++)puff(A[0]-380+rnd(-230,230),A[1]-rnd(10,380),1,{spr:3.2,v0:10,v1:70,r0:60,r1:190,l0:1.6,l1:2.4,rise:-12,drag:1.5,al:.95})}
+    if(o.charge>0&&Math.random()<.35){const p=ap(BM,...TANK[o.pose]);puff(p[0]+rnd(-20,20),p[1],1,{steam:1,a:-Math.PI/2-.5,spr:.5,v0:120,v1:260,r0:5,r1:26,l0:.3,l1:.55,front:false})}
+    if(o.flame>.3&&Math.random()<.9){const [mx,my,d]=mouthOf(o,BM),k=rnd(.3,1),R=560*k;ember(mx+Math.cos(d)*R,my+Math.sin(d)*R)}
+    if(o.puff&&Math.random()<.25){const [mx,my,d]=mouthOf(o,BM);puff(mx,my,1,{a:-Math.PI/2+.3,spr:.3,v0:30,v1:80,r0:6,r1:30,l0:.7,l1:1.1,front:true})}
+    if(an.state==='idle'&&Math.random()<dt*.9){const [mx,my]=mouthOf(o,BM);puff(mx,my,2,{steam:1,a:-Math.PI/2,spr:.35,v0:30,v1:70,r0:4,r1:22,l0:.9,l1:1.4,front:true,al:.7})}}
+  for(const p of parts){p.t+=ddt;p.x+=p.vx*ddt;p.y+=p.vy*ddt;p.vy+=p.g*ddt;if(p.y>A[1]&&p.vy>0){p.y=A[1];p.vy*=-.3;p.vx*=.6}}parts=parts.filter(p=>p.t<p.life);
+  for(const p of smoke){p.t+=ddt;const dr=Math.exp(-p.drag*ddt);p.vx*=dr;p.vy=p.vy*dr+p.rise*ddt;p.x+=p.vx*ddt;p.y+=p.vy*ddt}smoke=smoke.filter(p=>p.t<p.life);
+  for(const k of scorch)k.t+=ddt;scorch=scorch.filter(k=>k.t<k.life)}
+// pressure-gauge needle drawn over the painted one (0 = empty, 1 = red line)
+function needle(x,y,rx,ry,v){const c=oc;c.save();c.translate(x,y);c.scale(rx/21,ry/21*1);c.scale(1,1);
+  const gr=c.createRadialGradient(-3,-6,2,0,0,21);gr.addColorStop(0,'#b4d8de');gr.addColorStop(.7,'#8fb2b8');gr.addColorStop(1,'#7a989e');c.fillStyle=gr;c.beginPath();c.arc(0,0,20.6,0,7);c.fill();   // fresh dial face covers the painted one
+  c.strokeStyle='#3a4448';c.lineWidth=1.6;for(let i=0;i<14;i++){const t=i/14*6.283;c.beginPath();c.moveTo(Math.cos(t)*16.8,Math.sin(t)*16.8);c.lineTo(Math.cos(t)*19.8,Math.sin(t)*19.8);c.stroke()}
+  c.strokeStyle='rgba(200,60,50,.9)';c.lineWidth=3;c.beginPath();c.arc(0,0,14.5,-45*DEG,-8*DEG);c.stroke();          // red zone
+  const a=(200+150*v)*DEG,ux=Math.cos(a),uy=Math.sin(a);c.lineCap='round';
+  c.strokeStyle='#2a1a16';c.lineWidth=6;c.beginPath();c.moveTo(-ux*5,-uy*5);c.lineTo(ux*15,uy*15);c.stroke();
+  c.strokeStyle='#e8eef0';c.lineWidth=3.2;c.beginPath();c.moveTo(-ux*4,-uy*4);c.lineTo(ux*3,uy*3);c.stroke();
+  c.strokeStyle='#d2463a';c.beginPath();c.moveTo(ux*3,uy*3);c.lineTo(ux*14,uy*14);c.stroke();
+  c.fillStyle='#2a1a16';c.beginPath();c.arc(0,0,3,0,7);c.fill();c.restore()}
+function drawPose(o,alpha,tint){oc.setTransform(1,0,0,1,0,0);oc.clearRect(0,0,OFF.width,OFF.height);oc.setTransform(1,0,0,1,OP,OP);oc.imageSmoothingQuality='high';oc.drawImage(IM[o.pose],0,0);
+  if(DIAL[o.pose])needle(...DIAL[o.pose],o.gauge);
+  oc.setTransform(1,0,0,1,0,0);oc.globalCompositeOperation='source-atop';
+  if(o.dark>0){oc.fillStyle=`rgba(14,18,22,${o.dark})`;oc.fillRect(0,0,OFF.width,OFF.height)}
+  if(tint){oc.fillStyle=tint;oc.fillRect(0,0,OFF.width,OFF.height)}
+  oc.globalCompositeOperation='source-over';g.globalAlpha=alpha;g.drawImage(OFF,-OP,-OP);g.globalAlpha=1}
+function drawSmoke(front){for(const p of smoke){if(p.front!==front)continue;const k=p.t/p.life,r=p.r0+(p.r1-p.r0)*ease(k),al=p.a*Math.min(1,k*6)*(1-k);if(al<=0)continue;g.globalAlpha=al;g.drawImage(p.spr,p.x-r,p.y-r,r*2,r*2)}g.globalAlpha=1}
+// each flame puff is stretched along its own speed, so fast puffs read as tongues and slow ones as rolling fire
+function drawFlames(o,BM){const T=o.rage?FLR:FL;g.save();g.globalCompositeOperation='lighter';
+  if(o.flame>0){const [mx,my,d]=mouthOf(o,BM),Lc=230*o.flame;g.save();g.translate(mx,my);g.rotate(d);   // solid jet right out of the bell, ties the stream to the gun
+    const gr=g.createLinearGradient(0,0,Lc,0);gr.addColorStop(0,'rgba(235,252,255,.8)');gr.addColorStop(.45,'rgba(110,200,255,.45)');gr.addColorStop(1,'rgba(60,120,255,0)');
+    g.fillStyle=gr;g.beginPath();g.moveTo(0,-15);g.quadraticCurveTo(Lc*.5,-26,Lc,-9);g.lineTo(Lc,9);g.quadraticCurveTo(Lc*.5,26,0,15);g.closePath();g.fill();g.restore()}
+  const base=g.getTransform(),geo=p=>{const k=p.t/p.life,sp=Math.hypot(p.vx,p.vy),str=p.pilot?1:1+Math.min(.9,sp/1500);
+      const r=(p.r0+(p.r1-p.r0)*Math.sqrt(k))*(p.wob!==undefined?1+.18*Math.sin(p.wob*3+p.t*40):1);g.setTransform(base.translate(p.x,p.y).rotate(Math.atan2(p.vy,p.vx)*180/Math.PI));return[k,r,str]};
+  // pass 1, normal blend: the deep-blue body of the fire (soft edges, purple tips)
+  g.globalCompositeOperation='source-over';
+  for(let i=flames.length-1;i>=0;i--){const p=flames[i];if(p.pilot)continue;const [k,r,str]=geo(p),al=(k<.06?k/.06:1)*(1-Math.max(0,(k-.45)/.55));
+    g.globalAlpha=al*.42;g.drawImage(T[k<.55?2:3],-r*str,-r*.75,r*2*str,r*1.5)}
+  // pass 2, additive: the hot cyan-white heart, only in the young part of the stream
+  g.globalCompositeOperation='lighter';
+  for(let i=flames.length-1;i>=0;i--){const p=flames[i],[k,r,str]=geo(p);if(!p.pilot&&k>.5)continue;const rr=p.pilot?r:r*.55,al=(k<.05?k/.05:1)*(1-k/.5);
+    g.globalAlpha=p.pilot?(1-k)*.8:al*.3;g.drawImage(T[k<.18?0:1],-rr*str,-rr*.7,rr*2*str,rr*1.4)}
+  g.setTransform(base);g.restore()}
+function draw(now){const o=OUT;bg();const sx=shake>0?Math.sin(now/15)*13*shake:0,sy=shake>0?Math.cos(now/21)*8*shake:0;
+  const CX=800-face*190,zf=fx?o.zoom:1,CAM=new DOMMatrix().translate(CX+sx,GY-260+sy).scale(zf).translate(-CX,-(GY-260));
+  S=CAM.translate(CX,GY).scale(K*face,K).translate(-A[0],-A[1]);const BM=bodyM(o),M=S.multiply(BM);
+  g.setTransform(S);g.fillStyle=`rgba(0,0,0,${.36*Math.min(1,o.alpha*1.4)})`;g.beginPath();g.ellipse(A[0]+o.tx,A[1]+4,260,24,0,0,7);g.fill();
+  if(fx){for(const k of scorch){const a=1-k.t/k.life;g.fillStyle=`rgba(10,12,20,${.45*a})`;g.beginPath();g.ellipse(k.x,A[1]+2,k.w,7,0,0,7);g.fill();
+      g.save();g.globalCompositeOperation='lighter';g.fillStyle=`rgba(60,140,255,${.35*a*a})`;g.beginPath();g.ellipse(k.x,A[1]+1,k.w*.6,4,0,0,7);g.fill();g.restore()}
+    if(o.flame>0){const [mx,my,d]=mouthOf(o,BM),R=360;g.save();g.globalCompositeOperation='lighter';g.globalAlpha=.55*o.flame;g.drawImage(GL,mx+Math.cos(d)*R-520,A[1]-90,1040,180);g.globalAlpha=.22*o.flame;g.drawImage(GL,mx+Math.cos(d)*R-700,my-500,1400,1000);g.restore()}
+    drawSmoke(false)}
+  // the plague doctor
+  g.save();g.setTransform(M);
+  let tint=null;if(fx&&flashA>0)tint=`rgba(255,255,255,${.55*flashA})`;else if(fx&&o.flame>0)tint=`rgba(110,180,255,${.13*o.flame})`;else if(fx&&o.rage)tint=`rgba(80,120,255,${.07+.04*Math.sin(now/120)})`;
+  drawPose(o,o.alpha,tint);g.restore();
+  g.setTransform(S);drawFlames(o,BM);
+  if(fx){drawSmoke(true);g.save();g.globalCompositeOperation='lighter';
+    // lens eye: glints in idle, flashes inside the entrance smoke, burns during the charge
+    const le=Math.max(o.eye,o.charge*.45,o.flame*.3);if(le>0){const p=ap(BM,...LENS[o.pose]),r=26+46*le;g.globalAlpha=Math.min(1,le);g.drawImage(GL,p[0]-r,p[1]-r,r*2,r*2);
+      if(le>.9){g.strokeStyle=`rgba(210,245,255,${Math.min(1,le-.9)})`;g.lineWidth=3;g.beginPath();g.moveTo(p[0]-r*1.6,p[1]);g.lineTo(p[0]+r*1.6,p[1]);g.moveTo(p[0],p[1]-r*.9);g.lineTo(p[0],p[1]+r*.9);g.stroke()}g.globalAlpha=1}
+    if(o.charge>0){const p=ap(BM,...DIAL[o.pose]||DIAL.stance),r=30+40*o.charge;g.globalAlpha=.6*o.charge;g.drawImage(GL,p[0]-r,p[1]-r,r*2,r*2);g.globalAlpha=1}
+    for(const p of parts){const al=Math.max(0,1-p.t/p.life);g.globalAlpha=Math.min(1,al*1.5);
+      if(p.streak){g.strokeStyle=p.col;g.lineWidth=p.r;g.lineCap='round';g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x-p.vx*.035,p.y-p.vy*.035);g.stroke();continue}
+      g.fillStyle=p.col;g.beginPath();g.arc(p.x,p.y,p.r,0,7);g.fill()}
+    g.restore();g.setTransform(1,0,0,1,0,0);
+    if(flashA>0){g.fillStyle=`rgba(225,240,255,${flashA*.07})`;g.fillRect(0,0,W,H)}
+    if(o.rage){const v=g.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,20,120,0)');v.addColorStop(1,`rgba(10,40,160,${.26+.05*Math.sin(now/200)})`);g.fillStyle=v;g.fillRect(0,0,W,H)}}}
+window.QA={fx:v=>{fx=v;an.fxOn=v;if(!v){parts=[];smoke=[];scorch=[]}},manual:false,play:s=>{if(s==='enter')flames=[];an.play(s)},rage:v=>an.rage=v,step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
+an.play('enter');step(0);requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
+
+<script>/* 무대용 창구 (tools/enemy/build.py 가 붙임) */
+(function(){var w=window;function ok(){return !!(w.__ready&&w.QA)}
+w.EN={ready:ok,
+ play:function(s){if(!ok())return false;w.__vis=1;try{w.QA.play(s);}catch(e){return false;}return true;},
+ state:function(){try{if(!ok())return '';return w.QA.state?w.QA.state():(w.QA.anim&&w.QA.anim.state)||'';}catch(e){return '';}},
+ rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
+ idle:function(){return this.state()==='idle';},
+ hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
+ fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
+ speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
+try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
+</script>

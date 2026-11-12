@@ -1,0 +1,138 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>까마귀 주술사 보스 리그</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#141820;--panel:#1d2330;--ink:#eef1f6;--mute:#9aa4b5;--line:#2c3446;--acc:#f0a03c;--acc-ink:#1e1002}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141820}}
+:root[data-theme="dark"]{--bg:#141820}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.7;margin-left:5px}
+.stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#16121c}
+canvas{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#ff8a7a;white-space:pre-wrap}
+</style><style id="lm-embed">html,body{margin:0!important;background:transparent!important;overflow:hidden!important}.wrap{max-width:none!important;padding:0!important;margin:0!important}.wrap>*:not(.stage){display:none!important}.stage{border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}canvas{display:block;width:100vw!important;height:100vh!important}</style>
+<div class="wrap">
+  <h1>까마귀 주술사 보스 리그</h1>
+  <p class="sub">보스라서 까마귀와 토템을 따로 움직여요. 꼬리 깃털이 물결치고 랜턴이 시계추처럼 흔들려요. 지팡이, 해골 가면, 뿔, 손은 절대 휘지 않아요. 이펙트 OFF를 누르면 캐릭터 움직임만 보여요. 원안: PORKSODA</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bAtk">저주<kbd>J</kbd></button><button id="bHeal">토템 회복<kbd>K</kbd></button><button id="bHurt">피격<kbd>H</kbd></button></div>
+    <div class="grp"><button id="bFace" aria-pressed="true">게임 방향(왼쪽 보기)</button><button id="bSlow">느리게</button><button id="bOv">원화 겹쳐 보기</button></div>
+    <div class="grp"><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1600" height="900"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장 (보스)</b> 땅이 갈라지며 토템이 쾅 솟아올라요. 이어서 검은 깃털 소용돌이 속에서 주술사가 어둡게 모습을 드러내고, 색이 돌아오면 부리를 쩍 벌려 까악! 포효해요(화면 흔들림).</div>
+    <div class="note"><b>대기</b> 보스답게 느리고 무겁게 숨 쉬어요. 랜턴은 시계추처럼 흔들리고 몸이 움직이면 한 박자 늦게 따라 출렁여요. 꼬리 깃털이 물결치고, ON이면 지팡이 해골의 눈빛과 랜턴 불빛이 깜빡여요.</div>
+    <div class="note"><b>저주 · 토템 회복 · 피격</b> 저주는 몸을 젖히며 해골 눈에 힘을 모으고(떨림) → 까악! 앞으로 내밀며 저주 구슬을 쏴요. 토템 회복은 지팡이를 토템 쪽으로 들면 토템이 떠오르며 빛나고 회복 십자가 피어올라요. 피격은 머리가 젖혀지며 깃털이 흩날려요.</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="w.js"></script>
+<script src="crow.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const imgs={};for(const n of['stance','cast','hit','totem'])imgs[n]=await load('img/'+n+'.webp');
+const Wt=window.CROW_W,rig=new CrowRig(Wt,imgs),an=new CrowAnim(Wt);
+const c=document.getElementById('c'),g=c.getContext('2d'),W=c.width,H=c.height,GY=800,CX=1010,K=.86,A=Wt.anchor,TA=Wt.totemAnchor;
+const EYE=[282,396],LAN=[692,749],BEAK=[650,505],TEYE=[827,518],TBASE=[830,792],CHEST=[480,600];
+let fx=true,face=-1,slow=false,ov=false,shake=0,parts=[],OUT=null,last=performance.now(),bolt=null;
+const tog=(id,f)=>{const b=document.getElementById(id);b.onclick=()=>b.setAttribute('aria-pressed',f())};
+tog('bFace',()=>{face=-face;return face<0});tog('bSlow',()=>slow=!slow);tog('bOv',()=>ov=!ov);
+{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx){parts=[];shake=0}}}
+const busy=()=>an.state!=='idle';
+document.getElementById('bEnter').onclick=()=>an.play('enter');document.getElementById('bAtk').onclick=()=>!busy()&&an.play('attack');
+document.getElementById('bHeal').onclick=()=>!busy()&&an.play('heal');document.getElementById('bHurt').onclick=()=>an.state!=='enter'&&an.play('hurt');
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e')an.play('enter');if(k==='j'&&!busy())an.play('attack');if(k==='k'&&!busy())an.play('heal');if(k==='h'&&an.state!=='enter')an.play('hurt')});
+const rnd=(a,b)=>a+Math.random()*(b-a),ease=t=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,3)};
+// image-space point -> after a layer's whole-body transform (around that layer's own anchor)
+function P(x,y,L,an0){const a=an0||A,r=L.rot||0,cs=Math.cos(r),sn=Math.sin(r),sx=L.sx??1,sy=L.sy??1,qx=x-a[0],qy=y-a[1];return[a[0]+cs*sx*qx-sn*sy*qy+(L.tx||0),a[1]+sn*sx*qx+cs*sy*qy+(L.ty||0)]}
+function PL(L){const[px,py]=Wt.pivL,an2=L.deform.lantern,dx=LAN[0]-px,dy=LAN[1]-py;return P(px+dx*Math.cos(an2)-dy*Math.sin(an2),py+dx*Math.sin(an2)+dy*Math.cos(an2),L)}
+function star(x,y,r,n,inner,col){g.fillStyle=col;g.beginPath();for(let i=0;i<n*2;i++){const a=i/(n*2)*6.283,rr=i%2?r*inner:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill()}
+function plus(x,y,s,col){g.fillStyle=col;g.fillRect(x-s*.5,y-s*.17,s,s*.34);g.fillRect(x-s*.17,y-s*.5,s*.34,s)}
+function glow(x,y,r,col,a){const gr=g.createRadialGradient(x,y,1,x,y,r);gr.addColorStop(0,`rgba(${col},${a})`);gr.addColorStop(1,`rgba(${col},0)`);g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+function feather(x,y,vx,vy,life,spin){parts.push({x,y,vx,vy,t:0,life,feather:1,a:rnd(0,6.283),va:spin||rnd(-6,6),col:['#2a1f3a','#3b2b52','#5a2440'][(Math.random()*3)|0],r:rnd(18,30),g:120})}
+function dust(x,y,n,sp){for(let i=0;i<n;i++)parts.push({x:x+rnd(-80,80),y:y-4,vx:rnd(-sp,sp),vy:rnd(-200,-40),t:0,life:rnd(.4,.8),col:'rgba(150,120,100,.5)',r:rnd(12,26),g:220,soft:1})}
+function ember(x,y,vx,vy,life,col){parts.push({x,y,vx,vy,t:0,life,col,r:rnd(3,6),g:-40,glow:1})}
+const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
+let swT=0,healT=0;
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const B=OUT.bird,T=OUT.totem;if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2);
+  for(const e of an.events)if(e==='cast'){bolt={from:P(EYE[0],EYE[1],B),rot:B.rot||0}}   // the curse orb is the attack itself: shown with effects OFF too
+  if(fx){
+    for(const e of an.events){
+      if(e==='totem')dust(TBASE[0],TBASE[1],22,420);
+      if(e==='roar'){const b=P(BEAK[0],BEAK[1],B);for(let i=0;i<14;i++)feather(b[0]+rnd(-40,40),b[1]+rnd(-40,40),rnd(-500,500),rnd(-500,200),rnd(.7,1.2))}
+      if(e==='cast'){const p=P(EYE[0],EYE[1],B);for(let i=0;i<14;i++)ember(p[0],p[1],rnd(-200,500),rnd(-300,300),rnd(.3,.6),'#ffb050')}
+      if(e==='hurt'){const p=P(CHEST[0],CHEST[1],B);for(let i=0;i<12;i++)feather(p[0],p[1],rnd(-520,200),rnd(-420,120),rnd(.6,1.1))}}
+    if(OUT.swirl>=0&&OUT.swirl<1){swT+=dt;while(swT>.012){swT-=.012;const a=rnd(0,6.283),r=rnd(220,380)*(1-OUT.swirl*.5),cx=A[0]+20,cy=A[1]-250;
+      parts.push({x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*.75,t:0,life:rnd(.45,.75),feather:1,orbit:{cx,cy,a,r,w:rnd(5,8)},a:a,va:rnd(-6,6),col:['#2a1f3a','#3b2b52','#5a2440'][(Math.random()*3)|0],r2:rnd(18,32),g:0,vx:0,vy:0})}}
+    if(OUT.charge>=0&&OUT.charge<1&&Math.random()<.6){const p=P(EYE[0],EYE[1],B),a=rnd(0,6.283),d=rnd(140,220);parts.push({x:p[0]+Math.cos(a)*d,y:p[1]+Math.sin(a)*d,vx:-Math.cos(a)*d*2.6,vy:-Math.sin(a)*d*2.6,t:0,life:.36,col:'#ffb050',r:rnd(3,6),g:0,glow:1})}
+    if(OUT.heal>=0&&OUT.heal<1){healT+=dt;while(healT>.09){healT-=.09;const p=P(TEYE[0]+rnd(-90,90),TEYE[1]+rnd(-40,160),T,TA);parts.push({x:p[0],y:p[1],vx:rnd(-20,20),vy:rnd(-150,-90),t:0,life:rnd(.8,1.2),plus:1,r:rnd(22,38),col:'#9dff6a',g:-20})}}}
+  for(const p of parts){p.t+=dt;if(p.orbit){const o=p.orbit;o.a+=o.w*dt;o.r*=1-1.6*dt;p.x=o.cx+Math.cos(o.a)*o.r;p.y=o.cy+Math.sin(o.a)*o.r*.75;p.a+=p.va*dt;continue}
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt;if(p.feather){p.a+=p.va*dt;p.vx*=.96;p.vy=Math.min(p.vy,180)}}parts=parts.filter(p=>p.t<p.life)}
+function draw(now){bg();const sx=shake>0?Math.sin(now/17)*12*shake:0,sy=shake>0?Math.cos(now/23)*7*shake:0;
+  const B=OUT.bird,T=OUT.totem;
+  g.setTransform(1,0,0,1,sx,sy);
+  g.fillStyle=`rgba(0,0,0,${.36*Math.min(1,OUT.rise*1.3)})`;g.beginPath();g.ellipse(CX+face*K*(B.tx||0),GY+6,300,26,0,0,7);g.fill();
+  g.fillStyle=`rgba(0,0,0,${.34*OUT.totemRise})`;g.beginPath();g.ellipse(CX+face*K*(TBASE[0]-A[0]),GY+6,95,16,0,0,7);g.fill();
+  const M=new DOMMatrix([K*face,0,0,K,CX+sx,GY+sy]).translate(-A[0],-A[1]);g.setTransform(M);
+  // ground cracks under the totem
+  if(fx&&OUT.crack>=0&&OUT.crack<1){const p=OUT.crack,a=Math.sin(Math.PI*p);g.save();g.strokeStyle=`rgba(255,170,80,${.9*a})`;g.lineWidth=5;g.lineCap='round';
+    for(let i=0;i<7;i++){const ang=Math.PI+i/6*Math.PI,len=(60+((i*37)%50))*ease(p*1.6);g.beginPath();g.moveTo(TBASE[0],TBASE[1]);g.lineTo(TBASE[0]+Math.cos(ang)*len*1.8,TBASE[1]+Math.sin(ang)*len*.25+((i%2)*6));g.stroke()}
+    g.globalCompositeOperation='lighter';glow(TBASE[0],TBASE[1],160,'255,140,60',.5*a);g.restore()}
+  // totem: its own sprite, clipped at the floor while it bursts up
+  {const cv=rig.render([T]);g.save();if(OUT.totemRise<1){g.beginPath();g.rect(-3000,-3000,8000,TBASE[1]+3000+4);g.clip()}g.imageSmoothingQuality='high';g.drawImage(cv,-256,-128);g.restore()}
+  if(fx&&OUT.heal>=0&&OUT.heal<1){const p=P(TEYE[0],TEYE[1]+60,T,TA),k=OUT.heal;g.save();g.globalCompositeOperation='lighter';glow(p[0],p[1],260,'150,255,110',.35*Math.sin(Math.PI*k));
+    for(let i=0;i<2;i++){const q=(k*2+i*.5)%1;g.strokeStyle=`rgba(170,255,130,${.6*(1-q)})`;g.lineWidth=6*(1-q);g.beginPath();g.ellipse(p[0],TBASE[1],40+220*q,10+40*q,0,0,7);g.stroke()}g.restore()}
+  // crow
+  {const cv=rig.render([B]);g.imageSmoothingQuality='high';g.drawImage(cv,-256,-128)}
+  if(ov){g.globalAlpha=.35;g.drawImage(imgs.stance,0,0);g.drawImage(imgs.totem,0,0);g.globalAlpha=1}
+  // curse orb (the attack itself)
+  if(OUT.bolt>=0&&OUT.bolt<1&&bolt){const d=2200*ease(OUT.bolt*1.05),x=bolt.from[0]+d,y=bolt.from[1]+Math.sin(OUT.bolt*14)*10;g.save();
+    if(fx){g.globalCompositeOperation='lighter';for(let i=1;i<=6;i++)glow(x-i*55,y,40-i*4,'255,120,40',.35*(1-i/7));glow(x,y,130,'255,150,60',.7)}
+    g.globalCompositeOperation='source-over';g.fillStyle='#2a0f1a';g.beginPath();g.arc(x,y,44,0,7);g.fill();g.fillStyle='#ff9a3c';g.beginPath();g.arc(x,y,31,0,7);g.fill();g.fillStyle='#fff0d0';g.beginPath();g.arc(x+6,y-6,13,0,7);g.fill();g.restore()}
+  if(fx){g.save();g.globalCompositeOperation='lighter';
+    const e=P(EYE[0],EYE[1],B),ea=OUT.charge>=0&&OUT.charge<1?.3+.3*OUT.charge:.18+.18*OUT.eye;glow(e[0],e[1],36+34*(OUT.charge>0?OUT.charge:0),'255,160,60',ea*Math.min(1,OUT.rise*1.5));   // small: never washes out the skull mask
+    if(OUT.charge>=0&&OUT.charge<1)star(e[0],e[1],12+30*OUT.charge,4,.12,`rgba(255,230,180,${.75*OUT.charge})`);
+    const l=PL(B);glow(l[0],l[1],70,'255,170,70',(.22+.1*Math.sin(now/180))*Math.min(1,OUT.rise*1.5));
+    if(OUT.roar>=0&&OUT.roar<1){const b=P(BEAK[0],BEAK[1],B);for(let i=0;i<3;i++){const q=(OUT.roar*1.6+i*.3)%1;g.strokeStyle=`rgba(255,190,120,${.7*(1-q)*(1-OUT.roar)})`;g.lineWidth=8*(1-q);g.beginPath();g.arc(b[0],b[1],40+260*q,-1.1,1.1);g.stroke()}}
+    if(OUT.hitspark>=0&&OUT.hitspark<1){const p=P(CHEST[0],CHEST[1],B),k=OUT.hitspark;star(p[0],p[1],30+100*ease(k),8,.35,`rgba(255,250,240,${1-k})`)}
+    g.restore();
+    g.save();for(const p of parts){const al=Math.max(0,1-p.t/p.life);g.globalAlpha=al;
+      if(p.feather){g.globalCompositeOperation='source-over';g.save();g.translate(p.x,p.y);g.rotate(p.a);g.fillStyle=p.col;const r=p.r||p.r2;g.beginPath();g.ellipse(0,0,r,r*.32,0,0,7);g.fill();g.strokeStyle='rgba(10,5,15,.8)';g.lineWidth=2;g.beginPath();g.moveTo(-r,0);g.lineTo(r,0);g.stroke();g.restore();continue}
+      if(p.plus){g.globalCompositeOperation='lighter';g.save();g.translate(p.x,p.y);g.scale(face,1);plus(0,0,p.r*(1+.2*Math.sin(p.t*10)),p.col);g.restore();continue}
+      g.globalCompositeOperation=p.glow?'lighter':'source-over';g.fillStyle=p.col;g.beginPath();g.arc(p.x,p.y,p.r*(p.soft?1+p.t*2:1),0,7);g.fill()}g.restore();
+    if(OUT.flash>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,235,210,${OUT.flash*.07})`;g.fillRect(0,0,W,H)}}}
+window.QA={fx:v=>{fx=v;an.fxOn=v;if(!v)parts=[]},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
+window.__rig=rig;
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
+an.play('enter');step(0);requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
+
+<script>/* 무대용 창구 (tools/enemy/build.py 가 붙임) */
+(function(){var w=window;function ok(){return !!(w.__ready&&w.QA)}
+w.EN={ready:ok,
+ play:function(s){if(!ok())return false;w.__vis=1;try{w.QA.play(s);}catch(e){return false;}return true;},
+ state:function(){try{if(!ok())return '';return w.QA.state?w.QA.state():(w.QA.anim&&w.QA.anim.state)||'';}catch(e){return '';}},
+ rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
+ idle:function(){return this.state()==='idle';},
+ hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
+ fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
+ speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
+try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
+</script>

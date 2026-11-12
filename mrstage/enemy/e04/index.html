@@ -1,0 +1,119 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>불꽃 창 망령 리그</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#141820;--panel:#1d2330;--ink:#eef1f6;--mute:#9aa4b5;--line:#2c3446;--acc:#ff7a3a;--acc-ink:#1e0a02}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141820}}
+:root[data-theme="dark"]{--bg:#141820}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.7;margin-left:5px}
+.stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#16121c}
+canvas{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#ff8a7a;white-space:pre-wrap}
+</style><style id="lm-embed">html,body{margin:0!important;background:transparent!important;overflow:hidden!important}.wrap{max-width:none!important;padding:0!important;margin:0!important}.wrap>*:not(.stage){display:none!important}.stage{border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}canvas{display:block;width:100vw!important;height:100vh!important}</style>
+<div class="wrap">
+  <h1>불꽃 창 망령 리그</h1>
+  <p class="sub">공중에 떠 있는 유령이라 그림 전체를 자유롭게 돌리고 날려요. 불꽃만 물결치고, 갑옷·투구·손·창은 절대 휘지 않아요. 이펙트 OFF를 누르면 캐릭터 움직임만 보여요.</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bAtk">공격<kbd>J</kbd></button><button id="bHurt">피격<kbd>H</kbd></button></div>
+    <div class="grp"><button id="bFace" aria-pressed="true">게임 방향(왼쪽 보기)</button><button id="bSlow">느리게</button><button id="bOv">원화 겹쳐 보기</button></div>
+    <div class="grp"><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1600" height="900"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장</b> 화면 오른쪽 아래에서 불꽃 꼬리를 끌며 대각선으로 부웅 솟구쳐요. 살짝 지나쳤다가 몸을 젖혀 급브레이크를 걸고(불꽃이 확 일어남), 둥실 떠서 멈춰요.</div>
+    <div class="note"><b>대기</b> 둥실둥실 떠다니고, 몸은 반 박자 늦게 기울어요. 불꽃은 두 개의 물결로 계속 일렁이고, ON이면 불티가 피어올라요.</div>
+    <div class="note"><b>공격 · 피격</b> 공격은 위로 떠오르며 창을 치켜들고(떨림, 불꽃 커짐) → 내리꽂기 그림으로 바뀌며 왼쪽 아래로 돌진 → 땅에 꽂히는 충격(멈칫) → 포물선을 그리며 복귀예요. 피격은 뒤로 밀린 그림으로 바뀌며 불꽃이 흩어져요.</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="w.js"></script>
+<script src="spear.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const imgs={};for(const n of['stance','strike','hit'])imgs[n]=await load('img/'+n+'.webp');
+const Wt=window.SPEAR_W,rig=new SpearRig(Wt,imgs),an=new SpearAnim();
+const c=document.getElementById('c'),g=c.getContext('2d'),W=c.width,H=c.height,GY=800,CX=1010,HY=410,K=.6,A=Wt.anchor;
+const TIP_STRIKE=[58,967];
+let fx=true,face=1,slow=false,ov=false,shake=0,parts=[],OUT=null,last=performance.now(),emT=0,trT=0;
+const tog=(id,f)=>{const b=document.getElementById(id);b.onclick=()=>b.setAttribute('aria-pressed',f())};
+tog('bFace',()=>{face=-face;return face>0});tog('bSlow',()=>slow=!slow);tog('bOv',()=>ov=!ov);
+{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx){parts=[];shake=0}}}
+document.getElementById('bEnter').onclick=()=>an.play('enter');document.getElementById('bAtk').onclick=()=>an.state==='idle'&&an.play('attack');document.getElementById('bHurt').onclick=()=>an.state!=='enter'&&an.play('hurt');
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e')an.play('enter');if(k==='j'&&an.state==='idle')an.play('attack');if(k==='h'&&an.state!=='enter')an.play('hurt')});
+const rnd=(a,b)=>a+Math.random()*(b-a),ease=t=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,3)};
+// image-space point -> image-space point after the rig's whole-body transform
+function P(x,y,L){const r=L.rot||0,cs=Math.cos(r),sn=Math.sin(r),sx=L.sx??1,sy=L.sy??1,qx=x-A[0],qy=y-A[1];return[A[0]+cs*sx*qx-sn*sy*qy+(L.tx||0),A[1]+sn*sx*qx+cs*sy*qy+(L.ty||0)]}
+const GROUND=A[1]+(GY-HY)/K;   // the floor line in image space
+function star(x,y,r,n,inner,col){g.fillStyle=col;g.beginPath();for(let i=0;i<n*2;i++){const a=i/(n*2)*6.283,rr=i%2?r*inner:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill()}
+const EMB=['#ffb347','#ff7a2a','#ff4d3a','#ffd27a'];
+function ember(x,y,vx,vy,life,r){parts.push({x,y,vx,vy,t:0,life,col:EMB[(Math.random()*4)|0],r:r||rnd(3,7),g:-60,glow:1})}
+function burst(x,y,n,sp,up=0){for(let i=0;i<n;i++){const a=rnd(0,6.283),v=rnd(sp*.3,sp);ember(x,y,Math.cos(a)*v,Math.sin(a)*v-up,rnd(.35,.8))}}
+function dust(x,y){for(let i=0;i<14;i++)parts.push({x:x+rnd(-60,60),y:y-4,vx:rnd(-380,380),vy:rnd(-160,-30),t:0,life:rnd(.4,.7),col:'rgba(140,110,100,.5)',r:rnd(12,24),g:200,soft:1})}
+const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
+  if(fx){
+    emT+=dt;while(emT>.07){emT-=.07;const p=P(A[0]+rnd(40,330),A[1]+rnd(-200,330),L);ember(p[0],p[1],rnd(-30,50),rnd(-160,-60),rnd(.6,1.1),rnd(2.5,5))}
+    if(OUT.trail){trT+=dt;while(trT>.012){trT-=.012;const p=P(A[0]+rnd(80,360),A[1]+rnd(60,380),L);ember(p[0],p[1],rnd(60,200),rnd(20,120),rnd(.3,.6),rnd(4,9))}}
+    if(OUT.gather>=0&&OUT.gather<1&&Math.random()<.7){const a=rnd(0,6.283),d=rnd(260,380),q=P(A[0],A[1],L);parts.push({x:q[0]+Math.cos(a)*d,y:q[1]+Math.sin(a)*d,vx:-Math.cos(a)*d*2.2,vy:-Math.sin(a)*d*2.2,t:0,life:.42,col:EMB[(Math.random()*4)|0],r:rnd(3,6),g:0,glow:1})}
+    for(const e of an.events){const q=P(A[0],A[1],L);
+      if(e==='brake')burst(q[0]+120,q[1]+80,40,620,60);
+      if(e==='hit'){const t=P(TIP_STRIKE[0],TIP_STRIKE[1],L);burst(t[0],Math.min(t[1],GROUND),34,760,240);dust(t[0],GROUND)}
+      if(e==='hurt')burst(q[0]+60,q[1],44,700,80);
+      if(e==='puff')burst(q[0]+80,q[1]+40,22,420,40)}}
+  for(const p of parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt;if(!p.soft){p.vx*=.985}}parts=parts.filter(p=>p.t<p.life)}
+function speedLines(v,dir,L){if(v<=0)return;g.save();g.globalCompositeOperation='lighter';g.lineCap='round';const q=P(A[0],A[1],L),ux=Math.cos(dir),uy=Math.sin(dir),nx=-uy,ny=ux;
+  for(let i=0;i<10;i++){const off=(i-4.5)*58+((i*37)%23),len=300+((i*71)%220),back=200+((i*53)%160),x1=q[0]-ux*back+nx*off,y1=q[1]-uy*back+ny*off;
+    g.strokeStyle=`rgba(255,${150+((i*29)%70)},90,${.55*v})`;g.lineWidth=3+(i%3)*2;g.beginPath();g.moveTo(x1,y1);g.lineTo(x1-ux*len,y1-uy*len);g.stroke()}g.restore()}
+function draw(now){bg();const sx=shake>0?Math.sin(now/17)*12*shake:0,sy=shake>0?Math.cos(now/23)*7*shake:0;
+  const L=OUT.layers[OUT.layers.length-1],mtx=L.tx||0,mty=L.ty||0;
+  // shadow: the wraith floats, so the shadow sits on the floor and shrinks / fades with height
+  g.setTransform(1,0,0,1,sx,sy);const h=Math.max(0,(GY-(HY+K*mty)))/400,on=Math.max(0,Math.min(1,1-Math.abs(face*K*mtx)/700));
+  g.fillStyle=`rgba(0,0,0,${(.34-.12*Math.min(1,h))*on})`;g.beginPath();g.ellipse(CX+face*K*mtx-face*30,GY+6,200*(1.1-.25*Math.min(1,h)),20,0,0,7);g.fill();
+  const M=new DOMMatrix([K*face,0,0,K,CX+sx,HY+sy]).translate(-A[0],-A[1]);g.setTransform(M);
+  if(fx)speedLines(OUT.speed,OUT.speedDir,L);
+  if(fx&&OUT.gather>=0&&OUT.gather<1){const q=P(A[0]+60,A[1],L),k=OUT.gather;g.save();g.globalCompositeOperation='lighter';const gr=g.createRadialGradient(q[0],q[1],10,q[0],q[1],420);gr.addColorStop(0,`rgba(255,120,40,${.35*k})`);gr.addColorStop(1,'rgba(255,80,30,0)');g.fillStyle=gr;g.beginPath();g.arc(q[0],q[1],420,0,7);g.fill();g.restore()}
+  const rel=OUT.layers.map(Q=>Object.assign({},Q,{tx:(Q.tx||0)-mtx,ty:(Q.ty||0)-mty}));const cv=rig.render(rel);
+  g.imageSmoothingQuality='high';g.drawImage(cv,mtx-384,mty-256);
+  if(ov){g.globalAlpha=.35;g.drawImage(imgs.stance,0,0);g.globalAlpha=1}
+  if(fx){g.save();g.globalCompositeOperation='lighter';
+    if(OUT.burst>=0&&OUT.burst<1){const q=P(A[0]+90,A[1]+60,L),p=OUT.burst;g.strokeStyle=`rgba(255,150,60,${1-p})`;g.lineWidth=14*(1-p);g.beginPath();g.ellipse(q[0],q[1],80+420*ease(p),60+300*ease(p),0,0,7);g.stroke()}
+    if(OUT.impact>=0&&OUT.impact<1){const t=P(TIP_STRIKE[0],TIP_STRIKE[1],L),p=OUT.impact,y=Math.min(t[1],GROUND);
+      star(t[0],y,60+260*ease(p),10,.22,`rgba(255,230,190,${1-p})`);g.strokeStyle=`rgba(255,130,50,${(1-p)*.95})`;g.lineWidth=16*(1-p);g.beginPath();g.ellipse(t[0],GROUND,60+520*ease(p),14+80*ease(p),0,0,7);g.stroke()}
+    g.restore();
+    g.save();for(const p of parts){g.globalCompositeOperation=p.glow?'lighter':'source-over';g.fillStyle=p.col;g.globalAlpha=Math.max(0,1-p.t/p.life);g.beginPath();g.arc(p.x,p.y,p.r*(p.soft?1+p.t*2:1-.5*p.t/p.life),0,7);g.fill()}g.restore();
+    if(OUT.flash>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,230,200,${OUT.flash*.08})`;g.fillRect(0,0,W,H)}}}
+window.QA={fx:v=>{fx=v;an.fxOn=v;if(!v)parts=[]},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
+window.__rig=rig;window.__P=(x,y)=>{const L=OUT.layers[OUT.layers.length-1];const p=P(x,y,L);return[CX+K*face*(p[0]-A[0]),HY+K*(p[1]-A[1])]};
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
+an.play('enter');step(0);requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
+
+<script>/* 무대용 창구 (tools/enemy/build.py 가 붙임) */
+(function(){var w=window;function ok(){return !!(w.__ready&&w.QA)}
+w.EN={ready:ok,
+ play:function(s){if(!ok())return false;w.__vis=1;try{w.QA.play(s);}catch(e){return false;}return true;},
+ state:function(){try{if(!ok())return '';return w.QA.state?w.QA.state():(w.QA.anim&&w.QA.anim.state)||'';}catch(e){return '';}},
+ rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
+ idle:function(){return this.state()==='idle';},
+ hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
+ fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
+ speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
+try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
+</script>

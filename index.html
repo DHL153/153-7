@@ -2528,8 +2528,18 @@ function newGame(diff){
 }
 /* 장의 빌런 3명(망령 · 수문장 · 거인)을 장이 시작될 때 정한다 — 거인 규칙을 미리 보고 준비 */
 const giantKey=R=>R?(R.k==='ban'?({'부상':'inj','세계 봉쇄':'wban','속성 봉쇄':'elban'}[R.ko]||'inj'):R.k):null;
+/* 👹 (DHL 11-12) 새 적 15종 — 움직이는 리그(mrstage/enemy/<키>). 망령 = 약한 쪽(5장부터는 전부) · 수문장 = 센 쪽 · 거인 = 보스 3종을 장마다 돌려 씀 · 편력 결전 = 풍차 거인
+   한 판 안에서는 같은 적이 다 나올 때까지 겹치지 않게 뽑음. 특별 보스(스카이아크 알론소)는 예전 그림 그대로(rig 0) */
+const FOE_KO={e01:'클로 망령',e02:'막대말 랜스 기사',e03:'유령 석궁 사수',e04:'불꽃 창 망령',e05:'산양 궁수',e06:'까마귀 주술사',e07:'녹슨 풍차 거인',e08:'졸음 북치기 새',e09:'타락 천사 사제',e10:'눈알 두꺼비',e11:'거북이 몽둥이 전사',e12:'좀비 의사',e13:'해골 복서 오우거',e14:'역병 의사 화염방사병',e15:'해적 게'};
+const FOE_RIG={weak:['e10','e11','e08','e01','e05'],strong:['e03','e02','e04','e12','e15','e14'],boss:['e06','e09','e13'],final:'e07'};
+function foeRigPick(f,jang,r){if(f.boss==='windmill')return FOE_RIG.final;if(f.boss)return 0;
+  if(r===2)return FOE_RIG.boss[(Math.max(1,jang)-1)%FOE_RIG.boss.length];
+  const pool=r===0?(jang<=4?FOE_RIG.weak:FOE_RIG.weak.concat(FOE_RIG.strong)):FOE_RIG.strong;
+  const seen=S.foeSeen=S.foeSeen||[];let c=pool.filter(k=>!seen.includes(k));if(!c.length){S.foeSeen=seen.filter(k=>!pool.includes(k));c=pool.slice();}
+  const k=c[Math.random()*c.length|0];S.foeSeen.push(k);return k;}
+function foeRigSet(f,jang,r){if(!f||f.rig!=null)return f;const k=foeRigPick(f,jang,r);f.rig=k;if(k)f.name=FOE_KO[k];return f;}
 function ensureFoes(){if(!S.foes||S.foesJang!==S.jang){S.foes=S.foesNext||makeFoes(JANG_WORLD(S.jang),S.jang,S.diff);S.foesNext=null;S.foesJang=S.jang;codexMark('giant',giantKey(S.foes[2].rule));}
-  S.foes.forEach((f,r)=>{if(!f.hero)f.hero=heroFor(S.jang,r);if(!f.no)f.no=rndNo();});S.foe=S.foes[S.rd];}
+  S.foes.forEach((f,r)=>{if(!f.hero)f.hero=heroFor(S.jang,r);if(!f.no)f.no=rndNo();foeRigSet(f,S.jang,r);});S.foe=S.foes[S.rd];}
 /* 야영 (망령 · 수문장 대신): 그 라운드의 돈 · 머지 기회 · 원정 캠프를 모두 포기하고 정비 하나를 한다 */
 const scoutCost=()=>5+S.jang;
 const CAMP={
@@ -3619,7 +3629,7 @@ const lPos=k=>Math.max(0,LEARN_ORDER.indexOf(k)),lNext=()=>LEARN_ORDER.find(k=>!
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 let LEARN_SEEN=lsGet('lm_learn_seen',[]);
-let CODEX=lsGet('lm_codex',{orb:{},giant:{}});
+let CODEX=lsGet('lm_codex',{orb:{},giant:{}});if(!CODEX.foe)CODEX.foe={};   // foe = 만난 적 (DHL 11-12)
 function codexMark(kind,key){if(!key||CODEX[kind][key])return;CODEX[kind][key]=1;lsSet('lm_codex',CODEX);try{lmDeckCheck();}catch(e){}}
 const infoClose=()=>`<button class="iClose lmIco" onclick="ibBackOut()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button>`;
 /* (11-06 외부 피드백 버그) 원정 캠프 · 야영 · 보상 창 위에서 런 정보 · 배우기를 열고 '뒤로'를 누르면 그 창이 닫혀 버려
@@ -4641,7 +4651,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r134" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r135" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4670,7 +4680,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     /* (DHL 10-30) 편력 피날레: 스카이아크 알론소전 = 러스트 알론소 단독 · 풍차 거인전 = 세 알론소(러스트 · 네온 · 스카이) — 땅은 그 장 세계 */
     if(S.foe.boss==='skyAlonso'){team=[1];ground=1+OFF[fw];}
     if(S.foe.boss==='windmill'){team=[1,11,21];ground=1+OFF[fw];}
-    const rd=S.rd,tm=team.slice();const bossArt=(window.LM_BOSS_ART||{})[S.foe.boss]||null;const pack=S.foe.boss==='windmill'?[38,25,12]:null;call(st=>st.round({ground,pack,team:tm,rd,enemy:{kind:boss?'boss':'normal',name:S.foe.name,maxHp,hp,level:S.jang,bossArt}}));   // 라운드 시작을 한 번에: 주인공의 배경 · 밤에서 걸어 들어옴
+    const rd=S.rd,tm=team.slice();const bossArt=(window.LM_BOSS_ART||{})[S.foe.boss]||null;const pack=S.foe.boss==='windmill'?[38,25,12]:null;try{foeRigSet(S.foe,S.jang||1,S.rd||0);if(S.foe.rig&&!S.practice&&!S.sandbox)codexMark('foe',S.foe.rig);}catch(e){}call(st=>st.round({ground,pack,team:tm,rd,enemy:{kind:boss?'boss':'normal',name:S.foe.name,maxHp,hp,level:S.jang,bossArt,rig:S.foe.rig||null}}));   // 라운드 시작을 한 번에: 주인공의 배경 · 밤에서 걸어 들어옴
     renderTag();setTimeout(warmHand,2500);
   }
   // ── 적 정보: 적 머리 쪽
@@ -4774,6 +4784,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     const changed=false;
     const maxHp=Math.max(1,S.tgt||1);
     call(st=>{st.setHp(Math.max(0,maxHp-S.score),maxHp);if(changed)setTimeout(()=>st.setTeam(team),900);});
+    call(st=>{try{st.foeAttack&&st.foeAttack();}catch(e){}});   // (DHL 11-12) 런으로 못 잡으면 적이 공격 동작 한 번 (피해 없음)
     renderTag();
   }
   // 처치 컷신을 끝까지 보고 나서 보상 화면으로 (최대 3초 기다림)

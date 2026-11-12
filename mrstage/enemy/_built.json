@@ -1,0 +1,77 @@
+[
+ {
+  "key": "e01",
+  "slug": "claw_ghost",
+  "title": "클로 망령 리그"
+ },
+ {
+  "key": "e02",
+  "slug": "hobbyhorse_lancer",
+  "title": "막대말 랜스 기사 리그"
+ },
+ {
+  "key": "e03",
+  "slug": "ghost_crossbow",
+  "title": "유령 석궁 사수 리그"
+ },
+ {
+  "key": "e04",
+  "slug": "flame_spear_wraith",
+  "title": "불꽃 창 망령 리그"
+ },
+ {
+  "key": "e05",
+  "slug": "goat_archer",
+  "title": "산양 궁수 리그"
+ },
+ {
+  "key": "e06",
+  "slug": "crow_shaman_boss",
+  "title": "까마귀 주술사 보스 리그"
+ },
+ {
+  "key": "e07",
+  "slug": "windmill_giant_final",
+  "title": "녹슨 풍차 거인 최종 보스"
+ },
+ {
+  "key": "e08",
+  "slug": "drummer_bird_pig",
+  "title": "북치기 새 리그"
+ },
+ {
+  "key": "e09",
+  "slug": "fallen_angel_boss",
+  "title": "타락 천사 사제 보스"
+ },
+ {
+  "key": "e10",
+  "slug": "eyeball_toad",
+  "title": "눈알 두꺼비 리그"
+ },
+ {
+  "key": "e11",
+  "slug": "turtle_staff",
+  "title": "거북이 몽둥이 전사 리그"
+ },
+ {
+  "key": "e12",
+  "slug": "zombie_doctor",
+  "title": "좀비 의사 리그"
+ },
+ {
+  "key": "e13",
+  "slug": "skull_boxer_boss",
+  "title": "해골 복서 오우거 보스"
+ },
+ {
+  "key": "e14",
+  "slug": "plague_flamethrower",
+  "title": "역병 의사 화염방사병"
+ },
+ {
+  "key": "e15",
+  "slug": "pirate_crab",
+  "title": "해적 게"
+ }
+]

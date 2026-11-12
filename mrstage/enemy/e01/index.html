@@ -1,0 +1,109 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>클로 망령 리그</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#141820;--panel:#1d2330;--ink:#eef1f6;--mute:#9aa4b5;--line:#2c3446;--acc:#e0603a;--acc-ink:#1a0806}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141820}}
+:root[data-theme="dark"]{--bg:#141820}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.7;margin-left:5px}
+.stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#1a1420}
+canvas{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#ff8a7a;white-space:pre-wrap}
+</style><style id="lm-embed">html,body{margin:0!important;background:transparent!important;overflow:hidden!important}.wrap{max-width:none!important;padding:0!important;margin:0!important}.wrap>*:not(.stage){display:none!important}.stage{border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}canvas{display:block;width:100vw!important;height:100vh!important}</style>
+<div class="wrap">
+  <h1>클로 망령 리그</h1>
+  <p class="sub">이펙트 OFF를 누르면 마법진·빛기둥·할퀸 자국·불티·번쩍임·잔상·화면 흔들림이 전부 꺼지고 캐릭터 움직임만 보여요. ON이면 지금 연출 그대로예요.</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bAtk">공격<kbd>J</kbd></button><button id="bHurt">피격<kbd>H</kbd></button></div>
+    <div class="grp"><button id="bFace" aria-pressed="true">게임 방향(왼쪽 보기)</button><button id="bSlow">느리게</button><button id="bOv">원화 겹쳐 보기</button></div>
+    <div class="grp"><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1600" height="900"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장</b> 클로를 내린 원화(1번)가 바닥선 아래에서 솟아오른 뒤, 클로를 펼치며 전투 대기 자세(2번)로 바뀌어요. 이펙트 ON이면 마법진과 빛기둥이 같이 나와요.</div>
+    <div class="note"><b>대기</b> 2.6초 주기로 숨쉬어요. 들숨에 가슴과 머리가 2~5px 올라가고 클로 끝이 살짝 들려요. 머리카락은 뿌리는 고정한 채 끝으로 갈수록 천천히 흔들리고, 가끔 눈을 깜빡여요.</div>
+    <div class="note"><b>공격 · 피격</b> 공격은 웅크림 → 클로 들기(예비 동작) → 내려 긁으며 반 발 전진 → 복귀 순서예요(ON이면 잔상·할퀸 자국·흔들림 추가). 피격은 3번 자세로 바로 바뀌며 뒤로 밀리고 젖혀졌다가 돌아와요(ON이면 번쩍임·타격 불꽃 추가).</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="w.js"></script>
+<script src="claw.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const names=['base','stance','blink','windup','strike','hit'],imgs={};
+for(const n of names)imgs[n]=await load('img/'+n+'.webp');
+const rig=new ClawRig(window.CLAW_W,imgs),an=new ClawAnim();window.__rig=rig;
+const c=document.getElementById('c'),g=c.getContext('2d');const W=c.width,H=c.height,GY=780,CX=800,K=.66;
+const A=window.CLAW_W.anchor;let fx=true,face=-1,slow=false,ov=false,shake=0,parts=[],last=performance.now();
+// image px -> stage px
+const tog=(id,f)=>{const b=document.getElementById(id);b.onclick=()=>b.setAttribute('aria-pressed',f())};
+tog('bFace',()=>{face=-face;return face<0});tog('bSlow',()=>slow=!slow);tog('bOv',()=>ov=!ov);{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx){parts=[];shake=0}}}
+document.getElementById('bEnter').onclick=()=>an.play('enter');document.getElementById('bAtk').onclick=()=>an.state==='idle'&&an.play('attack');document.getElementById('bHurt').onclick=()=>an.state!=='enter'&&an.play('hurt');
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e')an.play('enter');if(k==='j'&&an.state==='idle')an.play('attack');if(k==='h'&&an.state!=='enter')an.play('hurt')});
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function burst(x,y,n,col,sp,life){for(let i=0;i<n;i++){const a=rnd(0,6.283),v=rnd(sp*.3,sp);parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-rnd(0,sp*.3),t:0,life:rnd(life*.5,life),col,r:rnd(2,5)})}}
+function circle(p,now){ if(p<=0)return; const cx=470,cy=852,rx=300*p,ry=64*p; g.save();g.globalCompositeOperation='lighter';
+  const gr=g.createRadialGradient(cx,cy,0,cx,cy,rx);gr.addColorStop(0,`rgba(255,90,50,${.35*p})`);gr.addColorStop(1,'rgba(255,60,30,0)');g.fillStyle=gr;g.beginPath();g.ellipse(cx,cy,rx*1.1,ry*1.1,0,0,7);g.fill();
+  g.strokeStyle=`rgba(255,120,70,${.9*p})`;g.lineWidth=5;for(const k of[1,.82,.5]){g.beginPath();g.ellipse(cx,cy,rx*k,ry*k,0,0,7);g.stroke()}
+  g.lineWidth=3;g.strokeStyle=`rgba(255,200,140,${.8*p})`;const r0=now/900;
+  for(let i=0;i<6;i++){const a=r0+i*Math.PI/3,b=a+Math.PI*2/3;g.beginPath();g.moveTo(cx+Math.cos(a)*rx*.82,cy+Math.sin(a)*ry*.82);g.lineTo(cx+Math.cos(b)*rx*.82,cy+Math.sin(b)*ry*.82);g.stroke()}
+  for(let i=0;i<18;i++){const a=-r0*1.4+i*Math.PI/9;g.fillStyle=`rgba(255,220,170,${.9*p})`;g.fillRect(cx+Math.cos(a)*rx*.91-4,cy+Math.sin(a)*ry*.91-2,8,4)}
+  g.restore()}
+function pillar(p){if(p<=0)return;g.save();g.globalCompositeOperation='lighter';const gr=g.createLinearGradient(0,852,0,200);gr.addColorStop(0,`rgba(255,110,60,${.45*p})`);gr.addColorStop(1,'rgba(255,60,40,0)');g.fillStyle=gr;g.fillRect(470-230,200,460,652);g.restore()}
+function slashes(p){ if(p<0||p>=1)return; g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+  // three claw marks that sweep from above-front down to where the claws land in the strike drawing
+  const a0=-.45,a1=1.2,head=a0+(a1-a0)*ease(p*1.8),tail=Math.max(a0,head-.9*(1-p*.6)),fade=1-ease(Math.max(0,(p-.35)/.65));
+  for(let i=0;i<3;i++){const R=380+i*46;g.strokeStyle=`rgba(255,${200-i*30},${150-i*30},${.95*fade})`;g.lineWidth=(16-i*3)*fade+2;g.shadowColor='rgba(255,70,30,.95)';g.shadowBlur=22;
+    g.beginPath();g.arc(420,360,R,tail,head);g.stroke()}
+  g.restore()}
+const ease=t=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,3)};
+function flare(p){if(p<0||p>=1)return;g.save();g.globalCompositeOperation='lighter';for(const [x,y] of[[300,520],[780,520]]){g.strokeStyle=`rgba(255,170,110,${1-p})`;g.lineWidth=8*(1-p);g.beginPath();g.ellipse(x,y,40+260*ease(p),24+120*ease(p),0,0,7);g.stroke()}g.restore()}
+function hitspark(p){if(p<0||p>=1)return;g.save();g.globalCompositeOperation='lighter';const x=640,y=560,r=30+90*ease(p);g.fillStyle=`rgba(255,250,230,${1-p})`;g.beginPath();for(let i=0;i<16;i++){const a=i/16*6.283,rr=i%2?r*.35:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill();g.restore()}
+const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
+let OUT=null;
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.2);
+  if(fx)for(const e of an.events){if(e==='hit')burst(900,560,26,'#ffb070',520,.5);if(e==='hurt')burst(640,560,20,'#fff2d0',420,.4);if(e==='flare')burst(470,560,40,'#ff8a50',600,.7)}
+  for(const p of parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=900*dt}parts=parts.filter(p=>p.t<p.life)}
+function draw(now){bg();const sx=shake>0?Math.sin(now/17)*10*shake:0,sy=shake>0?Math.cos(now/23)*6*shake:0;
+  g.setTransform(1,0,0,1,sx,sy);g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(CX,GY+6,240,26,0,0,7);g.fill();
+  const M=new DOMMatrix([K*face,0,0,K,CX+sx,GY+sy]).translate(-A[0],-A[1]);g.setTransform(M);
+  if(fx){circle(OUT.circle,now);pillar(OUT.pillar)}
+  const cv=rig.render(OUT.layers);g.imageSmoothingQuality='high';g.drawImage(cv,0,0);
+  if(ov){g.globalAlpha=.35;g.drawImage(imgs.stance,0,0);g.globalAlpha=1}
+  if(fx){slashes(OUT.slash);flare(OUT.flare);hitspark(OUT.hitspark);
+    g.save();g.globalCompositeOperation='lighter';for(const p of parts){g.fillStyle=p.col;g.globalAlpha=1-p.t/p.life;g.beginPath();g.arc(p.x,p.y,p.r,0,7);g.fill()}g.restore();
+    if(OUT.flash>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,255,255,${OUT.flash*.12})`;g.fillRect(0,0,W,H)}}}
+window.QA={fx:v=>{fx=v;an.fxOn=v},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},state:()=>an.state,anim:an};
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
+an.play('enter');requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
+
+<script>/* 무대용 창구 (tools/enemy/build.py 가 붙임) */
+(function(){var w=window;function ok(){return !!(w.__ready&&w.QA)}
+w.EN={ready:ok,
+ play:function(s){if(!ok())return false;w.__vis=1;try{w.QA.play(s);}catch(e){return false;}return true;},
+ state:function(){try{if(!ok())return '';return w.QA.state?w.QA.state():(w.QA.anim&&w.QA.anim.state)||'';}catch(e){return '';}},
+ rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
+ idle:function(){return this.state()==='idle';},
+ hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
+ fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
+ speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
+try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
+</script>

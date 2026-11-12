@@ -1,0 +1,128 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>눈알 두꺼비 리그</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#141820;--panel:#1d2330;--ink:#eef1f6;--mute:#9aa4b5;--line:#2c3446;--acc:#b56cff;--acc-ink:#140428}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141820}}
+:root[data-theme="dark"]{--bg:#141820}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;padding-right:8px;border-right:1px solid var(--line)}
+.bar .grp:last-child{border:0}
+button{font:inherit;font-size:14px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button kbd{font:11px ui-monospace,monospace;opacity:.7;margin-left:5px}
+.stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#16121c}
+canvas{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--mute)}
+.note b{color:var(--ink)}
+#err{color:#ff8a7a;white-space:pre-wrap}
+</style><style id="lm-embed">html,body{margin:0!important;background:transparent!important;overflow:hidden!important}.wrap{max-width:none!important;padding:0!important;margin:0!important}.wrap>*:not(.stage){display:none!important}.stage{border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}canvas{display:block;width:100vw!important;height:100vh!important}</style>
+<div class="wrap">
+  <h1>눈알 두꺼비 리그</h1>
+  <p class="sub">원화 한 장을 끊김 없는 망으로 움직여요. 몸은 물컹물컹 숨 쉬고, 눈알 달린 머리는 젤리처럼 출렁여요. 구슬은 따로 떼어 낸 조각이라 굴러오고, 빨려 들어가고, 뱉어져요. 이빨, 엄니, 발톱은 절대 휘지 않아요. 원안: PORKSODA</p>
+  <div class="bar">
+    <div class="grp"><button id="bEnter">등장<kbd>E</kbd></button><button id="bAtk">꿀꺽 퉤!<kbd>J</kbd></button><button id="bHurt">피격<kbd>H</kbd></button></div>
+    <div class="grp"><button id="bFace" aria-pressed="true">게임 방향(왼쪽 보기)</button><button id="bSlow">느리게</button><button id="bOv">원화 겹쳐 보기</button></div>
+    <div class="grp"><button id="bFx" aria-pressed="true">이펙트 ON</button></div>
+  </div>
+  <div class="stage"><canvas id="c" width="1600" height="900"></canvas></div>
+  <div class="notes">
+    <div class="note"><b>등장</b> 몸을 동그랗게 말고 축구공처럼 데굴데굴데굴 세 바퀴 굴러 들어와요(통통 튀면서). 마지막에 폴짝 뛰어 똑바로 철퍽 착지하면 눈알이 뿅! 떠지고, 어질어질 별이 돌며 비틀거려요. 구슬은 한 발 앞서 데굴데굴 굴러와 먼저 멈춰요.</div>
+    <div class="note"><b>대기</b> 숨 쉴 때마다 몸이 물컹하게 넓어졌다 좁아지고, 눈알 머리가 반 박자 늦게 출렁여요. 구슬은 옆에서 둥실 떠서 천천히 돌며 빛나요.</div>
+    <div class="note"><b>꿀꺽 퉤! · 피격</b> 입을 쩍 벌려 구슬을 빙글빙글 빨아들이고 꿀꺽! 볼이 빵빵해진 채 부들부들 떨다가, 퉤! 하고 플레이어에게 뱉어요(구슬은 이펙트 OFF에서도 날아가요). 그러고는 새 구슬이 굴러와요. 피격은 눈알이 전부 질끈 감기며 몸이 출렁여요.</div>
+  </div>
+  <div id="err"></div>
+</div>
+<script src="w.js"></script>
+<script src="toad.js"></script>
+<script>
+(async()=>{
+const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
+const imgs={};for(const n of['stance','puff','hit'])imgs[n]=await load('img/'+n+'.webp');const BALL=await load('img/ball.webp');
+const Wt=window.TOAD_W,rig=new ToadRig(Wt,imgs),an=new ToadAnim();
+const c=document.getElementById('c'),g=c.getContext('2d'),W=c.width,H=c.height,GY=800,CX=760,K=.95,A=Wt.anchor;
+const SPC=[405,530],MOUTH=[600,560],EYES=[[300,405],[350,375],[460,350],[525,410],[560,330],[600,375],[205,485],[385,455]],CHEST=[300,540],BALLY=635;
+let fx=true,face=-1,slow=false,ov=false,shake=0,parts=[],OUT=null,last=performance.now(),shotFrom=null;
+const tog=(id,f)=>{const b=document.getElementById(id);b.onclick=()=>b.setAttribute('aria-pressed',f())};
+tog('bFace',()=>{face=-face;return face<0});tog('bSlow',()=>slow=!slow);tog('bOv',()=>ov=!ov);
+{const b=document.getElementById('bFx');b.onclick=()=>{fx=!fx;an.fxOn=fx;b.setAttribute('aria-pressed',fx);b.textContent=fx?'이펙트 ON':'이펙트 OFF';if(!fx){parts=[];shake=0}}}
+document.getElementById('bEnter').onclick=()=>an.play('enter');document.getElementById('bAtk').onclick=()=>an.state==='idle'&&an.play('attack');document.getElementById('bHurt').onclick=()=>an.state!=='enter'&&an.play('hurt');
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='e')an.play('enter');if(k==='j'&&an.state==='idle')an.play('attack');if(k==='h'&&an.state!=='enter')an.play('hurt')});
+const rnd=(a,b)=>a+Math.random()*(b-a),ease=t=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,3)};
+function P(x,y,L){const r=L.rot||0,cs=Math.cos(r),sn=Math.sin(r),sx=L.sx??1,sy=L.sy??1,qx=x-A[0],qy=y-A[1];return[A[0]+cs*sx*qx-sn*sy*qy+(L.tx||0),A[1]+sn*sx*qx+cs*sy*qy+(L.ty||0)]}
+function star(x,y,r,n,inner,col){g.fillStyle=col;g.beginPath();for(let i=0;i<n*2;i++){const a=i/(n*2)*6.283,rr=i%2?r*inner:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill()}
+function glow(x,y,r,col,a){const gr=g.createRadialGradient(x,y,1,x,y,r);gr.addColorStop(0,`rgba(${col},${a})`);gr.addColorStop(1,`rgba(${col},0)`);g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+const GOO=['#8a5cff','#b07bff','#5f3fd6'];
+function goo(x,y,vx,vy,r){parts.push({x,y,vx,vy,t:0,life:rnd(.5,.9),col:GOO[(Math.random()*3)|0],r:r||rnd(6,12),g:1400,goo:1})}
+function mote(x,y,vx,vy,life,col,r){parts.push({x,y,vx,vy,t:0,life,col,r:r||rnd(3,6),g:0,glow:1})}
+function dust(x,n,sp,size){for(let i=0;i<n;i++)parts.push({x:x+rnd(-140,140),y:A[1]-4,vx:rnd(-sp,sp),vy:rnd(-110,-20),t:0,life:rnd(.4,.7),col:'rgba(150,125,110,.45)',r:rnd(size*.6,size),g:60,soft:1})}
+const bg=()=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height)};
+const B0=()=>OUT.ball;
+function step(dt){OUT=an.update(dt);if(window.__onEv&&an.events&&an.events.length){for(const __e of an.events){try{window.__onEv(__e,an.state)}catch(_){}}}const L=OUT.layers[OUT.layers.length-1];if(fx&&OUT.shake)shake=Math.max(shake,OUT.shake);shake=Math.max(0,shake-dt*2.4);
+  for(const e of an.events)if(e==='spit')shotFrom=P(MOUTH[0],MOUTH[1],L);
+  if(fx){for(const e of an.events){
+      if(e==='bounce'){dust(A[0]+(L.tx||0),6,200,20)}
+      if(e==='land'){dust(A[0],16,340,26);for(let i=0;i<10;i++)goo(A[0]+rnd(-200,200),A[1]-10,rnd(-300,300),-rnd(250,550))}
+      if(e==='step')dust(A[0]+(L.tx||0)-80,3,120,16);
+      if(e==='roll')parts.push({x:B0().x,y:A[1]-4,vx:-rnd(60,160),vy:-rnd(20,70),t:0,life:rnd(.3,.5),col:'rgba(150,125,110,.4)',r:rnd(10,18),g:40,soft:1});
+      if(e==='push'){const p=P(MOUTH[0],MOUTH[1],L);for(let i=0;i<6;i++)mote(p[0]+60,p[1],rnd(100,300),rnd(-150,50),.3,'#fff2c8',rnd(3,5));dust(OUT.ball.x,10,260,22)}
+      if(e==='plop'){dust(A[0],18,360,26);for(let i=0;i<14;i++)goo(A[0]+rnd(-200,200),A[1]-10,rnd(-300,300),-rnd(300,700))}
+      if(e==='pop')for(const q of EYES){const p=P(q[0],q[1],L);mote(p[0],p[1],rnd(-60,60),rnd(-120,-40),.35,'#fff2c8',rnd(3,5))}
+      if(e==='gulp'){const p=P(MOUTH[0],MOUTH[1],L);for(let i=0;i<8;i++)goo(p[0],p[1],rnd(-200,250),-rnd(200,500),rnd(5,9))}
+      if(e==='spit'){const p=P(MOUTH[0],MOUTH[1],L);for(let i=0;i<16;i++)goo(p[0]+20,p[1],rnd(300,900),rnd(-400,150),rnd(6,12))}
+      if(e==='hurt'){const p=P(CHEST[0],CHEST[1],L);for(let i=0;i<12;i++)goo(p[0],p[1],rnd(-500,200),-rnd(200,600))}}
+    if(OUT.suck>0&&OUT.suck<1&&Math.random()<.8){const p=P(MOUTH[0],MOUTH[1],L),a=rnd(-1.2,1.2),d=rnd(160,300);mote(p[0]+Math.cos(a)*d,p[1]+Math.sin(a)*d,-Math.cos(a)*d*2.6,-Math.sin(a)*d*2.6,.38,'#c9a2ff',rnd(3,6))}
+    if(OUT.shot&&Math.random()<.9){const x=shotFrom[0]+1600*ease(OUT.shot);mote(x-rnd(20,90),shotFrom[1]+rnd(-30,30),-rnd(50,150),rnd(-40,40),rnd(.3,.5),'#7fe8ff',rnd(4,8))}}
+  for(const p of parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt;if(p.goo&&p.y>A[1]-4){p.y=A[1]-4;p.vy=0;p.vx*=.6;p.flat=1}}parts=parts.filter(p=>p.t<p.life)}
+function drawBall(x,y,rot,s,glowK){g.save();g.translate(x,y);if(fx){g.globalCompositeOperation='lighter';glow(0,0,150*s,'120,200,255',.25*glowK);g.globalCompositeOperation='source-over'}g.rotate(rot);g.scale(s,s);g.drawImage(BALL,-BALL.width/2,-BALL.height/2);g.restore()}
+function draw(now){bg();const sx=shake>0?Math.sin(now/17)*10*shake:0,sy=shake>0?Math.cos(now/23)*6*shake:0;
+  const L=OUT.layers[OUT.layers.length-1],mtx=L.tx||0,mty=L.ty||0,B=OUT.ball;
+  g.setTransform(1,0,0,1,sx,sy);g.fillStyle=`rgba(0,0,0,${.36*Math.min(1,OUT.rise*1.4)})`;g.beginPath();g.ellipse(CX+face*K*(mtx-20),GY+6,250,24,0,0,7);g.fill();
+  if(B.a>0){g.fillStyle=`rgba(0,0,0,${.26*B.a*Math.max(0,1-(BALLY-B.y)/300)})`;g.beginPath();g.ellipse(CX+face*K*(B.x-A[0]),GY+6,90*B.s,12,0,0,7);g.fill()}
+  const M=new DOMMatrix([K*face,0,0,K,CX+sx,GY+sy]).translate(-A[0],-A[1]);g.setTransform(M);
+  // ground bubbles while it rises out of the floor
+  if(fx&&OUT.clip){g.save();g.globalCompositeOperation='lighter';glow(A[0],A[1],320,'140,90,255',.35);g.restore()}
+  const rel=OUT.layers.map(Q=>Object.assign({},Q,{tx:(Q.tx||0)-mtx,ty:(Q.ty||0)-mty}));const cv=rig.render(rel);
+  g.save();if(L.spin){g.translate(SPC[0]+mtx,SPC[1]+mty);g.rotate(L.spin);g.translate(-SPC[0]-mtx,-SPC[1]-mty)}   // rolling: the whole drawing turns about its middle (done in 2D so the GL canvas never clips)
+  g.imageSmoothingQuality='high';g.drawImage(cv,mtx-256,mty-128);g.restore();
+  if(ov){g.globalAlpha=.35;g.drawImage(imgs.stance,0,0);g.globalAlpha=1}
+  if(B.a>0){g.globalAlpha=B.a;drawBall(B.x,B.y,B.rot,B.s,B.glow);g.globalAlpha=1}
+  // the spat ball: the attack itself, shown with effects OFF too
+  if(OUT.shot!==null&&shotFrom){const k=ease(OUT.shot),x=shotFrom[0]+1600*k,y=shotFrom[1]-120*Math.sin(Math.PI*k)*.5;drawBall(x,y,-now/60,.8,1)}
+  if(fx){g.save();g.globalCompositeOperation='lighter';
+    if(OUT.spit>=0&&OUT.spit<1){const p=P(MOUTH[0],MOUTH[1],L),k=OUT.spit;star(p[0]+40,p[1],40+120*ease(k),8,.3,`rgba(220,190,255,${1-k})`)}
+    if(OUT.pop>=0&&OUT.pop<1)for(const q of EYES){const p=P(q[0],q[1],L),k=OUT.pop;g.strokeStyle=`rgba(255,240,200,${.8*(1-k)})`;g.lineWidth=4*(1-k)+1;g.beginPath();g.arc(p[0],p[1],14+30*ease(k),0,7);g.stroke()}
+    if(OUT.dizzy>0){const c0=P(420,250,L);for(let i=0;i<3;i++){const a=now/180+i*2.094,x=c0[0]+Math.cos(a)*110,y=c0[1]+Math.sin(a)*28;star(x,y,16,5,.45,`rgba(255,235,150,${Math.min(1,OUT.dizzy*1.6)})`)}}
+    if(OUT.hitspark>=0&&OUT.hitspark<1){const p=P(CHEST[0],CHEST[1],L),k=OUT.hitspark;star(p[0],p[1],30+90*ease(k),8,.35,`rgba(255,250,240,${1-k})`)}
+    g.restore();
+    g.save();for(const p of parts){const al=Math.max(0,1-p.t/p.life);g.globalAlpha=Math.min(1,al*1.6);g.globalCompositeOperation=p.glow?'lighter':'source-over';g.fillStyle=p.col;
+      if(p.goo){g.beginPath();g.ellipse(p.x,p.y,p.r*(p.flat?1.6:1),p.r*(p.flat?.45:1),0,0,7);g.fill();continue}
+      g.beginPath();g.arc(p.x,p.y,p.r*(p.soft?1+p.t*2:1),0,7);g.fill()}g.restore();
+    if(OUT.flash>0){g.setTransform(1,0,0,1,0,0);g.fillStyle=`rgba(255,240,225,${OUT.flash*.06})`;g.fillRect(0,0,W,H)}}}
+window.QA={fx:v=>{fx=v;an.fxOn=v;if(!v)parts=[]},manual:false,play:s=>an.play(s),step:(dt,now)=>{step(dt);draw(now??an.t*1000)},anim:an};
+window.__rig=rig;
+function frame(t){requestAnimationFrame(frame);if(QA.manual)return;if(!window.__vis){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,g.canvas.width,g.canvas.height);last=t;return}let __r=Math.min(.4,(t-last)/1000)*(slow?.25:1)*(window.__spd||1);last=t;do{const dt=Math.min(.05,__r);step(dt);__r-=dt}while(__r>1e-4);draw(t)}
+an.play('enter');step(0);requestAnimationFrame(frame);window.__ready=true;
+})().catch(e=>{document.getElementById('err').textContent=e.stack||String(e)});
+</script>
+
+<script>/* 무대용 창구 (tools/enemy/build.py 가 붙임) */
+(function(){var w=window;function ok(){return !!(w.__ready&&w.QA)}
+w.EN={ready:ok,
+ play:function(s){if(!ok())return false;w.__vis=1;try{w.QA.play(s);}catch(e){return false;}return true;},
+ state:function(){try{if(!ok())return '';return w.QA.state?w.QA.state():(w.QA.anim&&w.QA.anim.state)||'';}catch(e){return '';}},
+ rage:function(v){try{w.QA.rage&&w.QA.rage(!!v);}catch(e){}},
+ idle:function(){return this.state()==='idle';},
+ hide:function(){w.__vis=0;},
+ on:function(f){w.__onEv=typeof f==='function'?f:null;},
+ fx:function(v){try{w.QA.fx(!!v);}catch(e){}},
+ speed:function(v){w.__spd=Math.max(.25,Math.min(4,+v||1));}};
+try{parent&&parent!==w&&parent.postMessage({lmEnemy:'loaded'},'*');}catch(e){}})();
+</script>
