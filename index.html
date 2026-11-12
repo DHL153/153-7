@@ -3806,11 +3806,14 @@ const FOE_ATKS={e07:['slam','gale']};
 const foeKind=k=>FOE_RIG.final===k?['최종 보스','fin']:FOE_RIG.boss.includes(k)?['보스 · 거인','boss']:FOE_RIG.weak.includes(k)?['망령','']:['수문장',''];
 function foeCodexPlay(a){try{const f=document.querySelector('.cFoeStage iframe'),E=f&&f.contentWindow&&f.contentWindow.EN;if(!E||!E.ready())return;const s=E.state();if(a!=='enter'&&s!=='idle')return;if(a==='attack'){const as=FOE_ATKS[codexSel]||['attack'];window._foeAtkN=(window._foeAtkN||0)+1;a=as[window._foeAtkN%as.length];}E.play(a);}catch(e){}}
 function foeCodexBoot(){const f=document.querySelector('.cFoeStage iframe');if(!f||f._boot)return;f._boot=1;let n=0;const t=setInterval(()=>{if(!f.isConnected||n++>150){clearInterval(t);return;}try{const E=f.contentWindow&&f.contentWindow.EN;if(E&&E.ready()){clearInterval(t);E.fx(!(typeof LM_SET!=='undefined'&&LM_SET.rm));E.play('enter');f.classList.add('on');}}catch(e){}},100);}
-function foeCodexHTML(pick){const K=Object.keys(FOE_KO),nF=K.filter(k=>CODEX.foe[k]).length;
+function foeCodexHTML(pick){if(!(codexSel&&FOE_KO[codexSel]))window._foeBgFor=null;const K=Object.keys(FOE_KO),nF=K.filter(k=>CODEX.foe[k]).length;
   let h=`<div class="cGrid cFoeGrid">`+K.map(k=>{const known=CODEX.foe[k],[kd,kc]=foeKind(k);return known?`<button class="cF ${kc}${codexSel===k?' sel':''}" onclick="${pick(k)}"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>${FOE_KO[k]}</span></button>`:`<button class="cF q ${kc}" disabled aria-label="아직 만나지 못한 적"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>???</span></button>`;}).join('')+`</div>`;
   const k=codexSel&&FOE_KO[codexSel]&&CODEX.foe[codexSel]?codexSel:null;
   if(k){const [kd,kc]=foeKind(k),I=FOE_INFO[k]||['',''];
-    h=`<div class="cDet cFoeDet"><div class="cFoeStage"><iframe src="mrstage/enemy/${k}/index.html" title="${FOE_KO[k]}" tabindex="-1" scrolling="no" onload="foeCodexBoot()"></iframe></div>`+
+    /* (DHL 11-13) 배경 = 전투 배경 30장 중 하나를 볼 때마다 무작위로 (적 자리인 오른쪽 부분) · 세계별 하늘색 */
+    if(window._foeBgFor!==k||!window._foeBgN){window._foeBgFor=k;let n;do{n=1+(Math.random()*30|0);}while(n===window._foeBgN);window._foeBgN=window._foeBgForce||n;}
+    const bn=window._foeBgN,bw=bn<=10?'rust':bn<=20?'neon':'sky';
+    h=`<div class="cDet cFoeDet"><div class="cFoeStage w-${bw}"><i class="cFoeBg" style="background-image:url(mrstage/assets/art/backgrounds/battle/bg_battle_${String(bn).padStart(4,'0')}.png)"></i><iframe src="mrstage/enemy/${k}/index.html" title="${FOE_KO[k]}" tabindex="-1" scrolling="no" onload="foeCodexBoot()"></iframe></div>`+
       `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small><p><em>등장</em> ${I[0]}</p><p><em>공격</em> ${I[1]}</p>`+
       `<div class="cFoeBtns"><button type="button" onclick="foeCodexPlay('enter')">등장</button><button type="button" onclick="foeCodexPlay('attack')">공격</button><button type="button" onclick="foeCodexPlay('hurt')">피격</button></div></div></div>`+h;
     setTimeout(foeCodexBoot,0);}
@@ -5596,7 +5599,13 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 .cF.boss{border-color:#a5553a}.cF.fin{border-color:#d9a43a}.cF.sel{box-shadow:0 0 0 3px var(--gold,#f2b632)}
 .cF.q{cursor:default;opacity:.75}.cF.q img{filter:brightness(0) opacity(.55)}.cF.q span{color:#6b7480}
 .cFoeDet{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px!important}
-.cFoeStage{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:radial-gradient(120% 90% at 50% 100%,#3a2c25 0 38%,#1a1722 39% 100%)}
+.cFoeStage{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(#2b3a67,#6f86b8 70%,#a9bbd8)}
+.cFoeStage.w-rust{background:linear-gradient(#3a2a55 0%,#8a4a52 45%,#e08a4a 78%,#f2b866 100%)}
+.cFoeStage.w-neon{background:linear-gradient(#141033 0%,#3a2a78 50%,#8a5cc0 85%,#c79ae0 100%)}
+.cFoeStage.w-sky{background:linear-gradient(#2f6fb5 0%,#6fb0e6 55%,#cfe9fb 100%)}
+.cFoeBg{position:absolute;right:0;top:2%;height:110%;aspect-ratio:2/1;background:right center/100% 100% no-repeat;pointer-events:none}   /* 그림의 땅(높이 80% 지점)이 적 발밑(칸 높이 90%)에 오게 */
+.cFoeStage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(90% 80% at 50% 62%,#0000 40%,#0a0f1e66 100%)}
+.ib .cSub:has(button:nth-child(4)){flex-wrap:nowrap!important;gap:5px!important}.ib .cSub:has(button:nth-child(4)) button{flex:1 1 0;min-width:0;padding-left:2px!important;padding-right:2px!important;white-space:nowrap;font-size:clamp(9.5px,2.5vw,13px)!important;letter-spacing:-.03em;word-spacing:-1px}   /* 탭 4개가 한 줄에 */
 .cFoeStage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;pointer-events:none;opacity:0;transition:opacity .2s}.cFoeStage iframe.on{opacity:1}
 .cFoeTx b{font-size:18px}.cFoeTx p{margin:6px 0;font-size:13px;line-height:1.45;word-break:keep-all}.cFoeTx p em{font-style:normal;display:inline-block;margin-right:6px;padding:0 7px;border-radius:99px;background:#0006;color:#ffd257;font-size:11px;font-weight:900}
 .cFoeK{display:inline-block;padding:0 8px;border-radius:99px;background:#3b4d58;color:#e8e2d2!important;font-size:11px;font-weight:900;vertical-align:2px}.cFoeK.boss{background:#a5553a}.cFoeK.fin{background:#d9a43a;color:#2a2118!important}
