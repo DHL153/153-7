@@ -1740,14 +1740,17 @@ function lmSetApply(){
 MR.toggleSound=function(){LM_SET.master=LM_SET.master>0?0:65;lmSetSave();lmSetApply();if(LM_SET.master>0)unlockGameAudio();};
 let ltSetTab='game';
 function ltSetHTML(){
-  const step=(k,label,vals)=>{const i=vals.findIndex(v=>v[0]===LM_SET[k]);return `<div class="ls-lbl">${label}</div><div class="ls-step"><button type="button" onclick="ltStep('${k}',-1)" aria-label="이전">&lt;</button><b>${vals[i][1]}<i>${vals.map((v,j)=>`<u class="${j===i?'on':''}"></u>`).join('')}</i></b><button type="button" onclick="ltStep('${k}',1)" aria-label="다음">&gt;</button></div>`;};
-  const sld=(k,label,note)=>`<div class="ls-lbl big">${label}</div><div class="ls-sld"><input type="range" min="0" max="100" step="5" value="${LM_SET[k]}" style="--p:${LM_SET[k]}%;--pn:${LM_SET[k]/100}" oninput="ltSlide('${k}',this)" aria-label="${label}"><b>${LM_SET[k]}</b></div>${note?`<div class="ls-note">${note}</div>`:''}`;
-  const chk=(k,label)=>`<label class="ls-chk"><span>${label}</span><input type="checkbox" ${LM_SET[k]?'checked':''} onchange="LM_SET.${k}=this.checked;lmSetSave();lmSetApply()"><i></i></label>`;
+  /* (DHL 11-12 QA 2차 V3) 설정 줄: 왼쪽 이름 + 한 줄 설명 · 오른쪽 조작 — 가운데에 몰려 창이 비어 보이던 배치를 PC 설정 화면처럼 */
+  const row=(label,desc,ctl,cls)=>`<div class="ls-row ${cls||''}"><div class="ls-tx"><b>${label}</b>${desc?`<small>${desc}</small>`:''}</div>${ctl}</div>`;
+  const step=(k,label,vals,desc)=>{const i=vals.findIndex(v=>v[0]===LM_SET[k]);return row(label,desc,`<div class="ls-step"><button type="button" onclick="ltStep('${k}',-1)" aria-label="이전">&lt;</button><b>${vals[i][1]}<i>${vals.map((v,j)=>`<u class="${j===i?'on':''}"></u>`).join('')}</i></b><button type="button" onclick="ltStep('${k}',1)" aria-label="다음">&gt;</button></div>`);};
+  const sld=(k,label,desc)=>row(label,desc,`<div class="ls-sld"><input type="range" min="0" max="100" step="5" value="${LM_SET[k]}" style="--p:${LM_SET[k]}%;--pn:${LM_SET[k]/100}" oninput="ltSlide('${k}',this)" aria-label="${label}"><b>${LM_SET[k]}</b></div>`);
+  const chk=(k,label,desc)=>`<label class="ls-row ls-chk"><div class="ls-tx"><b>${label}</b>${desc?`<small>${desc}</small>`:''}</div><input type="checkbox" ${LM_SET[k]?'checked':''} onchange="LM_SET.${k}=this.checked;lmSetSave();lmSetApply()"><i></i></label>`;
   const tab=(k,n)=>`<button type="button" class="ls-tab ${ltSetTab===k?'on':''}" onclick="ltSetTab='${k}';ltPop('set')">${n}</button>`;
+  const ON=[[true,'켜짐'],[false,'꺼짐']];
   let h=`<div class="ls-tabs">${tab('game','게임')}${tab('gfx','그래픽')}${tab('audio','오디오')}</div><div class="ls-body">`;
-  if(ltSetTab==='game')h+=step('speed','게임 속도',[[1,'1'],[2,'2'],[3,'3'],[4,'4']])+step('btnpos','런/버리기 버튼 위치',[['pd','런/버리기'],['dp','버리기/런']])+sld('shake','화면 흔들기')+chk('rm','동작 감소');   /* (DHL 11-05) 스토리 · 첫 실행 연출 다시 보기는 컬렉션 › 다시 보기로 옮김 */
-  if(ltSetTab==='gfx')h+=step('shadow','그림자',[[true,'켜짐'],[false,'꺼짐']])+step('motion','카드 몸짓',[[true,'켜짐'],[false,'꺼짐']])+step('tbl','테이블 무늬',[[true,'켜짐'],[false,'꺼짐']]);
-  if(ltSetTab==='audio')h+=sld('master','마스터 볼륨')+sld('music','음악 볼륨')+sld('sfx','게임 볼륨')+step('fxpol','효과음 다듬기',[[1,'켜짐'],[0,'꺼짐']])+step('melody','멜로디 콤보',[[true,'켜짐'],[false,'꺼짐']])+`<div class="ls-note">콤보가 9번째를 넘으면 동요 한 곡이 한 음씩 연주돼요</div>`;
+  if(ltSetTab==='game')h+=step('speed','게임 속도',[[1,'1'],[2,'2'],[3,'3'],[4,'4']],'점수 세기와 전투 연출의 빠르기')+step('btnpos','런/버리기 버튼 위치',[['pd','런/버리기'],['dp','버리기/런']],'두 버튼의 왼쪽 · 오른쪽 자리')+sld('shake','화면 흔들기','타격 때 화면이 흔들리는 세기')+chk('rm','동작 감소','번쩍임과 큰 움직임을 줄여요');   /* (DHL 11-05) 스토리 · 첫 실행 연출 다시 보기는 컬렉션 › 다시 보기로 옮김 */
+  if(ltSetTab==='gfx')h+=step('shadow','그림자',ON,'카드 그림 아래 그림자')+step('motion','카드 몸짓',ON,'손패 동료들이 가만히 있을 때의 움직임')+step('tbl','테이블 무늬',ON,'게임판 바닥의 무늬');
+  if(ltSetTab==='audio')h+=sld('master','마스터 볼륨','모든 소리')+sld('music','음악 볼륨','배경 음악')+sld('sfx','게임 볼륨','효과음')+step('fxpol','효과음 다듬기',[[1,'켜짐'],[0,'꺼짐']],'효과음의 날카로운 고음을 부드럽게')+step('melody','멜로디 콤보',ON,'콤보가 9번째를 넘으면 동요 한 곡이 한 음씩 연주돼요');
   return h+`</div>`;
 }
 function ltStep(k,d){const opts={btnpos:['pd','dp'],speed:[1,2,3,4],shadow:[true,false],motion:[true,false],tbl:[true,false],fxpol:[1,0],melody:[true,false]}[k];const i=opts.indexOf(LM_SET[k]);LM_SET[k]=opts[(i+d+opts.length)%opts.length];lmSetSave();lmSetApply();ltPop('set');}
@@ -5484,6 +5487,19 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 @media (orientation:portrait){#ov:has(.cashFx)>#cfWin{margin-bottom:-14px}}
 @media (max-height:560px){#ov:has(.cashFx)>#cfWin{height:60px;margin-bottom:-22px}#cfWin .cwEmb,#cfWin .cwRays{display:none}#ov:has(.cashFx)>.panel{max-height:calc(var(--lmVh,1vh) * 92 - 50px)!important}}
 @media (prefers-reduced-motion:reduce){#cfWin.go .cwEmb,#cfWin.go .cwRib{animation:none;opacity:1}#cfWin.go .cwRays{animation:none;opacity:.7;background-position:0 100%}}
+</style>
+<style id="lm-set-rows">
+#lm-title .ls-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;margin:0 0 8px;padding:9px 12px 9px 14px;border-radius:12px;background:#0a112080;box-shadow:inset 0 0 0 1px #ffffff14}
+#lm-title .ls-row .ls-tx{display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left}
+#lm-title .ls-row .ls-tx b{font:900 16px/1.2 'Noto Sans KR',sans-serif;color:var(--cream,#f8edd0)}
+#lm-title .ls-row .ls-tx small{font:500 12.5px/1.3 'Noto Sans KR',sans-serif;color:var(--muted,#a9b4c2)}
+#lm-title .ls-row .ls-step{justify-content:flex-end}
+#lm-title .ls-row .ls-sld{justify-content:flex-end;width:250px}#lm-title .ls-row .ls-sld input{width:190px}
+#lm-title label.ls-row.ls-chk{display:grid;justify-content:stretch;margin:0 0 8px;cursor:pointer}#lm-title label.ls-row.ls-chk i{justify-self:end}
+/* 창 높이는 탭을 바꿔도 그대로(lm-tab-fixed 규칙) */
+/* (DHL 11-12 QA 2차 V7) 도감 › 동료: 이름 글씨가 10px이라 큰 칸에 비해 너무 작음 → 13px · 이름 띠도 조금 두껍게 */
+.ib .cM span{font-size:13px!important;font-weight:800;padding:3px 2px!important;letter-spacing:.02em}
+@media (max-width:560px){#lm-title .ls-row{grid-template-columns:1fr;gap:6px}#lm-title .ls-row .ls-step,#lm-title .ls-row .ls-sld{justify-content:center;width:auto}#lm-title label.ls-row.ls-chk{grid-template-columns:minmax(0,1fr) auto}}
 </style>
 <style id="lm-ui-scale">
 /* (DHL 11-11 QA ⑧) 큰 화면(1080p · 1440p)에서 타이틀 · 메뉴 창이 화면에 비해 작음 → 1366×768에서 보이는 비율 그대로 키움
