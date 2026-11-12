@@ -8363,7 +8363,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
     if(off()||!a||!b)return _fm.apply(this,arguments);
     const ra=rectOf(a),rb=rectOf(b),aCopy={...a},bCopy={...b},args=arguments,self=this;
     if((a.star||1)+1>=3){   // ★3: 모루 일격 뒤에 실제 머지(→ 각성 고르기)
-      const out={...a,star:a.star+1,el:keepEl||a.el,w:keepW||a.w,mixed:cardW(a)!==cardW(b)||!!a.mixed};delete out.st;
+      const ow=keepW||cardW(a),out={...a,star:a.star+1,el:keepEl||a.el,w:ow,id:ow+'_'+TYPES[a.id].n,no:keepNo!=null?keepNo:Math.max(cardNo(a),cardNo(b)),mixed:mergeKind(a,b)==='mix'};delete out.st;   /* (11-13 DHL 버그) ★3 머지 연출의 결과 카드가 고른 세계가 아니라 첫 카드의 세계 그림으로 나오던 문제 — 세계만 바꾸고 그림(id) · 번호는 안 바꿨음 */
       const wasBusy=S.busy;S.busy=true;forge(aCopy,bCopy,ra,rb,out).finally(()=>{S.busy=wasBusy;_fm.apply(self,args);});return;}
     const r=_fm.apply(this,arguments);quick(bCopy,rb,a);return r;};
 })();
