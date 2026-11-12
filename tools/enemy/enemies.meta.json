@@ -10,7 +10,15 @@
     "sfx_foe_enter_magic",
     200
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_claw",
+     300
+    ]
+   ]
+  }
  },
  "e02": {
   "ko": "막대말 랜스 기사",
@@ -25,7 +33,15 @@
     "sfx_foe_enter_hop",
     850
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_thrust",
+     330
+    ]
+   ]
+  }
  },
  "e03": {
   "ko": "유령 석궁 사수",
@@ -40,7 +56,15 @@
     "sfx_foe_enter_magic",
     300
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_shoot",
+     125
+    ]
+   ]
+  }
  },
  "e04": {
   "ko": "불꽃 창 망령",
@@ -55,7 +79,15 @@
     "sfx_foe_enter_magic",
     0
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_thrust",
+     270
+    ]
+   ]
+  }
  },
  "e05": {
   "ko": "산양 궁수",
@@ -68,7 +100,15 @@
     "sfx_foe_enter_hop",
     300
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_shoot",
+     255
+    ]
+   ]
+  }
  },
  "e06": {
   "ko": "까마귀 주술사",
@@ -85,7 +125,15 @@
     "sfx_boss_enter_crow_caw",
     1570
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_curse",
+     0
+    ]
+   ]
+  }
  },
  "e07": {
   "ko": "녹슨 풍차 거인",
@@ -104,7 +152,21 @@
     "sfx_boss_enter_mill",
     810
    ]
-  ]
+  ],
+  "atkSfx": {
+   "slam": [
+    [
+     "sfx_mill_slam",
+     380
+    ]
+   ],
+   "gale": [
+    [
+     "sfx_mill_gale",
+     0
+    ]
+   ]
+  }
  },
  "e08": {
   "ko": "졸음 북치기 새",
@@ -117,7 +179,15 @@
     "sfx_foe_enter_hop",
     750
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_drum",
+     135
+    ]
+   ]
+  }
  },
  "e09": {
   "ko": "타락 천사 사제",
@@ -132,7 +202,15 @@
     "sfx_boss_enter_angel",
     750
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_curse",
+     150
+    ]
+   ]
+  }
  },
  "e10": {
   "ko": "눈알 두꺼비",
@@ -145,7 +223,15 @@
     "sfx_foe_enter_roll",
     1150
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_spit",
+     500
+    ]
+   ]
+  }
  },
  "e11": {
   "ko": "거북이 몽둥이 전사",
@@ -158,7 +244,15 @@
     "sfx_foe_enter_roll",
     1100
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_slam",
+     250
+    ]
+   ]
+  }
  },
  "e12": {
   "ko": "좀비 의사",
@@ -171,7 +265,19 @@
     "sfx_foe_enter_ground",
     850
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_claw",
+     230
+    ],
+    [
+     "sfx_foe_atk_claw",
+     520
+    ]
+   ]
+  }
  },
  "e13": {
   "ko": "해골 복서 오우거",
@@ -184,7 +290,51 @@
     "sfx_foe_enter_drop",
     350
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_punch",
+     96
+    ],
+    [
+     "sfx_foe_atk_punch",
+     296
+    ],
+    [
+     "sfx_foe_atk_punch",
+     512
+    ],
+    [
+     "sfx_foe_atk_punch",
+     729
+    ],
+    [
+     "sfx_foe_atk_punch",
+     1012
+    ],
+    [
+     "sfx_foe_atk_punch",
+     1213
+    ],
+    [
+     "sfx_foe_atk_punch",
+     1511
+    ],
+    [
+     "sfx_foe_atk_slam",
+     2110
+    ],
+    [
+     "sfx_foe_atk_punch",
+     2828
+    ],
+    [
+     "sfx_foe_atk_punch",
+     3044
+    ]
+   ]
+  }
  },
  "e14": {
   "ko": "역병 의사 화염방사병",
@@ -197,7 +347,15 @@
     "sfx_foe_enter_ground",
     0
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_flame",
+     350
+    ]
+   ]
+  }
  },
  "e15": {
   "ko": "해적 게",
@@ -213,6 +371,14 @@
     "sfx_foe_enter_ground",
     1030
    ]
-  ]
+  ],
+  "atkSfx": {
+   "attack": [
+    [
+     "sfx_foe_atk_slam",
+     750
+    ]
+   ]
+  }
  }
 }
