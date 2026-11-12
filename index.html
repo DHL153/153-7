@@ -1125,8 +1125,8 @@ body[data-tbl] #mainArea{background:#0e1a17 center/cover no-repeat;box-shadow:in
 body[data-tbl=rust] #mainArea{background-image:url(assets/ui/lamancha/bg_table_rust.webp)}
 body[data-tbl=neon] #mainArea{background-image:url(assets/ui/lamancha/bg_table_neon.webp)}
 body[data-tbl=sky] #mainArea{background-image:url(assets/ui/lamancha/bg_table_sky.webp)}
-.pileCard{background:url(assets/ui/kit/card_back.webp?v=3) center/100% 100% no-repeat!important;border:0!important;border-radius:6px}
-.card.dz.fogc .dzb{background:url(assets/ui/kit/card_back.webp?v=3) center/100% 100% no-repeat!important;box-shadow:0 3px 6px rgba(0,0,0,.5)!important}
+.pileCard{background:var(--lmBack,url(assets/ui/kit/card_back.webp?v=3)) center/100% 100% no-repeat!important;border:0!important;border-radius:6px}
+.card.dz.fogc .dzb{background:var(--lmBack,url(assets/ui/kit/card_back.webp?v=3)) center/100% 100% no-repeat!important;box-shadow:0 3px 6px rgba(0,0,0,.5)!important}
 .card.dz.fogc .dzno{opacity:0}
 /* (DHL 11-07) 낸 뒷면 카드가 앞으로 뒤집힘 */
 .card.dz.fogRev{animation:lmFogRev .42s cubic-bezier(.3,1.4,.5,1) both}
@@ -1953,7 +1953,42 @@ const BASE_POW={alonso:10,dulcine:9,sancho:8,rosi:7,lucia:6,bruno:5,nicole:4,car
 /* (DHL 10-29) 번호 = 힘, 카드마다 매판 무작위 (1~10, 번호마다 6장). 높은 번호 동료만 쓰는 단조로운 전투를 깨기 위해.
    번호가 없는 옛 카드(연습 · 배우기 · 이어하기 옛 판)는 동료 기본값으로 */
 const cardNo=c=>(c&&c.no)||BASE_POW[TYPES[c.id].n];
-const rndNo=()=>1+(Math.random()*10|0);
+/* 🂠 덱 종류 (DHL 11-12) — 기본 1 + 유리한 덱 3 + 교환 1 + 불리한 덱 11. 숫자는 초안(봇 클리어율로 맞춤). t: b=유리 · x=교환 · d=불리
+   img = assets/ui/kit/decks/deck_<키>.webp (기본만 kit/card_back.webp) */
+const DECKS={
+  lamancha:{ko:'라만차 덱',t:'',d:'기본 규칙'},
+  merchant:{ko:'상인 덱',t:'b',d:'시작 골드 15 · 이자 최대 10'},
+  forge:{ko:'대장간 덱',t:'b',d:'시작 덱에 ★2 동료 6장'},
+  collector:{ko:'수집가 덱',t:'b',d:'구슬 칸 6개'},
+  gambler:{ko:'승부사 덱',t:'x',d:'런 3번 · 버리기 6번'},
+  three:{ko:'구슬 셋 덱',t:'d',d:'구슬 칸 3개'},
+  restless:{ko:'쉼 없는 덱',t:'d',d:'야영을 할 수 없음'},
+  poor:{ko:'가난한 덱',t:'d',d:'라운드 보상 절반 · 이자 없음'},
+  pricey:{ko:'비싼 캠프 덱',t:'d',d:'원정 캠프 값 1.5배 · 리롤 값 2배'},
+  thinpurse:{ko:'얇은 지갑 덱',t:'d',d:'원정 캠프를 떠날 때 골드 5 초과분이 사라짐'},
+  duel:{ko:'결투 덱',t:'d',d:'런 3번'},
+  onepath:{ko:'외길 덱',t:'d',d:'버리기 2번'},
+  campfire:{ko:'모닥불 덱',t:'d',d:'머지는 야영의 모닥불 머지에서만'},
+  debt:{ko:'빚 덱',t:'d',d:'골드 −15로 시작 · 빚이 있는 동안 이자 없음'},
+  wounded:{ko:'상처 입은 덱',t:'d',d:'시작 동료 20장이 상처 (힘 절반)'},
+  lownum:{ko:'낮은 번호 덱',t:'d',d:'번호 1~5 동료만 나옴'}
+};
+const DECK_IMG=k=>k&&k!=='lamancha'&&DECKS[k]?`assets/ui/kit/decks/deck_${k}.webp`:'assets/ui/kit/card_back.webp?v=3';
+const DECK_V={forge:6,wounded:20,woundX:0.5,thin:5};   // 덱 숫자 (봇 튜닝용)
+const deckIs=k=>{try{return !!S&&S.deckK===k;}catch(e){return false;}};
+/* 판을 만든 직후 한 번: 덱 규칙 중 시작 숫자를 바꾸는 것 */
+function deckApply(S){const k=S.deckK;
+  if(k==='merchant'){S.gold=15;S.interestMax=10;}
+  if(k==='collector')S.maxOrb=6;if(k==='three')S.maxOrb=3;
+  if(k==='gambler'){S.runsMax=3;S.disMax=6;}if(k==='duel')S.runsMax=3;if(k==='onepath')S.disMax=2;
+  if(k==='poor')S.interestMax=0;if(k==='debt')S.gold=-15;
+  if(k==='pricey')S.rerollBase=4;
+  S.runs=S.runsMax;S.dis=S.disMax;return S;}
+const deckInterest=S=>S.deckK==='poor'||S.gold<0?0:Math.min(S.interestMax,Math.floor(S.gold/5));   // 가난한 덱 = 없음 · 빚(골드 음수) = 없음
+const deckReward=(S,base)=>S.deckK==='poor'?Math.ceil(base/2):base;
+const deckPriceX=()=>deckIs('pricey')?1.5:1;
+const deckBanV=k=>(deckIs('poor')&&(k==='vault'||k==='vault2'))||(deckIs('merchant')&&k==='vault')||(deckIs('restless')&&(k==='campv'||k==='campv2'));   // 이 덱에서 뜻이 없는 증서
+const rndNo=()=>1+(Math.random()*(deckIs('lownum')?5:10)|0);
 const STAR_X=[0,1,2.5,6];               // ★ 배율: 재료 합보다 크게 (★2 = 재료 2장 ×2 → ×2.5, ★3 = 재료 4장 ×4 → ×6)
 /* 머지 (대전제: 오직 같은 ★끼리만)
    같은 이름 · 같은 ★ 2장을 겹치면 ★+1 (★3까지)
@@ -2013,9 +2048,13 @@ function applyMerge(a,b,keepEl,keepW,keepNo){ // a에 b를 겹친다. 남길 속
 const STAR_W=[0,1,2,3];   // (DHL 11-01) ★3 = 3장 (그림 겹침과 같게, 예전 4)                 // 족보에서 세는 장수 = 쌓인 재료 장수
 /* 덱 60장: 같은 동료(이름+세계) 2장은 속성이 서로 다르다. 속성마다 12장 (봇 테스트 2026-10-27: 120·60·30 중 60이 머지가 가장 잘 삶) */
 const DECK_N=60;
-function makeDeck(){let uid=0;const d=[];WORLDS.forEach((w,wi)=>NAMES.forEach(([n],ni)=>{const id=w+'_'+n,o=(ni+wi*2)%5;[1,3].forEach(k=>d.push({uid:uid++,id,star:1,el:ELS[(o+k)%5]}));}));
-  const nos=[];for(let v=1;v<=10;v++)for(let i=0;i<d.length/10;i++)nos.push(v);for(let i=nos.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[nos[i],nos[j]]=[nos[j],nos[i]];}
-  d.forEach((c,i)=>c.no=nos[i]);return d;}   // 매판 번호(=힘) 무작위: 1~10 각 6장
+function makeDeck(dk){let uid=0;const d=[];WORLDS.forEach((w,wi)=>NAMES.forEach(([n],ni)=>{const id=w+'_'+n,o=(ni+wi*2)%5;[1,3].forEach(k=>d.push({uid:uid++,id,star:1,el:ELS[(o+k)%5]}));}));
+  const top=dk==='lownum'?5:10,nos=[];for(let v=1;v<=top;v++)for(let i=0;i<d.length/top;i++)nos.push(v);for(let i=nos.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[nos[i],nos[j]]=[nos[j],nos[i]];}
+  d.forEach((c,i)=>c.no=nos[i]);   // 매판 번호(=힘) 무작위: 1~10 각 6장 (낮은 번호 덱 = 1~5 각 12장)
+  if(dk==='forge'||dk==='wounded'){const ix=d.map((_,i)=>i);for(let i=ix.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[ix[i],ix[j]]=[ix[j],ix[i]];}
+    if(dk==='forge')ix.slice(0,DECK_V.forge).forEach(i=>d[i].star=2);
+    if(dk==='wounded')ix.slice(0,DECK_V.wounded).forEach(i=>d[i].st={hit:Math.max(1,Math.round(power(d[i])*DECK_V.woundX))});}
+  return d;}
 const HT={ /* 족보: [이름, 힘, 배수, 설명] — 축마다 하나씩(이름 족보 · 행진 · 원소 결속 · 세계 결속), 걸린 건 모두 더한다 */
   solo:['홀로 런',5,1,'족보 없음'],
   pair:['짝',10,2,'같은 번호 2장'],
@@ -2423,7 +2462,7 @@ function banned(c,foe){const R=foe&&foe.rule;if(!R)return false;if(R.k==='plant'
 function makeFoes(world,j,dk){world=world||'rust';const hs=mixA(NUM_NAME);const fs=makeFoes0(world,j,dk,hs);fs.forEach(fitBan);
   if(j===8&&dk==='errant'){const b=fs[2];b.name='스카이아크 알론소';b.boss='skyAlonso';}   /* (DHL 10-30) 편력 기사 8장 거인 = 스카이아크 알론소 고정(세계는 무작위) */
   return fs;}
-function makeFoes0(world,j,dk,hs){return [0,1,2].map(r=>{const el=ELS[Math.random()*5|0],ns=FOE_NAMES[world][r];return {rd:r,home:world,hero:hs[r],no:1+(Math.random()*10|0),name:ns[Math.random()*ns.length|0],el,atk:FOE_ATK[r],ints:[],atype:null,   /* (DHL 10-29) 적 공격(반격·표식·베기·독안개) 삭제 — 거인 규칙으로 옮김 */rule:r===2?bossRule(j,dk):null};});}
+function makeFoes0(world,j,dk,hs){return [0,1,2].map(r=>{const el=ELS[Math.random()*5|0],ns=FOE_NAMES[world][r];return {rd:r,home:world,hero:hs[r],no:rndNo(),name:ns[Math.random()*ns.length|0],el,atk:FOE_ATK[r],ints:[],atype:null,   /* (DHL 10-29) 적 공격(반격·표식·베기·독안개) 삭제 — 거인 규칙으로 옮김 */rule:r===2?bossRule(j,dk):null};});}
 function paralyzed(c,foe){return false;}   // (예전 '힘 0' 마비는 출전 불가로 바뀜)
 /* 전투에서 카드 한 장의 힘 (상성 · 마비 반영) */
 const hurtOf=c=>c.st?(c.st.hit||0)+(c.st.pd||0):0;      // 타격 + 독으로 깎인 힘
@@ -2458,6 +2497,7 @@ const VOUCH={ /* 증서: 기본 14 + 상위 14 (상위는 같은 판에서 기�
 };
 const VOUCH_COST=10, PACK_COST=4;
 
+{const _br=bossRule;bossRule=function(){let r,i=0;do{r=_br.apply(this,arguments);}while(deckIs('campfire')&&r&&r.k==='nomerge'&&++i<40);return r;};}   // (DHL 11-12) 모닥불 덱에서는 '머지 금지' 규칙이 안 나옴
 if(typeof process!=='undefined'&&process.env&&process.env.HTV){process.env.HTV.split(',').forEach(x=>{const [k,c,m]=x.split(':');HT[k][1]=+c;HT[k][2]=+m;});}   // 봇 튜닝용
 if(typeof module!=='undefined')module.exports={STAR3,STAR3B,S3B,ab3,S3,handInfo,LVUP,VOUCH,REWARD,TYPES,TYPE_IDS,HT,HT_ORDER,ORBS,score,handType,target,STAR_MUL,ELS,power,BASE_POW,mergeKind,applyMerge,PARTS,weight,makeDeck,cardW,originW,scoringCards,ORB_MUL,ORB_ADD,makeFoes,battlePower,matchX,paralyzed,ATK,hurtOf,JANG_WORLD,rarityOdds,banned,bossRule,ACT_RULES,FINAL_RULES,ruleTx,};
 </script><script>
@@ -2476,9 +2516,11 @@ function newGame(diff){
   if(!diff){ // 난이도 고르기
     showOv(`<h2>난이도</h2>${Object.entries(DIFF).map(([k,d])=>`<button class="diffBtn" onclick="hideOv();newGame('${k}')"><b>${d.ko}</b><small>${d.d}</small></button>`).join('')}<p><small>장난감에서는 모두 열려 있어요. 실제 게임에서는 견습 클리어 → 기사 해금 → 편력 기사 해금.</small></p>`);
     return;}
-  const deck=makeDeck(), uid=deck.length;
+  const dk=DECKS[window.LM_NEXT_DECK]?window.LM_NEXT_DECK:'lamancha';window.LM_NEXT_DECK=null;   // (DHL 11-12) 덱 고르기 — 플레이 창에서 고른 덱, 그 밖(배우기 등)은 라만차 덱
+  const deck=makeDeck(dk), uid=deck.length;
   S={jang:1,rd:0,deck,draw:[],hand:[],sel:[],gold:4,orbs:[],merges:0,sort:'name',busy:false,hintOn:true,hl:null,best:0,
      lv:{},vouch:[],grow:0,ost:{},runsMax:4,disMax:4,handN:8,maxOrb:5,rerollBase:2,interestMax:5,uid,voucherOffer:null,roundMerges:0,diff,score:0,tgt:tgtFor(1,0,diff),runs:4,dis:4,usedHT:[],inj:[]};
+  S.deckK=dk;deckApply(S);lmDeckBack();
   S.wseq=worldSeq(60);   // 8장 + 무한 원정
   S.voucherOffer=pickVoucher();
   if(firstGame){firstGame=false;S.selecting=true;ensureFoes();return;}
@@ -2487,7 +2529,7 @@ function newGame(diff){
 /* 장의 빌런 3명(망령 · 수문장 · 거인)을 장이 시작될 때 정한다 — 거인 규칙을 미리 보고 준비 */
 const giantKey=R=>R?(R.k==='ban'?({'부상':'inj','세계 봉쇄':'wban','속성 봉쇄':'elban'}[R.ko]||'inj'):R.k):null;
 function ensureFoes(){if(!S.foes||S.foesJang!==S.jang){S.foes=S.foesNext||makeFoes(JANG_WORLD(S.jang),S.jang,S.diff);S.foesNext=null;S.foesJang=S.jang;codexMark('giant',giantKey(S.foes[2].rule));}
-  S.foes.forEach((f,r)=>{if(!f.hero)f.hero=heroFor(S.jang,r);if(!f.no)f.no=1+(Math.random()*10|0);});S.foe=S.foes[S.rd];}
+  S.foes.forEach((f,r)=>{if(!f.hero)f.hero=heroFor(S.jang,r);if(!f.no)f.no=rndNo();});S.foe=S.foes[S.rd];}
 /* 야영 (망령 · 수문장 대신): 그 라운드의 돈 · 머지 기회 · 원정 캠프를 모두 포기하고 정비 하나를 한다 */
 const scoutCost=()=>5+S.jang;
 const CAMP={
@@ -2577,7 +2619,7 @@ function guestGo(sub){const g=S.campGuest,G=GUESTS[g.k];S.campGuestUsing=true;
     const h=g.hts[sub];S.lv[h]=(S.lv[h]||1)+1;return campDone(`📜 ${HT[h][0]} Lv${S.lv[h]}`);}
   if(g.k==='tavern'){S.gold+=3+S.jang;return campDone(`🍺 주막에서 💰${3+S.jang}`);}
 }
-function campOpen(){if(S.rd>=2)return;S.campSel=[];if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];}
+function campOpen(){if(S.rd>=2||deckIs('restless'))return;S.campSel=[];if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];}
   const g=S.campGuest,gHTML=g?`<button class="campBtn guest" ${guestOK(g)?'':'disabled'} onclick="guestGo()"><b>${GUESTS[g.k].ic} 손님 · ${GUESTS[g.k].ko}</b><small>${GUESTS[g.k].d(g)}${g.k==='merchant'&&!guestOK(g)?(S.gold<g.cost?' — 돈이 부족해요':' — 구슬칸이 가득'):''}</small></button>`:'';
   showOv(`<h2>🏕 야영 <small style="font-size:13px;color:var(--gold)">정비 ${(S.campMax||2)-S.campLeft+1}/${S.campMax||2}</small></h2><p class="omNote">라운드를 치르지 않고 쉬어요. 정비 ${S.campMax||2}개를 하고 다음 라운드로 가요 (원정 캠프 없음). 같은 정비를 두 번 해도 돼요.</p>`+(S.campLog.length?`<div class="skipGot">${S.campLog.join('<br>')}</div>`:'')+
     Object.entries(CAMP).map(([k,c])=>{const cost=k==='scout'?scoutCost():k==='walk'?walkCost():k==='merge'?CAMP_MC[2]:0,poor=cost&&S.gold<cost;return `<button class="campBtn${k==='walk'?' walk':''}" ${poor?'disabled':''} onclick="campPick('${k}')"><b>${c.ic} ${c.ko}${cost?` · 💰${cost}`:''}</b><small>${c.d}${poor?' — 돈이 부족해요':''}</small></button>`;}).join('')+(S.campGuest&&!S.campGuest.used?gHTML:'')+
@@ -2647,7 +2689,7 @@ function campFinish(){const f=S.foes[S.rd];f.camped=true;S.campMsg=S.campLog.joi
 const roundTgt=r=>Math.round(tgtFor(Math.max(1,S.jang-(S.tgtShift||0)),r,S.diff)*ruleTx(S.foes&&S.foes[r])*(S.foes&&S.foes[r]&&S.foes[r].bandit?1.3:1)*((S.foes&&S.foes[r]&&S.foes[r].tx)||1)/10)*10;   // 성벽 ×2 · 풍차 축 ×3
 function startRound(){ensureFoes();S.selecting=true;S.orbHidden=false;S.offOrb=null;S.forced=null;S.score=0;S.sh=null;S.tgt=roundTgt(S.rd);if(S.rd===0)S.playedJang=[];
   /* 라운드 고르기 — 발라트로 블라인드 선택 배치 (2026-10-27): 세로 기둥 3개 · 지금 라운드만 파랗게 · 위 '선택' · 토큰 · 최소 득점 · 보상 · 아래 야영 */
-  const RW=REWARD,TK=['token_minion','token_knight','token_giant'],card=(r)=>{const f=S.foes[r],cur=r===S.rd,done=r<S.rd,tg=roundTgt(r);
+  const RW=REWARD.map(v=>deckReward(S,v)),TK=['token_minion','token_knight','token_giant'],card=(r)=>{const f=S.foes[r],cur=r===S.rd,done=r<S.rd,tg=roundTgt(r);
     const ic=e=>`<span class="fic" style="background:${EL_C[e]}">${EL_SYM[e]}</span>`;
     if(f.rule&&f.rule.k==='pillar')f.rule.uids=(S.playedJang||[]).slice();
     const lim=f.rule&&(f.rule.ban||['plant','pillar'].includes(f.rule.k));
@@ -2658,7 +2700,7 @@ function startRound(){ensureFoes();S.selecting=true;S.orbHidden=false;S.offOrb=n
       `<div class="rbMid"><img class="rbTok" src="assets/ui/lamancha/${(f&&(window.LM_TOKB||{})[f.boss])||TK[r]}.webp" alt=""><div class="rbFoe"><b>${ic(f.el)}${f.name}</b><span class="rbEls">${armorOn()?`<em><small>${KIC('k')}</small><span class="fel" style="background:${WORLD_C[f.home]}">${WORLD_KO[f.home]}</span></em><em><small>${KIC('k')}</small>${ic(weakTo(f.el))}</em><em><small>${KIC('h')}</small>${f.no?`<b class="kNo">${f.no}</b>`:(NAMES.find(x=>x[0]===(f.hero||heroFor(S.jang,r)))||['',''])[1]}</em>`:`<em><small>약점</small>${ic(weakTo(f.el))}</em><em><small>내성</small>${ic(resist(f.el))}</em>`}</span></div></div>`+
       (f.rule?`<div class="rbRule"><b>${f.rule.ic} ${f.rule.ko}</b><span>${f.rule.d}</span>${lim?`<small class="rbOk">출전 ${ok}/${S.deck.length}장</small>`:''}</div>`:'')+
       `<div class="rbScore"><small>최소 득점${f.bandit?' ×1.3':''}</small><b class="rbNum" style="--n:${(tg.toLocaleString().replace(/[^0-9]/g,'').length+tg.toLocaleString().replace(/[0-9]/g,'').length*.45).toFixed(2)}">${tg.toLocaleString()}</b><small class="rbRw">보상 <em>💰</em><b>${RW[r]}</b></small></div>`+
-      (r<2?`<div class="rbSkip${cur?'':' off'}"><small>또는</small><b>🏕 야영</b><span>모닥불 머지 · 떠나보내기<br>정찰 · 밤 산책</span>`+(cur?`<button onclick="campOpen()">야영하기</button>`:'')+`</div>`
+      (r<2&&deckIs('restless')?`<div class="rbSkip off noCamp"><b>야영 없음</b><span>쉼 없는 덱</span></div>`:r<2?`<div class="rbSkip${cur?'':' off'}"><small>또는</small><b>🏕 야영</b><span>모닥불 머지 · 떠나보내기<br>정찰 · 밤 산책</span>`+(cur?`<button onclick="campOpen()">야영하기</button>`:'')+`</div>`
           :`<div class="rbSkip boss"><b>👹 거인전</b><span>이기면<br>다음 장으로</span></div>`)+`</div>`;};
   const hurt=(()=>{const h=hurtCount();return h.w||h.s?` · 🩹 ${h.w} · 🗡 ${h.s}`:'';})();
   showOv(`<div class="rsB"><div class="rbHead"><button type="button" class="rbOpt" onclick="gameOpt()" aria-label="메뉴" title="메뉴 · 설정 (Esc)">${(document.getElementById('sOpt')||{}).innerHTML||'⚙'}</button><b>${S.jang}장</b><span class="fel" style="background:${WORLD_C[JANG_WORLD(S.jang)]}">${WORLD_KO[JANG_WORLD(S.jang)]}</span><span>💰${S.gold}${hurt}</span>`+
@@ -2718,9 +2760,9 @@ function targets(){
 const hurtCount=()=>({w:S.deck.filter(c=>c.out).length,s:S.deck.filter(c=>c.st&&c.st.hit).length});
 const selCards=()=>S.sel.map(u=>S.hand.find(c=>c.uid===u)).filter(Boolean);
 const MK_KO={up:'순수',mix:'혼합'};
-function canMergeAllowed(){return !(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge');}
+function canMergeAllowed(){return !deckIs('campfire')&&!(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge');}
 const mergeRun=()=>DIFF[S.diff].mergeRun;   // 기사 이상: 머지도 런 1번
-function canMerge(){if(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge')return null;if(mergeRun())return null;   // 기사 이상: 따로 머지하지 않고 런할 때 합쳐짐
+function canMerge(){if(deckIs('campfire')||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return null;if(mergeRun())return null;   // 기사 이상: 따로 머지하지 않고 런할 때 합쳐짐
 const c=selCards();return c.length===2&&!c[0].fog&&!c[1].fog?mergeKind(c[0],c[1]):null;}
 function twinKind(c){if(c.fog)return null;let k=null;S.hand.forEach(o=>{if(o.fog)return;const m=mergeKind(c,o);if(m==='up'||(m&&!k))k=m;});return k;}
 
@@ -2882,7 +2924,7 @@ function renderSide(){const f=S.foe||(S.foes&&S.foes[S.rd]);try{lmStatTick()}cat
   const shopOn=!$('ov').hidden&&!!$('ov').querySelector('.shop');$('sRound').classList.toggle('shopping',shopOn);$('sRdName').innerHTML=shopOn?'<span class="shopSign">원정 캠프</span><small class="shopSub">런을 강화하세요!</small>':S.practice?'해보기':(S.selecting&&!$('ov').hidden&&$('ov').querySelector('.rsB'))?'다음 라운드를<br>선택하세요':RD_KO[S.rd];$('sRound').classList.toggle('pick',!!(S.selecting&&$('ov').querySelector('.rsB')&&!$('ov').hidden));
   $('sRound').style.background=['#3b6b2a','#2d4f9a','#8a1f1f'][S.rd];
   if(f){$('sToken').dataset.rd=S.rd;$('sToken').dataset.boss=f.boss||'';$('sTokIc').style.background=EL_C[f.el];$('sTokIc').textContent=EL_SYM[f.el];$('sFoeName').textContent=f.name;}document.body.dataset.tbl=S.practice?'rust':JANG_WORLD(S.jang);
-  $('sTgt').textContent=S.practice||S.sandbox?'∞':(S.tgt||0).toLocaleString();$('sRw').textContent='보상 💰'+(REWARD[S.rd]||0);
+  $('sTgt').textContent=S.practice||S.sandbox?'∞':(S.tgt||0).toLocaleString();$('sRw').textContent='보상 💰'+deckReward(S,REWARD[S.rd]||0);
   $('sScore').textContent=S.score.toLocaleString();
   $('sJang').innerHTML=`${S.jang}<i>${S.endless?'/∞':'/8'}</i>`;$('sRoundNo').textContent=(S.jang-1)*3+S.rd+1;
   $('orbCnt').textContent=`${S.orbs.length}/${S.maxOrb}`;$('handCnt').textContent=`${S.hand.length}/${S.handNow||S.handN}`;}
@@ -3034,14 +3076,14 @@ function doDiscard(){
 }
 /* 머지 & 런 (기사 이상): 고른 카드 안의 같은 이름 · 같은 ★ 짝을 먼저 합치고 달린다 */
 function runPairs(cs){ // 미리보기용: 복사본으로 합쳐 본 짝 목록
-  if(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge')return [];
+  if(deckIs('campfire')||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return [];
   let a=cs.filter(c=>!c.fog).map(c=>({...c})),pairs=[],did=true;
   while(did){did=false;for(const want of ['up','mix']){for(let i=0;i<a.length&&!did;i++)for(let j=0;j<a.length;j++){if(i!==j&&mergeKind(a[i],a[j])===want){pairs.push([a[i].uid,a[j].uid]);applyMerge(a[i],a[j]);a.splice(j,1);did=true;break;}}if(did)break;}}
   return pairs;
 }
 function mergedPreview(cs){ // 합쳐진 뒤 달릴 카드들 (점수 미리보기용)
   let a=cs.map(c=>({...c,_u:[c.uid]})),did=true;
-  if(!mergeRun()||S.mrOff||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return cs;
+  if(!mergeRun()||S.mrOff||deckIs('campfire')||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return cs;
   while(did){did=false;for(const want of ['up','mix']){for(let i=0;i<a.length&&!did;i++)for(let j=0;j<a.length;j++){if(i!==j&&!a[i].fog&&!a[j].fog&&mergeKind(a[i],a[j])===want){applyMerge(a[i],a[j]);a[i]._u=a[i]._u.concat(a[j]._u);a.splice(j,1);did=true;break;}}if(did)break;}}
   return a;
 }
@@ -3189,7 +3231,7 @@ cv.onclick=()=>{if(S.anim)S.anim.spd=S.anim.spd===1?3:S.anim.spd;};
 
 /* ───────── 승패 · 보상 받기 · 원정 캠프 (발라트로식) ───────── */
 const ENEMY_KO=['망령','수문장','거인'];
-function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes(k)&&(!VOUCH[k].base||S.vouch.includes(VOUCH[k].base)));return pool.length?pool[Math.random()*pool.length|0]:null;}
+function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes(k)&&!deckBanV(k)&&(!VOUCH[k].base||S.vouch.includes(VOUCH[k].base)||(k==='vault2'&&deckIs('merchant'))));return pool.length?pool[Math.random()*pool.length|0]:null;}
 function win(){
   const last=S.jang===8&&S.rd===2&&!S.endless;
   if(last&&S.diff==='errant'&&!S.finale){lmFinale();return;}   /* (DHL 10-30) 편력: 스카이아크 알론소 → 반전 씬 → 풍차 거인 (저장 없음 — 지면 처음부터) */
@@ -3238,7 +3280,7 @@ function runEndHTML(won){
    `<div class="goGrid"><div class="goCol">${C('낸 카드',rs.play,'blue')}${C('버린 카드',rs.dis,'red')}${C('산 물건',rs.buy,'gold')}${C('리롤',rs.rr,'green')}${C('머지',S.merges||0,'green')}</div>`+
    `<div class="goCol">${C('장',S.jang+(S.endless?'<small>/∞</small>':'<small>/8</small>'),'gold')}${C('라운드',(S.jang-1)*3+S.rd+1,'gold')}`+
    `<div class="goFoe"><span>${won?'마지막 상대':'막아선 상대'}</span><img src="assets/ui/lamancha/${(f&&(window.LM_TOKB||{})[f.boss])||TK[S.rd]}.webp" alt=""><b>${f?f.name:''}</b>${!won&&f?`<small>${(S.score||0).toLocaleString()} / ${(S.tgt||0).toLocaleString()}</small>`:''}</div></div></div>`+
-   `<div class="goBtns">${won&&!S.endless&&(S.finale||S.diff!=='errant')?'<button class="goBtn goEndless" onclick="lmEndless()">원정 계속하기 ∞</button>':''}${won&&!S.endless&&!S.finale&&S.diff!=='errant'?'':'<button class="goBtn" onclick="lmEndNewRun()">새로운 런</button>'}<button class="goBtn" onclick="goMenu()">메인 메뉴</button></div></div></div>`;
+   lmDeckNewHTML()+`<div class="goBtns">${won&&!S.endless&&(S.finale||S.diff!=='errant')?'<button class="goBtn goEndless" onclick="lmEndless()">원정 계속하기 ∞</button>':''}${won&&!S.endless&&!S.finale&&S.diff!=='errant'?'':'<button class="goBtn" onclick="lmEndNewRun()">새로운 런</button>'}<button class="goBtn" onclick="goMenu()">메인 메뉴</button></div></div></div>`;
 }
 function goMenu(){hideOv();if(S)S._statEnded=1;if(typeof ltShow==='function')ltShow();else newGame();}
 function lose(){
@@ -3250,13 +3292,13 @@ function lose(){
 const coins=n=>'<span class="coins" data-n="'+n+'">'+'💰'.repeat(Math.min(n,10))+(n>10?'+':'')+'</span>';
 function cashOut(){
   S.orbHidden=false;S.offOrb=null;S.forced=null;
-  const dbl=!!S.dblReward,base=REWARD[S.rd]*(dbl?2:1),left=S.runs,intr=Math.min(S.interestMax,Math.floor(S.gold/5)),sum=base+left+intr;
+  const dbl=!!S.dblReward,base=deckReward(S,REWARD[S.rd]*(dbl?2:1)),left=S.runs,intr=deckInterest(S),sum=base+left+intr;
   S.cash=sum;S.dblReward=false;
-  let rows=[`<div class="crow"><span class="en tk" title="${ENEMY_KO[S.rd]}"><img src="assets/ui/lamancha/${['token_minion','token_knight','token_giant'][S.rd]||'token_minion'}.webp" alt="${ENEMY_KO[S.rd]}"></span><span>최소 득점<br><b class="tg">${S.tgt.toLocaleString()}</b>${dbl?'<br><small class="dblTag">💰 두 배 보상 ×2</small>':''}</span><span class="grow"></span>${coins(base)}</div>`,'<div class="sep"></div>'];
+  let rows=[`<div class="crow"><span class="en tk" title="${ENEMY_KO[S.rd]}"><img src="assets/ui/lamancha/${['token_minion','token_knight','token_giant'][S.rd]||'token_minion'}.webp" alt="${ENEMY_KO[S.rd]}"></span><span>최소 득점<br><b class="tg">${S.tgt.toLocaleString()}</b>${dbl?'<br><small class="dblTag">💰 두 배 보상 ×2</small>':''}${deckIs('poor')?'<br><small class="dblTag">가난한 덱 · 보상 절반</small>':''}</span><span class="grow"></span>${coins(base)}</div>`,'<div class="sep"></div>'];
   if(left)rows.push(`<div class="crow"><b class="n bl">${left}</b><span>남은 런 (각 1)</span><span class="grow"></span>${coins(left)}</div>`);
   if(S.foe&&S.foe.bandit){const bv=S.foe.bandit;S.cash+=bv;rows.push(`<div class="crow"><b class="n gd">${bv}</b><span>⚔ 산적 퇴치</span><span class="grow"></span>${coins(bv)}</div>`);}
   if(S.orbs.includes('horse')){const hv=4*(S.ost.horse||1);S.cash+=hv;rows.push(`<div class="crow"><b class="n gd">${hv}</b><span>황금 편자</span><span class="grow"></span>${coins(hv)}</div>`);}
-  rows.push(`<div class="crow${intr?'':' dim'}"><b class="n gd">${intr}</b><span>5골드당 이자 1 (최대 ${S.interestMax})</span><span class="grow"></span>${coins(intr)}</div>`);
+  rows.push(`<div class="crow${intr?'':' dim'}"><b class="n gd">${intr}</b><span>${deckIs('poor')?'이자 없음 (가난한 덱)':S.gold<0?'빚이 있는 동안 이자 없음':`5골드당 이자 1 (최대 ${S.interestMax})`}</span><span class="grow"></span>${coins(intr)}</div>`);
   // 💰 보상 연출 (2026-10-28 DHL): 풍차 날개가 돌며 줄마다 금화가 하나씩 '짤랑' 쌓이고, 버튼 숫자가 굴러 올라감 → 받기를 누르면 금화가 풍차 바람을 타고 왼쪽 골드로 날아감
   const amt=[base,left,(S.foe&&S.foe.bandit)||0,S.orbs.includes('horse')?4*(S.ost.horse||1):0,intr];
   /* (DHL 11-12 QA 7 A안) 보상 창 위에 승리 문장 + '라운드 승리' 리본 (패배 화면의 짝) · 뒤에서 퍼지는 빛은 장 클리어 빛 그림 재사용 · 글자는 코드(13개 언어) */
@@ -3477,9 +3519,9 @@ function applyVoucher(k){
   if(k==='sand'){S.tgtShift=(S.tgtShift||0)+1;S.runsMax=Math.max(1,S.runsMax-1);}if(k==='sand2'){S.tgtShift=(S.tgtShift||0)+1;S.disMax=Math.max(0,S.disMax-1);}
   if(k==='campv')S.campMax=3;
 }
-const price=c=>Math.max(1,Math.round(c*(1-(S.disc||0))));   // 산초의 흥정 할인
+const price=c=>Math.max(1,Math.round(c*deckPriceX()*(1-(S.disc||0))));   // 산초의 흥정 할인
 function flagReroll(){if(S.gold<10)return;if(!S.vouch.includes('flagv2')&&S.flagJang===S.jang)return;const tj=S.rd<2?S.jang:S.jang+1,fs=S.rd<2?S.foes:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff));S.gold-=10;S.flagJang=S.jang;fs[2].rule=bossRule(tj,S.diff);fitBan(fs[2]);popMsg('🚩 '+tj+'장 거인: '+fs[2].rule.ic+' '+fs[2].rule.ko);render();openShop();}
-function reroll(){if(S.freeRR>0){S.freeRR--;S.pick=null;rollTop();render();openShop();return;}if(S.gold<S.rerollCost)return;(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).rr++;S.gold-=S.rerollCost;S.rerollCost++;S.pick=null;rollTop();render();openShop();}
+function reroll(){if(S.freeRR>0){S.freeRR--;S.pick=null;rollTop();render();openShop();return;}if(S.gold<S.rerollCost)return;(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).rr++;S.gold-=S.rerollCost;S.rerollCost+=deckIs('pricey')?2:1;S.pick=null;rollTop();render();openShop();}
 /* 동료 팩: 3장 중 1장 → 덱에 ★1 한 장 추가 */
 function openPack(){
   let h=`<h2>동료 팩</h2><p><small>1장을 골라 덱에 넣어요. 같은 카드가 많을수록 손패 머지가 잘 나와요.</small></p><div class="packRow">`;
@@ -3491,6 +3533,7 @@ function openPack(){
 function takePack(i){const {id,el,star,no}=S.packView[i];S.deck.push({uid:S.uid++,id,star:star||1,el,no:no||rndNo()});S.packView=null;const cardEl=document.querySelectorAll('#panel .packRow>.card')[i];popMsg(TYPES[id].ko+' 합류!',{art:cardEl,kick:'동료 영입'});render();openShop();}
 function nextRound(){
   hideOv();S.pick=null;S.campMsg=null;
+  if(S.inShop&&deckIs('thinpurse')&&S.gold>DECK_V.thin){const lost=S.gold-DECK_V.thin;S.gold=DECK_V.thin;popMsg('얇은 지갑 — 💰'+lost+' 사라짐');}   // (DHL 11-12) 얇은 지갑 덱
   if(S.inShop&&S.orbs.includes('monk')&&!S.boughtShop){S.ostate=S.ostate||{};S.ostate.monk=Math.round(((S.ostate.monk||0)+0.25)*100)/100;popMsg('🙏 수도사의 서약 ×'+(1+S.ostate.monk));}S.inShop=false;
   if(S.rd<2)S.rd++;else{S.rd=0;S.jang++;S.voucherOffer=pickVoucher();}
   startRound();
@@ -3576,7 +3619,7 @@ const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 let LEARN_SEEN=lsGet('lm_learn_seen',[]);
 let CODEX=lsGet('lm_codex',{orb:{},giant:{}});
-function codexMark(kind,key){if(!key||CODEX[kind][key])return;CODEX[kind][key]=1;lsSet('lm_codex',CODEX);}
+function codexMark(kind,key){if(!key||CODEX[kind][key])return;CODEX[kind][key]=1;lsSet('lm_codex',CODEX);try{lmDeckCheck();}catch(e){}}
 const infoClose=()=>`<button class="iClose lmIco" onclick="ibBackOut()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button>`;
 /* (11-06 외부 피드백 버그) 원정 캠프 · 야영 · 보상 창 위에서 런 정보 · 배우기를 열고 '뒤로'를 누르면 그 창이 닫혀 버려
    빌런 없는 전투판이 남고, 그 판을 '이긴 것'으로 처리돼 골드를 또 받던 문제
@@ -3728,11 +3771,11 @@ function runInfoHTML(){
   h+=`<p class="iSub">내 증서 ${S.vouch.length} · 판 내내 유지</p>`+vouchRowsHTML();
   h+=`<p class="iSub">내 구슬 ${S.orbs.length}/${S.maxOrb}</p><div class="rOrbs">`+(S.orbs.length?S.orbs.map(k=>`<div class="rRow" data-k="${k}"><span><b>${ORBS[k].ko} <i>${dia(S.ost[k]||1)}</i></b><small>${ORBS[k].d}</small></span></div>`).join(''):`<p class="iNote">아직 구슬이 없습니다. 원정 캠프에서 살 수 있습니다.</p>`)+`</div>`;
   const hc=hurtCount(),wc=WORLDS.map(w=>S.deck.filter(c=>cardW(c)===w).length);
-  h+=`<div class="rDeck"><div><b>덱 ${S.deck.length}장</b><span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
+  h+=`<div class="rDeck"><div><b>${S.deckK&&S.deckK!=='lamancha'&&DECKS[S.deckK]?DECKS[S.deckK].ko+' · ':'덱 '}${S.deck.length}장</b><span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
   h+=`<button type="button" class="iMore dkOpen" onclick="deckView()">덱 전체 보기 <small>카드 ${S.deck.length}장</small></button>`;   /* (11-06) 원정 캠프 '덱' 버튼과 같은 창 */
   h+=`<details class="iMore"><summary>장별 목표 점수</summary><table><tr><th>장</th><th>망령</th><th>수문장</th><th>거인</th></tr>`;
   for(let j=1;j<=8;j++)h+=`<tr class="${j===S.jang?'cur':''}"><td>${j}장</td>`+[0,1,2].map(r=>`<td>${j===S.jang&&r===S.rd?'▶ ':''}${tgtFor(j,r,S.diff).toLocaleString()}</td>`).join('')+'</tr>';
-  h+=`</table><p class="iNote">보상 · 망령 ${REWARD[0]} · 수문장 ${REWARD[1]} · 거인 ${REWARD[2]}<br>남은 런 1개당 1 · 5골드마다 이자 1 (최대 ${S.interestMax})</p></details>`;
+  h+=`</table><p class="iNote">보상 · 망령 ${deckReward(S,REWARD[0])} · 수문장 ${deckReward(S,REWARD[1])} · 거인 ${deckReward(S,REWARD[2])}<br>남은 런 1개당 1 · ${deckIs('poor')?'이자 없음':`5골드마다 이자 1 (최대 ${S.interestMax})`}</p></details>`;
   h+=`<details class="iMore"><summary>★ 머지 배율</summary><table><tr><th></th><th>★2</th><th>★3</th></tr><tr><td>같은 세계끼리</td><td>힘 ×${STAR_X[2]}</td><td>힘 ×${STAR_X[3]}</td></tr><tr><td>다른 세계끼리</td><td>힘 ×${MIX_X[2]}</td><td>힘 ×${MIX_X[3]}</td></tr></table><p class="iNote">같은 이름 · 같은 ★끼리만 머지됩니다 (★3까지).</p></details>`;
   return h;
 }
@@ -4098,7 +4141,7 @@ function lmStatTick(){if(!S||S.practice||S.sandbox)return;const rn=(S.jang-1)*3+
   if(S.endless){const E=LM_ST.endless||(LM_ST.endless={});if(S.jang>(E[S.diff]||0)){E[S.diff]=S.jang;ch=1;}}   /* (DHL 11-07) 난이도마다 무한 원정 최고 장 */
   if(ch)lmStSave();}
 function lmStatEnd(won){if(!S||S.practice||S.sandbox||S._statEnded)return;S._statEnded=1;LM_ST.runs++;
-  if(won){LM_ST.wins++;LM_ST.streak++;LM_ST.maxStreak=Math.max(LM_ST.maxStreak,LM_ST.streak);LM_ST.clears[S.diff]=1;}else LM_ST.streak=0;lmStSave();}
+  if(won){LM_ST.wins++;LM_ST.streak++;LM_ST.maxStreak=Math.max(LM_ST.maxStreak,LM_ST.streak);lmDeckClears();LM_ST.clears[S.diff]=1;const dc=LM_ST.deckClears;(dc[S.deckK||'lamancha']=dc[S.deckK||'lamancha']||{})[S.diff]=1;}else LM_ST.streak=0;lmStSave();lmDeckCheck(1);}
 function ltStatHTML(){
   const top=Object.entries(LM_ST.hands).sort((a,b)=>b[1]-a[1])[0];
   const orbKeys=Object.keys(ORBS),G=GIANT_LIST();
@@ -4133,27 +4176,67 @@ function ltPlayHTML(){
     const i=keys.indexOf(ltDiff),d=DIFF[ltDiff],TK=['diff_app','diff_knight','diff_errant'];   // 난이도 아이콘 (DHL 10-30 새 시트: 견습 나무 칼·방패 · 기사 투구·창 · 편력 이발사 대야 투구·풍차) — 라운드 토큰과 같은 청동 리벳 테
     /* (DHL 11-02 시안 A) 위 훈장 3칸: 깬 난이도 = 금 훈장 · 안 깬 = 점선 빈칸 · 누르면 그 난이도 고르기 */
     h+=`<div class="pl-medals" role="group" aria-label="난이도 클리어">`+keys.map((k,j)=>`<button type="button" class="pl-md${k===ltDiff?' on':''}${LM_ST.clears[k]?' got':''}${ltDiffOpen(k)?'':' lock'}" onclick="ltDiff='${k}';ltPop('play')" aria-label="${DIFF[k].ko}${LM_ST.clears[k]?' 클리어':''}"><span class="m"><img src="assets/ui/lamancha/${TK[j]}.webp?v=2" alt=""></span><b>${DIFF[k].ko}</b></button>`).join('')+`</div>`;
-    h+=`<div class="pl-wrap"><div class="pl-deck"><img src="assets/ui/kit/card_back.webp?v=3" alt=""><div class="pl-info"><b>라만차 덱</b><div class="pl-white">`+
-      `<p><span>덱</span>: <em class="b">60장</em></p><p><span>동료</span>: <em class="b">30명 · 세계 3</em></p><p><span>최고 장</span>: <em class="r">${LM_ST.bestJang||'—'}</em></p><p><span>최고 한 방</span>: <em class="r">${LM_ST.best?LM_ST.best.toLocaleString():'—'}</em></p></div></div></div>`+
+    h+=`<div class="pl-wrap">`+ltDeckHTML()+
       `<div class="pl-stake${ltDiffOpen(ltDiff)?'':' lock'}"><span class="pl-vert">난이도</span><span class="pl-ic"><img src="assets/ui/lamancha/${TK[i]||TK[0]}.webp?v=2" alt="">${LM_ST.clears[ltDiff]?'<span class="lmClrOk big" role="img" aria-label="클리어"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':ltDiffOpen(ltDiff)?'':'<span class="pl-lkb" role="img" aria-label="잠김"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg></span>'}</span><div class="pl-sel"><div class="pl-name"><button type="button" onclick="ltDiffStep(-1)" aria-label="이전">&lt;</button><b>${d.ko}</b><button type="button" onclick="ltDiffStep(1)" aria-label="다음">&gt;</button></div>${LM_ST.clears[ltDiff]?'<span class="pl-clr">8장 클리어</span>':ltDiffOpen(ltDiff)?'':`<span class="pl-lkt"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg>${DIFF[keys[Math.max(0,i-1)]].ko}를 깨면 열려요</span>`}<div class="pl-white small">${d.d}</div></div></div></div>`+
-      (ltDiffOpen(ltDiff)?`<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`:`<button type="button" class="pl-go lock" disabled aria-label="플레이 (잠김)"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg>플레이</button>`);
+      (ltDiffOpen(ltDiff)&&ltDeckOpen(ltDeck)?`<button type="button" class="pl-go" onclick="ltNewRun()">플레이</button>`:`<button type="button" class="pl-go lock" disabled aria-label="플레이 (잠김)"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg>플레이</button>`);
   }
   if(ltPlayTab==='cont'){
     const live=S&&!S.practice&&!S._statEnded;
-    h+=live?`<div class="pl-deck"><img src="assets/ui/kit/card_back.webp?v=3" alt=""><div class="pl-info"><b>진행 중인 판</b><div class="pl-white">`+
-      `<p><span>장</span>: <em class="r">${S.jang} / 8</em></p><p><span>라운드</span>: <em class="b">${(S.jang-1)*3+S.rd+1} · ${RD_KO[S.rd]}</em></p><p><span>골드</span>: <em class="g">💰${S.gold}</em></p><p><span>난이도</span>: <em>${DIFF[S.diff]?DIFF[S.diff].ko:''}</em></p></div></div></div>`+
+    h+=live?`<div class="pl-deck"><img src="${DECK_IMG(S.deckK)}" alt=""><div class="pl-info"><b>진행 중인 판</b><div class="pl-white">`+
+      `<p><span>장</span>: <em class="r">${S.jang} / 8</em></p><p><span>라운드</span>: <em class="b">${(S.jang-1)*3+S.rd+1} · ${RD_KO[S.rd]}</em></p><p><span>골드</span>: <em class="g">💰${S.gold}</em></p><p><span>난이도</span>: <em>${DIFF[S.diff]?DIFF[S.diff].ko:''}</em></p><p><span>덱</span>: <em>${(DECKS[S.deckK]||DECKS.lamancha).ko}</em></p></div></div></div>`+
       `<button type="button" class="pl-go" onclick="ltCont()">계속하기</button>`
       :`<p class="lt-note" style="text-align:center;font-size:14px;margin:40px 0">이어서 할 판이 없습니다.<br>새로운 런에서 시작해 보세요.</p>`;
   }
   if(ltPlayTab==='try'){const J=window.LM_TEST?99:Math.max(1,LM_ST.bestJang||1),next=lNext();h+=`<div class="pl-learn"><div class="lList"><button type="button" class="lRow now" onclick="sandboxStart('app')"><span class="n">🧪</span><span class="tx"><b>연습장 · 견습 머지</b><small>추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button><button type="button" class="lRow now" onclick="sandboxStart('knight')"><span class="n">🧪</span><span class="tx"><b>연습장 · 머지 & 런</b><small>기사 방식 · 추천 켜짐 · 런 · 버리기 ∞ · 적 체력 ∞</small></span><span class="tag">연습</span></button>`+LEARN_ORDER.map(k=>{const L=LEARN[k],lock=L.at>J||lmTutLock(k),seen=LEARN_SEEN.includes(k),now=k===next;const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';return `<button type="button" class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}" ${lock?'disabled':''} onclick="ltLearn(${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('')+`</div></div>`;}
   return h+`</div>`;
 }
+/* 🂠 덱 고르기 (DHL 11-12): 덱 칸 좌우 화살표 · 뒷면 그림 · 규칙 한 줄 · 시작 숫자 · 깬 난이도 표시.
+   여는 조건 = 발라트로식 세 갈래 (DHL 11-12 '발라트로 해금 벤치마크'):
+   c 도감 발견 수(못 깨도 열림) · w 그 덱으로 8장 승리(짝 덱) · d 그 난이도 이상 승리(아무 덱) · n 서로 다른 덱 n개로 승리. 테스터 켬 = 모두 열림 */
+const DECK_NEED={merchant:{c:15},forge:{c:30},collector:{c:45},gambler:{c:60},
+  duel:{w:'lamancha'},poor:{w:'merchant'},wounded:{w:'forge'},three:{w:'collector'},onepath:{w:'gambler'},
+  restless:{d:'knight'},pricey:{d:'knight'},thinpurse:{d:'errant'},debt:{d:'errant'},campfire:{n:5},lownum:{n:8}};
+let ltDeck=lsGet('lm_last_deck','lamancha');
+function lmDeckClears(){const dc=LM_ST.deckClears||(LM_ST.deckClears={});if(!Object.keys(dc).length&&Object.keys(LM_ST.clears||{}).length)dc.lamancha=Object.assign({},LM_ST.clears);return dc;}   // 덱 기록이 생기기 전의 클리어 = 라만차 덱
+function lmCodexN(){try{return Object.keys(ORBS).filter(k=>CODEX.orb[k]).length+GIANT_LIST().filter(g=>CODEX.giant[g.k]).length;}catch(e){return 0;}}
+function lmDeckProg(k){const N=DECK_NEED[k];if(!N)return [1,1];const dc=lmDeckClears(),K=Object.keys(DIFF);
+  if(N.c)return [lmCodexN(),N.c];if(N.w)return [Object.keys(dc[N.w]||{}).length?1:0,1];
+  if(N.d)return [K.slice(K.indexOf(N.d)).some(d=>(LM_ST.clears||{})[d])?1:0,1];
+  return [Object.keys(dc).filter(d=>Object.keys(dc[d]||{}).length).length,N.n];}
+function ltDeckOpen(k,real){if(k==='lamancha'||(!real&&window.LM_TEST))return true;const [a,b]=lmDeckProg(k);return a>=b;}
+function ltDeckNeedTx(k){const N=DECK_NEED[k]||{},[a,b]=lmDeckProg(k),n=Math.min(a,b);
+  return N.c?`도감 <em>${n} / ${b}</em>개 발견`:N.w?`<em>${DECKS[N.w].ko}</em>으로<br>8장을 깨면 열립니다`:N.d?`<em>${DIFF[N.d].ko}</em> 난이도를<br>깨면 열립니다 (아무 덱)`:`서로 다른 덱 <em>${n} / ${b}</em>개로 승리`;}
+/* 새로 열린 덱 알림: 열린 목록을 기록해 두고 늘어나면 알림 (처음 한 번은 조용히 기록만) */
+function lmDeckCheck(quiet){try{const now=Object.keys(DECKS).filter(k=>ltDeckOpen(k,1)),old=LM_ST.deckOpen;
+  if(!old){LM_ST.deckOpen=now;lmStSave();return [];}
+  const nw=now.filter(k=>!old.includes(k));if(!nw.length)return [];
+  LM_ST.deckOpen=now;LM_ST.deckNew=(LM_ST.deckNew||[]).concat(nw);lmStSave();
+  try{if(S){S.newDecks=(S.newDecks||[]).concat(nw);}}catch(e){}
+  if(!quiet)try{popMsg('새 덱 열림 — '+nw.map(k=>DECKS[k].ko).join(' · '));}catch(e){}
+  return nw;}catch(e){return [];}}
+function lmDeckNewHTML(){try{const nw=(S&&S.newDecks)||[];if(!nw.length)return '';return `<div class="goNewDeck"><b>새 덱 열림</b><div>${nw.map(k=>`<span><img src="${DECK_IMG(k)}" alt=""><small>${DECKS[k].ko}</small></span>`).join('')}</div></div>`;}catch(e){return '';}}
+function ltDeckStep(d){const k=Object.keys(DECKS);ltDeck=k[(k.indexOf(ltDeck)+d+k.length)%k.length];ltPop('play');}
+function ltDeckSeen(k){const a=LM_ST.deckNew||[];if(a.includes(k)){LM_ST.deckNew=a.filter(x=>x!==k);lmStSave();}}
+function lmDeckBack(){try{document.documentElement.style.setProperty('--lmBack',`url(${DECK_IMG(S&&S.deckK)})`);}catch(e){}}
+function ltDeckHTML(){
+  lmDeckCheck(1);
+  const K=Object.keys(DECKS);if(!K.includes(ltDeck))ltDeck='lamancha';
+  const k=ltDeck,D=DECKS[k],open=ltDeckOpen(k),i=K.indexOf(k),isNew=open&&(LM_ST.deckNew||[]).includes(k);if(isNew)setTimeout(()=>ltDeckSeen(k),0);
+  const b=deckApply({deckK:k,gold:4,runsMax:4,disMax:4,maxOrb:5,interestMax:5,rerollBase:2}),dc=lmDeckClears()[k]||{},TK=['diff_app','diff_knight','diff_errant'];
+  const tag={b:['유리','tb'],x:['교환','tx'],d:['불리','td']}[D.t];
+  const st=(n,v,base)=>`<i class="${v>base?'up':v<base?'dn':''}">${n} <b>${v}</b></i>`;
+  return `<div class="pl-deck pl-dk${open?'':' lock'}"><span class="pl-dkImg"><img src="${DECK_IMG(k)}" alt="">${open?'':'<span class="pl-lkb" role="img" aria-label="잠김"><svg class="plLk" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 9V6.8a3.5 3.5 0 0 1 7 0V9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="9" rx="2.2" fill="currentColor"/><circle cx="10" cy="13" r="1.5" fill="#0006"/></svg></span>'}</span><div class="pl-info">`+
+    `<div class="pl-name"><button type="button" onclick="ltDeckStep(-1)" aria-label="이전 덱">&lt;</button><b>${open?D.ko+(isNew?' <em class="pl-dkNew">NEW</em>':''):'잠김'}</b><button type="button" onclick="ltDeckStep(1)" aria-label="다음 덱">&gt;</button></div>`+
+    `<div class="pl-white pl-dkW">`+(open?`<p class="pl-dkD">${tag?`<em class="pl-dkT ${tag[1]}">${tag[0]}</em>`:''}${D.d}</p>`:`<p class="pl-dkD lk"><span>${ltDeckNeedTx(k)}</span></p>`)+
+    (open?`<p class="pl-dkS">${st('런',b.runsMax,4)}${st('버리기',b.disMax,4)}${st('구슬 칸',b.maxOrb,5)}${st('💰',b.gold,4)}</p>`:'')+
+    `<p class="pl-dkC"><span class="pl-dkDots" aria-label="${i+1} / ${K.length}">${K.map((x,j)=>`<i class="${j===i?'on':''}${ltDeckOpen(x)?'':' lk'}"></i>`).join('')}</span>${!open?'':Object.keys(DIFF).map((d,j)=>`<img class="${dc[d]?'got':''}" src="assets/ui/lamancha/${TK[j]}.webp?v=2" alt="${DIFF[d].ko}${dc[d]?' 클리어':''}" title="${DIFF[d].ko}${dc[d]?' 클리어':''}">`).join('')}</p></div></div></div>`;
+}
 function ltDiffStep(d){const k=Object.keys(DIFF);ltDiff=k[(k.indexOf(ltDiff)+d+k.length)%k.length];ltPop('play');}
 /* (DHL 11-02) 테스트 버전: 견습 · 기사 · 편력 모두 고를 수 있음. 정식판(LM_TEST=false)은 앞 난이도를 깨야 열림 */
 /* (DHL 11-02) 타이틀 '테스터' 버튼으로 켜고 끔 — 켬: 난이도·스토리·배우기 전부 열림 / 끔: 이 브라우저에 저장된 기록만큼만 열림. 기본 켬 */
 window.LM_TEST=(()=>{try{return localStorage.getItem('lm_tester')==='1';}catch(e){return false;}})();   /* (DHL 11-02) 기본 = 테스터 OFF · 타이틀 버튼으로 켜면 ON 저장 */
 function ltDiffOpen(k){if(window.LM_TEST)return true;const K=Object.keys(DIFF),i=K.indexOf(k);return i<=0||!!(LM_ST.clears||{})[K[i-1]];}
-function ltNewRun(){if(!ltDiffOpen(ltDiff))return;lsSet('lm_last_diff',ltDiff);ltHide();firstGame=false;newGame(ltDiff);}   /* (DHL 11-03) 배우기는 저절로 열지 않음 — 배우기 버튼으로만 */
+function ltNewRun(){if(!ltDiffOpen(ltDiff)||!ltDeckOpen(ltDeck))return;lsSet('lm_last_diff',ltDiff);lsSet('lm_last_deck',ltDeck);window.LM_NEXT_DECK=ltDeck;ltHide();firstGame=false;newGame(ltDiff);}   /* (DHL 11-03) 배우기는 저절로 열지 않음 — 배우기 버튼으로만 */
 /* 계속하기 (2026-10-29 버그): 라운드 선택 · 원정 캠프 중에 메인 메뉴로 갔다 오면 창이 사라져 손패 0장 판이 열리던 문제 → 그 단계 창을 다시 띄움 */
 /* 메인 메뉴로 (2026-11-01 DHL 버그): 라운드 선택 · 상점 · 캠프 창(#ov)이 타이틀보다 위(z 60)라 타이틀이 안 보이던 문제
    → 나갈 때 그 창을 통째로 보관(이벤트 그대로)하고 숨김, 계속하기에서 그대로 되돌림 */
@@ -5468,6 +5551,42 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 </body></html>
 </body></html>
 </body></html>
+
+<style id="lm-deck-pick">/* 🂠 (DHL 11-12) 덱 고르기 칸 */
+#lm-title .pl-dk .pl-dkImg{position:relative;flex:none;width:84px;align-self:center;display:block}
+#lm-title .pl-dk .pl-dkImg>img{display:block;width:100%;aspect-ratio:512/712;object-fit:contain;filter:drop-shadow(0 3px 0 #0008)}
+#lm-title .pl-dk.lock .pl-dkImg>img{filter:grayscale(1) brightness(.5)}
+#lm-title .pl-dk .pl-dkImg .pl-lkb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+#lm-title .pl-dk .pl-name b{font-size:17px;white-space:nowrap}
+#lm-title .pl-dk .pl-dkW{display:flex;flex-direction:column;gap:4px;flex:1;padding:6px 8px}
+#lm-title .pl-dk .pl-dkW span{min-width:0;text-align:left}
+#lm-title .pl-dk .pl-dkD{min-height:2.9em;line-height:1.4;text-align:center;font-size:13px;word-break:keep-all}
+#lm-title .pl-dk .pl-dkD.lk{color:#6b7480}
+#lm-title .pl-dk .pl-dkT{display:inline-block;margin-right:6px;padding:0 7px;border-radius:99px;font-size:11px;line-height:1.6;color:#fff;vertical-align:1px}
+#lm-title .pl-dk .pl-dkT.tb{background:#2f8f4e}#lm-title .pl-dk .pl-dkT.tx{background:#b8860b}#lm-title .pl-dk .pl-dkT.td{background:#c23a2c}
+#lm-title .pl-dk .pl-dkS{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;font-size:12px;border-top:1px solid #0000001f;padding-top:4px}
+#lm-title .pl-dk .pl-dkS i{font-style:normal;white-space:nowrap;color:#5a4a3a}#lm-title .pl-dk .pl-dkS b{color:#2a2118}
+#lm-title .pl-dk .pl-dkS i.up b{color:#1f7a3f}#lm-title .pl-dk .pl-dkS i.dn b{color:#c23a2c}
+#lm-title .pl-dk .pl-dkC{display:flex;align-items:center;justify-content:flex-end;gap:4px}
+#lm-title .pl-dk .pl-dkC .pl-dkN{margin-right:auto;font-size:11px;color:#7a6a58}
+#lm-title .pl-dk .pl-dkC img{width:22px;height:22px;object-fit:contain;filter:grayscale(1) brightness(.75);opacity:.35}
+#lm-title .pl-dk .pl-dkC img.got{filter:none;opacity:1}
+.rbSkip.noCamp b{color:#8fa0aa!important}
+#lm-title .pl-dk .pl-dkD.lk em{font-style:normal;color:#d9800b}
+#lm-title .pl-dk.lock .pl-dkD{min-height:4.4em;display:grid;place-items:center;font-size:14px;color:#2a2118}
+#lm-title .pl-dk.lock .pl-dkD>span{display:block;min-width:0;text-align:center;line-height:1.45}
+#lm-title .pl-dk.lock .pl-name b{color:#aab4c8}
+#lm-title .pl-dk .pl-dkNew{font-style:normal;font-size:10px;vertical-align:3px;margin-left:4px;padding:1px 6px;border-radius:99px;background:#e2552a;color:#fff}
+#lm-title .pl-dk .pl-dkDots{margin-right:auto;display:flex;gap:3px;align-items:center}
+#lm-title .pl-dk .pl-dkDots i{width:5px;height:5px;border-radius:50%;background:#2a211855}
+#lm-title .pl-dk .pl-dkDots i.lk{background:#2a211822}
+#lm-title .pl-dk .pl-dkDots i.on{background:#2a2118;transform:scale(1.5)}
+.goNewDeck{margin:6px auto 2px;text-align:center}.goNewDeck>b{display:block;color:#ffd257;font-size:15px;margin-bottom:4px}
+.goNewDeck>div{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.goNewDeck span{display:flex;flex-direction:column;align-items:center;gap:2px}
+.goNewDeck img{width:46px;aspect-ratio:512/712;object-fit:contain;filter:drop-shadow(0 2px 0 #0008)}.goNewDeck small{font-size:11px;color:#e8e2d2;font-weight:800}
+@media (max-height:700px) and (orientation:landscape){#lm-title .pl-dk .pl-dkImg{width:56px}#lm-title .pl-dk .pl-dkD{font-size:12px;min-height:2.8em}#lm-title .pl-dk .pl-dkS{font-size:11px}}
+@media (max-height:460px){#lm-title .pl-dk .pl-dkImg{width:48px}#lm-title .pl-dk .pl-dkC img{width:16px;height:16px}}
+</style>
 <style id="lm-cash-win">
 #cfWin{display:none}
 #ov:has(.cashFx){flex-direction:column}
@@ -5816,9 +5935,13 @@ html.lmB #app.bl .orb:not(.on){color:transparent}
 html.lmB .sBox .price{background:url(assets/ui/kit/price_tag.webp) center/100% 100% no-repeat!important;border:0!important;color:#5a3a08!important;padding:4px 12px 4px 20px!important;border-radius:0!important;text-shadow:none!important;top:-24px!important}
 
 /* 뽑을 더미 · 카드 뒷면 (기존 뒷면은 더미였음) */
-html.lmB .pileCard{background:url(assets/ui/kit/pile_draw.webp?v=2) center/contain no-repeat!important;box-shadow:none!important;border-radius:0!important;width:64px!important;height:64px!important}
-html.lmB .card.dz.fogc .dzb{background-image:url(assets/ui/kit/card_back.webp?v=3)!important}
-html.lmB #lm-title .pl-deck>img{content:url(assets/ui/kit/card_back.webp?v=3)}
+/* (DHL 11-12) 뽑을 더미 = 지금 덱 뒷면 3장을 부채꼴로 (예전: 고정 그림 pile_draw.webp — 덱을 바꿔도 풍차 그림이 남던 문제) */
+html.lmB .pile{isolation:isolate}
+html.lmB .pileCard{position:relative;background:var(--lmBack,url(assets/ui/kit/card_back.webp?v=3)) center 40%/auto 84% no-repeat!important;box-shadow:none!important;border-radius:0!important;width:64px!important;height:64px!important}
+html.lmB .pileCard::before,html.lmB .pileCard::after{content:"";position:absolute;z-index:-1;left:50%;top:8%;height:84%;aspect-ratio:512/712;background:var(--lmBack,url(assets/ui/kit/card_back.webp?v=3)) center/100% 100% no-repeat;transform-origin:50% 100%}
+html.lmB .pileCard::before{transform:translateX(-50%) rotate(-15deg) translateX(-18%)}
+html.lmB .pileCard::after{transform:translateX(-50%) rotate(15deg) translateX(18%)}
+html.lmB .card.dz.fogc .dzb{background-image:var(--lmBack,url(assets/ui/kit/card_back.webp?v=3))!important}
 
 /* 적 의도 아이콘 4종 — 의도 표시 자리에서만 (같은 이모지를 쓰는 카드 상태 표시는 그대로) */
 html.lmB #lmFoeTag .t.it img.emi,html.lmB #atkBar img.emi,html.lmB .lgd img.emi{height:1.55em;max-width:none;vertical-align:-.42em;filter:drop-shadow(0 1px 1px #000a)}
@@ -6817,7 +6940,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     if(S.restSel!==k){S.restSel=k;return campOpen();}
     if(L[1].off)return;S.restSel=null;
     if(k==='guest')return guestGo();return campPick(k);};
-  campOpen=function(){if(S.rd>=2)return;S.campSel=[];
+  campOpen=function(){if(S.rd>=2||deckIs('restless'))return;S.campSel=[];
     if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];S.restSel=null;}
     S.inRest=true;const L=all();if(S.restSel&&!L.find(x=>x[0]===S.restSel))S.restSel=null;
     const sel=S.restSel&&L.find(x=>x[0]===S.restSel);
@@ -8332,7 +8455,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   const BACK='assets/ui/kit/card_back.webp?v=3';
   const RM=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
   const st=document.createElement('style');st.textContent=`
-.lmDfBack{position:absolute;inset:0;border-radius:inherit;background:url(${BACK}) center/100% 100% no-repeat;pointer-events:none;z-index:50;opacity:0}
+.lmDfBack{position:absolute;inset:0;border-radius:inherit;background:var(--lmBack,url(${BACK})) center/100% 100% no-repeat;pointer-events:none;z-index:50;opacity:0}
 .lmDfGlow{position:absolute;inset:-4px;border-radius:10px;border:2px solid #ffd36a;box-shadow:0 0 16px #ffc43a,inset 0 0 10px #ffd36a88;pointer-events:none;z-index:51;opacity:0}
 .lmDfFlash{position:fixed;pointer-events:none;z-index:400;border-radius:50%;background:radial-gradient(circle,#ffe9a8cc,#ffd36a33 45%,transparent 70%)}
 .lmDfVig{position:fixed;inset:0;pointer-events:none;z-index:390;background:radial-gradient(ellipse at 50% 60%,transparent 40%,#5a0a10b0 100%);opacity:0}
@@ -9809,7 +9932,7 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
 </style>
 <style id="lm-deck-view">
 .sChips{display:inline-flex;gap:8px;align-items:center}
-.dChip .dIc{flex:none;display:block;width:19px;height:26px;background:url(assets/ui/kit/card_back.webp?v=3) center/100% 100% no-repeat;border-radius:3px;box-shadow:1px 1px 0 #0008}
+.dChip .dIc{flex:none;display:block;width:19px;height:26px;background:var(--lmBack,url(assets/ui/kit/card_back.webp?v=3)) center/100% 100% no-repeat;border-radius:3px;box-shadow:1px 1px 0 #0008}
 .dkOpen{display:flex;width:100%;justify-content:space-between;align-items:center;cursor:pointer;font:inherit;font-weight:800;color:inherit;text-align:left}
 .dkOpen small{color:var(--dim,#a9b4c2);font-weight:400}
 .dkV{position:fixed;inset:0;z-index:450;background:#050a14b3;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}

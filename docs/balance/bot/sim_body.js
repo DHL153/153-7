@@ -57,7 +57,9 @@ const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a
 const sellPrice=k=>Math.max(1,ORBS[k].cost-1)*((S.ost&&S.ost[k])||1);
 const orbKind=k=>ORB_MUL.includes(k)?'mul':ORB_ADD.includes(k)?'add':'card';
 const bestOrder=()=>{const r={card:0,add:1,mul:2};return S.orbs.slice().sort((a,b)=>r[orbKind(a)]-r[orbKind(b)]);};
-const price=c=>Math.max(1,Math.round(c*(1-(S.disc||0))));
+const DECK=process.env.DECK||'lamancha';   // 덱 종류 (11-12) — 코어의 DECKS · deckApply · deckInterest · deckReward · deckPriceX 사용
+if(process.env.DECKV)process.env.DECKV.split(',').forEach(x=>{const [k,v]=x.split(':');DECK_V[k]=+v;});   // 예: DECKV=wounded:30,woundX:0.7
+const price=c=>Math.max(1,Math.round(c*deckPriceX()*(1-(S.disc||0))));
 const wsum=cs=>cs.reduce((s,c)=>s+weight(c),0);
 const hurtCount=()=>({w:S.deck.filter(c=>c.out).length,s:S.deck.filter(c=>c.st&&c.st.hit).length});
 let S;
@@ -76,10 +78,11 @@ const ST={tier:{},games:0,clear:0,deathJ:{},rounds:0,runsUsed:0,disUsed:0,firstR
 };
 const push=(o,k,v)=>{(o[k]=o[k]||[]).push(v);};
 /* ---------- 새 판 ---------- */
-function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes(k)&&(!VOUCH[k].base||S.vouch.includes(VOUCH[k].base))&&!VOUCH[k].unlock);return pool.length?pool[Math.random()*pool.length|0]:null;}
+function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes(k)&&!deckBanV(k)&&(!VOUCH[k].base||S.vouch.includes(VOUCH[k].base))&&!VOUCH[k].unlock);return pool.length?pool[Math.random()*pool.length|0]:null;}
 function newGame(diff){
-  const deck=makeDeck();
+  const deck=makeDeck(DECK);
   S={jang:1,rd:0,deck,draw:[],hand:[],sel:[],gold:4,orbs:[],merges:0,lv:{},vouch:[],grow:0,ost:{},runsMax:+(process.env.RUNS||4),disMax:+(process.env.DIS||4),handN:8,maxOrb:5,rerollBase:2,interestMax:5,uid:deck.length,diff,score:0,usedHT:[],recent:[]};
+  S.deckK=DECK;deckApply(S);if(process.env.DGOLD)S.gold=+process.env.DGOLD;
   S.voucherOffer=pickVoucher();
 }
 function ensureFoes(){if(!S.foes||S.foesJang!==S.jang){S.foes=S.foesNext||makeFoes(JANG_WORLD(S.jang),S.jang,S.diff);S.foesNext=null;S.foesJang=S.jang;}S.foes.forEach(f=>{if(!f.hero)f.hero=NAMES[Math.random()*NAMES.length|0][0];});S.foe=S.foes[S.rd];}
@@ -115,7 +118,7 @@ function doMergePair(a,b){const [e,w]=chooseKeep(a,b);const sick=c=>c.st&&(c.st.
 const pickAw=c=>{const n=TYPES[c.id].n;return ({alonso:'A',dulcine:'A',sancho:'A',rosi:'A',lucia:'A',bruno:'B',nicole:'A',carden:'B',palome:'A',gris:'A'})[n]||'A';};
 /* 미리보기: 고른 카드를 복사본으로 머지 & 런 처리 */
 function previewMerge(cs){
-  if(!mergeRun()||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return {cards:cs,m:0};
+  if(!mergeRun()||deckIs('campfire')||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return {cards:cs,m:0};
   let a=cs.map(c=>({...c,_o:c})),did=true,m=0;
   while(did){did=false;for(const want of ['up','mix']){for(let i=0;i<a.length&&!did;i++)for(let j=0;j<a.length;j++){if(i!==j&&!a[i].fog&&!a[j].fog&&mergeKind(a[i],a[j])===want){const [e,w]=chooseKeep(a[i],a[j]);applyMerge(a[i],a[j],e,w);if(a[i].star===3&&!a[i].aw)a[i].aw=pickAw(a[i]);a.splice(j,1);did=true;m++;break;}}if(did)break;}}
   return {cards:a,m};}
@@ -146,7 +149,7 @@ function bestPlay(){
   const all=bestPlay._all;bestPlay._all=null;return {best,all};}
 /* 견습: 손패에서 언제든 머지 (런 1번 아님) — 순수 먼저, 높은 번호 먼저 */
 function appMerges(){
-  if(mergeRun()||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return;
+  if(mergeRun()||deckIs('campfire')||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return;
   let did=true;while(did){did=false;
     for(const want of ['up','mix']){const H=S.hand.filter(c=>!c.fog).sort((a,b)=>BASE_POW[TYPES[b.id].n]-BASE_POW[TYPES[a.id].n]);
       for(const a of H){for(const b of H){if(a!==b&&mergeKind(a,b)===want){doMergePair(a,b);did=true;break;}}if(did)break;}if(did)break;}}}
@@ -212,7 +215,7 @@ function discard(keepSel){
 function doRun(pick){
   let cards=pick.sel.slice();
   // 머지 & 런: 실제로 합침
-  if(mergeRun()&&!(S.foe.rule&&S.foe.rule.k==='nomerge')){let did=true;while(did){did=false;for(const want of ['up','mix']){for(const a of cards){for(const b of cards){if(a!==b&&!a.fog&&!b.fog&&mergeKind(a,b)===want){doMergePair(a,b);cards=cards.filter(c=>c!==b);did=true;break;}}if(did)break;}if(did)break;}}}
+  if(mergeRun()&&!deckIs('campfire')&&!(S.foe.rule&&S.foe.rule.k==='nomerge')){let did=true;while(did){did=false;for(const want of ['up','mix']){for(const a of cards){for(const b of cards){if(a!==b&&!a.fog&&!b.fog&&mergeKind(a,b)===want){doMergePair(a,b);cards=cards.filter(c=>c!==b);did=true;break;}}if(did)break;}if(did)break;}}}
   const RK=S.foe.rule&&S.foe.rule.k;
   if(RK==='arm'){const h=handInfo(cards).ht;if((S.lv[h]||1)>1)S.lv[h]--;}
   const rest=S.hand.filter(c=>!cards.includes(c));
@@ -243,7 +246,7 @@ function doRun(pick){
   foeStrike(cards);
 }
 /* ---------- 보상 · 원정 캠프 ---------- */
-function cashOut(){const base=REWARD[S.rd],left=S.runs,intr=Math.min(S.interestMax,Math.floor(S.gold/5));let sum=base+left+intr;
+function cashOut(){const base=deckReward(S,REWARD[S.rd]),left=S.runs,intr=deckInterest(S);let sum=base+left+intr;
   if(S.foe&&S.foe.bandit)sum+=S.foe.bandit;if(S.orbs.includes('horse'))sum+=4*(S.ost.horse||1);S.gold+=sum;}
 function rollTop(){
   const taken=[];const pick=()=>{const roll=Math.random(),O0=rarityOdds(S.jang),H=S.hone||1,O={r:Math.min(0.5,O0.r*H),u:Math.min(0.6,O0.u*Math.sqrt(H))},r=roll<O.r?'r':roll<O.r+O.u?'u':'c';const pool=Object.keys(ORBS).filter(k=>(!S.orbs.includes(k)||((S.ost[k]||1)<3&&k!=='advice'))&&ORBS[k].r===r&&!taken.includes(k)&&(k!=='advice'||DIFF[S.diff].shopAdvice));const k=pool.length?pool[Math.random()*pool.length|0]:Object.keys(ORBS).find(k=>!S.orbs.includes(k)&&!taken.includes(k)&&k!=='advice');taken.push(k);return k;};
@@ -295,7 +298,7 @@ function shop(){
       let ch=view[0];if(smart){const sc=v=>S.deck.filter(c=>c.id===v.id&&c.star===v.star).length*10+BASE_POW[TYPES[v.id].n]+(v.star-1)*20;ch=view.sort((a,b)=>sc(b)-sc(a))[0];}
       S.deck.push({uid:S.uid++,id:ch.id,star:ch.star,el:ch.el});acted=true;}
     // 리롤 (똑똑: 이자 손해 안 보는 범위)
-    if(!acted&&smart&&S.gold-S.rerollCost>=12&&S.orbs.length<S.maxOrb){S.gold-=S.rerollCost;S.rerollCost++;rollTop();acted=true;}
+    if(!acted&&smart&&S.gold-S.rerollCost>=12&&S.orbs.length<S.maxOrb){S.gold-=S.rerollCost;S.rerollCost+=deckIs('pricey')?2:1;rollTop();acted=true;}
     if(!acted)break;
   }
   if(smart||process.env.ORDER)S.orbs=ordered(S.orbs);
@@ -303,7 +306,15 @@ function shop(){
 }
 /* 야영: 부상 3 · 상처 6 이상이면 잠자기 + 모닥불 머지 */
 function maybeCamp(){
-  if(S.rd>=2)return false;const h=hurtCount();
+  if(S.rd>=2||deckIs('restless'))return false;
+  /* 모닥불 덱: 머지는 야영에서만 → 망령 라운드(보상이 가장 적음)에 머지할 쌍이 2개 이상 있고 돈이 되면 야영해서 모닥불 머지 2번 (번호는 랜덤, ★2 💰2 · ★3 💰3) */
+  if(deckIs('campfire')){if(S.rd!==+(process.env.CAMPRD||0))return false;let left=S.campMax||2,n=0;
+    const pairs=()=>{const by={};S.deck.forEach(c=>{const k=TYPES[c.id].n+'|'+c.star;(by[k]=by[k]||[]).push(c);});return Object.values(by).filter(a=>a.length>=2&&a[0].star<3).sort((a,b)=>b[0].star-a[0].star||BASE_POW[TYPES[b[0].id].n]-BASE_POW[TYPES[a[0].id].n]);};
+    if(pairs().length<2||S.gold<4)return false;
+    while(left-->0){const pr=pairs().find(a=>S.gold>=a[0].star+1);if(!pr)break;S.gold-=pr[0].star+1;applyMerge(pr[0],pr[1],null,null,rndNo());S.deck.splice(S.deck.indexOf(pr[1]),1);S.merges++;n++;}
+    ST.camp++;S.foes[S.rd].camped=true;return true;}
+  return false;   // 잠자기는 10-29에 없어짐 → 그 밖의 덱에서 봇은 야영하지 않음
+  const h=hurtCount();
   if(!(h.w>=3||h.s>=6))return false;
   ST.camp++;let left=S.campMax||2;
   if(h.w||h.s){S.deck.forEach(c=>{delete c.out;delete c.st;});left--;ST.sleep++;}
@@ -321,7 +332,7 @@ function game(){
     if(!won){ST.deathJ[S.jang]=(ST.deathJ[S.jang]||0)+1;if(S.jang>8)ST.endlessJ.push(S.jang);else ST.endlessJ.push(S.jang);return false;}
     if(S.jang===8&&S.rd===2)ST.clear++;
     if(S.jang>=jmax&&S.rd===2){ST.endlessJ.push(jmax+1);return true;}
-    cashOut();shop();
+    cashOut();shop();if(deckIs('thinpurse')&&S.gold>DECK_V.thin)S.gold=DECK_V.thin;
     if(S.rd<2)S.rd++;else{S.rd=0;S.jang++;S.voucherOffer=pickVoucher();}
   }
 }
