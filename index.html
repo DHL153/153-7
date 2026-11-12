@@ -4196,7 +4196,7 @@ function ltPlayHTML(){
    c 도감 발견 수(못 깨도 열림) · w 그 덱으로 8장 승리(짝 덱) · d 그 난이도 이상 승리(아무 덱) · n 서로 다른 덱 n개로 승리. 테스터 켬 = 모두 열림 */
 const DECK_NEED={merchant:{c:15},forge:{c:30},collector:{c:45},gambler:{c:60},
   duel:{w:'lamancha'},poor:{w:'merchant'},wounded:{w:'forge'},three:{w:'collector'},onepath:{w:'gambler'},
-  restless:{d:'knight'},pricey:{d:'knight'},thinpurse:{d:'errant'},debt:{d:'errant'},campfire:{n:5},lownum:{n:8}};
+  restless:{d:'knight'},pricey:{d:'knight'},thinpurse:{d:'errant'},debt:{d:'errant'},lownum:{n:5},campfire:{n:8}};   // (DHL 11-12) 모닥불 덱 = 가장 늦게 열리는 덱 (규칙은 그대로 — 가장 어려운 도전)
 let ltDeck=lsGet('lm_last_deck','lamancha');
 function lmDeckClears(){const dc=LM_ST.deckClears||(LM_ST.deckClears={});if(!Object.keys(dc).length&&Object.keys(LM_ST.clears||{}).length)dc.lamancha=Object.assign({},LM_ST.clears);return dc;}   // 덱 기록이 생기기 전의 클리어 = 라만차 덱
 function lmCodexN(){try{return Object.keys(ORBS).filter(k=>CODEX.orb[k]).length+GIANT_LIST().filter(g=>CODEX.giant[g.k]).length;}catch(e){return 0;}}
