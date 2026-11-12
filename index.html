@@ -5105,7 +5105,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   /* ⌨ 런! · 버리기 버튼 (DHL 10-28 시안 ② A+B): 아이콘 + 큰 글씨 + '남은 N회' 배지 · 0회면 배지 빨강 */
   (function(){
     const bp=document.getElementById('bPlay'),bd=document.getElementById('bDis');if(!bp||!bd||typeof render!=='function')return;
-    const IC={p:'assets/ui/lamancha/icons/run_boots.webp',d:'assets/ui/kit/pile_discard.webp'};
+    const IC={p:'assets/ui/lamancha/icons/run_boots.webp',d:'assets/ui/kit/pile_discard.webp?v=2'};
     const dress=(b,ic,n)=>{if(!b.querySelector('.lmBr'))b.dataset.lbl=b.textContent.trim();const t=b.dataset.lbl||'';   // 게임이 글자를 새로 쓴 경우(런! · 머지 & 런!)만 이름을 다시 읽음
       b.innerHTML='<span class="lmBr"><img src="'+ic+'" alt=""><b>'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</b></span><span class="lmCnt">남은 <em>'+(typeof S!=='undefined'&&S&&S.sandbox?'∞':n)+'</em>'+(typeof S!=='undefined'&&S&&S.sandbox?'':'회')+'</span>';
       /* 글자가 버튼보다 길면(머지 & 런! · 다른 언어) 한 줄 그대로 글씨만 줄임 (DHL 10-28) */
@@ -5816,9 +5816,9 @@ html.lmB #app.bl .orb:not(.on){color:transparent}
 html.lmB .sBox .price{background:url(assets/ui/kit/price_tag.webp) center/100% 100% no-repeat!important;border:0!important;color:#5a3a08!important;padding:4px 12px 4px 20px!important;border-radius:0!important;text-shadow:none!important;top:-24px!important}
 
 /* 뽑을 더미 · 카드 뒷면 (기존 뒷면은 더미였음) */
-html.lmB .pileCard{background:url(assets/ui/kit/pile_draw.webp) center/contain no-repeat!important;box-shadow:none!important;border-radius:0!important;width:64px!important;height:64px!important}
-html.lmB .card.dz.fogc .dzb{background-image:url(assets/ui/kit/card_back.webp)!important}
-html.lmB #lm-title .pl-deck>img{content:url(assets/ui/kit/card_back.webp)}
+html.lmB .pileCard{background:url(assets/ui/kit/pile_draw.webp?v=2) center/contain no-repeat!important;box-shadow:none!important;border-radius:0!important;width:64px!important;height:64px!important}
+html.lmB .card.dz.fogc .dzb{background-image:url(assets/ui/kit/card_back.webp?v=2)!important}
+html.lmB #lm-title .pl-deck>img{content:url(assets/ui/kit/card_back.webp?v=2)}
 
 /* 적 의도 아이콘 4종 — 의도 표시 자리에서만 (같은 이모지를 쓰는 카드 상태 표시는 그대로) */
 html.lmB #lmFoeTag .t.it img.emi,html.lmB #atkBar img.emi,html.lmB .lgd img.emi{height:1.55em;max-width:none;vertical-align:-.42em;filter:drop-shadow(0 1px 1px #000a)}
@@ -8323,13 +8323,13 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 .rb .lst .hb .hl{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:linear-gradient(#fde047 0 30%,transparent 30% 70%,#fde047 70%);filter:drop-shadow(0 0 2px #f59e0b);z-index:2}
 </style>
 <script id="lm-deck-fx">
-/* (DHL 10-31 '덱 연출' 시안 B·A·C) 덱 ↔ 손패 연출 — 카드 뒷면 = 지금 덱 뒷면(assets/ui/kit/card_back.webp)
+/* (DHL 10-31 '덱 연출' 시안 B·A·C) 덱 ↔ 손패 연출 — 카드 뒷면 = 지금 덱 뒷면(assets/ui/kit/card_back.webp?v=2)
    · 라운드 시작(B): 덱에서 한 뭉치로 날아와 가운데서 번쩍 · 한꺼번에 뒤집힘 → 부채처럼 펼쳐 자리로
    · 손패 채우기: 새로 들어온 카드만 덱에서 날아와 뒤집힘
    · 이겼을 때(A): 금빛 물결 → 한 장씩 덱으로 회수 → 덱 번쩍 → 보상 화면
    · 졌을 때(C): 붉은 그늘 → 차례로 뒤집혀 가라앉음 → 덱으로 돌아감 → 게임 오버 화면 */
 (()=>{
-  const BACK='assets/ui/kit/card_back.webp';
+  const BACK='assets/ui/kit/card_back.webp?v=2';
   const RM=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
   const st=document.createElement('style');st.textContent=`
 .lmDfBack{position:absolute;inset:0;border-radius:inherit;background:url(${BACK}) center/100% 100% no-repeat;pointer-events:none;z-index:50;opacity:0}
