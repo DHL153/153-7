@@ -136,7 +136,8 @@
   "enterMs": 5521,
   "attackMs": 4976,
   "hurtMs": 1129,
-  "coreH": 515
+  "coreH": 515,
+  "hud": 0.8
  },
  "e08": {
   "ko": "졸음 북치기 새",
