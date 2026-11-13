@@ -103,7 +103,7 @@ const sealOn=()=>SEAL!=='off'&&S.diff!=='app';
 const ctxFor=(held,mcombo)=>({mcombo:NOMC?0:(S.runMerges||0)+(mcombo||0),bonusMult:S.nextMult||0,orbs:S.offOrb?S.orbs.filter(k=>k!==S.offOrb):S.orbs,merges:S.merges+(mcombo||0),discards:S.dis,lv:S.lv,runsLeft:S.runs,grow:S.grow,deck:S.deck.length,foe:S.foe,usedHT:S.usedHT,lockHT:S.lockHT,scoringOnly:true,ost:S.ost,runsMax:S.runsMax,discCount:S.discCount||0,held,ostate:S.ostate||{},gold:S.gold,rng:()=>S.rv==null?(S.rv=Math.random()):S.rv});
 function woundC(cs){cs.forEach(c=>{c.out=true;});S.hand=S.hand.filter(c=>!c.out);}
 function scarC(c,p){c.st=c.st||{};c.st.hit=(c.st.hit||0)+Math.max(1,Math.round(power(c)*p));}
-function sealStrike(){if(!sealOn()||S.score>=S.tgt)return;for(let i=0;i<SEALN;i++){const pool=S.hand.filter(c=>!c.seal);if(!pool.length)return;const c=SEALPICK==='best'?pool.slice().sort((a,b)=>battlePower(b,S.foe)-battlePower(a,S.foe))[0]:pool[Math.random()*pool.length|0];c.seal=true;ST.seals=(ST.seals||0)+1;}}
+function sealStrike(){if(!sealOn()||S.score>=S.tgt)return;for(let i=0;i<SEALN;i++){const pool=S.hand.filter(c=>!c.seal);if(pool.length<=1)return;const c=SEALPICK==='best'?pool.slice().sort((a,b)=>battlePower(b,S.foe)-battlePower(a,S.foe))[0]:pool[Math.random()*pool.length|0];c.seal=true;ST.seals=(ST.seals||0)+1;}}
 function foeStrike(played){sealStrike();if(SEAL==='only'){S.marks=[];return;}
   const f=S.foe;if(!f||!f.atype)return;const k=f.atype,n=f.atk,bp=(a,b)=>battlePower(b,f)-battlePower(a,f)||b.uid-a.uid;let hit=[];
   if(k==='counter'){if(wsum(played)>=5){hit=played.filter(c=>S.deck.includes(c)).sort((a,b)=>power(b)-power(a)).slice(0,n);woundC(hit);ST.wounds+=hit.length;}}
