@@ -10233,7 +10233,7 @@ const LM_TERMS=[
 <style id="lm-seal">
 /* 🔒 봉인 표시 (DHL 11-13 그림): 사슬 덮개 seal_cover · 걸리는 순간 fx_seal_lock(4×2 = 8장면, 흰색) → 덮개로 바뀜 */
 .card .dzi[data-seal]>*:not(.dzSeal){filter:grayscale(.8) brightness(.6)}
-.card .dzSeal{position:absolute;inset:0;z-index:60;pointer-events:none;border-radius:inherit;overflow:hidden;background:url(assets/ui/card/seal_cover.webp) center/100% 100% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
+.card .dzSeal{position:absolute;inset:0;z-index:60;pointer-events:none;border-radius:inherit;overflow:hidden;background:url(assets/ui/card/seal_cover.webp?v=2) center/100% 100% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
 html.lmB #hand .card.dz.noscore .dzi[data-seal]{filter:none!important}   /* 고른 봉인 카드: 사슬 색은 그대로 (카드 그림은 이미 회색) */
 .card .dzSeal.new{animation:lmSealCover .5s steps(1) both}
 .card .dzSeal.new::before{content:"";position:absolute;inset:0;background:url(assets/ui/card/fx_seal_lock.webp) 0 0/400% 200% no-repeat;animation:lmSealFx .48s steps(1) both}
