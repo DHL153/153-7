@@ -994,7 +994,7 @@ body:has(#ov:not([hidden]) .rsB) #midZone,body:has(#ov:not([hidden]) .rsB) #hand
 .nextFoe .shOpt{position:relative;flex:none;width:32px;height:32px;padding:0!important;min-height:0!important;border:0!important;border-radius:50%!important;background:#0007!important;color:var(--brass-hi,#fde9c4)!important;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1.5px #c9a24a99,0 2px 0 #0008!important;cursor:pointer}
 .nextFoe .shOpt svg{width:20px;height:20px;transition:rotate .3s}.nextFoe .shOpt:hover svg{rotate:60deg}
 .nextFoe .shOpt::before{content:"";position:absolute;inset:-6px}
-.rbHead .rbMsg{color:#86efac}.rbInfo{background:#2a3640!important;border:1px solid #4b5b66!important;border-radius:99px!important;padding:4px 10px!important;font-size:12px!important}
+.rbHead .rbMsg{color:#86efac}.rbCamp{display:flex;flex-direction:column;align-items:center;gap:2px;max-width:min(560px,calc(100% - 8px));box-sizing:border-box;padding:6px 16px 7px;border-radius:12px;background:#16202acc;color:#86efac;font-size:12.5px;font-weight:800;line-height:1.4;text-align:center;text-wrap:balance}.rbCamp>b{font-size:11px;color:var(--brass-hi,#fde9c4);letter-spacing:.04em;opacity:.85}.rbCamp>span{display:block}.rbInfo{background:#2a3640!important;border:1px solid #4b5b66!important;border-radius:99px!important;padding:4px 10px!important;font-size:12px!important}
 .rbRow{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,1.6vw,22px);width:100%;flex:1;min-height:0}
 .rb3{position:relative;width:min(30%,clamp(200px,15vw,300px));display:flex;flex-direction:column;align-items:stretch;gap:clamp(4px,1vh,9px);background:#25313a;border:4px solid #33424c;border-bottom:0;border-radius:16px 16px 0 0;padding:clamp(6px,1.2vh,12px) clamp(6px,.8vw,10px) clamp(8px,1.6vh,14px);height:88%;box-shadow:0 0 0 2px #0b1218;transition:transform .2s}
 .rb3.cur{height:100%;border-color:#1f8fff;box-shadow:0 0 0 2px #0b1218,0 0 18px #1f8fff66}
@@ -1022,7 +1022,7 @@ body:has(#ov:not([hidden]) .rsB) #midZone,body:has(#ov:not([hidden]) .rsB) #hand
 .rbSkip.boss b{color:#ff8a8a}
 @media (orientation:portrait){#ov:has(.rsB){background:#0b1a17e0;align-items:center}.rsB{height:auto;max-height:100%}.rb3,.rb3.cur{height:auto}.rb3.cur{transform:translateY(-8px)}.rbTok{width:min(17vw,70px)}.rbScore b{font-size:min(7vw,30px)}.rbFoe b{font-size:13px}.rbRule span,.rbSkip span{font-size:10.5px}}
 #sRound.pick{background:#1b252c!important}#sRound.pick #sRdName{font-size:clamp(14px,2.6vh,19px);line-height:1.2;text-align:center}
-@media (max-height:460px){.rsB{height:calc(100vh - 44px);gap:4px}.rbHead{padding:2px 6px 2px 10px;font-size:11px}.rbFoe span,.rbSkip span{display:none}.rbRule span{font-size:10px}.rb3{gap:3px;padding:5px 6px 6px}.rbMid{flex-direction:row;justify-content:center}.rbTok{width:38px}.rbSkip{padding:3px}.rbSkip button{padding:4px 0!important}.rbScore{padding:2px}}
+@media (max-height:460px){.rsB{height:calc(100vh - 44px);gap:4px}.rbHead{padding:2px 6px 2px 10px;font-size:11px}.rbCamp{padding:2px 10px 3px;font-size:10.5px;gap:0;line-height:1.3}.rbCamp>b{display:none}.rbFoe span,.rbSkip span{display:none}.rbRule span{font-size:10px}.rb3{gap:3px;padding:5px 6px 6px}.rbMid{flex-direction:row;justify-content:center}.rbTok{width:38px}.rbSkip{padding:3px}.rbSkip button{padding:4px 0!important}.rbScore{padding:2px}}
 
 /* 창이 떠 있는 동안 뒤 화면이 끌려 움직이지 않게 (세로 화면은 페이지가 길어져서 뒤 배경이 스크롤되던 버그 — DHL 10-27) */
 html:has(#ov:not([hidden])),body:has(#ov:not([hidden])){overflow:hidden!important;overscroll-behavior:none}
@@ -2720,7 +2720,9 @@ function startRound(){ensureFoes();S.selecting=true;S.orbHidden=false;S.offOrb=n
           :`<div class="rbSkip boss"><b>👹 거인전</b><span>이기면<br>다음 장으로</span></div>`)+`</div>`;};
   const hurt=(()=>{const h=hurtCount();return h.w||h.s?` · 🩹 ${h.w} · 🗡 ${h.s}`:'';})();
   showOv(`<div class="rsB"><div class="rbHead"><button type="button" class="rbOpt" onclick="gameOpt()" aria-label="메뉴" title="메뉴 · 설정 (Esc)">${(document.getElementById('sOpt')||{}).innerHTML||'⚙'}</button><b>${S.jang}장</b><span class="fel" style="background:${WORLD_C[JANG_WORLD(S.jang)]}">${WORLD_KO[JANG_WORLD(S.jang)]}</span><span>💰${S.gold}${hurt}</span>`+
-    (S.campMsg?`<span class="rbMsg">🏕 ${S.campMsg}</span>`:'')+`<button class="rbInfo" onclick="openInfo('learn','list')">ⓘ 안내</button></div>`+
+    `<button class="rbInfo" onclick="openInfo('learn','list')">ⓘ 안내</button></div>`+
+    /* (DHL 11-14 '야영·밤 산책 뒤 위쪽 디자인이 깨져 보임') 야영 결과는 머리 알약 안이 아니라 그 아래 따로 — 알약 안에서 두 줄로 넘치면 둥근 끝이 큰 타원이 되어 글씨가 테두리에 붙었음. 한 일마다 한 줄 */
+    (S.campMsg?`<div class="rbCamp"><b>🏕 야영</b>${((S.campLog&&S.campLog.length)?S.campLog:[S.campMsg]).map(m=>`<span>${m}</span>`).join('')}</div>`:'')+
     `<div class="rbRow">${[0,1,2].map(card).join('')}</div></div>`);
   renderSide();
 }
@@ -5784,7 +5786,7 @@ html body #lm-title.ingame.ingame>:not(.lt-pop){display:none!important}
 /* 라운드 고르기 (DHL 10-28 "스크롤바가 있네요"): 화면 높이가 모자라면 스크롤 대신 기둥 전체를 살짝 줄여서 한 화면에 */
 (function(){
   function fit(){const p=document.querySelector('#ov>.panel'),b=p&&p.querySelector(':scope>.rsB'),r=b&&b.querySelector('.rbRow');if(!r)return;
-    r.style.zoom='';{const hd0=b.querySelector('.rbHead');if(hd0)hd0.style.zoom='';}const over=()=>b.scrollHeight>b.clientHeight+1||p.scrollHeight>p.clientHeight+1;let z=1;
+    r.style.zoom='';b.querySelectorAll('.rbHead,.rbCamp').forEach(e=>e.style.zoom='');const over=()=>b.scrollHeight>b.clientHeight+1||p.scrollHeight>p.clientHeight+1;let z=1;
     for(let k=0;k<30&&over()&&z>.55;k++){z-=.015;r.style.zoom=z.toFixed(3);}
     /* (DHL 11-11 QA) 큰 화면(1080p · 1440p)에서는 기둥 가운데가 크게 비고 글씨가 작음 → 빈 칸이 없어질 때까지 기둥 전체를 키움 (가로 화면만 · 폭은 칸의 94%까지) */
     if(z===1&&!matchMedia('(orientation:portrait)').matches){const c=r.querySelector('.rb3.cur')||r.querySelector('.rb3');if(!c)return;
@@ -5792,7 +5794,7 @@ html body #lm-title.ingame.ingame>:not(.lt-pop){display:none!important}
       const wide=()=>{let w=0;r.querySelectorAll('.rb3').forEach(e=>w+=e.getBoundingClientRect().width);return w>b.clientWidth*.94;};
       for(let k=0;k<60&&z<2.2&&gap()>26*z&&!wide()&&!over();k++){z+=.02;r.style.zoom=z.toFixed(3);}
       if(over()||wide()){z-=.02;r.style.zoom=z.toFixed(3);}
-      const hd=b.querySelector('.rbHead');if(hd){hd.style.zoom=z>1.05?Math.min(z,1.6).toFixed(3):'';for(let k=0;k<20&&over()&&z>1;k++){z-=.02;r.style.zoom=z.toFixed(3);hd.style.zoom=Math.min(z,1.6).toFixed(3);}}}}
+      const hds=[...b.querySelectorAll('.rbHead,.rbCamp')],hz=v=>hds.forEach(e=>e.style.zoom=v);if(hds.length){hz(z>1.05?Math.min(z,1.6).toFixed(3):'');for(let k=0;k<20&&over()&&z>1;k++){z-=.02;r.style.zoom=z.toFixed(3);hz(Math.min(z,1.6).toFixed(3));}}}}
   let q=0;const run=()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;fit();});};
   const hook=()=>{const ov=document.getElementById('ov');if(!ov)return setTimeout(hook,400);
     new MutationObserver(()=>{run();setTimeout(run,200);setTimeout(run,700);}).observe(ov,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
@@ -5959,6 +5961,7 @@ html.lmB #lm-title .st-row>b.bar{background:linear-gradient(90deg,var(--nv-600) 
 
 /* ── 라운드 고르기 ── */
 html.lmB .rbHead{background:#0a1120d9!important;box-shadow:inset 0 0 0 1px var(--brass-line)}
+html.lmB .rbCamp{background:#0a1120d9;box-shadow:inset 0 0 0 1px var(--brass-line)}
 html.lmB .rbInfo{background:var(--nv-700)!important;border-color:var(--brass-line)!important}
 html.lmB .rb3{background:linear-gradient(180deg,var(--nv-800),var(--nv-900))!important;border-color:var(--nv-700)!important;box-shadow:0 0 0 2px #050a14!important}
 html.lmB .rb3.cur{border-color:var(--brass)!important;box-shadow:0 0 0 2px #050a14,0 0 22px #c9a24a55!important}
@@ -6278,7 +6281,7 @@ html.lmB .sBox .tile.up{transform:translateY(-8px) scale(1.05)}
 /* 세로 화면: 라운드 고르기 · 원정 캠프가 정보판 위에 뜨므로 뒤 화면은 '보일 듯 말 듯' — 진한 남색 막 + 살짝 흐림 (DHL 10-28) */
 @media (orientation:portrait){
   html.lmB #ov:has(.rsB),html.lmB #ov:has(.shop){background:#060b17e8!important;-webkit-backdrop-filter:blur(3px) saturate(.7);backdrop-filter:blur(3px) saturate(.7)}
-  html.lmB .rbHead{background:#0f1a2ef2!important}
+  html.lmB .rbHead,html.lmB .rbCamp{background:#0f1a2ef2!important}
 }
 /* ═══ 원정 캠프 카드 v2 (DHL 10-28 '휴대폰에서 깨짐'): 크기와 상관없이 같은 모양 ═══ */
 /* 가격표: 카드 위쪽 가장자리에 붙어서 늘 카드 위로 (카드 크기 % 대신 자기 높이 기준) */
