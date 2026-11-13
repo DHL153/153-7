@@ -2893,7 +2893,7 @@ function render(){
     else if(sc.length){const pv=mergedPreview(sc),r=score(pv,ctx(sc.length-pv.length)),L=(S.lv[r.ht]||1)-1;
       S.scoreU=[].concat(...[r.ht].concat(r.bonds||[]).flatMap(k=>scoringCards(pv,k,S.foe)).map(c=>c._u||[c.uid]));   // 점수에 들어가는 카드 (겹친 족보 모두)
       const G3=mergeRun()&&!S.mrOff&&canMergeAllowed()?mrGroups3(sc):[];if(G3.length)S.scoreU=S.scoreU.concat(...G3.map(g=>g.map(c=>c.uid)));   // (DHL 10-30) 같은 카드 3장 이상 = 어느 둘을 합칠지 아직 안 정함 → '족보 밖' 회색 표시 안 함
-      $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(pv.length<sc.length?' · 머지 & 런':'')+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · '+TD():''}`:'');S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;
+      $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(pv.length<sc.length?' · 머지 & 런':'')+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · '+TD():''}`:'');S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;if(sc.length&&sc.every(c=>c.seal))$('htName').textContent='🔒 봉인 — 같이 낼 카드를 고르세요';   /* (11-13 QA) 봉인 카드만 고르면 '홀로 런'으로 보이던 것 */
       if(mergeRun()&&pv.length<sc.length){S.willM=[].concat(...pv.filter(c=>c._u&&c._u.length>1).map(c=>c._u));
         if(S.bOrb==null&&G3.length)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+G3.map(g=>`<b>${TYPES[g[0].id].ko} ${g.length}장</b> → 두 장 골라 ★${g[0].star+1}`).join(' · ')+' — 런할 때 골라요';
         else if(S.bOrb==null)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합':''}`).join(' · ')+' — 런하면 <b>합쳐져요</b>';}
@@ -3210,10 +3210,16 @@ function tick(now){
    봇 시험: claude/seal-bot-test.md */
 const SEAL_N={app:0,knight:1,errant:1};
 function lmSealOn(){try{return !!(S&&(SEAL_N[S.diff]||0)>0&&!S.practice&&!S.sandbox&&!(S.tut&&!S.tut.fin));}catch(e){return false;}}
-function lmSeal(){if(!lmSealOn())return;const got=[];for(let i=0;i<SEAL_N[S.diff];i++){const pool=S.hand.filter(c=>!c.seal);if(!pool.length)break;const c=pool[Math.random()*pool.length|0];c.seal=true;c.sealAt=performance.now();S.sel=S.sel.filter(u=>u!==c.uid);got.push(c);}
+function lmSeal(){if(!lmSealOn())return;const got=[];for(let i=0;i<SEAL_N[S.diff];i++){const pool=S.hand.filter(c=>!c.seal);if(pool.length<=1)break;   /* 낼 수 있는 카드는 늘 1장 이상 남김 */const c=pool[Math.random()*pool.length|0];c.seal=true;c.sealAt=performance.now();S.sel=S.sel.filter(u=>u!==c.uid);got.push(c);}
   if(!got.length)return;S.sealSeen=(S.sealSeen||0)+1;
   popMsg('<img class="emi" src="assets/ui/card/icon_seal.webp" alt="🔒" style="height:1.5em;vertical-align:-.4em"> '+got.map(c=>c.fog?'?':TYPES[c.id].ko).join(' · ')+' 봉인!'+(S.sealSeen<=2?' 족보에 못 들어가요 — 런에 같이 내거나 버리면 풀려요':''));
   try{window.LMS&&LMS.play('sfx_seal_lock',{vol:.85});}catch(e){}}   // 사슬이 감기고 '철컥' (DHL 11-13 ElevenLabs)
+
+/* 봉인 뒷정리 (11-13 QA): ① 라운드가 끝나면(이김 · 짐) 바로 풀림 — 예전엔 다음 전투 시작 때 풀려서 원정 캠프 · 야영 · 덱 보기 · 저장에 봉인이 남았음
+   ② 손패가 전부 봉인인데 버리기도 없으면(덱이 얇을 때) 더 할 수 있는 게 없음 → 모두 풀어 줌 */
+function lmSealClear(){try{if(S&&S.deck)S.deck.forEach(c=>{delete c.seal;delete c.sealAt;});}catch(e){}}
+function lmSealGuard(){try{if(!S||S.busy||S.anim||S.selecting||S.inShop||!S.hand||!S.hand.length||S.runs<=0||S.dis>0)return;if(S.hand.every(c=>c.seal)){S.hand.forEach(c=>{delete c.seal;delete c.sealAt;});popMsg('🔓 손패가 모두 봉인 — 봉인이 풀렸어요');render();}}catch(e){}}
+{const _w=win;win=function(){lmSealClear();return _w.apply(this,arguments);};const _l=lose;lose=function(){lmSealClear();return _l.apply(this,arguments);};const _f=fill;fill=function(){const r=_f.apply(this,arguments);setTimeout(lmSealGuard,0);return r;};}
 
 /* ───────── 전투 띠 (M&R 한 줄) ───────── */
 const cv=$('strip'),g=cv.getContext('2d');
