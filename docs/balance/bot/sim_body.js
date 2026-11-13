@@ -96,10 +96,15 @@ function bossTick(){const K=S.foe&&S.foe.rule&&S.foe.rule.k;
 function rollIntent(){const f=S.foe;if(!f)return;if(ENEMY==='off'){f.atype=null;S.marks=[];return;}const ks=f.ints||[f.atype];f.atype=ks[Math.random()*ks.length|0];
   S.marks=f.atype==='mark'?shuffle(S.hand.filter(c=>!c.fog)).slice(0,f.atk+1).map(c=>c.uid):[];}
 const NOMC=+(process.env.NOMC||0);
+/* (DHL 11-13 시안) 봉인: 적이 공격하면(못 잡은 런 뒤) 손패 1장 봉인 — 봉인된 카드는 족보에 못 들어감, 버리거나 런에 섞어 내야만 손에서 나감
+   SEAL=add(지금 공격에 더해) · only(지금 공격 대신) · SEALPICK=rand(무작위) · best(가장 센 카드) · SEALN=장 수 · SEALDIFF=이 난이도들에만 */
+const SEAL=process.env.SEAL||'',SEALPICK=process.env.SEALPICK||'rand',SEALN=+(process.env.SEALN||1);
+const sealOn=()=>!!SEAL;
 const ctxFor=(held,mcombo)=>({mcombo:NOMC?0:(S.runMerges||0)+(mcombo||0),bonusMult:S.nextMult||0,orbs:S.offOrb?S.orbs.filter(k=>k!==S.offOrb):S.orbs,merges:S.merges+(mcombo||0),discards:S.dis,lv:S.lv,runsLeft:S.runs,grow:S.grow,deck:S.deck.length,foe:S.foe,usedHT:S.usedHT,lockHT:S.lockHT,scoringOnly:true,ost:S.ost,runsMax:S.runsMax,discCount:S.discCount||0,held,ostate:S.ostate||{},gold:S.gold,rng:()=>S.rv==null?(S.rv=Math.random()):S.rv});
 function woundC(cs){cs.forEach(c=>{c.out=true;});S.hand=S.hand.filter(c=>!c.out);}
 function scarC(c,p){c.st=c.st||{};c.st.hit=(c.st.hit||0)+Math.max(1,Math.round(power(c)*p));}
-function foeStrike(played){
+function sealStrike(){if(!sealOn()||S.score>=S.tgt)return;for(let i=0;i<SEALN;i++){const pool=S.hand.filter(c=>!c.seal);if(!pool.length)return;const c=SEALPICK==='best'?pool.slice().sort((a,b)=>battlePower(b,S.foe)-battlePower(a,S.foe))[0]:pool[Math.random()*pool.length|0];c.seal=true;ST.seals=(ST.seals||0)+1;}}
+function foeStrike(played){sealStrike();if(SEAL==='only'){S.marks=[];return;}
   const f=S.foe;if(!f||!f.atype)return;const k=f.atype,n=f.atk,bp=(a,b)=>battlePower(b,f)-battlePower(a,f)||b.uid-a.uid;let hit=[];
   if(k==='counter'){if(wsum(played)>=5){hit=played.filter(c=>S.deck.includes(c)).sort((a,b)=>power(b)-power(a)).slice(0,n);woundC(hit);ST.wounds+=hit.length;}}
   if(k==='mark'){hit=(S.marks||[]).map(u=>S.deck.find(c=>c.uid===u)).filter(c=>c&&!played.includes(c));woundC(hit);ST.wounds+=hit.length;}
@@ -138,12 +143,12 @@ function harm(sel,rest){ // 의도 피해 추정 (힘 합) — 똑똑한 봇만 
 function bestPlay(){
   const H=S.hand,forced=S.forced,R=S.foe&&S.foe.rule,psy=R&&R.k==='psychic'&&wsum(H)>=5;let best=null;
   for(const idx of combosOf(H.length)){
-    const sel=idx.map(i=>H[i]);if(forced!=null&&!sel.some(c=>c.uid===forced)&&H.some(c=>c.uid===forced))continue;
+    const sel=idx.map(i=>H[i]);if(sel.some(c=>c.seal))continue;if(forced!=null&&!sel.some(c=>c.uid===forced)&&H.some(c=>c.uid===forced&&!c.seal))continue;
     if(psy&&wsum(sel)<5)continue;
     const rest=H.filter(c=>!sel.includes(c));const pm=previewMerge(sel);
     const r=score(pm.cards,ctxFor(rest,pm.m));r.raw2=r.total;const n=nKeys(r);if(GATE==='energy'){const h=energyHit(r.total,n,S.gs.sh);r.total=h.d;r.util=h.d+(BOT==='smart'?EV:1)*h.ab;}else if(GATE==='bar'){const h=barHit(r.total,n,S.gs.bar,null);r.total=Math.floor(h.ehp);r.util=h.ehp+(BOT==='smart'?BV:1)*h.ebar;}else{const e=effDmg(r.total,n,S.gs);r.total=e.d;r.util=e.d+(GATE==='tough'&&S.gs.grog<=0&&BOT==='smart'?Math.min(n,S.gs.tgh)*KV*S.tgt:0)+(GATE==='cap'&&BOT==='smart'?0:0);}
     const h=BOT==='smart'?harm(sel,rest):0;
-    const v={sel,total:r.total,r,h,m:pm.m};
+    const v={sel,total:r.total,r,h,m:pm.m,dump:BOT==='smart'?H.filter(c=>c.seal).slice(0,Math.max(0,5-sel.length)):[]};
     if(!best||(v.r.util)>(best.r.util))best=v;
     v.next=null;(bestPlay._all=bestPlay._all||[]).push(v);
   }
@@ -163,7 +168,7 @@ function playRound(){
   {const di=S.orbs.indexOf('dagger');if(di>=0&&di<S.orbs.length-1){const v=S.orbs[di+1],gain=2*sellPrice(v);S.ostate.dagger=(S.ostate.dagger||0)+gain;delete S.ost[v];S.orbs.splice(di+1,1);}}
   if(K==='acorn')S.orbs=shuffle(S.orbs);
   if(K==='leaf'){R.on=S.orbs.length>0;if(R.on&&BOT==='smart'){const i=S.orbs.map((k,i)=>[sellPrice(k),i]).sort((a,b)=>a[0]-b[0])[0][1];S.gold+=sellPrice(S.orbs[i]);delete S.ost[S.orbs[i]];S.orbs.splice(i,1);R.on=false;}}
-  S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;S.marks=[];
+  S.deck.forEach(c=>{delete c.fog;delete c.seal;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;S.marks=[];
   fill(true);if(K==='house')S.hand.forEach(c=>c.fog=true);rollIntent();bossTick();
   let roundBest=0,runs0=S.runs,dis0=S.dis,nRun=0;S.gs={tgh:TGH[S.rd],grog:0,brks:0,bar:Math.round(BF*S.tgt),sh:Math.max(10,Math.floor(S.tgt*SF/10)*10)};S.rawBest=0;S.firstRaw=null;S.brkDmg=0;S.allDmg=0;
   for(let guard=0;guard<60;guard++){
@@ -205,16 +210,16 @@ function playRound(){
 function discard(keepSel){
   // 버리기: 최선 조합 밖의 카드 중 가치 낮은 것 (같은 이름 · 속성 · 세계가 겹칠수록 가치 ↑)
   const H=S.hand;const cnt=(f,v)=>H.filter(c=>f(c)===v).length;
-  const val=c=>(KEYS!=='off'?25*isKey(c):0)+battlePower(c,S.foe)+18*(cnt(x=>TYPES[x.id].n,TYPES[c.id].n)-1)+4*(cnt(x=>x.el,c.el)-1)+4*(cnt(cardW,cardW(c))-1)+(c.star-1)*40+((S.marks||[]).includes(c.uid)?-5:0);
+  const val=c=>(KEYS!=='off'?25*isKey(c):0)+battlePower(c,S.foe)+18*(cnt(x=>TYPES[x.id].n,TYPES[c.id].n)-1)+4*(cnt(x=>x.el,c.el)-1)+4*(cnt(cardW,cardW(c))-1)+(c.star-1)*40+((S.marks||[]).includes(c.uid)?-5:0)+(c.seal?-1e6:0);
   let pool=H.filter(c=>!keepSel.includes(c)&&c.uid!==S.forced);
   if(BOT==='normal')pool=H.filter(c=>c.uid!==S.forced);
   pool.sort((a,b)=>val(a)-val(b));const out=pool.slice(0,Math.min(5,pool.length,Math.max(1,H.length-3)));
   if(!out.length)return false;
   const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB)S.nextMult=(S.nextMult||0)+6*brB;
   if(S.orbs.includes('diary')){S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br)S.gold+=3*br;
-  S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.dis--;fill();bossTick();return true;}
+  out.forEach(c=>{if(c.seal){delete c.seal;ST.sealDisc=(ST.sealDisc||0)+1;}});S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.dis--;fill();bossTick();return true;}
 function doRun(pick){
-  let cards=pick.sel.slice();
+  let cards=pick.sel.slice();const dump=pick.dump||[];if(dump.length){dump.forEach(c=>delete c.seal);S.hand=S.hand.filter(c=>!dump.includes(c));ST.sealDump=(ST.sealDump||0)+dump.length;}
   // 머지 & 런: 실제로 합침
   if(mergeRun()&&!deckIs('campfire')&&!(S.foe.rule&&S.foe.rule.k==='nomerge')){let did=true;while(did){did=false;for(const want of ['up','mix']){for(const a of cards){for(const b of cards){if(a!==b&&!a.fog&&!b.fog&&mergeKind(a,b)===want){doMergePair(a,b);cards=cards.filter(c=>c!==b);did=true;break;}}if(did)break;}if(did)break;}}}
   const RK=S.foe.rule&&S.foe.rule.k;
@@ -345,7 +350,7 @@ const bs=T.map(t=>t.b),p25=pct(bs,0.25),p40=pct(bs,0.4),p60=pct(bs,0.6),p90=pct(
 const tierStat=f=>{const a=T.filter(f);const rs=a.map(t=>t.runs).sort((x,y)=>x-y);return {n:a.length,kill:+(a.filter(t=>t.won).length/Math.max(1,a.length)).toFixed(3),medRuns:rs[rs.length>>1],avgRuns:+(a.filter(t=>t.won).reduce((s,t)=>s+t.runs,0)/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),otk:+(a.filter(t=>t.won&&t.runs===1).length/Math.max(1,a.length)).toFixed(3),brkShare:+(a.reduce((s,t)=>s+t.bshare,0)/Math.max(1,a.length)).toFixed(2),zeroBrkWin:+(a.filter(t=>t.won&&t.brks===0).length/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),brks:+(a.reduce((s,t)=>s+t.brks,0)/Math.max(1,a.length)).toFixed(2)};};
 const tiers={top10:tierStat(t=>t.b>=p90),mid:tierStat(t=>t.b>=p40&&t.b<=p60),bot25:tierStat(t=>t.b<=p25),all:tierStat(()=>true),cut:[p25,p40,p60,p90].map(x=>+x.toFixed(2))};
 tiers.byRd=[0,1,2].map(rd=>{const a=T.filter(t=>t.rd===rd),b=a.map(t=>t.b).sort((x,y)=>x-y),q=p=>b[Math.min(b.length-1,Math.floor(b.length*p))];const P90=q(0.9),P40=q(0.4),P60=q(0.6),P25=q(0.25);const ts=f=>tierStat(t=>t.rd===rd&&f(t));return {top10:ts(t=>t.b>=P90),mid:ts(t=>t.b>=P40&&t.b<=P60),bot25:ts(t=>t.b<=P25),all:ts(()=>true)};});
-const out={bar:GATE==='bar'?{BF,PIER,BMODE,blockedRunShare:+((ST.barBlockedRuns||0)/Math.max(1,ST.barRuns||0)).toFixed(3),rollFail:ST.rolls?+(ST.rollFail/ST.rolls).toFixed(3):null}:null,gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
+const out={seal:{per:(ST.seals||0)/ST.games,dump:(ST.sealDump||0)/ST.games,disc:(ST.sealDisc||0)/ST.games},deathJ:ST.deathJ,bar:GATE==='bar'?{BF,PIER,BMODE,blockedRunShare:+((ST.barBlockedRuns||0)/Math.max(1,ST.barRuns||0)).toFixed(3),rollFail:ST.rolls?+(ST.rollFail/ST.rolls).toFixed(3):null}:null,gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
   runsPerRound:ST.runsUsed/ST.rounds,disPerRound:ST.disUsed/ST.rounds,firstRunWinShare:ST.firstRunWin/ST.rounds,bigHitShare:ST.bigHit/ST.rounds,
   medOver:med(ST.overRatio),q90Over:q(ST.overRatio,0.9),runsLeftAtWin:med(ST.runsLeftAtWin),
   medLoss:med(ST.lossRatio),campPerGame:ST.camp/ST.games,mergesPerGame:ST.merges/ST.games,
