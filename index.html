@@ -3750,8 +3750,12 @@ function learnHTML(){
     const fresh=!lock&&!seen&&lsGet('lm_learn_new',[]).includes(k);   /* 니콜 졸업 때 표시한 쪽(11쪽 '다음은 기사') — 한 번 보면 사라짐 */
     const tag=lock?(lmTutLock(k)?'곧 열림':`${L.at}장에서 열림`):fresh?'새로!':PRACTICE_DONE.includes(k)?'해봄 ✔':seen?'본 내용':now?'볼 차례':'새 내용';
     return `<button class="lRow${lock?' lock':''}${seen?' seen':''}${now?' now':''}${fresh?' fresh':''}" ${lock?'disabled':''} onclick="openInfo('learn','page',${k})"><span class="n">${lPos(k)+1}</span><span class="tx"><b>${L.t}</b><small>${L.s}</small></span><span class="tag">${tag}</span></button>`;}).join('');
-  return `<p class="iLead">한 장씩 넘기며 배웁니다.</p><div class="lList">${rows}<div class="lReplay"><b>니콜과 다시 배우기</b><div class="lBot two"><button type="button" onclick="lmTutReplayBtn(this,'app')">견습 기사 안내</button><button type="button" ${typeof ltDiffOpen==='function'&&!ltDiffOpen('knight')?'disabled':''} onclick="lmTutReplayBtn(this,'knight')">기사 안내 · 머지 & 런</button></div></div></div>`+
-    `<div class="lBot two"><button onclick="openInfo('learn','dict')">용어 · 기호 사전</button><button class="go" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':'이어서 보기 · '+(lPos(next)+1)}</button></div>`;
+  /* (DHL 11-14 B안 통일) 진도 패널(막대 + 이어서 보기 · 용어 사전 같은 크기) → 차례 패널 → 니콜과 다시 배우기 패널 */
+  const seenN=LEARN_ORDER.filter(k=>LEARN_SEEN.includes(k)).length,N=LEARN_ORDER.length,pc=Math.round(100*seenN/Math.max(1,N));
+  return `<section class="riSec"><div class="riH"><b>배우기 진도</b><small>${N}쪽 중 ${seenN}쪽 봄</small></div><div class="riProg"><b>${seenN}<small>/ ${N}</small></b><span class="riBar"><i style="width:${pc}%"></i></span></div>`+
+    `<div class="riBtns"><button type="button" class="riBtn" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':`이어서 보기 <small>${lPos(next)+1}쪽</small>`}</button><button type="button" class="riBtn cream" onclick="openInfo('learn','dict')">용어 사전</button></div></section>`+
+    `<section class="riSec"><div class="riH"><b>차례</b><small>한 장씩 넘기며 배워요</small></div><div class="lList">${rows}</div></section>`+
+    `<section class="riSec"><div class="riH"><b>니콜과 다시 배우기</b><small>처음 안내를 다시 봐요</small></div><div class="riBtns"><button type="button" class="riBtn cream" onclick="lmTutReplayBtn(this,'app')">견습 기사 안내</button><button type="button" class="riBtn cream" ${typeof ltDiffOpen==='function'&&!ltDiffOpen('knight')?'disabled':''} onclick="lmTutReplayBtn(this,'knight')">기사 · 머지 & 런</button></div></section>`;
 }
 function lmTutReplayBtn(b,d){const busy=typeof S!=='undefined'&&S&&!S.practice&&!S.sandbox&&!document.body.classList.contains('lm-titleOn');
   if(busy&&!b.classList.contains('arm')){b.classList.add('arm');b.dataset.t=b.textContent;b.textContent='한 번 더 누르면 새 판으로';clearTimeout(b._t);b._t=setTimeout(()=>{b.classList.remove('arm');b.textContent=b.dataset.t;},3500);return;}
@@ -3857,29 +3861,35 @@ function foeCodexHTML(pick){if(!(codexSel&&FOE_KO[codexSel]))window._foeBgFor=nu
     h=`<div class="cDet cFoeDet"><div class="cFoeStage w-${bw}" onclick="foeCodexTap()"><i class="cFoeBg" style="background-image:url(mrstage/assets/art/backgrounds/battle/bg_battle_${String(bn).padStart(4,'0')}.png)"></i><iframe src="mrstage/enemy/${k}/index.html" title="${FOE_KO[k]}" tabindex="-1" scrolling="no" onload="foeCodexBoot()"></iframe><span class="cmHint">눌러 보세요</span></div>`+
       `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small></div></div>`+h;   /* (DHL 11-13) 설명 글 · 버튼 줄 뺌 — 동료처럼 적을 누르면 반응(공격들 → 피격 차례로, 등장은 처음 한 번만) */
     setTimeout(foeCodexBoot,0);}
-  else h=`<p class="iNote">전투에서 만난 적이 채워집니다. 눌러서 움직이는 모습을 봅니다. (${nF} / ${K.length})</p>`+h;
+  /* (11-14) 안내는 도감 패널 제목 줄로 옮김 */
   return h;}
 function codexHTML(){
   const orbKeys=Object.keys(ORBS),G=GIANT_LIST();
   const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length,FK=Object.keys(FOE_KO),nF=FK.filter(k=>CODEX.foe[k]).length;
-  const sub=[['orb',`구슬 ${nOrb}/${orbKeys.length}`],['mate','동료 30'],['foe',`적 ${nF}/${FK.length}`],['giant',`거인 ${nG}/${G.length}`]];
-  let h=`<div class="cSub">${sub.map(([k,n])=>`<button class="${k===codexSub?'on':''}" onclick="codexSub='${k}';codexSel=null;openInfo('codex')">${n}</button>`).join('')}</div>`;
+  /* (DHL 11-14 B안 통일) 맨 위 '수집 현황' 패널: 전체 % + 분류 4칸(탭 겸 진행도) · 아래 '○○ 도감' 패널 */
+  const sub=[['orb','구슬',nOrb,orbKeys.length],['mate','동료',30,30],['foe','적',nF,FK.length],['giant','거인',nG,G.length]],pc=(a,b)=>Math.round(100*a/Math.max(1,b));
+  const got=sub.reduce((a,x)=>a+x[2],0),all=sub.reduce((a,x)=>a+x[3],0);
+  const top=`<section class="riSec"><div class="riH"><b>수집 현황</b><small>${got} / ${all}</small></div><div class="riProg"><b>${pc(got,all)}<small>%</small></b><span class="riBar"><i style="width:${pc(got,all)}%"></i></span></div>`+
+    `<div class="cSub riCat" role="tablist">${sub.map(([k,n,a,b])=>`<button role="tab" aria-selected="${k===codexSub}" class="${k===codexSub?'on':''}" onclick="codexSub='${k}';codexSel=null;openInfo('codex')">${n}<small>${a}/${b}</small><span class="riBar"><i style="width:${pc(a,b)}%"></i></span></button>`).join('')}</div></section>`;
+  const cur=sub.find(x=>x[0]===codexSub)||sub[0],hint={orb:'원정 캠프에서 만나요 · 눌러서 효과',mate:'눌러서 동료를 만나요',foe:'전투에서 만나요 · 눌러서 움직임',giant:'거인 라운드에서 만나요'}[cur[0]];
+  const wrap=b=>top+`<section class="riSec riCodex"><div class="riH"><b>${cur[1]} 도감</b><small>${hint}</small></div>${b}</section>`;
+  let h='';
   const pick=k=>`codexSel='${k}';openInfo('codex')`;
   if(codexSub==='orb'){
     h+=`<div class="cGrid">`+orbKeys.map(k=>{const o=ORBS[k],known=CODEX.orb[k];return known?`<button class="cT r-${o.r}${codexSel===k?' sel':''}" onclick="${pick(k)}"><i>${orbKind(k)==='mul'?'×':'+'}</i><span>${o.ko}</span></button>`:`<button class="cT q" disabled><i>?</i><span>???</span></button>`;}).join('')+`</div>`;
     const k=codexSel&&ORBS[codexSel]?codexSel:null;
     h+=k?`<div class="cDet"><b>${ORBS[k].ko}</b> <small class="rar r-${ORBS[k].r}">${RAR_KO[ORBS[k].r]} · ${ORBS[k].g} · 💰${ORBS[k].cost}</small><p>${ORBS[k].d}</p><div class="cSt">`+[1,2,3].map(s=>`<span>${dia(s)}<small>${orbKind(k)==='mul'?'곱하기 ×'+(1+ORB_XS*(s-1)):orbKind(k)==='add'?'더하기 ×'+s:'효과 ×'+s}</small></span>`).join('')+`</div></div>`
-      :`<p class="iNote">원정 캠프에서 만난 구슬이 채워집니다. 눌러서 효과를 봅니다.</p>`;
+      :'';
   }
   if(codexSub==='mate'){
-    if(codexSel&&TYPES[codexSel])return h+cmDetailHTML(codexSel);
+    if(codexSel&&TYPES[codexSel])return wrap(h+cmDetailHTML(codexSel));
     h+=WORLDS.map(w=>`<p class="iSub" style="color:${WORLD_C[w]}">${WORLD_KO[w]}</p><div class="cGrid five">`+NAMES.map(([n,ko])=>{const id=w+'_'+n,img=HAS_ART&&MR_ART.idle[id];return `<button class="cM" style="border-color:${WORLD_C[w]};--wc:${WORLD_C[w]}" onclick="${pick(id)}">${img?`<img src="${img}" alt="">`:''}<span>${ko}</span></button>`;}).join('')+`</div>`).join('');
   }
   if(codexSub==='foe')h+=foeCodexHTML(pick);
   if(codexSub==='giant'){
     h+=`<div class="cList">`+G.map(g=>CODEX.giant[g.k]?`<div><span class="ic2">${g.ic}</span><span><b>${g.ko}${g.fin?' <small>· 8장</small>':''}</b><small>${g.d}</small></span></div>`:`<div class="q"><span class="ic2">?</span><span><b>???</b><small>아직 만나지 못한 거인 규칙</small></span></div>`).join('')+`</div>`;
   }
-  return h;
+  return wrap(h);
 }
 
 /* ───────── 🎯 해보기: 실제 전투 화면을 연습 모드로 (2026-10-27) ─────────
@@ -10103,6 +10113,22 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
 .ib .riAcc[open] summary::after{transform:rotate(225deg)}
 .ib .riSec .iNote{margin:6px 2px 0}
 .ib .rStat{margin-bottom:0}
+/* (DHL 11-14) 도감 · 배우기 — B안 패널 통일 */
+.ib .riSec:first-child{margin-top:0}
+.ib .riProg{display:flex;align-items:center;gap:8px;margin:2px 2px 0}.ib .riProg b{font:900 26px/1 'Noto Sans KR',sans-serif;color:#f8edd0}.ib .riProg b small{font-size:13px;color:#a9b4c6;margin-left:2px}
+.ib .riBar{display:block;flex:1;height:10px;border-radius:5px;background:#0006;box-shadow:inset 0 0 0 1px #c99a3e44;overflow:hidden}.ib .riBar i{display:block;height:100%;background:linear-gradient(90deg,#c99a3e,#f3d58a)}
+html.lmB .ib .cSub.riCat{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px!important;margin:10px 0 0!important;flex-wrap:nowrap!important}
+html.lmB .ib .cSub.riCat button{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;padding:2px 2px!important;border-width:8px 10px!important;color:#f8edd0!important;font:900 14px/1 'Noto Sans KR',sans-serif!important;white-space:nowrap}
+html.lmB .ib .cSub.riCat button small{font-size:11px;color:#a9b4c6;font-weight:800}
+html.lmB .ib .cSub.riCat button .riBar{flex:none;width:100%;height:5px}
+html.lmB .ib .cSub.riCat button.on{color:#3a2606!important}html.lmB .ib .cSub.riCat button.on small{color:#6b4a14}
+#ov .riCodex .cT.q{background:#ffffff05!important;border:1px dashed #c99a3e40!important;box-shadow:none!important;color:#c99a3e55!important}
+#ov .riCodex .cT:not(.q){background:#ffffff0a!important;border:1px solid #c99a3e66!important}
+#ov .riSec .lList{display:block}
+#ov .riSec .lRow{width:100%;background:#ffffff08!important;border:0!important;box-shadow:inset 0 0 0 1px #c99a3e33!important;border-radius:10px;margin:0 0 6px}
+#ov .riSec .lRow.now{box-shadow:inset 0 0 0 2px #f3d58a!important;background:#f3d58a14!important}
+#ov .riSec .lRow .tag{white-space:nowrap}
+.ib .riBtn.arm{white-space:normal;font-size:13px}.ib .riBtn:disabled{filter:grayscale(.7) brightness(.6)}
 .dkOpen{display:flex;width:100%;justify-content:space-between;align-items:center;cursor:pointer;font:inherit;font-weight:800;color:inherit;text-align:left}
 .dkOpen small{color:var(--dim,#a9b4c2);font-weight:400}
 .dkV{position:fixed;inset:0;z-index:450;background:#050a14b3;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
