@@ -2807,8 +2807,8 @@ function cardFace(c){
   const nm=t.ko,nmc=nm.length>6?' xs':nm.length>4?' sm':'';
   const pl=typeof ICON_IMG!=='undefined'&&ICON_IMG['plate_'+w];
   const stars=Array(c.star).fill(ICO(c.star>=3?'star3':'star2')).join('');
-  const sealNew=c.seal&&c.sealAt&&performance.now()-c.sealAt<700;   // 방금 걸린 봉인만 사슬 감기는 연출
-  const sealH=c.seal?`<span class="dzSeal${sealNew?' new':''}" title="봉인 — 족보에 못 들어가요. 런에 같이 내거나 버리면 풀려요"></span>`:'';
+  const sealAge=c.seal&&c.sealAt?performance.now()-c.sealAt:1e9,sealNew=sealAge<900;   // 방금 걸린 봉인만 사슬 감기는 연출
+  const sealH=c.seal?`<span class="dzSeal${sealNew?' new':''}"${sealNew?` style="--sd:-${Math.round(sealAge)}ms"`:''} title="봉인 — 족보에 못 들어가요. 런에 같이 내거나 버리면 풀려요"></span>`:'';
   return `<span class="dzi${d?' mood-'+d:''}"${c.seal?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
@@ -3089,7 +3089,7 @@ function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.le
     if(r.keys&&r.keys.n){const kb=$('keyBar');if(kb){kb.classList.remove('flash');void kb.offsetWidth;kb.classList.add('flash');}}}catch(e){}
   setTimeout(()=>{S.busy=false;document.querySelectorAll('#hand .card.fogRev').forEach(x=>{x.classList.remove('fogRev');x.style.animationDelay='';});then();},420+fc.length*90+(showHand?650:450));return true;}
 function doDiscard(){
-  if(S.busy||!S.sel.length||S.dis<=0)return;if(fogReveal(()=>doDiscard(),false))return;S._fogRev=null;if(S.sandbox)S.dis=1000;
+  if(S.busy||!S.sel.length||S.dis<=0)return;if(S._sealPend){lmSealLand(true);if(!S.sel.length)return;}if(fogReveal(()=>doDiscard(),false))return;S._fogRev=null;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
   const out=selCards();if(out.some(c=>c.seal))try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8,delay:120});}catch(e){}out.forEach(c=>delete c.seal);const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
 }
@@ -3132,6 +3132,7 @@ const wsum=cs=>cs.reduce((s,c)=>s+(c.seal?0:weight(c)),0);
 function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(selCards())<5&&wsum(S.hand)>=5;}
 function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
+  if(S._sealPend){lmSealLand(true);if(!S.sel.length)return;}
   if(!selCards().some(c=>!c.seal)){popMsg('🔒 봉인된 카드만으로는 런할 수 없어요 — 다른 카드와 같이 내거나 버리세요');const bp=$('bPlay');if(bp){bp.classList.remove('lmNo');void bp.offsetWidth;bp.classList.add('lmNo');}return;}
   if(!merged&&psyShort()){   /* (DHL 11-08 '런이 되는 것처럼 보이는데 안 됨') 예전엔 숨겨진 안내 줄(#tip)에만 써서 아무 반응 없어 보였음 → 보이는 말풍선 + 버튼 흔들기 */
     const need=5-wsum(selCards());popMsg('🎯 다섯의 맹세 — '+need+'장 더 골라야 런할 수 있어요 (★2는 2장 · ★3은 3장으로 세요)');
@@ -3206,21 +3207,27 @@ function tick(now){
       else{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];popMsg('⚔ 거인: 약점이 바뀌었어요 — 속성 '+weakTo(f.el));}}}
   if(S.runs<=0)return lose();
   if(S.foe.rule&&S.foe.rule.k==='hook'&&S.hand.length){const out=shuffle(S.hand).slice(0,2);S.hand=S.hand.filter(c=>!out.includes(c));popMsg('🪝 갈고리! '+out.map(c=>TYPES[c.id].ko).join(' · ')+' 버려짐');}
-  lmSeal();fill();rollIntent();bossTick();render();
+  lmSealQueue();fill();rollIntent();bossTick();render();
 }
 /* 🔒 봉인 (DHL 11-13): 기사 · 편력 기사에서 런으로 적을 못 잡으면 적의 공격으로 손에 남은 카드 1장(무작위)이 봉인됨.
    봉인된 카드는 족보 · 점수 · 머지에 못 들어감. 런에 같이 내거나 버리면 손에서 나가며 풀림. 라운드가 끝나면 모두 풀림. 견습 · 튜토리얼 · 연습장은 없음.
    봇 시험: claude/seal-bot-test.md */
 const SEAL_N={app:0,knight:1,errant:1};
 function lmSealOn(){try{return !!(S&&(SEAL_N[S.diff]||0)>0&&!S.practice&&!S.sandbox&&!(S.tut&&!S.tut.fin));}catch(e){return false;}}
-function lmSeal(){if(!lmSealOn())return;const got=[];for(let i=0;i<SEAL_N[S.diff];i++){const pool=S.hand.filter(c=>!c.seal);if(pool.length<=1)break;   /* 낼 수 있는 카드는 늘 1장 이상 남김 */const c=pool[Math.random()*pool.length|0];c.seal=true;c.sealAt=performance.now();S.sel=S.sel.filter(u=>u!==c.uid);got.push(c);}
+/* (DHL 11-14 '적이 공격하는 타이밍에 이펙트와 함께') 런이 끝난 순간이 아니라 무대에서 적의 공격이 주인공에게 닿는 순간(mrStage:'foeHit')에 봉인.
+   신호가 안 오면(무대 없음 · 맞는 장면 없는 적) 6초 뒤에, 그 전에 런 · 버리기를 누르면 그 자리에서(고른 카드는 되도록 피해서) 걸림 */
+let lmSealT=0;
+function lmSealQueue(){if(!lmSealOn())return;S._sealPend=1;clearTimeout(lmSealT);lmSealT=setTimeout(()=>lmSealLand(),6000);}
+function lmSealLand(avoid){try{if(!S||!S._sealPend)return;S._sealPend=0;clearTimeout(lmSealT);if(S.selecting||S.inShop||!S.hand||!S.hand.length||S.score>=S.tgt)return;lmSeal(avoid);render();}catch(e){}}
+window.addEventListener('message',e=>{if(e.data&&e.data.mrStage==='foeHit')lmSealLand();});
+function lmSeal(avoid){if(!lmSealOn())return;const got=[];for(let i=0;i<SEAL_N[S.diff];i++){let pool=S.hand.filter(c=>!c.seal);if(pool.length<=1)break;if(avoid){const p2=pool.filter(c=>!S.sel.includes(c.uid));if(p2.length)pool=p2;}   /* 낼 수 있는 카드는 늘 1장 이상 남김 */const c=pool[Math.random()*pool.length|0];c.seal=true;c.sealAt=performance.now();S.sel=S.sel.filter(u=>u!==c.uid);got.push(c);}
   if(!got.length)return;S.sealSeen=(S.sealSeen||0)+1;
   popMsg('🔒 '+got.map(c=>c.fog?'?':TYPES[c.id].ko).join(' · ')+' 봉인!'+(S.sealSeen<=2?' 족보에 못 들어가요 — 런에 같이 내거나 버리면 풀려요':''));
   try{window.LMS&&LMS.play('sfx_seal_lock',{vol:.85});}catch(e){}}   // 사슬이 감기고 '철컥' (DHL 11-13 ElevenLabs)
 
 /* 봉인 뒷정리 (11-13 QA): ① 라운드가 끝나면(이김 · 짐) 바로 풀림 — 예전엔 다음 전투 시작 때 풀려서 원정 캠프 · 야영 · 덱 보기 · 저장에 봉인이 남았음
    ② 손패가 전부 봉인인데 버리기도 없으면(덱이 얇을 때) 더 할 수 있는 게 없음 → 모두 풀어 줌 */
-function lmSealClear(){try{if(S&&S.deck)S.deck.forEach(c=>{delete c.seal;delete c.sealAt;});}catch(e){}}
+function lmSealClear(){try{clearTimeout(lmSealT);if(S)S._sealPend=0;if(S&&S.deck)S.deck.forEach(c=>{delete c.seal;delete c.sealAt;});}catch(e){}}
 function lmSealGuard(){try{if(!S||S.busy||S.anim||S.selecting||S.inShop||!S.hand||!S.hand.length||S.runs<=0||S.dis>0)return;if(S.hand.every(c=>c.seal)){S.hand.forEach(c=>{delete c.seal;delete c.sealAt;});popMsg('🔓 손패가 모두 봉인 — 봉인이 풀렸어요');render();}}catch(e){}}
 {const _w=win;win=function(){lmSealClear();return _w.apply(this,arguments);};const _l=lose;lose=function(){lmSealClear();return _l.apply(this,arguments);};const _f=fill;fill=function(){const r=_f.apply(this,arguments);setTimeout(lmSealGuard,0);return r;};}
 
@@ -4705,7 +4712,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r146" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r147" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -10238,11 +10245,13 @@ const LM_TERMS=[
 .card .dzi[data-seal]>*:not(.dzSeal){filter:grayscale(.8) brightness(.6)}
 .card .dzSeal{position:absolute;inset:0;z-index:60;pointer-events:none;border-radius:inherit;overflow:hidden;background:url(assets/ui/card/seal_cover.webp?v=2) center/100% 100% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
 html.lmB #hand .card.dz.noscore .dzi[data-seal]{filter:none!important}   /* 고른 봉인 카드: 사슬 색은 그대로 (카드 그림은 이미 회색) */
-.card .dzSeal.new{animation:lmSealCover .5s steps(1) both}
-.card .dzSeal.new::before{content:"";position:absolute;inset:0;background:url(assets/ui/card/fx_seal_lock.webp) 0 0/400% 200% no-repeat;animation:lmSealFx .48s steps(1) both}
+.card .dzSeal.new{animation:lmSealCover .72s steps(1) var(--sd,0ms) both}
+.card .dzi[data-seal]:has(.dzSeal.new){animation:lmSealClunk .72s var(--sd,0ms) both}
+@keyframes lmSealClunk{0%,55%{transform:none;filter:none}62%{transform:scale(1.07) rotate(-2deg);filter:brightness(1.7)}72%{transform:scale(.97) rotate(1.5deg)}84%{transform:scale(1.02) rotate(-.6deg)}100%{transform:none;filter:none}}
+.card .dzSeal.new::before{content:"";position:absolute;inset:0;background:url(assets/ui/card/fx_seal_lock.webp) 0 0/400% 200% no-repeat;animation:lmSealFx .7s steps(1) var(--sd,0ms) both;filter:drop-shadow(0 0 4px #b98cff) drop-shadow(0 0 2px #fff)}
 @keyframes lmSealCover{0%,80%{background-size:0 0}81%,100%{background-size:100% 100%}}
 @keyframes lmSealFx{0%{background-position:0 0}12.5%{background-position:33.333% 0}25%{background-position:66.667% 0}37.5%{background-position:100% 0}50%{background-position:0 100%}62.5%{background-position:33.333% 100%}75%{background-position:66.667% 100%}82%,100%{background-position:100% 100%;opacity:0}}
-@media (prefers-reduced-motion:reduce){.card .dzSeal.new,.card .dzSeal.new::before{animation:none}.card .dzSeal.new::before{display:none}}
+@media (prefers-reduced-motion:reduce){.card .dzSeal.new,.card .dzSeal.new::before,.card .dzi[data-seal]:has(.dzSeal.new){animation:none}.card .dzSeal.new::before{display:none}}
 </style>
 <script id="lm-run-save">
 /* (DHL 11-13 QA G1) 이어하기 — 진행 중인 판을 저장해 두었다가 게임을 다시 켜도 '계속하기'로 이어감.
