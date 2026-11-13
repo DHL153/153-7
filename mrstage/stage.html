@@ -8957,6 +8957,7 @@ let isGameOver = false;
     routes(){return {ROUTE,ROUTE_KO};},
     busy(){return pending>0||!idle()||!!document.querySelector('.mrfc');},
     queued(){return pending;},
+    dead(){return !!gsDead;},   // 적이 쓰러졌나 (게임 쪽: 손패 회수 시작 시점)
     quiet(){try{const cut=stage.dataset.teamSkill==='on'||stage.classList.contains('skill-cutscene')||!!document.getElementById('skill-cinematic')?.classList.contains('on')||!!document.querySelector('.mrfc');
       if(cut&&tagKillQ)tagKillHold=true;   // 처치가 예정된 런의 컷신이 시작되면 → 적이 쓰러질 때까지 계속 숨김 (컷신과 막타 사이에 잠깐 다시 뜨지 않게)
       return cut||tagKillHold||!!gsDead||stage.classList.contains('lm-cleared');}catch(e){return false;}},   // (DHL 11-13) 컷인 · 막타 컷신 · 적이 쓰러진 뒤 = 게임 쪽 적 이름표를 숨길 때

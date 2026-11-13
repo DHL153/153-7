@@ -2881,7 +2881,7 @@ function render(){
   $('pJang').title=DIFF[S.diff].ko;
   $('pTgt').innerHTML=S.sandbox?`🧪 <b style="color:var(--gold)">연습장</b> · 최고 ${(S.best||0).toLocaleString()}`:S.practice?'🎯 <b style="color:var(--gold)">해보기</b>':`🎯 <b style="color:var(--gold)">${S.score.toLocaleString()}</b> / <b>${S.tgt.toLocaleString()}</b>`;
   $('pGold').textContent=`💰 ${S.gold}`;
-  $('nRun').textContent=S.sandbox?'∞':S.runs;$('nDis').textContent=S.sandbox?'∞':S.dis;$('nDeck').textContent=`${S.draw.length}/${S.deck.length}`;$('hand').style.setProperty('--hn',Math.max(8,S.hand.length));document.body.classList.toggle('handWide',S.hand.length>8);
+  $('nRun').textContent=S.sandbox?'∞':S.runs;$('nDis').textContent=S.sandbox?'∞':S.dis;if(!window.lmDeckShowFull)$('nDeck').textContent=`${S.draw.length}/${S.deck.length}`;$('hand').style.setProperty('--hn',Math.max(8,S.hand.length));document.body.classList.toggle('handWide',S.hand.length>8);
   if(S.sort==='star')$('bSort').innerHTML='<img class="sortStar" src="assets/ui/card/star_g.webp" alt="★" draggable="false">';else $('bSort').textContent=SORT_KO[S.sort];   /* (DHL 10-30 '정렬 별이 깨짐') 이모지 그림(옆 칸이 같이 잘려 나옴) 대신 카드 별 그림 */
   const sc=selCards();S.scoreU=null;if(!S.busy)S.keyNow=null;const hadW=S.willM&&S.willM.length;S.willM=null;
   if(!S.busy){
@@ -4680,7 +4680,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r145" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r146" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -8535,6 +8535,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 .lmDfVig{position:fixed;inset:0;pointer-events:none;z-index:390;background:radial-gradient(ellipse at 50% 60%,transparent 40%,#5a0a10b0 100%);opacity:0}
 #hand.lmDfBusy{pointer-events:none}
 #hand.lmDfWait .card{opacity:0}
+#hand.lmDfGone .card{visibility:hidden}   /* 회수가 끝난 뒤 보상 창이 뜰 때까지 손패가 다시 그려져도 보이지 않게 */
 #hand .card.lmDfHold{display:none!important}
 #hand .card.lmDfHoldV{visibility:hidden!important}   /* (DHL 11-02) 버리기: 새 카드 자리는 미리 비워 둠 → 남은 카드가 한 번만 움직임 */   /* (DHL 11-01) 전투 중엔 남은 카드만 그대로 — 끝난 뒤 자리가 생기며 새 카드가 들어옴 */`;document.head.appendChild(st);
   const ctr=el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};};
@@ -8564,19 +8565,20 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
       done(a).then(()=>bk.remove());
     });
   }
-  /* 이겼을 때 — 금빛 물결 → 덱으로 */
+  /* 이겼을 때 — 살짝 떠서 뒤집히며 덱으로 (DHL 11-13 시안 A: 금빛 테두리 · 앞 대기 없이 바로, 덱 숫자가 차오름) */
   function winFx(){
     const P=pile(),els=cardsOf();if(!P||!els.length||RM())return Promise.resolve();
-    const pc=ctr(P);busy(1500);
-    /* (DHL 11-03) 효과음: 금빛 반짝 → 카드마다 뒤집히며 덱으로 휙 → 덱에 모두 들어가며 착 */
-    if(window.LMS){try{LMS.play('sfx_guide_glow',{vol:.55});els.forEach((d,i)=>{if(els.length>6&&i%Math.ceil(els.length/6))return;LMS.play('sfx_card_flip',{delay:i*60+700,vol:.4,gap:0});LMS.play('sfx_card_deal',{delay:i*60+860,vol:.5,gap:0});});
-      LMS.play('sfx_hand_sort',{delay:900+els.length*60,vol:.6});}catch(e){}}
-    const all=els.map((d,i)=>{const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,g=add(d,'lmDfGlow'),bk=add(d,'lmDfBack'),dl=i*60;
-      anim(g,[{opacity:0},{opacity:1,offset:.15},{opacity:.8,offset:.4},{opacity:0,offset:.55},{opacity:0}],{duration:1300,delay:dl,fill:'both'});
-      anim(bk,[{opacity:0},{opacity:0,offset:.5},{opacity:1,offset:.56},{opacity:1}],{duration:1300,delay:dl,fill:'both'});
-      return done(anim(d,[{transform:'none'},{transform:'translateY(-14px) scale(1.06)',offset:.14},{transform:'none',offset:.26},{transform:'none',offset:.42},{transform:`translate(${dx*.5}px,${Math.min(dy,0)-50}px) rotate(-8deg) scale(.9)`,offset:.66},{transform:`translate(${dx}px,${dy}px) rotate(10deg) scale(.5)`,opacity:1,offset:.97},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:0}],{duration:1300,delay:dl,easing:'cubic-bezier(.4,0,.3,1)',fill:'forwards'}));});
-    setTimeout(()=>anim(P,[{transform:'none',filter:'none'},{transform:'scale(1.15)',filter:'drop-shadow(0 0 12px #ffd36a) brightness(1.3)',offset:.3},{transform:'none',filter:'drop-shadow(0 0 4px #ffd36a)'}],{duration:700}),900+els.length*60);
-    return Promise.all(all).then(()=>new Promise(r=>setTimeout(r,320)));
+    const pc=ctr(P),D=780,GAP=55;busy(D+els.length*GAP+200);
+    if(window.LMS){try{els.forEach((d,i)=>{if(els.length>6&&i%Math.ceil(els.length/6))return;LMS.play('sfx_card_flip',{delay:i*GAP+140,vol:.4,gap:0});LMS.play('sfx_card_deal',{delay:i*GAP+330,vol:.5,gap:0});});
+      LMS.play('sfx_hand_sort',{delay:D*.8+els.length*GAP,vol:.6});}catch(e){}}
+    const all=els.map((d,i)=>{const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,bk=add(d,'lmDfBack'),dl=i*GAP;
+      anim(bk,[{opacity:0},{opacity:0,offset:.3},{opacity:1,offset:.38},{opacity:1}],{duration:D,delay:dl,fill:'both'});
+      return done(anim(d,[{transform:'none'},{transform:'translateY(-12px) scale(1.05)',offset:.16},{transform:`translate(${dx*.5}px,${Math.min(dy,0)*.5-46}px) rotate(-8deg) scale(.9)`,offset:.5},{transform:`translate(${dx}px,${dy}px) rotate(10deg) scale(.5)`,opacity:1,offset:.96},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:0}],{duration:D,delay:dl,easing:'cubic-bezier(.4,0,.3,1)',fill:'forwards'}));});
+    /* 덱 숫자: 카드가 들어가는 동안 '남은 장/전체'가 전체까지 차오름 → 다음 라운드 시작 때까지 유지 */
+    try{const nd=document.getElementById('nDeck'),m=nd&&/^(\d+)\/(\d+)$/.exec(nd.textContent.trim());if(m){const a=+m[1],b=+m[2],T=D*.6+els.length*GAP,t0=performance.now()+D*.45;window.lmDeckShowFull=true;
+      const tk=()=>{const k=Math.max(0,Math.min(1,(performance.now()-t0)/T));nd.textContent=Math.round(a+(b-a)*k)+'/'+b;if(k<1&&window.lmDeckShowFull)requestAnimationFrame(tk);};requestAnimationFrame(tk);}}catch(e){}
+    setTimeout(()=>anim(P,[{transform:'none',filter:'none'},{transform:'scale(1.15)',filter:'drop-shadow(0 0 12px #ffd36a) brightness(1.3)',offset:.3},{transform:'none',filter:'drop-shadow(0 0 4px #ffd36a)'}],{duration:600}),D*.7+els.length*GAP);
+    return Promise.all(all).then(()=>{document.getElementById('hand')?.classList.add('lmDfGone');return new Promise(r=>setTimeout(r,120));});
   }
   /* 졌을 때 — 붉은 그늘 · 차례로 뒤집혀 가라앉음 → 덱으로 */
   function loseFx(){
@@ -8607,7 +8609,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   function gapEnd(){gap=null;const H=document.getElementById('hand');if(!H)return;H.querySelectorAll(':scope>.lmDfGap').forEach(e=>e.remove());
     if(hold)cardsOf(hold).forEach(d=>{d.classList.remove('lmDfHold');d.classList.add('lmDfHoldV');});}
   function smooth(){return new Promise(res=>{let last=performance.now(),good=0;const t0=last;const f=now=>{const dt=now-last;last=now;good=dt<34?good+1:0;if(good>=8||now-t0>2500)res();else requestAnimationFrame(f);};requestAnimationFrame(f);});}
-  const _br=beginRound;beginRound=function(){seen=null;big=true;hold=null;holdP=null;holdG++;prevDis=null;prevRuns=null;gap=null;return _br.apply(this,arguments);};
+  const _br=beginRound;beginRound=function(){window.lmDeckShowFull=false;document.getElementById('hand')?.classList.remove('lmDfGone');seen=null;big=true;hold=null;holdP=null;holdG++;prevDis=null;prevRuns=null;gap=null;return _br.apply(this,arguments);};
   const _rd=render;render=function(){const r=_rd.apply(this,arguments);
     try{if(S&&!S.selecting&&!S.practice&&S.hand&&document.getElementById('hand')){
       const now=new Set(S.hand.map(c=>c.uid));
@@ -8634,10 +8636,15 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
     }}catch(e){}
     return r;};
   /* (DHL 10-31) 승리 · 패배 카드 애니메이션은 전투 연출(타격 · 처치 컷신 · 패배 반격)이 모두 끝난 뒤 */
+  /* '적 처치!'가 뜨는 때(없으면 적이 쓰러지고 2.6초 뒤, 또는 전투가 끝났을 때) */
+  const killShown=()=>new Promise(res=>{const t0=performance.now();let deadAt=0;const tick=()=>{let st=null,W=null;try{W=document.querySelector('#lmStage iframe')?.contentWindow;st=W&&W.MRStage;}catch(e){}
+    const n=performance.now();let dead=false,kill=false,b=false;try{dead=!!(st&&st.dead&&st.dead());kill=!!W.document.querySelector('.lm-kill');b=!!(st&&(st.busy?.()||st.queued?.()));}catch(e){}
+    if(dead&&!deadAt)deadAt=n;
+    if(!st||kill||(deadAt&&n-deadAt>2600)||(!b&&n-t0>300)||n-t0>30000)return res();setTimeout(tick,60);};tick();});
   const stageIdle=()=>new Promise(res=>{const t0=performance.now();const tick=()=>{let b=false;try{const st=document.querySelector('#lmStage iframe')?.contentWindow?.MRStage;b=!!(st&&(st.busy?.()||st.queued?.()));}catch(e){}
     if(document.getElementById('lmDefeat'))b=true;if(!b||performance.now()-t0>15000)return res();setTimeout(tick,120);};setTimeout(tick,150);});
   let ending=false;
-  const _w=win;win=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;if(gap){gap=null;document.querySelectorAll('#hand>.lmDfGap').forEach(e=>e.remove());}stageIdle().then(winFx).finally(()=>{ending=false;_w.apply(t,a);});};
+  const _w=win;win=function(){if(ending)return;const a=arguments,t=this;ending=true;seen=null;if(gap){gap=null;document.querySelectorAll('#hand>.lmDfGap').forEach(e=>e.remove());}Promise.all([stageIdle(),killShown().then(winFx)]).finally(()=>{ending=false;_w.apply(t,a);});};   /* (DHL 11-13 시안 A) 손패 회수를 전투가 다 끝난 뒤가 아니라 '적 처치!'가 뜰 때 시작 — 전투 마무리와 겹쳐서 보상 창이 바로 이어짐 */
   window.lmLoseCards=()=>{seen=null;return loseFx();};   // 패배는 반격 연출 끝(lose 래퍼 안)에서 부름
 })();
 </script>
