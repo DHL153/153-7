@@ -2592,7 +2592,7 @@ function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h
     const c=w.cards[sub];S.deck.push({uid:S.uid++,id:c.id,star:2,el:c.el,no:c.no||rndNo()});return end(`떠돌이 기사 ${TYPES[c.id].ko} ★2 합류 — 덱 ${S.deck.length}장`);}
   if(k==='scroll'){if(sub==null)return H('무너진 예배당에서 낡은 고문서를 찾았어요. 한 권은 당신이 즐겨 쓰는 수법이에요.',w.hts.map(h=>`<div class="skipGot">${HT[h][0]} Lv${S.lv[h]||1} → Lv${(S.lv[h]||1)+1}</div>`).join('')+wBtn('walkEv(1)','두 권 모두 읽기'));
     w.hts.forEach(h=>S.lv[h]=(S.lv[h]||1)+1);return end('고문서 — '+w.hts.map(h=>HT[h][0]+' Lv'+S.lv[h]).join(' · '));}
-  if(k==='star'){if(sub==null){if(S.jang<8){S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff);const R=S.foesNext[2].rule;w.msg=`${S.jang+1}장 거인: ${R.ic} ${R.ko}`;return H('맑은 밤하늘에 다음 길이 그려져요.',`<div class="rsRule"><b>${R.ic} ${R.ko}</b><br>${R.d}</div>`+wBtn('walkEv(1)','기억해 두기',`그리고 별똥별 값 💰2`));}
+  if(k==='star'){if(sub==null){if(S.jang<8){S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff);const R=S.foesNext[2].rule;w.msg=`${S.jang+1}장 거인: ${R.ic} ${R.ko}`;const WC=(typeof WORLD_C!=='undefined'&&WORLD_C[JANG_WORLD(S.jang+1)])||'#985a82';return H('맑은 밤하늘에 다음 길이 그려져요.',`<div class="rsRule wsRule"><i class="wsIc" style="background:${WC}"></i><div><small>별이 보여준 ${S.jang+1}장 거인</small><b>${R.ic} ${R.ko}</b><span>${R.d}</span></div></div><div class="wsGet"><span>얻는 것</span><em>거인 정보</em><em class="g">💰+2</em></div>`+wBtn('walkEv(1)','기억해 두기'));}
       return H('마지막 밤의 별이 유난히 밝아요.',wBtn('walkEv(1)',`💰${3+S.jang} 줍기`));}
     if(S.jang<8){S.gold+=2;return end('별자리 — '+w.msg);}S.gold+=3+S.jang;return end(`별빛 아래 💰${3+S.jang}`);}
   if(k==='bandit'){const g=8+S.jang;if(sub==null)return H('산적들이 길을 막아섰어요!',wBtn('walkEv(1)','⚔ 맞서 싸운다',`다음 라운드 목표 ×1.3 · 이기면 보상 💰+${g}`)+wBtn('walkEv(2)','🏃 도망친다',`💰${Math.min(3,S.gold)} 떨어뜨려요`));
@@ -5770,6 +5770,50 @@ html.lmUiOn .rest .cpSub:has(.wRow) h2{zoom:var(--lmUi)}
 /* (DHL 11-11) 야영: 카드는 화면에 맞게 커지는데 '다음 빌런' 칸 · 설명 줄 · 골드 · 아래 버튼 줄은 고정 크기 → 같은 배율. */
 html.lmUiOn .rest .cpNext,html.lmUiOn .rest .cpDesc,html.lmUiOn .rest .cpGold,html.lmUiOn .rest .cpFoot3,html.lmUiOn .rest>.cpBack{zoom:var(--lmUi)}
 
+/* ── (DHL 11-14) 야영 시안 A: 밤 산책 사건 화면 · 간판 등불 한쪽 · 결과 줄 ── */
+.cpHead2{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:1.2vw}
+.cpHead2 .cpSide{display:flex;align-items:flex-end;min-width:0}
+.cpHead2 .cpSideL{justify-content:flex-end}
+.cpHead2 .cpSideR{justify-content:flex-start;align-self:center}
+.cpHead2 .cpGold{position:static;display:inline-flex;align-items:center;gap:4px}
+.rest .cpSub.wEv{background:none;border:0;box-shadow:none;padding:0 4px;overflow:visible;max-height:none;gap:3vw}
+.rest .cpSub.wEv .cpEvArt{--cw:min(20vw,42vh);filter:drop-shadow(0 10px 18px #000c)}
+html.lmUiOn .rest .cpSub.wEv .cpEvArt{--cw:min(calc(20vw / var(--lmUi)),calc(var(--lmVh) * 42))}
+.rest .cpSub.wEv .cpSubIn{max-width:460px}
+.rest .wEv .night>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.rest .wEv .omNote{font-size:clamp(15px,2.4vh,18px);line-height:1.45;color:#f3e6c8;opacity:1;margin:0 0 12px}
+.rest .wEv .rsRule{background:#1a2a47e6;border:1px solid #c9a24a66;border-radius:12px;padding:12px 14px;text-align:left;color:#c9bfa8;font-size:clamp(13px,2vh,15px);line-height:1.4}
+.rest .wEv .rsRule b{color:#f3e6c8;font-size:clamp(16px,2.6vh,19px)}
+.rest .wsRule{display:flex;align-items:center;gap:12px}
+.rest .wsRule>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rest .wsRule small{font-size:12px;font-weight:800;color:#93a3bd;letter-spacing:.04em}
+.rest .wsIc{flex:none;width:48px;height:48px;border-radius:50%;box-shadow:inset 0 -3px 0 #0004;background-image:url(assets/ui/lamancha/icons/giant.webp)!important;background-size:66%!important;background-position:center!important;background-repeat:no-repeat!important}
+.rest .wsGet{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0 2px;font-size:13px;font-weight:800;color:#c9bfa8}
+.rest .wsGet em{font-style:normal;padding:3px 10px;border-radius:99px;background:#0a1120cc;border:1px solid #2e476f;color:#f3e6c8}
+.rest .wsGet em.g{color:#ffcf5a}
+.rest .wEv .campBtn{align-items:center;text-align:center;background:#1a2a47;border:2px solid #c9a24a99;border-radius:14px;box-shadow:0 3px 0 #0008}
+.rest .wEv .campBtn:only-of-type{background:#e8674a;border:0;box-shadow:0 4px 0 #8f3320,0 0 22px #e8674a55;min-height:56px;justify-content:center;margin-top:14px}
+.rest .wEv .campBtn:only-of-type b{color:#fff8ec;font-size:clamp(16px,2.6vh,19px)}
+.rest .wEv .campBtn:only-of-type small{color:#ffe7c2;opacity:1}
+.rest .wEv .campBtn:only-of-type:hover:not(:disabled){box-shadow:0 4px 0 #8f3320,0 0 28px #e8674a88;border:0}
+/* 결과 줄: 그림 + 진행 + 결과 */
+.rest .cpDesc.cpRes{flex-direction:row;justify-content:flex-start;gap:14px;text-align:left;border-color:#c9a24a;background:linear-gradient(#13213bf0,#0a1122f0);box-shadow:inset 0 1px 0 #f1d48a33,0 6px 14px #0008;animation:cpResIn .35s ease-out}
+.cpResTh{position:relative;flex:none;height:100%;max-height:72px;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid #c9a24a;background:#0a1020}
+.cpResTh .cpArt,.cpResTh .cpWArt{left:0;top:0;width:100%;height:100%}
+.cpResTx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cpResTx small{display:flex;align-items:center;gap:5px;font-size:.72em;font-weight:800;color:#93a3bd;letter-spacing:.03em}
+.cpResTx small img{height:1.2em}
+.rest .cpRes .cpResTx b{color:#f3e6c8;font-size:1.05em;line-height:1.3}
+.rest .cpRes .cpResTx>span{opacity:1;color:#ffcf5a;font-weight:800;font-size:.9em}
+@keyframes cpResIn{from{opacity:0;transform:translateY(6px)}}
+@media (orientation:portrait){
+  .cpHead2{gap:2cqw}
+  .rest .cpSub.wEv{gap:2cqh}
+  .rest .cpSub.wEv .cpEvArt{--cw:min(50cqw,32cqh)}
+  .rest .cpSub.wEv .cpSubIn{max-width:none}
+  .cpResTh{max-height:64px}
+}
+@media (prefers-reduced-motion:reduce){.rest .cpDesc.cpRes{animation:none}}
 /* (QA 11-11) 게임 중 옵션 창 뒤로 타이틀의 플레이 · 옵션 · 컬렉션 버튼이 흐릿하게 비치던 것 — 게임 중에는 창만 보이게 */
 html body #lm-title.ingame.ingame>:not(.lt-pop){display:none!important}
 </style>
@@ -7046,8 +7090,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     return {st,cost,off,d:G.d(g)};}
   const lamp=on=>`<i class="cpLamp${on?'':' off'}"></i>`;
   function header(){const mx=S.campMax||2,left=S.campLeft,ls=[];for(let i=0;i<mx;i++)ls.push(lamp(i<left));
-    const h=Math.ceil(ls.length/2);
-    return `<div class="cpHead"><div class="cpLamps">${ls.slice(0,h).join('')}</div><div class="cpSign"><b>야영</b></div><div class="cpLamps">${ls.slice(h).join('')}</div><span class="cpGold">💰${S.gold}</span></div>`;}
+    /* (DHL 11-14 '왼쪽 불 2개, 오른쪽 1개 이상') 등불(남은 정비)은 왼쪽에 한 줄로 모으고, 오른쪽 칸은 골드 — 간판 양옆이 늘 한 쌍 */
+    return `<div class="cpHead cpHead2"><div class="cpSide cpSideL"><div class="cpLamps">${ls.join('')}</div></div><div class="cpSign"><b>야영</b></div><div class="cpSide cpSideR"><span class="cpGold">💰${S.gold}</span></div></div>`;}
   window.restHeader=header;
   function card(k,I,guest){const sel=S.restSel===k;
     return `<div class="cpSt${guest?' guest':''}${I.off?' off':''}${sel?' sel':''}" onclick="restTap('${k}')" onmouseenter="restHover('${k}')" onmouseleave="restHover()">`+
@@ -7055,14 +7099,17 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
       `<b class="cpNm">${guest?GUESTS[S.campGuest.k].ko:NM[k]}</b><span class="cpStat">${I.cost?`<em class="cpCost"><img src="assets/ui/maple/icons/coin.webp" alt="">${I.cost}</em>`:''}${I.st}</span></div>`;}
   function all(){const L=Object.keys(CAMP).map(k=>[k,info(k),0]);const g=S.campGuest;if(g&&!g.used)L.unshift(['guest',gInfo(g),1]);return L;}
   function desc(k){if(!k){const last=S.campLog[S.campLog.length-1];
-      return `<div class="cpDesc"><b>${S.campLog.length?'✔ '+last.split(' — ')[0]:'정비 '+(S.campMax||2)+'번'}</b><span>${S.campLog.length?(last.split(' — ')[1]||''):'같은 정비를 두 번 해도 돼요'}</span></div>`;}
+      if(S.campLog.length){const mx=S.campMax||2,n=S.campLog.length,parts=last.replace(/^🌙\s*/,'').split(' — '),th=S.campLastArt||'';
+        /* (DHL 11-14 '아래 멘트 디자인 필요') 결과 줄 = 방금 한 정비 그림 + 진행 + 결과(앞부분 크게, 뒷부분 작게) */
+        return `<div class="cpDesc cpRes">${th?`<span class="cpResTh">${th}</span>`:''}<span class="cpResTx"><small><img src="assets/ui/icon/check.webp" alt="">정비 ${n}/${mx} 완료${S.campLeft>0?` · 하나 더 고를 수 있어요`:''}</small><b>${parts[0]}</b>${parts[1]?`<span>${parts[1]}</span>`:''}</span></div>`;}
+      return `<div class="cpDesc"><b>${'정비 '+(S.campMax||2)+'번'}</b><span>같은 정비를 두 번 해도 돼요</span></div>`;}
     const L=all().find(x=>x[0]===k);if(!L)return desc();const I=L[1];
     const nm=k==='guest'?GUESTS[S.campGuest.k].ko:NM[k];
     return `<div class="cpDesc"><b>${nm}</b><span>${I.d}</span>${I.off?`<em>${I.off}</em>`:''}</div>`;}
   window.restHover=k=>{const d=document.querySelector('.rest .cpDesc');if(!d)return;if(k&&window.lmTutInboxOff)lmTutInboxOff();d.outerHTML=desc(k||S.restSel);};
   window.restTap=k=>{const L=all().find(x=>x[0]===k);if(!L)return;
     if(S.restSel!==k){S.restSel=k;return campOpen();}
-    if(L[1].off)return;S.restSel=null;
+    if(L[1].off)return;S.restSel=null;S.campLastArt=art(k==='guest'?S.campGuest.k:k);
     if(k==='guest')return guestGo();return campPick(k);};
   campOpen=function(){if(S.rd>=2||deckIs('restless'))return;S.campSel=[];
     if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];S.restSel=null;}
@@ -7079,7 +7126,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
       let a='';const pick=/packRow/.test(h);h=h.replace(/<button class="rsInfo" onclick="([^"]+)">← (?:뒤로|돌아가기)<\/button>/g,'<button class="cpBack lmIco" onclick="$1" aria-label="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button>');if(pick){}else if(S.walk&&S.walk.k&&h.indexOf('class="night"')>=0&&h.indexOf('wRow')<0)a=`<div class="cpEvArt">${wart(S.walk.k)}<i class="cpFr gold"></i><b class="cpNm">${WALK[S.walk.k].ko}</b></div>`;
       else if(S.campK&&/campNames|packRow/.test(h)&&!S.walk)a=`<div class="cpEvArt">${art(S.campK)}<i class="cpFr"></i><b class="cpNm">${NM[S.campK]}</b></div>`;
       else if(S.campGuestUsing&&S.campGuest)a=`<div class="cpEvArt">${art(S.campGuest.k)}<i class="cpFr gold"></i><b class="cpNm">${GUESTS[S.campGuest.k].ko}</b></div>`;
-      h=`<div class="rest sub">${header()}<div class="cpSub${a?' art':''}">${a}<div class="cpSubIn">${h}</div></div></div>`;}
+      const ev=!!(S.walk&&S.walk.k&&a);   /* (DHL 11-14 시안 A) 밤 산책 사건 = 상자 없이 카드가 주인공, 이름은 카드에만 */
+      h=`<div class="rest sub${ev?' wEvR':''}">${header()}<div class="cpSub${a?' art':''}${ev?' wEv':''}">${a}<div class="cpSubIn">${h}</div></div></div>`;}
     return _so.apply(this,arguments.length?[h].concat([].slice.call(arguments,1)):[h]);};
   const _cp=campPick;campPick=function(k,name){if(k==='merge'||k==='leave')S.campK=k;return _cp.apply(this,arguments);};
   const _gg=guestGo;guestGo=function(sub){S.campGuestUsing=true;return _gg.apply(this,arguments);};
@@ -7090,7 +7138,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     S.walk.ord.map(t=>`<div class="wCard" onclick="walkPick(${t},this)"><div class="wIn"><div class="wBack t${t}">${wart('p'+t)}<i class="cpFr"></i><b class="cpNm">${PATHS[t].ko}</b><span class="cpStat">${['안전','알 수 없음','대박 · 낭패'][t]}</span></div><div class="wFront"></div></div></div>`).join('')+`</div>`));};
   walkPick=function(t,el){if(S.walk.k)return;const k=rollWalk(t);S.walk.k=k;S.walk.t=t;const W=WALK[k];walkPrep(k);
     document.querySelectorAll('.wCard').forEach(x=>{if(x!==el)x.classList.add('fade');});
-    el.querySelector('.wFront').innerHTML=`${wart(k)}<i class="cpFr gold"></i><b class="cpNm">${W.ko}</b>`;el.classList.add('flip');setTimeout(()=>walkEv(),1100);};
+    el.querySelector('.wFront').innerHTML=`${wart(k)}<i class="cpFr gold"></i><b class="cpNm">${W.ko}</b>`;el.classList.add('flip');S.campLastArt=wart(k);setTimeout(()=>walkEv(),1100);};
 })();
 
 /* 🔨 머지 고르기 창 (DHL 10-29 "이 화면도 우리 UI로"): 색 버튼 → 결과 카드 미리보기 + 세계 방패 · 속성 코인 고르기 */
