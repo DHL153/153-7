@@ -2,6 +2,7 @@
  "e01": {
   "ko": "클로 망령",
   "kind": "normal",
+  "hudUp": 60,
   "size": 1.15,
   "coreH": 425,
   "mx": 769,
@@ -546,6 +547,7 @@
  },
  "e15": {
   "ko": "해적 게",
+  "hudUp": 90,
   "kind": "normal",
   "size": 0.98,
   "hitEv": [
