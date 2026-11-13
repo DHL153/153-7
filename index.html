@@ -8539,6 +8539,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 #hand .card.lmDfHoldV{visibility:hidden!important}   /* (DHL 11-02) 버리기: 새 카드 자리는 미리 비워 둠 → 남은 카드가 한 번만 움직임 */   /* (DHL 11-01) 전투 중엔 남은 카드만 그대로 — 끝난 뒤 자리가 생기며 새 카드가 들어옴 */`;document.head.appendChild(st);
   const ctr=el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};};
   const pile=()=>document.querySelector('.pile .pileCard');
+  const pileBox=()=>document.querySelector('.pile')||pile();   /* (DHL 11-13) 덱 번쩍 · 커짐은 덱 상자(.pile)에 — 카드 그림(.pileCard)에 직접 걸면 양옆 카드(z-index:-1)가 가운데 카드 위로 올라와 3장이 2장처럼 보였음 */
   const cardsOf=uids=>[...document.querySelectorAll('#hand .card[data-uid]')].filter(d=>!uids||uids.has(+d.dataset.uid)||uids.has(d.dataset.uid));
   const add=(d,cls)=>{const e=document.createElement('i');e.className=cls;d.appendChild(e);return e;};
   const anim=(el,kf,o)=>{try{return el.animate(kf,o);}catch(e){return null;}};
@@ -8552,7 +8553,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
       else els.forEach((d,i)=>{LMS.play('sfx_card_deal',{delay:i*70,vol:.7,gap:0});LMS.play('sfx_card_flip',{delay:i*70+dur*.38,vol:.55,gap:0});});}catch(e){}}   /* 효과음: 카드 날아옴 · 뒤집힘 */
     if(big&&!t0){const f=document.createElement('i');f.className='lmDfFlash';const w=Math.min(260,hc.w*.5);Object.assign(f.style,{left:(hc.x-w/2)+'px',top:(hc.y-w*.42)+'px',width:w+'px',height:(w*.84)+'px'});document.body.appendChild(f);
       anim(f,[{opacity:0,transform:'scale(.6)'},{opacity:0,offset:.4},{opacity:1,transform:'scale(1)',offset:.5},{opacity:0,transform:'scale(1.4)'}],{duration:dur,easing:'ease-out',fill:'both'})?.finished.then(()=>f.remove(),()=>f.remove());
-      anim(P,[{transform:'scale(1)'},{transform:'scale(1.1)',offset:.08},{transform:'scale(1)',offset:.3}],{duration:dur});}
+      anim(pileBox(),[{transform:'scale(1)'},{transform:'scale(1.1)',offset:.08},{transform:'scale(1)',offset:.3}],{duration:dur});}
     els.forEach((d,i)=>{
       const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,cx=hc.x-c.x,k=(i-(els.length-1)/2),bk=add(d,'lmDfBack');
       const kf=big?[{transform:`translate(${dx}px,${dy}px) rotate(14deg) scale(.55)`,opacity:0},{opacity:1,offset:.06},{transform:`translate(${cx}px,-24px) rotate(${k*1.5}deg) scale(1.04)`,offset:.32},{transform:`translate(${cx}px,-24px) rotate(${k*1.5}deg) scale(1.04)`,offset:.44},{transform:`translate(${cx*.1}px,-14px) rotate(${k*3}deg) scale(1)`,offset:.8},{transform:'none',opacity:1}]
@@ -8575,7 +8576,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
       anim(g,[{opacity:0},{opacity:1,offset:.15},{opacity:.8,offset:.4},{opacity:0,offset:.55},{opacity:0}],{duration:1300,delay:dl,fill:'both'});
       anim(bk,[{opacity:0},{opacity:0,offset:.5},{opacity:1,offset:.56},{opacity:1}],{duration:1300,delay:dl,fill:'both'});
       return done(anim(d,[{transform:'none'},{transform:'translateY(-14px) scale(1.06)',offset:.14},{transform:'none',offset:.26},{transform:'none',offset:.42},{transform:`translate(${dx*.5}px,${Math.min(dy,0)-50}px) rotate(-8deg) scale(.9)`,offset:.66},{transform:`translate(${dx}px,${dy}px) rotate(10deg) scale(.5)`,opacity:1,offset:.97},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:0}],{duration:1300,delay:dl,easing:'cubic-bezier(.4,0,.3,1)',fill:'forwards'}));});
-    setTimeout(()=>anim(P,[{transform:'none',filter:'none'},{transform:'scale(1.15)',filter:'drop-shadow(0 0 12px #ffd36a) brightness(1.3)',offset:.3},{transform:'none',filter:'drop-shadow(0 0 4px #ffd36a)'}],{duration:700}),900+els.length*60);
+    setTimeout(()=>anim(pileBox(),[{transform:'none',filter:'none'},{transform:'scale(1.15)',filter:'drop-shadow(0 0 12px #ffd36a) brightness(1.3)',offset:.3},{transform:'none',filter:'drop-shadow(0 0 4px #ffd36a)'}],{duration:700}),900+els.length*60);
     return Promise.all(all).then(()=>new Promise(r=>setTimeout(r,320)));
   }
   /* 졌을 때 — 붉은 그늘 · 차례로 뒤집혀 가라앉음 → 덱으로 */
@@ -8588,8 +8589,8 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
     const all=els.map((d,i)=>{const c=ctr(d),dx=pc.x-c.x,dy=pc.y-c.y,bk=add(d,'lmDfBack'),dl=i*110;bk.style.filter='grayscale(.8) brightness(.55)';
       anim(bk,[{opacity:0},{opacity:0,offset:.17},{opacity:1,offset:.19},{opacity:1}],{duration:1500,delay:dl,fill:'both'});
       return done(anim(d,[{transform:'none'},{transform:'translateY(6px) scaleX(0.04)',offset:.18},{transform:'translateY(12px) scale(.96)',offset:.34},{transform:'translateY(12px) scale(.96)',offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:1,offset:.96},{transform:`translate(${dx}px,${dy}px) scale(.5)`,opacity:0}],{duration:1500,delay:dl,easing:'cubic-bezier(.45,0,.4,1)',fill:'forwards'}));});
-    setTimeout(()=>anim(P,[{filter:'none'},{filter:'grayscale(1) brightness(.55)'}],{duration:600,fill:'forwards'}),400);
-    return Promise.all(all).then(()=>new Promise(r=>setTimeout(()=>{v.remove();const p=pile();if(p)p.getAnimations().forEach(a=>a.cancel());r();},250)));
+    setTimeout(()=>anim(pileBox(),[{filter:'none'},{filter:'grayscale(1) brightness(.55)'}],{duration:600,fill:'forwards'}),400);
+    return Promise.all(all).then(()=>new Promise(r=>setTimeout(()=>{v.remove();const p=pileBox();if(p)p.getAnimations().forEach(a=>a.cancel());r();},250)));
   }
   window.lmDeckFx={deal,winFx,loseFx};
   // 라운드 시작 = 큰 연출, 그 뒤 손패 채우기 = 새 카드만
