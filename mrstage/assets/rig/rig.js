@@ -455,7 +455,7 @@
       // ---- pelvis (before the leg fit)
       b.hip.ay = I * br * (I0.breath ?? 3) + A * (R.hipRun + R.bob * Math.max(0, Math.cos(2 * TAU * an.ph))) + tr("hipY");
       an.guardW = damp(an.guardW || 0, D ? 0 : (an.guardT || 0), 6, dt);   // 전투 자세 (DHL 11-14 시안, opt-in) — 주먹 캐릭터
-      { const gW = an.guardW * I, gb = Math.sin(T * TAU / 1.7); if (gW > .001) b.hip.ay += gW * (14 * (an.guardPose ?? 1) + gb * 6 * (an.guardAmp ?? 1)) }
+      { const gW = an.guardW * I, gb = Math.sin(T * TAU / 1.5); if (gW > .001) b.hip.ay += gW * (14 * (an.guardPose ?? 1) + gb * 6 * (an.guardAmp ?? 1)) }
       b.hip.ax = tr("hipX") + (D && D.shake ? Math.sin(T * 95) * tr("shake") : 0);
       // ---- legs: targets, lengths, IK, pelvis fit
       const w = smooth(.04, .22, A) >= .5 ? 1 : 0;   // v8: stand picture <-> walk picture is a clean swap (a cross-fade showed both legs half see-through)
@@ -1428,7 +1428,7 @@
       /* 전투 자세 (DHL 11-14 시안, opt-in): 밖에서 an.guardT = 1 로 켜면 서 있을 때 무릎을 살짝 굽히고 앞으로 기울인 채 어깨가 오르내림.
          guardPose = 자세 깊이(0 = 숨쉬기만) · guardAmp = 흔들림 크기. 달리는 중(A) · 동작 중(act)엔 0 */
       this.guardW = damp(this.guardW || 0, act ? 0 : (this.guardT || 0), 6, dt);
-      const gW = this.guardW * I, gb = Math.sin(T * TAU / 1.7), gP = this.guardPose ?? 1, gA = this.guardAmp ?? 1;
+      const gW = this.guardW * I, gb = Math.sin(T * TAU / 1.5), gP = this.guardPose ?? 1, gA = this.guardAmp ?? 1;
       if (gW > .001) { b.hip.ay += gW * (18 * gP + gb * 7 * gA); b.torso.ar += gW * (.05 * gP + gb * .012 * gA); b.torso.asy += gW * gb * .016 * gA }
       const hipY = b.hip.ay; this.hipVy = damp(this.hipVy, (hipY - this.prevHipY) / Math.max(dt, 1e-4), 20, dt); this.prevHipY = hipY;
       const hl = this.headLag.step(this.hipVy * .006, dt);
