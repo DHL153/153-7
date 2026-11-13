@@ -2035,6 +2035,7 @@ const topStar=c=>c.star;
 const power=c=>Math.round(cardNo(c)*(c.mixed?MIX_X:STAR_X)[c.star]);
 function mergeKind(a,b){
   if(!a||!b||a===b||TYPES[a.id].n!==TYPES[b.id].n)return null;
+  if(a.seal||b.seal)return null;                                  // (DHL 11-13) 봉인된 카드는 머지 불가
   if(a.star!==b.star||a.star>=3)return null;                     // 오직 같은 ★끼리
   return (!a.mixed&&!b.mixed&&cardW(a)===cardW(b))?'up':'mix';    // up=순수, mix=혼합
 }
@@ -2190,10 +2191,10 @@ function handType(cards){
   }
   return bst;
 }
-function handInfo(cards,o){const a=cards.slice();a._info=1;if(o&&o.four)a._four=1;if(o&&o.skip)a._skip=1;return handType(a);}
+function handInfo(cards,o){const a=cards.filter(c=>!c.seal);   /* (DHL 11-13) 봉인된 카드는 족보에 못 들어감 */a._info=1;if(o&&o.four)a._four=1;if(o&&o.skip)a._skip=1;return handType(a);}
 
 /* 족보에 들어간 카드 (발라트로식: 이 카드들만 힘이 점수에 들어감) */
-function scoringCards(cards,ht,foe){
+function scoringCards(cards,ht,foe){cards=cards.filter(c=>!c.seal);if(!cards.length)return [];
   if(ht==='march')return cards.slice();
   const byKey=f=>{const m={};cards.forEach(c=>{const k=f(c);(m[k]=m[k]||[]).push(c);});return m;};
   const W=a=>a.reduce((s,c)=>s+weight(c),0);
@@ -2209,6 +2210,7 @@ function scoringCards(cards,ht,foe){
 /* 점수 계산: 내는 순서대로. steps는 연출용
    ctx: orbs, lv, merges, discards(남은 버리기), runsLeft(이번 런 포함 남은 런), grow, deck */
 function score(cards,ctx){
+  cards=cards.filter(c=>!c.seal);   /* (DHL 11-13) 봉인된 카드는 점수 · 족보에서 빠짐 */
   ctx=ctx||{}; const orbs=ctx.orbs||[], has=k=>orbs.includes(k), n=cards.length;
   /* 구슬 머지: ★2는 더하기 2배 · 곱하기 1.5배씩 (×3 → ×4.5), ★3은 더하기 3배 · 곱하기 ×6 */
   const OS=k=>(ctx.ost&&ctx.ost[k])||1, A=(k,v)=>v*OS(k), X=(k,x)=>Math.round(x*(1+ORB_XS*(OS(k)-1))*100)/100;
@@ -2727,7 +2729,7 @@ function beginRound(){
   S.offOrb=null;S.orbHidden=false;S.forced=null;S.ostate=S.ostate||{};
   {const di=S.orbs.indexOf('dagger');if(di>=0&&di<S.orbs.length-1){const v=S.orbs[di+1],gain=2*sellPrice(v);S.ostate.dagger=(S.ostate.dagger||0)+gain;delete S.ost[v];delete S.ostate[v];S.orbs.splice(di+1,1);setTimeout(()=>popMsg('🗡 제물의 단검 — '+ORBS[v].ko+' 파괴, 배수 +'+gain),300);}}if(K==='acorn'){S.orbs=shuffle(S.orbs);S.orbHidden=true;}if(K==='leaf')R.on=S.orbs.length>0;
   const prevW=S.world;S.world=JANG_WORLD(S.jang);if(prevW&&prevW!==S.world)try{window.LMS&&LMS.play('sfx_world_change',{vol:.85,gap:2000});}catch(e){}   // 다음 장 — 세계가 바뀌면 풍차 문 '슈와앙' (11-04 ElevenLabs)
-  S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
+  S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;delete c.seal;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
   fill(true);if(K==='house'){S.hand.forEach(c=>c.fog=true);try{window.LMS&&LMS.play('sfx_card_fog',{delay:380,vol:.8,gap:400});}catch(e){}}rollIntent();bossTick();render();
 }
 /* 손패 채우기 — 뱀: 첫 손패 뒤에는 런 · 버리기마다 3장만 */
@@ -2758,7 +2760,7 @@ const ctx=(m)=>({tgt:S.tgt,mcombo:(S.runMerges||0)+(m||0),bonusMult:S.nextMult||
 /* 적 의도: 런마다 새로 굴림 (표식은 손패에서 n+1장) */
 function rollIntent(){const f=S.foe;if(!f)return;const ks=f.ints||[f.atype];f.atype=ks[Math.random()*ks.length|0];
   S.marks=f.atype==='mark'?shuffle(S.hand.filter(c=>!c.fog)).slice(0,f.atk+1).map(c=>c.uid):[];}
-const wsumU=cs=>cs.reduce((s,c)=>s+weight(c),0);
+const wsumU=cs=>cs.reduce((s,c)=>s+(c.seal?0:weight(c)),0);
 /* 지금 고른 카드 기준으로 피해를 볼 카드 (붉은 테두리 = 실시간 미리보기) */
 function targets(){
   if(!S.foe||!S.foe.atype)return [];const n=S.foe.atk,k=S.foe.atype,sel=selCards(),rest=S.hand.filter(c=>!S.sel.includes(c.uid)),bp=(a,b)=>battlePower(b,S.foe)-battlePower(a,S.foe)||b.uid-a.uid;
@@ -2802,12 +2804,14 @@ function cardFace(c){
   const nm=t.ko,nmc=nm.length>6?' xs':nm.length>4?' sm':'';
   const pl=typeof ICON_IMG!=='undefined'&&ICON_IMG['plate_'+w];
   const stars=Array(c.star).fill(ICO(c.star>=3?'star3':'star2')).join('');
-  return `<span class="dzi${d?' mood-'+d:''}" data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
+  const sealNew=c.seal&&c.sealAt&&performance.now()-c.sealAt<700;   // 방금 걸린 봉인만 사슬 감기는 연출
+  const sealH=c.seal?`<span class="dzSeal${sealNew?' new':''}" title="봉인 — 족보에 못 들어가요. 런에 같이 내거나 버리면 풀려요"></span>`:'';
+  return `<span class="dzi${d?' mood-'+d:''}"${c.seal?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
     `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${TYPES[c.id].n}${c.aw==='B'?'_b':''}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
     `<span class="dzwm" title="${WORLD_KO[w]}">${ICO(w)}</span><!--mg--><span class="nmbox${pl?' pl':''}"${pl?` style="--pl:url(${pl})"`:''}><span class="nm${nmc}">${nm}</span></span>`+
-    `<span class="spark"></span></span>`;
+    `<span class="spark"></span>${sealH}</span>`;
 }
 function foeLine(f){
   if(!f)return '';
@@ -3084,7 +3088,7 @@ function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.le
 function doDiscard(){
   if(S.busy||!S.sel.length||S.dis<=0)return;if(fogReveal(()=>doDiscard(),false))return;S._fogRev=null;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
-  const out=selCards();const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
+  const out=selCards();if(out.some(c=>c.seal))try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8,delay:120});}catch(e){}out.forEach(c=>delete c.seal);const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
 }
 /* 머지 & 런 (기사 이상): 고른 카드 안의 같은 이름 · 같은 ★ 짝을 먼저 합치고 달린다 */
 function runPairs(cs){ // 미리보기용: 복사본으로 합쳐 본 짝 목록
@@ -3121,10 +3125,11 @@ function runChain(){
   S._chain=null;S._skip=null;S._snap=null;S.sel=L.map(c=>c.uid);render();doPlay('chain');     // 더 합칠 짝이 없으면 달린다 (합친 뒤의 카드로 동작 · 족보 밖 표시) (DHL 10-30)
 }
 /* 다섯의 맹세: 고른 카드의 족보 인정 장수(★2=2 · ★3=3)가 5 이상이어야 함 — 손패 전체가 5 미만이면 면제 */
-const wsum=cs=>cs.reduce((s,c)=>s+weight(c),0);
+const wsum=cs=>cs.reduce((s,c)=>s+(c.seal?0:weight(c)),0);
 function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(selCards())<5&&wsum(S.hand)>=5;}
 function doPlay(merged){
   if(S.busy||!S.sel.length||S.runs<=0)return;
+  if(!selCards().some(c=>!c.seal)){popMsg('🔒 봉인된 카드만으로는 런할 수 없어요 — 다른 카드와 같이 내거나 버리세요');const bp=$('bPlay');if(bp){bp.classList.remove('lmNo');void bp.offsetWidth;bp.classList.add('lmNo');}return;}
   if(!merged&&psyShort()){   /* (DHL 11-08 '런이 되는 것처럼 보이는데 안 됨') 예전엔 숨겨진 안내 줄(#tip)에만 써서 아무 반응 없어 보였음 → 보이는 말풍선 + 버튼 흔들기 */
     const need=5-wsum(selCards());popMsg('🎯 다섯의 맹세 — '+need+'장 더 골라야 런할 수 있어요 (★2는 2장 · ★3은 3장으로 세요)');
     const bp=$('bPlay');if(bp){bp.classList.remove('lmNo');void bp.offsetWidth;bp.classList.add('lmNo');}return;}
@@ -3134,7 +3139,8 @@ function doPlay(merged){
   S.mrOff=false;   // (DHL 10-30) '머지 끄기'는 이번 런에만
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).play+=S.sel.length;
   const RK=S.foe&&S.foe.rule&&S.foe.rule.k;
-  const cards=selCards(),r=score(cards,ctx()),A_MARK=targets();S.runMerges=0;S.nextMult=0;
+  const allSel=selCards(),cards=allSel.filter(c=>!c.seal),sealed=allSel.filter(c=>c.seal);   /* (DHL 11-13) 봉인된 카드는 런에 섞어 내면 점수 없이 손에서 나감 */
+  const r=score(cards,ctx()),A_MARK=targets();S.runMerges=0;S.nextMult=0;
   {const hc=hitCap(r);r.sh=hc?{before:hc.before,after:hc.after,max:shMax()}:null;if(hc){S.sh=hc.after;if(hc.brk)r.breakCap=true;else if(hc.absorb>0){r.rawTotal=hc.raw;r.total=hc.cap;r.capHit=true;}}}   // 방패 에너지 깎기
   if(r.keys&&r.keys.n>=3){const kb=$('keyBar');if(kb){kb.classList.remove('flash');void kb.offsetWidth;kb.classList.add('flash');}}
   if(r.keys&&!S.sandbox)if(r.keys.n)setTimeout(()=>popMsg(r.keys.n>=3?'⚔⚔⚔ 맞춤 3/3 · '+TD()+'! 공격 ×1.75':`⚔ 맞춤 ${r.keys.n}/3 · 공격 ${KX(r.keys.n)}`),300);
@@ -3142,7 +3148,7 @@ function doPlay(merged){
   S.playedJang=(S.playedJang||[]).concat(cards.map(c=>c.uid));S.htCount=S.htCount||{};S.htCount[r.ht]=(S.htCount[r.ht]||0)+1;
   if(r.comboTag&&!r.block)setTimeout(()=>popMsg('✨ '+r.comboTag),200);
   cards.forEach(c=>delete c.fog);if(!r.block){S.usedHT.push(r.ht);if(!S.lockHT)S.lockHT=r.ht;}
-  if(S.orbs.includes('grow'))S.grow+=8;S.runs--;S.busy=true;S.hand=S.hand.filter(c=>!cards.includes(c));S.sel=[];
+  if(S.orbs.includes('grow'))S.grow+=8;S.runs--;S.busy=true;S.hand=S.hand.filter(c=>!allSel.includes(c));sealed.forEach(c=>delete c.seal);if(sealed.length)try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8});}catch(e){}if(sealed.length)setTimeout(()=>popMsg('🔓 봉인 풀림 — '+sealed.map(c=>TYPES[c.id].ko).join(' · ')),120);S.sel=[];
   ['vC','vM','tot'].forEach(k=>$(k).dataset.v=0);
   S.anim={t0:performance.now(),cards,r,spd:1,before:S.score,shown:-1,marked:A_MARK};
   render();requestAnimationFrame(tick);
@@ -3197,8 +3203,17 @@ function tick(now){
       else{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];popMsg('⚔ 거인: 약점이 바뀌었어요 — 속성 '+weakTo(f.el));}}}
   if(S.runs<=0)return lose();
   if(S.foe.rule&&S.foe.rule.k==='hook'&&S.hand.length){const out=shuffle(S.hand).slice(0,2);S.hand=S.hand.filter(c=>!out.includes(c));popMsg('🪝 갈고리! '+out.map(c=>TYPES[c.id].ko).join(' · ')+' 버려짐');}
-  fill();rollIntent();bossTick();render();
+  lmSeal();fill();rollIntent();bossTick();render();
 }
+/* 🔒 봉인 (DHL 11-13): 기사 · 편력 기사에서 런으로 적을 못 잡으면 적의 공격으로 손에 남은 카드 1장(무작위)이 봉인됨.
+   봉인된 카드는 족보 · 점수 · 머지에 못 들어감. 런에 같이 내거나 버리면 손에서 나가며 풀림. 라운드가 끝나면 모두 풀림. 견습 · 튜토리얼 · 연습장은 없음.
+   봇 시험: claude/seal-bot-test.md */
+const SEAL_N={app:0,knight:1,errant:1};
+function lmSealOn(){try{return !!(S&&(SEAL_N[S.diff]||0)>0&&!S.practice&&!S.sandbox&&!(S.tut&&!S.tut.fin));}catch(e){return false;}}
+function lmSeal(){if(!lmSealOn())return;const got=[];for(let i=0;i<SEAL_N[S.diff];i++){const pool=S.hand.filter(c=>!c.seal);if(!pool.length)break;const c=pool[Math.random()*pool.length|0];c.seal=true;c.sealAt=performance.now();S.sel=S.sel.filter(u=>u!==c.uid);got.push(c);}
+  if(!got.length)return;S.sealSeen=(S.sealSeen||0)+1;
+  popMsg('<img class="emi" src="assets/ui/card/icon_seal.webp" alt="🔒" style="height:1.5em;vertical-align:-.4em"> '+got.map(c=>c.fog?'?':TYPES[c.id].ko).join(' · ')+' 봉인!'+(S.sealSeen<=2?' 족보에 못 들어가요 — 런에 같이 내거나 버리면 풀려요':''));
+  try{window.LMS&&LMS.play('sfx_seal_lock',{vol:.85});}catch(e){}}   // 사슬이 감기고 '철컥' (DHL 11-13 ElevenLabs)
 
 /* ───────── 전투 띠 (M&R 한 줄) ───────── */
 const cv=$('strip'),g=cv.getContext('2d');
@@ -5118,7 +5133,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
         if(!wait)return go();
         hrWait=true;if(S)S.busy=true;setTimeout(go,wait);
       }
-      const canRun=()=>S&&!S.busy&&S.sel.length&&S.runs>0&&!(typeof psyShort==='function'&&psyShort());
+      const canRun=()=>S&&!S.busy&&S.sel.length&&S.runs>0&&!(typeof psyShort==='function'&&psyShort())&&selCards().some(c=>!c.seal);
       const willChain=m=>!m&&typeof mergeRun==='function'&&mergeRun()&&!S.mrOff&&typeof runPairs==='function'&&runPairs(selCards()).length>0;   /* (DHL 10-30) 머지 & 런 고르기 전에는 카드를 숨기거나 날리지 않음 — 취소하면 그대로 */
       const hasFog=()=>typeof selCards==='function'&&selCards().some(c=>c.fog);   /* (DHL 11-07) 뒷면 카드는 먼저 뒤집고(fogReveal) 나서 연출 */
       const _dp=doPlay;doPlay=function(merged){if(merged===true||!canRun()||hasFog()||willChain(merged))return _dp.apply(this,arguments);return perform('run',_dp,this,arguments);};
@@ -9674,7 +9689,7 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
         s.onended=()=>{const k=L.indexOf(s);if(k>=0)L.splice(k,1);};};
       if(buf[f]!==undefined)go(buf[f]);else get(f).then(b=>{if(performance.now()-now<300+(o.delay||0))go(b);});
     }catch(e){}}
-  const ALL=['sfx_merge_m6','sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_panel_close','sfx_page_turn','sfx_tooltip','sfx_title_logo','sfx_guide_glow',
+  const ALL=['sfx_seal_lock','sfx_seal_break','sfx_merge_m6','sfx_ui_click','sfx_ui_confirm','sfx_ui_back','sfx_ui_tab','sfx_ui_toggle','sfx_ui_denied','sfx_panel_open','sfx_panel_close','sfx_page_turn','sfx_tooltip','sfx_title_logo','sfx_guide_glow',
     'sfx_card_deal','sfx_card_flip','sfx_card_select','sfx_card_deselect','sfx_card_discard','sfx_hand_sort','sfx_deck_shuffle','sfx_card_burn','sfx_card_hover','sfx_card_fog',
     'sfx_hand_name','sfx_hand_name_big','sfx_score_card','sfx_score_mult','sfx_score_total','sfx_score_over','sfx_key_match','sfx_key_full','sfx_combo_tick',
     'sfx_merge','sfx_merge_awaken','sfx_star_up','sfx_orb_trigger_add','sfx_orb_trigger_mult','sfx_orb_equip','sfx_orb_swap','sfx_orb_sell',
@@ -10209,6 +10224,17 @@ const LM_TERMS=[
   try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(won()){['bPlay','bDis','bMerge'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});}}catch(e){}return r;};}catch(e){}
 })();
 </script>
+<style id="lm-seal">
+/* 🔒 봉인 표시 (DHL 11-13 그림): 사슬 덮개 seal_cover · 걸리는 순간 fx_seal_lock(4×2 = 8장면, 흰색) → 덮개로 바뀜 */
+.card .dzi[data-seal]>*:not(.dzSeal){filter:grayscale(.8) brightness(.6)}
+.card .dzSeal{position:absolute;inset:0;z-index:60;pointer-events:none;border-radius:inherit;overflow:hidden;background:url(assets/ui/card/seal_cover.webp) center/100% 100% no-repeat;filter:drop-shadow(0 2px 2px #000a)}
+html.lmB #hand .card.dz.noscore .dzi[data-seal]{filter:none!important}   /* 고른 봉인 카드: 사슬 색은 그대로 (카드 그림은 이미 회색) */
+.card .dzSeal.new{animation:lmSealCover .5s steps(1) both}
+.card .dzSeal.new::before{content:"";position:absolute;inset:0;background:url(assets/ui/card/fx_seal_lock.webp) 0 0/400% 200% no-repeat;animation:lmSealFx .48s steps(1) both}
+@keyframes lmSealCover{0%,80%{background-size:0 0}81%,100%{background-size:100% 100%}}
+@keyframes lmSealFx{0%{background-position:0 0}12.5%{background-position:33.333% 0}25%{background-position:66.667% 0}37.5%{background-position:100% 0}50%{background-position:0 100%}62.5%{background-position:33.333% 100%}75%{background-position:66.667% 100%}82%,100%{background-position:100% 100%;opacity:0}}
+@media (prefers-reduced-motion:reduce){.card .dzSeal.new,.card .dzSeal.new::before{animation:none}.card .dzSeal.new::before{display:none}}
+</style>
 <script id="lm-run-save">
 /* (DHL 11-13 QA G1) 이어하기 — 진행 중인 판을 저장해 두었다가 게임을 다시 켜도 '계속하기'로 이어감.
    · 저장 시점: 라운드 고르기 화면(야영 포함) · 원정 캠프(상점) — 1.5초마다 지금 상태를 덮어씀. 전투 중에는 저장하지 않음 → 전투 도중 끄면 그 라운드 고르기부터 다시
