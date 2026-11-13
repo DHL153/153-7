@@ -8859,11 +8859,11 @@ let isGameOver = false;
     try{const sp=document.createElement('i');sp.className='lm-hero-hit';sp.style.left=(r.left-sr.left+r.width*.62)+'px';sp.style.top=(r.top-sr.top+r.height*.5)+'px';sp.style.setProperty('--s',Math.max(36,r.height*.5)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),320);}catch(_){}
     try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate([{translate:'0 0'},{translate:'-4px 1px'},{translate:'3px -1px'},{translate:'-2px 0'},{translate:'0 0'}],{duration:190,easing:'linear'});}catch(_){}
     try{lmSnd(kind==='boss'?'sfx_hero_hit_heavy':'sfx_hero_hit',{gap:90});}catch(_){}}   // (DHL 11-12) 전용 피격음: 일반 적 = 가벼운 타격 · 보스 · 풍차 거인 = 무거운 타격
-  function foeAttack(){if(!foeKey||gsDead)return Promise.resolve();const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
+  function foeAttack(sid){const tell=k=>{try{window.parent?.postMessage?.({mrStage:k,id:sid},'*');}catch(_){}};if(!foeKey||gsDead){tell('foeAtkEnd');return Promise.resolve();}const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
     const hitEv=R.hitEv||['hit'],modeC=standMode()==='C'&&!standNow;let halted=false,told=false;foeAtkOn=true;
-    try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter'){heroFlinch();if(!told){told=true;try{window.parent?.postMessage?.({mrStage:'foeHit'},'*');}catch(_){}}   /* (DHL 11-14) 맞는 순간을 게임에 알림 → 이때 손패 봉인 */
+    try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter'){heroFlinch();if(!told){told=true;tell('foeHit');}   /* (DHL 11-14) 맞는 순간을 게임에 알림 → 이때 손패 봉인 */
       if(modeC&&!halted){halted=true;standNow=true;stage.classList.add('lm-still');setMul(ALL,null);}}});}catch(_){}   // C: 달리던 주인공이 맞는 순간에 멈춤 (미리 멈추면 맞을 줄 알고 기다리는 것처럼 보임 — DHL 11-12)
-    foeAtkSnd(a);return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).then(()=>halted?new Promise(r=>setTimeout(r,380)):0).finally(()=>{foeAtkOn=false;if(halted){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}   // 맞고 잠깐 선 뒤 다시 달림
+    foeAtkSnd(a);return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).then(()=>halted?new Promise(r=>setTimeout(r,380)):0).finally(()=>{foeAtkOn=false;tell('foeAtkEnd');if(halted){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}   // 맞고 잠깐 선 뒤 다시 달림
   function setupEnemy(o){
     stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');try{splitEnd();}catch(e){}gsDead=false;tagKillQ=false;tagKillHold=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
@@ -8955,7 +8955,7 @@ let isGameOver = false;
     setSky(n,instant){skyN=n|0;window.MRBattleSky?.setStage(skyN%5,instant!==false);},
     // 적: kind 'normal'(망령 8종) | 'boss'(보스 4종, WARNING 등장)
     async setEnemy(o={}){await ready;await foeRegP;return seq(async()=>setupEnemy(o));},
-    foeAttack(){return ready.then(()=>seq(()=>foeAttack()));},   // 런으로 못 잡았을 때: 적이 공격 동작 한 번 (피해 없음)
+    foeAttack(sid){return ready.then(()=>seq(()=>foeAttack(sid)));},   // 런으로 못 잡았을 때: 적이 공격 동작 한 번 (피해 없음)
     foeList(){return foeRegP;},
     setCap(o){capO=o||null;if(finPend<=0){gsBroken=false;const sb=$('lm-sbar');if(sb&&!sb._busy&&!sb.classList.contains("flash")&&!sb.classList.contains("brk"))sb._lock=false;}drawCap();},   // 관통으로 깨진 방패는 다음 손패를 고를 때 다시 차오름   // (DHL 10-29) 관통: {cap:한 번 최대 피해, dmg:예상 피해(견습만), brk:3개 맞춤} · null = 숨김
     setHp(cur,max){if(finPend>0){finHp=[cur,max];if(max)maxHp=max;return;}hp=cur;if(max)maxHp=max;setHud();},   // (DHL 10-28) 마지막 일격 연출 중엔 체력을 한 번에 깎지 않음 — 공격마다 깎이고, 끝난 뒤 맞춤
