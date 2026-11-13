@@ -8591,7 +8591,9 @@ let isGameOver = false;
     return {at,route:r,home};
   }
   /* (DHL 11-13) 막타 뒤 물러서기: 몸 키의 1.2배만큼 왼쪽으로 미끄러지듯 (화면 왼쪽 끝은 넘지 않음) */
-  async function finBack(sl,res){const hh=heroPt(sl).h,a=actors[sl].off,to=Math.max(a-hh*1.2,-(res.home||0)+hh*.55);if(to>=a-4)return;dust(sl,0);await tween(240,k=>{actors[sl].off=a+(to-a)*k;},EO);actors[sl].off=to;}
+  async function finBack(sl,res){const hh=heroPt(sl).h,a=actors[sl].off,home=res.home||0,E=enemyPt();
+    /* (DHL 11-13 '둘시네가 적 바로 앞이라 처치가 안 보임') 물러선 뒤 자리를 '적 앞면에서 몸 키의 1.9배 왼쪽'까지로 — 뛰어들어 적과 겹쳐 착지하는 동작(둘시네 · 바실)도 충분히 떨어짐 */
+    const to=Math.max(Math.min(a-hh*1.2,E.front-home-hh*1.9),-home+hh*.55);if(to>=a-4)return;dust(sl,0);await tween(260,k=>{actors[sl].off=a+(to-a)*k;},EO);actors[sl].off=to;}
   // 동료 빠지기 / 주인공 제자리로
   async function leave(sl,res){
     const W=stage.clientWidth||400;
