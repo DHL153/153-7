@@ -3039,7 +3039,7 @@ function askFuse(a,b,mk){
     const wb=ws.map(w=>{const id=w+'_'+t.n,im=HAS_ART&&MR_ART.idle[id]?`<img src="${MR_ART.idle[id]}" alt="" style="display:block;width:64px;height:64px;object-fit:contain;margin:0 auto 2px">`:'';
       return `<button class="elPick${S._fw===w?' on':''}" style="background:${WORLD_C[w]};padding:6px 10px" onclick="S._fw='${w}';S._redraw()">${im}${WORLD_KO[w]} ${t.ko}</button>`;}).join('');
     const eb=es.map(e=>`<button class="elPick${S._fe===e?' on':''}" style="background:${EL_C[e]}" onclick="S._fe='${e}';S._redraw()">${EL_SYM[e]} ${e}</button>`).join('');
-    showOv(`<h2>${t.ko} ★${a.star+1} 머지</h2><p><small>세계가 섞여 <b>혼합 ★${a.star+1}</b> (${MIX_X[a.star+1]===1?'힘 그대로':'힘 ×'+MIX_X[a.star+1]}, 순수는 ×${STAR_X[a.star+1]}) · 세계 1개, 속성 1개를 골라 남겨요</small></p>
+    showOv(`<h2>${t.ko} ★${a.star+1} 머지</h2><p><small>세계가 섞여 <b>혼합 ★${a.star+1}</b> (${MIX_X[a.star+1]===1?'힘 그대로':'힘 ×'+MIX_X[a.star+1]}, 같은 세계관은 ×${STAR_X[a.star+1]}) · 세계 1개, 속성 1개를 골라 남겨요</small></p>
       <p>남길 캐릭터 (세계)</p><div class="pickRow">${wb}</div><p>속성</p><div class="pickRow">${eb}</div>
       <div style="display:flex;gap:8px;margin-top:12px"><button style="flex:1" onclick="hideOv();S._chain=null;render()">취소</button><button style="flex:2;background:#15803d" onclick="hideOv();finishMerge(S._ma,S._mb,S._fe,S._fw)">머지 완성</button></div>`);
   };
@@ -3063,7 +3063,7 @@ function finishMergeTail(a,k,healed){if(S.orbs.includes('trader'))S.gold+=(S.ost
   if(DIFF[S.diff].refill)fill();else sortHand();   // 머지하면 빈자리를 덱에서 채운다
   const nm=TYPES[a.id].ko;
   popMsg(`${nm} ★${a.star}${k==='mix'?' 혼합':''}!`);
-  $('tip').textContent=`${nm} ★${a.star} ${k==='mix'?'혼합 (세계가 섞여 '+(MIX_X[a.star]===1?'힘 그대로':'힘 ×'+MIX_X[a.star])+')':'순수 (힘 ×'+STAR_X[a.star]+')'} · ${WORLD_KO[cardW(a)]} · ${a.el} · 판 내내 덱에 남아요 (덱 ${S.deck.length}장)`;
+  $('tip').textContent=`${nm} ★${a.star} ${k==='mix'?'혼합 (세계가 섞여 '+(MIX_X[a.star]===1?'힘 그대로':'힘 ×'+MIX_X[a.star])+')':'같은 세계관 (힘 ×'+STAR_X[a.star]+')'} · ${WORLD_KO[cardW(a)]} · ${a.el} · 판 내내 덱에 남아요 (덱 ${S.deck.length}장)`;
   render();
   if(healed){ // 치료 연출: 초록 말풍선 + 카드 반짝
     setTimeout(()=>{const d=document.createElement('div');d.className='popmsg heal';d.textContent='✚ 치료! '+nm;document.body.appendChild(d);setTimeout(()=>d.remove(),1200);},450);
@@ -4680,7 +4680,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r143" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r144" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -5472,7 +5472,7 @@ html.lmB body #app.bl #orbs .orb.bump{animation:none}html.lmB body #app.bl #orbs
 #lmDefeat .dfCracks{position:absolute;inset:0;background:url(assets/ui/defeat/cracks.webp) center/100% 100% no-repeat;opacity:0;scale:1.08;transition:opacity .35s ease,scale .35s cubic-bezier(.2,1.4,.4,1)}
 #lmDefeat.ph2 .dfVig{opacity:1}#lmDefeat.ph3 .dfCracks{opacity:.9;scale:1}
 #lmDefeat .dfBox{position:absolute;left:50%;top:47%;translate:-50% -50%;display:flex;flex-direction:column;align-items:center;width:min(96vw,980px)}
-#lmDefeat .dfEmb{width:min(42vh,48vw,380px);aspect-ratio:600/549;background:url(assets/ui/defeat/emblem.webp?v=2) center/contain no-repeat;opacity:0;filter:drop-shadow(0 10px 18px #000c)}
+#lmDefeat .dfEmb{width:min(42vh,48vw,380px);aspect-ratio:600/517;background:url(assets/ui/defeat/emblem.webp?v=3) center/contain no-repeat;translate:0 -13%;opacity:0;filter:drop-shadow(0 10px 18px #000c)}
 #lmDefeat.ph3 .dfEmb{animation:dfSlam .55s cubic-bezier(.2,1.5,.4,1) forwards}
 @keyframes dfSlam{0%{opacity:0;scale:2.3;rotate:-8deg}55%{opacity:1;scale:.92;rotate:2deg}100%{opacity:1;scale:1;rotate:0deg}}
 #lmDefeat .dfRib{--rh:clamp(58px,11vh,104px);position:relative;margin-top:calc(var(--rh) * -.55);height:var(--rh);max-width:96vw;padding:0 calc(var(--rh) * 1.25);display:flex;align-items:center;justify-content:center;
@@ -5658,7 +5658,7 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 #ov:has(.cashFx)>#cfWin{display:block;position:relative;flex:none;z-index:2;pointer-events:none;width:min(430px,86%);height:200px;margin-bottom:-34px;zoom:var(--lmUi,1)}
 #ov:has(.cashFx)>.panel{max-height:calc(var(--lmVh,1vh) * 92 - 180px)!important}
 #cfWin .cwRays{position:absolute;left:50%;top:80px;width:420px;aspect-ratio:1;translate:-50% -50%;clip-path:inset(0 0 124px 0);background:url(assets/ui/lamancha/clear_rays.webp) 0 0/400% 200% no-repeat;opacity:0}
-#cfWin .cwEmb{position:absolute;left:50%;top:0;width:190px;aspect-ratio:600/540;translate:-50% 0;background:url(assets/ui/lamancha/win_emblem.webp?v=2) center/contain no-repeat;filter:drop-shadow(0 6px 8px #000b);opacity:0}
+#cfWin .cwEmb{position:absolute;left:50%;top:0;width:190px;aspect-ratio:600/516;translate:-50% -13%;background:url(assets/ui/lamancha/win_emblem.webp?v=3) center/contain no-repeat;filter:drop-shadow(0 6px 8px #000b);opacity:0}
 #cfWin .cwRib{position:absolute;left:0;right:0;bottom:0;height:60px;background:url(assets/ui/lamancha/win_ribbon.webp) center/100% 100% no-repeat;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 4px 5px #000a);opacity:0}
 #cfWin .cwRib b{font:900 24px/1 'Noto Sans KR',system-ui,sans-serif;letter-spacing:.08em;color:#fff4d6;text-shadow:0 2px 0 #0a1433,0 0 10px #f6cf6366;white-space:nowrap;max-width:72%;overflow:hidden;text-overflow:ellipsis}
 #cfWin.go .cwEmb{animation:cwSlam .5s cubic-bezier(.2,1.5,.4,1) .05s forwards}
@@ -7070,7 +7070,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
           ${ns.length>1?`<div class="mgRow">${ns.map(n=>optNo(S._fn===n,n,`S._fn=${n};S._redraw()`)).join('')}</div>`:''}
           ${ws.length>1?`<div class="mgRow">${ws.map(w=>opt(S._fw===w,WIC[w],WORLD_KO[w],`S._fw='${w}';S._redraw()`)).join('')}</div>`:''}
           ${es.length>1?`<div class="mgRow">${es.map(e=>opt(S._fe===e,'el_'+EL_KEY[e],e,`S._fe='${e}';S._redraw()`)).join('')}</div>`:''}
-          <p class="mgX2">${mixed?mixTx(a.star+1):`×${STAR_X[a.star+1]}`}</p>${mixed?`<p class="mgKeep">한 번 섞이면 계속 혼합이에요<br>순수는 ×${STAR_X[a.star+1]}</p>`:''}
+          <p class="mgX2">${mixed?mixTx(a.star+1):`×${STAR_X[a.star+1]}`}</p>${mixed?`<p class="mgKeep">한 번 섞이면 계속 혼합이에요<br>같은 세계관은 ×${STAR_X[a.star+1]}</p>`:''}
         </div></div>${foot('hideOv();finishMerge(S._ma,S._mb,S._fe,S._fw,S._fn)')}</div>`);};
     S._redraw=draw;draw();
   };
@@ -7078,7 +7078,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const t=TYPES[a.id];S._ma=a;S._mb=b;S._fe=a.el;const es=[a.el,b.el];
     const draw=()=>showOv(`<div class="mgPk"><h2>${t.ko} <i class="mgStar"></i>${a.star+1}</h2>
       <div class="mgBody">${prev(a,b,cardW(a),S._fe,mergeKind(a,b)==='mix')}<div class="mgSide"><div class="mgRow">${es.map(e=>opt(S._fe===e,'el_'+EL_KEY[e],e,`S._fe='${e}';S._redraw()`)).join('')}</div>
-      <p class="mgX2">${mergeKind(a,b)==='mix'?mixTx(a.star+1):`×${STAR_X[a.star+1]}`}</p>${mergeKind(a,b)==='mix'?`<p class="mgKeep">한 번 섞이면 계속 혼합이에요<br>순수는 ×${STAR_X[a.star+1]}</p>`:''}</div></div>${foot('hideOv();finishMerge(S._ma,S._mb,S._fe)')}</div>`);
+      <p class="mgX2">${mergeKind(a,b)==='mix'?mixTx(a.star+1):`×${STAR_X[a.star+1]}`}</p>${mergeKind(a,b)==='mix'?`<p class="mgKeep">한 번 섞이면 계속 혼합이에요<br>같은 세계관은 ×${STAR_X[a.star+1]}</p>`:''}</div></div>${foot('hideOv();finishMerge(S._ma,S._mb,S._fe)')}</div>`);
     S._redraw=draw;draw();
   };
 })();
