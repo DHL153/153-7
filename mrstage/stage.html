@@ -8101,10 +8101,13 @@ let isGameOver = false;
     if(v==='class')return FIN_CLASS[POS(finHero||1)]||'p5';return ['p5','ko','hades'].includes(v)?v:'cur';}
   async function finEnter(sl,num,out){const W=stage.clientWidth||400,H=stage.clientHeight||145,E=enemyPt(),home=heroPt(sl).x-actors[sl].off,hh=heroPt(sl).h,near=Math.max(-W*.5,E.front-home-hh*.55),st=finStyle();
     if(st==='p5'&&POS(num)===10){afterImg(sl,600);finFast=1.5;return null;}   // 브루노: 관통 동작 그대로, 막타만 검 방식
-    if(st==='p5'){offsetTeam(near-hh*.35,[sl]);actors[sl].oy=H*.55;show([sl],true);afterImg(sl,300);tween(240,k=>{actors[sl].oy=H*.55*(1-k);},EI).then(()=>{actors[sl].oy=0;const f=footOf(sl);flipFx('fx21',[0,1,2,3,4,5,6,7],f.x+hh*.25,f.y,hh*2.4,{fps:20,z:42});try{MRFX.shake(stage,'m',true);}catch(e){}});await sleep(120);return false;}   // A: 적 위 공중에서 내리꽂힘
+    if(st==='p5'){   /* (DHL 11-13) 검 계열 내리꽂기는 살리되 '갑자기 나타남' 없이: 제자리에서 땅을 박차고 화면 위로 솟구침 → 적 앞 하늘에서 떨어져 내리꽂음 */
+      if(!out){dust(sl,2);afterImg(sl,380);await tween(340,k=>{actors[sl].oy=k*H*1.1;});}   // 솟구침이 눈에 보이게 일정한 빠르기로
+      offsetTeam(near-hh*.35,[sl]);actors[sl].oy=H*1.0;show([sl],true);await sleep(60);afterImg(sl,340);
+      await tween(300,k=>{actors[sl].oy=H*1.0*(1-k*k);});actors[sl].oy=0;const f=footOf(sl);flipFx('fx21',[0,1,2,3,4,5,6,7],f.x+hh*.25,f.y,hh*2.4,{fps:20,z:42});try{MRFX.shake(stage,'m',true);}catch(e){}dust(sl,1);return false;}
     if(st==='ko'){afterImg(sl,900);finFast=1.7;return null;}   // B: 각자 동작(도약 · 낙하 · 박치기 · 관통) 그대로, 빠르게 + 잔상
-    if(POS(num)===8){finHero=num;const f0=footOf(sl);if(!out){flipFx('fx24',[0,1,2,3,4,5],f0.x,f0.y,f0.h*1.4,{fps:20});await sleep(180);}show([sl],false);offsetTeam(near-hh*.25,[sl]);const f1=footOf(sl);flipFx('fx24',[6,7,8,9,10,11],f1.x,f1.y,f1.h*1.4,{fps:20});await sleep(120);show([sl],true);await sleep(80);return false;}   // C 니콜: 순간이동 (FX24)
-    if(out){offsetTeam(0,[sl]);const f1=footOf(sl);flipFx('fx24',[6,7,8,9,10,11],f1.x,f1.y,f1.h*1.4,{fps:22});await sleep(110);show([sl],true);await sleep(80);}return false;}   // C 로시 · 카르덴: 제자리에서 쏨
+    if(POS(num)===8){finHero=num;afterImg(sl,520);finFast=1.6;return null;}   /* (DHL 11-13) 니콜: 순간이동(FX24) 대신 빠르게 다가가 찌름 */
+    if(out){offsetTeam(-W*.9,[sl]);show([sl],true);await dash(-W*.9,0,300,'out',[sl],2.4);}return false;}   /* C 로시 · 카르덴: 제자리에서 쏨 — (DHL 11-13) 화면 밖에 있었으면 번쩍 나타나지 않고 달려 들어옴 */
   /* (DHL 11-10) 막타 이펙트 시트 (흰색으로 받아 코드로 색): fx20 가로 베기 · fx22 돌진 줄기 · fx23 KO 섬광 · fx24 순간이동 · fx25 속도선 고리 · fx26 부서짐 조각
      색 층(시트 모양 × 세계 색) + 흰 코어 층(밝은 부분만 흰색 그대로) */
   const FIN_FX={fx21:{c:4,r:2,ar:1,ax:.5,ay:.84},fx20:{c:2,r:4,ar:627/313,ax:.5,ay:.53},fx22:{c:2,r:4,ar:887/221,ax:.99,ay:.53},fx23:{c:4,r:2,ar:1,ax:.5,ay:.5},fx24:{c:4,r:3,ar:1,ax:.5,ay:.86},fx25:{c:4,r:2,ar:1,ax:.5,ay:.48},fx26:{c:4,r:3,ar:1,ax:.55,ay:.9}};
@@ -8564,7 +8567,7 @@ let isGameOver = false;
     if(r==='dash'||r==='bash'){at=near;if(r==='bash'){actors[sl].rot=-7;afterImg(sl,420);}
       await dash(start,at,enter?520:300,'out',[sl],2.6);actors[sl].rot=0;dust(sl,0);await doStrikes();}
     else if(r==='half'){at=Math.max(-W*.5,near-hh*1.0);   /* (DHL 11-03 '니콜은 살짝 뒤에서') .8 → 1.0 몸 키만큼 덜 다가감 */await dash(start,at,enter?480:260,'out',[sl],2.4);dust(sl,0);await doStrikes();}
-    else if(r==='shoot'||r==='cast'){at=rangedAt(home,hh,near,W);if(Math.abs(at-start)>2)await dash(start,at,enter?460:300,'out',[sl],2.2);
+    else if(r==='shoot'||r==='cast'){at=o.far?Math.min(start,rangedAt(home,hh,near,W)):rangedAt(home,hh,near,W);   /* (DHL 11-13) 막타: 원거리는 다가가지 않고 서 있던 자리에서 */if(Math.abs(at-start)>2)await dash(start,at,enter?460:300,'out',[sl],2.2);
       if(r==='cast')circle(num,st>=3?1100:st>=2?700:400);
       const fire=()=>r==='shoot'?shot(sl,num):null;
       setTimeout(fire,st>=2?(st>=3?900:380):120);
@@ -8587,6 +8590,8 @@ let isGameOver = false;
     else {at=near;await dash(start,at,300,'out',[sl],2.6);await doStrikes();}
     return {at,route:r,home};
   }
+  /* (DHL 11-13) 막타 뒤 물러서기: 몸 키의 1.2배만큼 왼쪽으로 미끄러지듯 (화면 왼쪽 끝은 넘지 않음) */
+  async function finBack(sl,res){const hh=heroPt(sl).h,a=actors[sl].off,to=Math.max(a-hh*1.2,-(res.home||0)+hh*.55);if(to>=a-4)return;dust(sl,0);await tween(240,k=>{actors[sl].off=a+(to-a)*k;},EO);actors[sl].off=to;}
   // 동료 빠지기 / 주인공 제자리로
   async function leave(sl,res){
     const W=stage.clientWidth||400;
@@ -8709,7 +8714,8 @@ let isGameOver = false;
       /* (DHL 11-09 시안) 동료들이 두들겨 팬 뒤 → 주인공 마지막 한 방 '전에' 처치 컷신 → 주인공이 치며 체력 0 → 격파 · 폭파 · 퇴장 · 카운트 (기본 · 예전 순서는 lm_killcut='post') */
       if(o.killed&&!o.demo&&cutPre()){await sleep(160);cutDone=false;await finishCut();await sleep(120);}
       finHero=heroNum;let enterH=heroOut;if(o.killed&&!o.demo&&finStyle()!=='cur'){const e=await finEnter(0,heroNum,heroOut);if(e!=null)enterH=e;}   /* (DHL 11-10 시안) 컷신이 끝나면 걸어가지 않고 바로 적 앞에서 */
-      const res=await perform(0,heroNum,{enter:enterH,level:11,impact:IMP});
+      const res=await perform(0,heroNum,{enter:enterH,level:11,impact:IMP,far:!!o.killed&&!o.demo&&!enterH});
+      if(o.killed&&!o.demo&&res&&!['shoot','cast'].includes(res.route))await finBack(0,res);   /* (DHL 11-13) 근거리 막타: 치고 나서 왼쪽으로 살짝 빠져 적이 잘리고 터지는 것이 보이게 */
       await rollWait();await sleep(o.killed?260:120);   /* (11-07) 막타 카운트업이 끝날 때까지 */
       if(o.killed&&!o.demo){await killSeq();await exit();}else{
         if(o.killed&&o.demo){cast.finish=true;lmSnd('sfx_finish_cut',{vol:.75,gap:500});origVictory.call(window,'boss');await sleep(80);await waitIdle(4000);cast.finish=false;demoPh='end';}   // (DHL 11-01) 처치 컷신 보기는 컷신이 끝나면 그대로 끝 — 전투 화면으로 돌아가지 않음 (무대는 바깥에서 감춘 뒤 원래대로)
