@@ -10208,4 +10208,31 @@ const LM_TERMS=[
   try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(won()){['bPlay','bDis','bMerge'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});}}catch(e){}return r;};}catch(e){}
 })();
 </script>
+<script id="lm-run-save">
+/* (DHL 11-13 QA G1) 이어하기 — 진행 중인 판을 저장해 두었다가 게임을 다시 켜도 '계속하기'로 이어감.
+   · 저장 시점: 라운드 고르기 화면(야영 포함) · 원정 캠프(상점) — 1.5초마다 지금 상태를 덮어씀. 전투 중에는 저장하지 않음 → 전투 도중 끄면 그 라운드 고르기부터 다시
+   · 지움: 판이 끝났을 때(패배 · 8장 클리어 · 메인 메뉴로 끝냄) · 새 판을 시작할 때
+   · 튜토리얼 · 연습장 · 해보기 · 무한 원정은 저장하지 않음 */
+(()=>{
+  const KEY='lm_run_v1',VER=1;
+  const ok=()=>{try{return !!(S&&!S.practice&&!S.sandbox&&!S._statEnded&&!S._test8&&!(typeof lmTutOn==='function'&&lmTutOn()));}catch(e){return false;}};
+  function pack(){return JSON.stringify(S,(k,v)=>{if(k&&k[0]==='_')return undefined;if(typeof v==='function'||v instanceof Set||v instanceof Map||(v&&v.nodeType))return undefined;if(k==='hand'||k==='draw'||k==='sel')return [];if(k==='foe'||k==='anim')return null;return v;});}
+  let last='';
+  function save(){try{if(!ok()||!(S.selecting||S.inShop)||S.busy)return;const body=pack();if(body===last)return;last=body;localStorage.setItem(KEY,JSON.stringify({v:VER,at:Date.now(),kind:S.inShop?'shop':'select'})+'\n'+body);}catch(e){}}
+  function clear(){last='';try{localStorage.removeItem(KEY);}catch(e){}}
+  function valid(o){try{return !!(o&&Array.isArray(o.deck)&&o.deck.length>0&&o.deck.every(c=>c&&TYPES[c.id]&&c.uid!=null)&&o.jang>=1&&o.rd>=0&&o.rd<=2&&DIFF[o.diff]&&Array.isArray(o.orbs)&&o.orbs.every(k=>ORBS[k])&&DECKS[o.deckK||'lamancha']&&Array.isArray(o.foes)&&o.foes.length===3);}catch(e){return false;}}
+  function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return null;const i=raw.indexOf('\n'),head=JSON.parse(raw.slice(0,i)),o=JSON.parse(raw.slice(i+1));if(head.v!==VER||!valid(o)){clear();return null;}
+    o.hand=[];o.draw=[];o.sel=[];o.busy=false;o.anim=null;o.foe=o.foes[o.rd];o.selecting=head.kind!=='shop';o.inShop=head.kind==='shop';o.inRest=false;return o;}catch(e){clear();return null;}}
+  /* 진행 중인 판이 없을 때(게임을 막 켰거나 연습장에서 나왔을 때) 저장된 판이 있으면 '진행 중인 판'으로 올려 둠 — 화면은 그대로, 계속하기를 눌러야 열림 */
+  const live=()=>{try{return !!(typeof S!=='undefined'&&S&&!S.practice&&!S.sandbox&&!S._statEnded);}catch(e){return false;}};
+  function restore(){try{if(live())return false;if(document.body&&!document.body.classList.contains('lm-titleOn')&&typeof S!=='undefined'&&S)return false;const o=load();if(!o)return false;try{hideOv();}catch(e){}_ovPark=null;S=o;firstGame=false;last=pack();try{lmDeckBack();}catch(e){}return true;}catch(e){return false;}}
+  restore();
+  setInterval(()=>{try{if(typeof S==='undefined'||!S)return;if(S._statEnded&&!S.sandbox&&!S.practice){if(last)clear();return;}save();}catch(e){}},1500);
+  try{const _n=ltNewRun;ltNewRun=function(){if(ltDiffOpen(ltDiff)&&ltDeckOpen(ltDeck))clear();return _n.apply(this,arguments);};}catch(e){}
+  try{const _e=lmStatEnd;lmStatEnd=function(){const r=_e.apply(this,arguments);try{if(S&&S._statEnded)clear();}catch(e){}return r;};}catch(e){}
+  try{const _p=ltPlay;ltPlay=function(){restore();return _p.apply(this,arguments);};}catch(e){}
+  window.addEventListener('pagehide',()=>{try{save();}catch(e){}});
+  window.lmRunSave={save,clear,load,restore,KEY};
+})();
+</script>
 </body></html>
