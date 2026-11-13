@@ -4768,8 +4768,10 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
       (f.rule?`<span class="t rl" onclick="this.classList.toggle('open')">${f.rule.ic} ${f.rule.ko}<small>${f.rule.d}</small></span>`:'')+`</div>`:'');
     tag.innerHTML=h;tag.style.visibility=tagHide?'hidden':'';
   }
-  const _rf=renderFoe;renderFoe=function(){_rf.apply(this,arguments);syncRound(false);renderTag();};
-  const _br=beginRound;beginRound=function(){document.body.classList.remove('lmFoeDown');const r=_br.apply(this,arguments);syncRound(true);return r;};
+  /* (DHL 11-14 '적 등장 연출이 2번') 라운드 시작 안에서 그려지는 적 정보(renderFoe)가 먼저 무대를 한 번 시작하고, 끝에서 다시 강제로 시작해 등장이 두 번 나왔음 → 라운드 시작 중에는 끝의 한 번만 */
+  let inBegin=false;
+  const _rf=renderFoe;renderFoe=function(){_rf.apply(this,arguments);if(!inBegin)syncRound(false);renderTag();};
+  const _br=beginRound;beginRound=function(){document.body.classList.remove('lmFoeDown');let r;inBegin=true;try{r=_br.apply(this,arguments);}finally{inBegin=false;}syncRound(true);return r;};
   // ── 런: 점수 단계마다 공격 (①~⑤)
   //   카드 한 장 = 그 카드 힘만큼(파란 숫자, 약점 노랑·내성 회색) → 마지막에 족보 배수가 터지면 팀 전원 합동 일격(총 피해 큰 숫자)
   //   카드가 이어질수록 세기 ↑(② MRFX.rush 연타 가속) · 컷인은 주인공 카드 · ★2 이상 · 이번 라운드 처음 나온 동료만(④)
