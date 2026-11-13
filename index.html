@@ -8567,6 +8567,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 .lmDfFlash{position:fixed;pointer-events:none;z-index:400;border-radius:50%;background:radial-gradient(circle,#ffe9a8cc,#ffd36a33 45%,transparent 70%)}
 .lmDfVig{position:fixed;inset:0;pointer-events:none;z-index:390;background:radial-gradient(ellipse at 50% 60%,transparent 40%,#5a0a10b0 100%);opacity:0}
 #hand.lmDfBusy{pointer-events:none}
+.lmDfUnseal{position:absolute;inset:0;z-index:61;pointer-events:none;border-radius:inherit;background:url(assets/ui/card/fx_seal_lock.webp) 100% 100%/400% 200% no-repeat;filter:drop-shadow(0 0 4px #b98cff) drop-shadow(0 0 2px #fff);opacity:0}
 #hand.lmDfWait .card{opacity:0}
 #hand .card.lmDfHold{display:none!important}
 #hand .card.lmDfHoldV{visibility:hidden!important}   /* (DHL 11-02) 버리기: 새 카드 자리는 미리 비워 둠 → 남은 카드가 한 번만 움직임 */   /* (DHL 11-01) 전투 중엔 남은 카드만 그대로 — 끝난 뒤 자리가 생기며 새 카드가 들어옴 */`;document.head.appendChild(st);
@@ -8598,8 +8599,25 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
       done(a).then(()=>bk.remove());
     });
   }
+  /* (DHL 11-14 '봉인이 풀어지고 덱으로') 라운드가 끝나 손패가 덱으로 돌아가기 전에: 봉인된 카드의 사슬이 풀림
+     — 걸릴 때 그림(fx_seal_lock 8장면)을 거꾸로: 자물쇠 번쩍 → 열림 → 사슬이 모서리로 걷힘 · 카드 색이 돌아오며 번쩍 · 효과음 sfx_seal_break */
+  function unsealFx(els){
+    const L=els.filter(d=>d.querySelector('.dzSeal'));if(!L.length)return Promise.resolve();
+    const F=[[100,100],[33.333,100],[0,100],[100,0],[66.667,0],[33.333,0],[0,0]],D=460;busy(D+80);
+    try{window.LMS&&LMS.play('sfx_seal_break',{vol:.85});}catch(e){}
+    L.forEach((d,i)=>{const sl=d.querySelector('.dzSeal'),z=d.querySelector('.dzi[data-seal]'),dl=i*70;
+      const fx=add(sl.parentNode||d,'lmDfUnseal');
+      anim(fx,F.map((f,k)=>({backgroundPosition:f[0]+'% '+f[1]+'%',opacity:1,offset:k/F.length*.92,easing:'steps(1,end)'})).concat([{backgroundPosition:'0% 0%',opacity:0,offset:.93},{backgroundPosition:'0% 0%',opacity:0}]),{duration:D,delay:dl,fill:'both'});
+      setTimeout(()=>{sl.style.visibility='hidden';},dl+20);setTimeout(()=>fx.remove(),dl+D+40);                       // 사슬 덮개는 바로 흰 사슬 그림으로 바뀜
+      setTimeout(()=>{if(z)z.removeAttribute('data-seal');anim(d,[{filter:'brightness(1.55)',transform:'scale(1.06)'},{filter:'none',transform:'none'}],{duration:240,easing:'ease-out'});},dl+D*.42);   // 자물쇠가 열리는 순간 카드 색이 돌아옴
+    });
+    return new Promise(r=>setTimeout(r,D+(L.length-1)*70+60));
+  }
   /* 이겼을 때 — 금빛 물결 → 덱으로 */
   function winFx(){
+    const P=pile(),els0=cardsOf();if(!P||!els0.length||RM())return Promise.resolve();
+    return unsealFx(els0).then(winFx2);}
+  function winFx2(){
     const P=pile(),els=cardsOf();if(!P||!els.length||RM())return Promise.resolve();
     const pc=ctr(P);busy(1500);
     /* (DHL 11-03) 효과음: 금빛 반짝 → 카드마다 뒤집히며 덱으로 휙 → 덱에 모두 들어가며 착 */
@@ -8614,6 +8632,9 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   }
   /* 졌을 때 — 붉은 그늘 · 차례로 뒤집혀 가라앉음 → 덱으로 */
   function loseFx(){
+    const P=pile(),els0=cardsOf();if(!P||!els0.length||RM())return Promise.resolve();
+    return unsealFx(els0).then(loseFx2);}
+  function loseFx2(){
     const P=pile(),els=cardsOf();if(!P||!els.length||RM())return Promise.resolve();
     const pc=ctr(P),v=document.createElement('i');v.className='lmDfVig';document.body.appendChild(v);busy(2000);
     anim(v,[{opacity:0},{opacity:1,offset:.25},{opacity:1}],{duration:1900,fill:'forwards'});
@@ -8625,7 +8646,7 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
     setTimeout(()=>anim(pileBox(),[{filter:'none'},{filter:'grayscale(1) brightness(.55)'}],{duration:600,fill:'forwards'}),400);
     return Promise.all(all).then(()=>new Promise(r=>setTimeout(()=>{v.remove();const p=pileBox();if(p)p.getAnimations().forEach(a=>a.cancel());r();},250)));
   }
-  window.lmDeckFx={deal,winFx,loseFx};
+  window.lmDeckFx={deal,winFx,loseFx,unsealFx};
   // 라운드 시작 = 큰 연출, 그 뒤 손패 채우기 = 새 카드만
   let seen=null,big=false,cur=null,hold=null,holdP=null,prevDis=null,holdV=false,holdG=0;   /* (DHL 11-08 버그) 라운드가 바뀌면 이전 대기(holdP)는 무효 — 남아 있으면 새 카드가 계속 숨겨짐 */
   /* (DHL 11-08 '버려진 후 → 덱 셋팅 → 카드가 오고 차근차근') 버리기: ① 버린 카드가 가라앉는 동안 남은 카드는 제자리(빈칸 유지)
