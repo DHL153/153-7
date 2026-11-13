@@ -1685,6 +1685,9 @@ function lmBgmScene(){
   if(!G)return 'title';
   if(G._bgmEnd)return G._bgmEnd==='win'?'ending':'story';    // 원정 완주 · 패배 화면
   if($$('lmDefeat'))return 'story';                          // 패배 연출이 시작되면 전투 곡 → 이야기 곡
+  /* (DHL 11-13 '동료 팩 살 때 곡이 바뀜') 원정 캠프 · 야영 안에서는 팩 열기 · 카드 고르기 등 어떤 창이 떠도 같은 곡 — 나가는 순간(다음 라운드) 전투 곡으로 */
+  if(G.inShop)return 'shop';
+  if(G.inRest)return 'camp';
   const ov=$$('ov'),p=$$('panel');
   if(ov&&!ov.hidden&&p){
     if(p.querySelector('.shop'))return 'shop';
