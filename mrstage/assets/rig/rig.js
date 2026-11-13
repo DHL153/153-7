@@ -454,6 +454,8 @@
       const leanA = an.sL.step(D ? 0 : clamp(accel * .00025, -.12, .12), dt);
       // ---- pelvis (before the leg fit)
       b.hip.ay = I * br * (I0.breath ?? 3) + A * (R.hipRun + R.bob * Math.max(0, Math.cos(2 * TAU * an.ph))) + tr("hipY");
+      an.guardW = damp(an.guardW || 0, D ? 0 : (an.guardT || 0), 6, dt);   // 전투 자세 (DHL 11-14 시안, opt-in) — 주먹 캐릭터
+      { const gW = an.guardW * I, gb = Math.sin(T * TAU / 1.5); if (gW > .001) b.hip.ay += gW * (14 * (an.guardPose ?? 1) + gb * 6 * (an.guardAmp ?? 1)) }
       b.hip.ax = tr("hipX") + (D && D.shake ? Math.sin(T * 95) * tr("shake") : 0);
       // ---- legs: targets, lengths, IK, pelvis fit
       const w = smooth(.04, .22, A) >= .5 ? 1 : 0;   // v8: stand picture <-> walk picture is a clean swap (a cross-fade showed both legs half see-through)
@@ -1423,10 +1425,16 @@
       b.torso.ar = I * br * .012 + A * (G.lean + G.leanBob * bob + G.waddle * Math.sin(TAU * psi)) + leanA;   // waddle: body rocks with each step
       if (G.breathScale != null) { const bs = G.breathScale; b.torso.asy = 1 + (I * br * .013 - A * bob * .01) * bs; b.torso.asx = 1 - I * br * .006 * bs }   // gait.breathScale(opt-in, carry v16): 두 손 무기는 0 — 숨쉬기 세로 늘임이 가슴 자식(총·손)을 찌그러뜨림(G29)
       else { b.torso.asy = 1 + I * br * .013 - A * bob * .01; b.torso.asx = 1 - I * br * .006 }
+      /* 전투 자세 (DHL 11-14 시안, opt-in): 밖에서 an.guardT = 1 로 켜면 서 있을 때 무릎을 살짝 굽히고 앞으로 기울인 채 어깨가 오르내림.
+         guardPose = 자세 깊이(0 = 숨쉬기만) · guardAmp = 흔들림 크기. 달리는 중(A) · 동작 중(act)엔 0 */
+      this.guardW = damp(this.guardW || 0, act ? 0 : (this.guardT || 0), 6, dt);
+      const gW = this.guardW * I, gb = Math.sin(T * TAU / 1.5), gP = this.guardPose ?? 1, gA = this.guardAmp ?? 1;
+      if (gW > .001) { b.hip.ay += gW * (18 * gP + gb * 7 * gA); b.torso.ar += gW * (.05 * gP + gb * .012 * gA); b.torso.asy += gW * gb * .016 * gA }
       const hipY = b.hip.ay; this.hipVy = damp(this.hipVy, (hipY - this.prevHipY) / Math.max(dt, 1e-4), 20, dt); this.prevHipY = hipY;
       const hl = this.headLag.step(this.hipVy * .006, dt);
       b.head.ar = I * Math.sin(T * .8) * .025 - A * (G.headRun ?? .15) - leanA * .6 + hl * .02;   // gait.headRun(opt-in, 11 네온 알론소): 달릴 때 머리 앞 숙임(기본 .15) — 원화를 오린 머리는 많이 돌면 목·어깨 경계가 벌어짐
       b.head.ay = -I * br * 1.4 + hl * 2.5 + A * G.headBob * bob;
+      if (gW > .001) { b.head.ar -= gW * .035 * gP; b.head.ay -= gW * gb * 2.5 * gA }
       b.skirt.ar = -leanA * .25 - A * .03;
       let twist = 0;
       this.actLean = act ? this._tr('lean') : 0;
@@ -1445,6 +1453,7 @@
       b.armU.ar = I * br * .03 + A * (-G.armSwing * fwd + G.armBias);
       b.armL.ar = I * (br * .04 - .3) - A * (G.elbowRun + (.3 * Math.max(0, fwd) - .14 * Math.max(0, -fwd)) * (G.foreRun ?? 1));   // −.3: a hanging arm keeps ~10° elbow flexion · foreRun(opt-in, 29 스카이 팔로메): 달릴 때 팔뚝 앞뒤 굽힘 배율(배 앞을 가로지른 팔은 작게)
       b.armU.ax = -twist * 12; b.armF.ax = twist * 15; b.armU.ay = b.armF.ay = act ? -this._tr('breath') * 4 : 0;   // shoulders follow the chest turn / breath
+      if (gW > .001) { const sh_ = -gW * gb * 5 * gA; b.armU.ay += sh_; b.armF.ay += sh_; b.armU.ar += gW * gb * .035 * gA }   // 전투 자세: 어깨가 숨에 맞춰 오르내림
       b.pauldron.ar = b.armU.ar * .42; b.pauldron.ax = -b.armU.ar * 3 + b.armU.ax; b.pauldron.ay = b.armU.ay;   // guard rides on the shoulder, turning with the upper arm
       if (A > .45) this.fist = true; else if (A < .3) this.fist = false; // hand closes while running
       if (rig.def.upperRun) { const p_ = b.armL.pos, l_ = Math.hypot(p_[0], p_[1]) || 1, k_ = (rig.def.upperRun / l_ - 1) * smooth(.3, .8, A); b.armL.ax += p_[0] * k_; b.armL.ay += p_[1] * k_ }   // upperRun(opt-in, 6 카르덴): 달릴 때 윗팔 뼈를 이 길이로 — 서 있을 땐 원화처럼 짧게(화면 쪽으로 줄어든 팔), 옆으로 흔들 땐 먼 팔만큼 길게
