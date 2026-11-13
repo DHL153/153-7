@@ -3806,23 +3806,28 @@ function deckView(){deckViewClose();vPopClose&&vPopClose();if(!S)return;
 function deckViewClose(){document.querySelectorAll('.dkV').forEach(e=>e.remove());}
 function runInfoHTML(){
   if(!S)return '';ensureFoes();
+  /* (DHL 11-14 B안) 런 정보 '이번 판': 묶음마다 같은 황동 테 패널(riSec) · 제목 줄(riH) · 진짜 버튼은 덱 2개만, 나머지는 펼치는 줄(riAcc) */
   const stat=(v,k,c)=>`<div><b style="color:${c||'var(--ink)'}">${v}</b><small>${k}</small></div>`;
+  const sec=(t,r,body)=>`<section class="riSec"><div class="riH"><b>${t}</b>${r?`<small>${r}</small>`:''}</div>${body}</section>`;
   let h=`<div class="rStat">${stat((S.tgt||roundTgt(S.rd)).toLocaleString(),'목표','var(--gold)')}${stat(S.selecting?S.runsMax:S.runs,'런')}${stat(S.selecting?S.disMax:S.dis,'버리기')}${stat(S.gold,'골드','var(--gold)')}</div>`;
-  h+=`<p class="iSub">${S.jang}장 · ${WORLD_KO[JANG_WORLD(S.jang)]} · ${DIFF[S.diff].ko}</p><div class="rFoes">`+S.foes.map((f,r)=>{const st=r<S.rd?'done':r===S.rd?'now':'';
-    return `<div class="rFoe ${st}"><small>${RD_KO[r]}${r<S.rd?' · 완료':r===S.rd?' · 지금':''}</small><b>${f.name}</b><span><span class="fic" style="background:${EL_C[f.el]}">${EL_SYM[f.el]}</span> ${(f.ints||[f.atype]).map(k=>ATK[k].ic).join(' ')}</span><span class="tg">🎯 ${roundTgt(r).toLocaleString()}</span>${f.rule?`<em>${f.rule.ic} ${f.rule.ko}<br>${f.rule.d}</em>`:''}</div>`;}).join('')+`</div>`;
-  const used=S.htCount||{};
-  h+=`<p class="iSub">족보 · 레벨</p><div class="rHt">`+HT_ORDER.slice().reverse().map(k=>{const L=(S.lv[k]||1)-1;
-    return `<div class="${used[k]?'':'zero'}"><span><b>${HT[k][0]}</b><small>${HT[k][3].split(' — ')[0]}</small></span><i class="${L?'lv up':'lv'}">Lv${L+1}</i><span class="cm"><b class="cnum">${HT[k][1]+LVUP[k][0]*L}</b> × <b class="mnum">${HT[k][2]+LVUP[k][1]*L}</b></span><small class="ct">${used[k]||0}번</small></div>`;}).join('')+`</div>`+
-    `<p class="iNote">걸린 족보는 모두 더해집니다. ★2는 2장, ★3은 3장으로 셉니다.</p>`;
-  h+=`<p class="iSub">내 증서 ${S.vouch.length} · 판 내내 유지</p>`+vouchRowsHTML();
-  h+=`<p class="iSub">내 구슬 ${S.orbs.length}/${S.maxOrb}</p><div class="rOrbs">`+(S.orbs.length?S.orbs.map(k=>`<div class="rRow" data-k="${k}"><span><b>${ORBS[k].ko} <i>${dia(S.ost[k]||1)}</i></b><small>${ORBS[k].d}</small></span></div>`).join(''):`<p class="iNote">아직 구슬이 없습니다. 원정 캠프에서 살 수 있습니다.</p>`)+`</div>`;
-  const hc=hurtCount(),wc=WORLDS.map(w=>S.deck.filter(c=>cardW(c)===w).length);
-  h+=`<div class="rDeck"><div><b>${S.deckK&&S.deckK!=='lamancha'&&DECKS[S.deckK]?DECKS[S.deckK].ko+' · ':'덱 '}${S.deck.length}장</b>${S.deckK&&S.deckK!=='lamancha'&&DECKS[S.deckK]?`<small class="rDeckRule">${DECKS[S.deckK].d}</small>`:''}<span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'} · 머지 ${S.merges}번</span></div><div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`;
-  h+=`<button type="button" class="iMore dkOpen" onclick="deckView()">덱 전체 보기 <small>카드 ${S.deck.length}장</small></button>`;   /* (11-06) 원정 캠프 '덱' 버튼과 같은 창 */
-  h+=`<details class="iMore"><summary>장별 목표 점수</summary><table><tr><th>장</th><th>망령</th><th>수문장</th><th>거인</th></tr>`;
-  for(let j=1;j<=8;j++)h+=`<tr class="${j===S.jang?'cur':''}"><td>${j}장</td>`+[0,1,2].map(r=>`<td>${j===S.jang&&r===S.rd?'▶ ':''}${tgtFor(j,r,S.diff).toLocaleString()}</td>`).join('')+'</tr>';
-  h+=`</table><p class="iNote">보상 · 망령 ${deckReward(S,REWARD[0])} · 수문장 ${deckReward(S,REWARD[1])} · 거인 ${deckReward(S,REWARD[2])}<br>남은 런 1개당 1 · ${deckIs('poor')?'이자 없음':`5골드마다 이자 1 (최대 ${S.interestMax})`}</p></details>`;
-  h+=`<details class="iMore"><summary>★ 머지 배율</summary><table><tr><th></th><th>★2</th><th>★3</th></tr><tr><td>같은 세계관끼리</td><td>힘 ×${STAR_X[2]}</td><td>힘 ×${STAR_X[3]}</td></tr><tr><td>다른 세계관과 섞으면 (혼합)</td><td>${MIX_X[2]===1?'힘 그대로':'힘 ×'+MIX_X[2]}</td><td>힘 ×${MIX_X[3]}</td></tr></table><p class="iNote">같은 이름 · 같은 ★끼리만 머지됩니다 (★3까지).</p></details>`;
+  h+=sec('이번 장 빌런',`${S.jang}장 · ${WORLD_KO[JANG_WORLD(S.jang)]} · ${DIFF[S.diff].ko}`,`<div class="rFoes">`+S.foes.map((f,r)=>{const st=r<S.rd?'done':r===S.rd?'now':'';
+    return `<div class="rFoe ${st}"><small>${RD_KO[r]}${r<S.rd?' · 완료':r===S.rd?' · 지금':''}</small><b>${f.name}</b><span><span class="fic" style="background:${EL_C[f.el]}">${EL_SYM[f.el]}</span> ${(f.ints||[f.atype]).map(k=>ATK[k].ic).join(' ')}</span><span class="tg">🎯 ${roundTgt(r).toLocaleString()}</span>${f.rule?`<em>${f.rule.ic} ${f.rule.ko}<br>${f.rule.d}</em>`:''}</div>`;}).join('')+`</div>`);
+  /* 내 덱: 큰 숫자 + 세계 막대 + 같은 크기 버튼 둘 (덱 전체 보기 · 목표 점수표) */
+  const hc=hurtCount(),wc=WORLDS.map(w=>S.deck.filter(c=>cardW(c)===w).length),dk=S.deckK&&S.deckK!=='lamancha'&&DECKS[S.deckK]?DECKS[S.deckK]:null;
+  let tg=`<table><tr><th>장</th><th>망령</th><th>수문장</th><th>거인</th></tr>`;
+  for(let j=1;j<=8;j++)tg+=`<tr class="${j===S.jang?'cur':''}"><td>${j}장</td>`+[0,1,2].map(r=>`<td>${j===S.jang&&r===S.rd?'▶ ':''}${tgtFor(j,r,S.diff).toLocaleString()}</td>`).join('')+'</tr>';
+  tg+=`</table><p class="iNote">보상 · 망령 ${deckReward(S,REWARD[0])} · 수문장 ${deckReward(S,REWARD[1])} · 거인 ${deckReward(S,REWARD[2])}<br>남은 런 1개당 1 · ${deckIs('poor')?'이자 없음':`5골드마다 이자 1 (최대 ${S.interestMax})`}</p>`;
+  h+=sec(dk?dk.ko:'내 덱','',`<div class="rDeck"><div class="riDeckTop"><b>${S.deck.length}<small>장</small></b><span>${hc.w||hc.s?`🩹 ${hc.w} · 상처 ${hc.s}`:'다친 동료 없음'}<br>머지 ${S.merges}번</span></div>${dk?`<small class="rDeckRule">${dk.d}</small>`:''}<div class="bar">${WORLDS.map((w,i)=>`<i style="flex:${wc[i]};background:${WORLD_C[w]}"></i>`).join('')}</div><div class="lg">${WORLDS.map((w,i)=>`<span><i style="background:${WORLD_C[w]}"></i>${WORLD_KO[w]} ${wc[i]}</span>`).join('')}</div></div>`+
+    `<div class="riBtns"><button type="button" class="riBtn" onclick="deckView()">덱 전체 보기</button><button type="button" class="riBtn cream" aria-expanded="false" onclick="const t=this.closest('.riSec').querySelector('.riTgt');const o=t.hidden;t.hidden=!o;this.setAttribute('aria-expanded',o)">목표 점수표</button></div><div class="riTgt" hidden>${tg}</div>`);   /* (11-06) 덱 전체 보기 = 원정 캠프 '덱' 버튼과 같은 창 */
+  /* 내 구슬: 빈 칸도 보여 줌 */
+  h+=sec('내 구슬',`${S.orbs.length}/${S.maxOrb}`,`<div class="rOrbs">`+S.orbs.map(k=>`<div class="rRow" data-k="${k}"><span><b>${ORBS[k].ko} <i>${dia(S.ost[k]||1)}</i></b><small>${ORBS[k].d}</small></span></div>`).join('')+Array.from({length:Math.max(0,S.maxOrb-S.orbs.length)},()=>`<div class="riEmpty">빈 칸 · 원정 캠프에서 사요</div>`).join('')+`</div>`);
+  h+=sec('내 증서',`${S.vouch.length}장 · 판 내내 유지`,vouchRowsHTML());
+  /* 족보: 이번 판에 낸 것만 위에 · 전체는 펼쳐서 */
+  const used=S.htCount||{},row=k=>{const L=(S.lv[k]||1)-1;return `<div class="${used[k]?'':'zero'}"><span><b>${HT[k][0]}</b><small>${HT[k][3].split(' — ')[0]}</small></span><i class="${L?'lv up':'lv'}">Lv${L+1}</i><span class="cm"><b class="cnum">${HT[k][1]+LVUP[k][0]*L}</b> × <b class="mnum">${HT[k][2]+LVUP[k][1]*L}</b></span><small class="ct">${used[k]||0}번</small></div>`;};
+  const ord=HT_ORDER.slice().reverse(),u=ord.filter(k=>used[k]);
+  h+=sec('이번 판에 낸 족보','걸린 족보는 모두 더해져요',(u.length?`<div class="rHt">${u.map(row).join('')}</div>`:`<p class="iNote">아직 낸 족보가 없어요.</p>`)+
+    `<details class="riAcc"><summary>모든 족보 ${ord.length}개 <small>· 레벨 · 점수</small></summary><div class="rHt">${ord.map(row).join('')}</div><p class="iNote">★2는 2장, ★3은 3장으로 셉니다.</p></details>`);
+  h+=sec('참고','',`<details class="riAcc"><summary>★ 머지 배율 <small>· 같은 세계 · 혼합</small></summary><table><tr><th></th><th>★2</th><th>★3</th></tr><tr><td>같은 세계관끼리</td><td>힘 ×${STAR_X[2]}</td><td>힘 ×${STAR_X[3]}</td></tr><tr><td>다른 세계관과 섞으면 (혼합)</td><td>${MIX_X[2]===1?'힘 그대로':'힘 ×'+MIX_X[2]}</td><td>힘 ×${MIX_X[3]}</td></tr></table><p class="iNote">같은 이름 · 같은 ★끼리만 머지됩니다 (★3까지).</p></details>`);
   return h;
 }
 /* 📚 도감 */
@@ -4715,7 +4720,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r151" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r153" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -10068,6 +10073,36 @@ html #lm-title .lt-card.lmTabbed>.ls-body,html #lm-title .lt-card.lmTabbed>.lc-w
 <style id="lm-deck-view">
 .sChips{display:inline-flex;gap:8px;align-items:center}
 .dChip .dIc{flex:none;display:block;width:19px;height:26px;background:var(--lmBack,url(assets/ui/kit/card_back.webp?v=3)) center/100% 100% no-repeat;border-radius:3px;box-shadow:1px 1px 0 #0008}
+/* (DHL 11-14 B안) 런 정보 '이번 판' — 묶음 패널 · 제목 줄 · 버튼 · 펼치는 줄 */
+.ib .riSec{border:solid transparent;border-width:9px 12px;border-image:url(assets/ui/kit/panel_navy.webp) 40 46 40 46 fill / 9px 12px / 0 stretch;padding:4px 4px 6px;margin:12px 0 0;filter:drop-shadow(0 2px 0 #000a)}
+.ib .riH{display:flex;align-items:center;gap:8px;margin:2px 2px 8px;font:900 14px/1.2 'Noto Sans KR',sans-serif}
+.ib .riH::before{content:"";width:4px;height:14px;border-radius:2px;background:#c99a3e;flex:none}
+.ib .riH b{color:#f8edd0;font-weight:900}.ib .riH small{margin-left:auto;color:#a9b4c6;font-weight:700;font-size:12px;text-align:right}
+#ov .riSec .rDeck{background:none!important;margin:0!important;padding:0 2px!important;box-shadow:none!important}
+.ib .riDeckTop{display:flex;align-items:flex-end;gap:10px;margin-bottom:2px}
+.ib .riDeckTop b{font:900 30px/1 'Noto Sans KR',sans-serif;color:#f8edd0}.ib .riDeckTop b small{font-size:14px;margin-left:2px;color:#a9b4c6}
+.ib .riDeckTop span{margin-left:auto;color:#a9b4c6;font-size:12px;font-weight:700;text-align:right;line-height:1.4}
+#ov .riSec .rDeck .bar{display:flex!important;height:12px!important;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 1px #0006}
+#ov .riSec .rDeck .bar i{display:block!important;height:100%}
+.ib .riBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ib .riBtn{display:flex;align-items:center;justify-content:center;min-height:48px;border:solid transparent;border-width:10px 14px;border-image:url(assets/ui/kit/btn_blue.webp) 40 46 40 46 fill / 10px 14px / 0 stretch;background:none;color:#fff;font:900 15px/1.1 'Noto Sans KR',sans-serif;text-shadow:0 2px 0 #0008;cursor:pointer;filter:drop-shadow(0 2px 0 #000b);white-space:nowrap}
+.ib .riBtn:active{border-image-source:url(assets/ui/kit/btn_blue_pressed.webp);transform:translateY(2px)}
+.ib .riBtn.cream{border-image-source:url(assets/ui/kit/btn_cream.webp);color:#3a2606;text-shadow:none}
+.ib .riBtn.cream:active,.ib .riBtn.cream[aria-expanded="true"]{border-image-source:url(assets/ui/kit/btn_cream_pressed.webp)}
+.ib .riTgt{margin-top:8px}.ib .riTgt table,.ib .riAcc table{width:100%;border-collapse:collapse;font-size:12px}
+.ib .riTgt td,.ib .riTgt th,.ib .riAcc td,.ib .riAcc th{padding:4px 3px;text-align:center;border-bottom:1px solid #c99a3e22}.ib .riTgt tr.cur td{color:#f3d58a;font-weight:800}
+#ov .riSec .rOrbs{gap:6px!important}
+#ov .riSec .rOrbs>div,#ov .riSec .rVs>div{background:#ffffff08!important;box-shadow:inset 0 0 0 1px #c99a3e33!important;border-radius:10px}
+.ib .riEmpty{border:2px dashed #c99a3e55;border-radius:10px;display:flex!important;align-items:center;justify-content:center;color:#c99a3eaa;font-weight:800;font-size:12px;min-height:46px;background:none!important;box-shadow:none!important}
+#ov .riSec .rHt>div{background:#ffffff06!important;box-shadow:inset 0 0 0 1px #c99a3e2a!important}
+.ib .riAcc{border-top:1px solid #c99a3e44;margin-top:6px}.ib .riSec>.riH+.riAcc{border-top:0;margin-top:0}
+.ib .riAcc summary{list-style:none;min-height:48px;display:flex;align-items:center;gap:8px;font:800 14px/1 'Noto Sans KR',sans-serif;color:#f8edd0;cursor:pointer;padding:0 4px}
+.ib .riAcc summary::-webkit-details-marker{display:none}
+.ib .riAcc summary small{color:#a9b4c6;font-weight:700;font-size:12px}
+.ib .riAcc summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2.5px solid #c99a3e;border-bottom:2.5px solid #c99a3e;transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}
+.ib .riAcc[open] summary::after{transform:rotate(225deg)}
+.ib .riSec .iNote{margin:6px 2px 0}
+.ib .rStat{margin-bottom:0}
 .dkOpen{display:flex;width:100%;justify-content:space-between;align-items:center;cursor:pointer;font:inherit;font-weight:800;color:inherit;text-align:left}
 .dkOpen small{color:var(--dim,#a9b4c2);font-weight:400}
 .dkV{position:fixed;inset:0;z-index:450;background:#050a14b3;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
