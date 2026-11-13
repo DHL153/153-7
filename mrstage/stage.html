@@ -8184,7 +8184,7 @@ let isGameOver = false;
     setTimeout(()=>{stage.classList.remove('lm-ko');try{z.cancel();}catch(e){}stage.style.transformOrigin='';(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},freeze+slow);}
   function killV(){let v='B';try{v=(window.parent&&parent.LM_KILLV)||localStorage.getItem('lm_killv')||'B';}catch(e){}return v==='A'?'A':'B';}   // (DHL 11-09) B로 결정 — A는 시험용으로만 남김
   function foeBoom(){const en=$('enemy'),boss=kind==='boss';if(gsDead&&stage.classList.contains('lm-foe-dead'))return;
-    if(finStyle()!=='cur'&&en){const g=enemyGround?enemyGround():null,E=enemyPt();splitEnd();flipFx('fx26',[3,4,5,6,7,8,9,10,11],E.x,g?g.y:E.y+E.h*.45,E.h*1.9,{fps:16,z:KILL_Z});}gsDead=true;try{drawGems();}catch(e){}
+    if(finStyle()!=='cur'&&en){const g=enemyGround?enemyGround():null,E=enemyPt();splitEnd();flipFx('fx26',[3,4,5,6,7,8,9,10,11],E.x,g?g.y:E.y+E.h*.45,E.h*1.9,{fps:16,z:KILL_Z});}gsKillBreak();gsDead=true;try{drawGems();}catch(e){}
     try{lmSnd(boss?'sfx_boss_defeat':'sfx_foe_defeat');}catch(e){}
     if(en){try{if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20,z:KILL_Z});}
       /* (DHL 11-09 '적이 죽고 돈이 떨어지는 게 이상함') 망령 · 수문장의 처치 조각 + 금화(fx15)는 일단 숨김 */
@@ -8220,7 +8220,7 @@ let isGameOver = false;
       try{d.animate([{scale:'1.5'},{scale:'1'}],{duration:240,easing:'cubic-bezier(.2,1.8,.4,1)'});}catch(e){}
       const hold=killed?(ok>=2?850:450):420;
       setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),300);
-        if(killed&&!o.noFoe){gsDead=true;try{drawGems();}catch(e){}if(en){if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20,z:KILL_Z});}   /* (DHL 11-08 '땅 위에서 터져 이상함') 거인 대폭발은 적이 선 땅에서 솟음 */
+        if(killed&&!o.noFoe){gsKillBreak();gsDead=true;try{drawGems();}catch(e){}if(en){if(boss){const G=enemyGround();flip('fx16',R(0,15),G.x,G.y,en.offsetHeight*2.4,{fps:20,z:KILL_Z});}   /* (DHL 11-08 '땅 위에서 터져 이상함') 거인 대폭발은 적이 선 땅에서 솟음 */
           /* fx15(조각 + 금화)는 숨김 (DHL 11-09) */}
           slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}
         else if(!killed)hitStop(170);
@@ -8234,7 +8234,7 @@ let isGameOver = false;
     if(o.hp!=null){hp=o.hp;setHud();}
     if(o.dmg!=null&&o.final){popNum(o);if(gsBlock){const b=gsBlock;gsBlock=null;setTimeout(()=>gsClank(b),120);}}
     if(o.heavy){resetCharge();if(auraEl)auraEl.classList.remove('full');try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,240,200,.55)');}catch(e){}}
-    if(o.killed){gsDead=true;try{drawGems();}catch(e){}slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}else if(o.heavy)hitStop(170);   // 쓰러지면 체력바도 적과 함께 사라짐
+    if(o.killed){gsKillBreak();gsDead=true;try{drawGems();}catch(e){}slowmo();setTimeout(()=>stage.classList.add('lm-foe-dead'),220);}else if(o.heavy)hitStop(170);   // 쓰러지면 체력바도 적과 함께 사라짐
   }
   const fmt=n=>Math.round(n).toLocaleString();
   function popNum(o){
@@ -8273,6 +8273,11 @@ let isGameOver = false;
     g.style.display=show?'block':'none';sbarDraw(show);if(!show){clearInterval(gsT);gsT=0;return;}
     if(finPend>0&&g.querySelector('.gm')){return;}   // 연출 중엔 그 런의 보석 그대로 (연출 시작에 finale이 다시 그림)
     paintGems(o.gems,o.n);gsPlace();if(!gsT)gsT=setInterval(()=>{if(finPend<=0)gsPlace();},300);}
+  /* (DHL 11-14 '방패가 안 깨지고 적이 죽음') 처치 순간 남은 방패도 같이 깨짐 — 연출만, 규칙 그대로 */
+  function gsKillBreak(){try{const g=$('lm-gshield');if(gsBroken||gsDead||!g||g.style.display==='none'||!(g.style.left))return;
+    const x=parseFloat(g.style.left)||0,y=parseFloat(g.style.top)||0,sz=parseFloat(g.style.width)||46,z=sz*2.6;
+    lmSnd('sfx_shield_break');const b=document.createElement('div');b.className='lm-gsbrk';b.style.cssText=`width:${z}px;height:${z}px;left:${x}px;top:${y}px`;stage.appendChild(b);setTimeout(()=>b.remove(),700);
+    const sb=$('lm-sbar');if(sb)sb.classList.add('brk');gsBroken=true;}catch(e){}}
   async function gsShatter(){lmSnd('sfx_shield_break');const p=gsPlace();const g=$('lm-gshield');if(!p||!g||g.style.display==='none')return;
     g.classList.add('pop');await sleep(140);g.classList.remove('pop');g.classList.add('gone');const b=document.createElement('div');b.className='lm-gsbrk';const z=p.sz*1.9;b.style.cssText=`width:${z}px;height:${z}px;left:${p.x}px;top:${p.y}px`;stage.appendChild(b);
     bigText(((()=>{try{return parent.LM_TD();}catch(e){return '고정 피해';}})())+'!','prc');   // (DHL 10-30) 관통 → 고정 피해 · 영문 True Damage
