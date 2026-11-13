@@ -4603,7 +4603,7 @@ html.lmB #lm-title .lt-side:focus-visible{box-shadow:0 0 0 2px #ffd76a,0 0 10px 
 #app .topRow>#foe{display:none!important}
 /* 적 정보: 무대 오른쪽 위 (적 머리 쪽) — 두 줄: 이름·속성·약점/내성 / 의도·규칙 */
 #lmFoeTag{position:absolute;right:1%;top:3%;z-index:3;display:flex;flex-direction:column;align-items:flex-end;gap:3px;max-width:62%;font:800 11px/1.25 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#fff;text-shadow:0 1px 2px #000;pointer-events:none}
-#lmFoeTag{transition:opacity .25s}   /* 콤보 중에도 계속 보임(타격마다 깜빡이지 않게) · 연출 재생 때만 lmFxDemo로 숨김 */
+#lmFoeTag{transition:opacity .25s}#lmStage.lmTagOff #lmFoeTag{opacity:0;pointer-events:none}   /* 콤보 중에도 계속 보임(타격마다 깜빡이지 않게) · 연출 재생 때만 lmFxDemo로 숨김 */
 #lmFoeTag .row{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
 #lmFoeTag .t{display:inline-flex;align-items:center;gap:3px;background:#000a;border:1px solid #ffffff2e;border-radius:99px;padding:1px 7px;white-space:nowrap;pointer-events:auto}
 #lmFoeTag .t.it{background:#7f1d1de6;border-color:#fca5a5;cursor:pointer}
@@ -4680,7 +4680,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r144" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r145" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4695,6 +4695,11 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // 전투 중(런 연출이 끝날 때까지)엔 적 정보 표를 흐리게 → 피해 숫자·×배수가 표 아래 묻히지 않게 (무대는 iframe이라 숫자를 표 위로 올릴 수 없음)
   let hitT=0;function hitMode(){box.classList.add('lmHit');if(hitT)return;
     hitT=setInterval(()=>{const st=ST();if(!st||!(st.busy?.()||st.queued?.())){box.classList.remove('lmHit');clearInterval(hitT);hitT=0;}},400);}
+  /* (DHL 11-13) 적 이름표: 일반 타격 · 콤보 중엔 계속 보이고, 컷인 · 막타 컷신 · 적이 쓰러진 뒤에만 숨김.
+     연달아 나오는 컷인은 한 덩어리로 — 끝나고 0.35초 뒤에야 다시 보임 (타격마다 깜빡이지 않게) */
+  {let offAt=0;setInterval(()=>{let q=false;try{const st=ST();q=!!(st&&st.quiet&&st.quiet());}catch(e){}
+    if(q){offAt=0;box.classList.add('lmTagOff');}
+    else if(box.classList.contains('lmTagOff')){const n=performance.now();if(!offAt)offAt=n;else if(n-offAt>=350){box.classList.remove('lmTagOff');offAt=0;}}},110);}
   window.addEventListener('message',e=>{if(e.source===fr.contentWindow&&e.data&&e.data.mrStage==='cleared'){tagHide=true;tag.style.visibility='hidden';}});   // 처치·퇴장 뒤 적 정보 숨김
   window.addEventListener('message',e=>{if(e.source===fr.contentWindow&&e.data&&e.data.mrStage==='ready'){const st=ST();const q=pend;pend=[];q.forEach(fn=>st.ready.then(()=>fn(st)));}});
   let team=[],roundKey='',tagHide=false;

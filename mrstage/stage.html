@@ -8251,7 +8251,7 @@ let isGameOver = false;
     setTimeout(()=>{globalPause=false;stage.classList.remove('lm-slowmo');(stage.getAnimations?.({subtree:true})||[]).forEach(a=>{try{a.updatePlaybackRate(1);}catch(e){}});},450);
   }
   let finPend=0,finHp=null;
-  let capO=null,gsBroken=false,gsBlock=null,gsRaw=null,gsSh=null,gsT=0,gsDead=false;   // gsDead: 적이 쓰러짐 → 다음 적이 나올 때까지 방패 없음 (DHL 10-29 '전투가 끝났는데 방패가 남음')
+  let capO=null,gsBroken=false,gsBlock=null,gsRaw=null,gsSh=null,gsT=0,gsDead=false,tagKillQ=false,tagKillHold=false;   // gsDead: 적이 쓰러짐 → 다음 적이 나올 때까지 방패 없음 (DHL 10-29 '전투가 끝났는데 방패가 남음')
   function gsEl(){let g=$('lm-gshield');if(!g){g=document.createElement('div');g.id='lm-gshield';g.innerHTML='<i class="sh"></i><span class="gems"></span>';stage.appendChild(g);}return g;}
   function gsPlace(){const g=$('lm-gshield');if(!g||!hud)return null;const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,sz=Math.round(21*gk);   /* (DHL 10-30) 방패 = 2단 게이지 왼쪽 끝 (빌런 몸 위가 아니라) */
     const x=hud.offsetLeft-hud.offsetWidth/2+sz*.3,y=hud.offsetTop+hud.offsetHeight/2;
@@ -8853,7 +8853,7 @@ let isGameOver = false;
       if(modeC&&!halted){halted=true;standNow=true;stage.classList.add('lm-still');setMul(ALL,null);}}});}catch(_){}   // C: 달리던 주인공이 맞는 순간에 멈춤 (미리 멈추면 맞을 줄 알고 기다리는 것처럼 보임 — DHL 11-12)
     foeAtkSnd(a);return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).then(()=>halted?new Promise(r=>setTimeout(r,380)):0).finally(()=>{foeAtkOn=false;if(halted){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}   // 맞고 잠깐 선 뒤 다시 달림
   function setupEnemy(o){
-    stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');try{splitEnd();}catch(e){}gsDead=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
+    stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');try{splitEnd();}catch(e){}gsDead=false;tagKillQ=false;tagKillHold=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
     clearBattleVisualQueue(true);
     const enemy=$('enemy');
@@ -8950,13 +8950,16 @@ let isGameOver = false;
     // 타격 한 번: num = 카드 캐릭터(무대에 없으면 동료로 나왔다 들어감), skill = 컷인, level = 세기(0~11), dmg·crit = 피해 숫자, combo = 연타 수
     //   final = 합동 일격(팀 전원, 총 피해·배수), killed = 쓰러짐(슬로모션 → 처치 컷신 → 하늘)
     joinRun(){return Promise.resolve();},   // ★11 동료는 마지막에 치고 빠지기만
-    hit(o={}){if(o.final){finPend++;stage.classList.add('lm-fin');return seq(async()=>{try{await finale(o);}finally{finPend--;gsBlock=null;if(finPend<=0)stage.classList.remove('lm-fin');if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}try{drawGems();}catch(e){}}});}quick(o);return Promise.resolve();},
+    hit(o={}){if(o.killed&&!o.noFoe)tagKillQ=true;if(o.final){finPend++;stage.classList.add('lm-fin');return seq(async()=>{try{await finale(o);}finally{finPend--;gsBlock=null;if(finPend<=0)stage.classList.remove('lm-fin');if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}try{drawGems();}catch(e){}}});}quick(o);return Promise.resolve();},
     demo(o={}){return ready.then(()=>seq(()=>demo(o)));},
     demoPhase(){return demoPh;},
     foeStrike(){return ready.then(()=>foeStrike());},   // (DHL 11-01) 패배 연출: 적의 마지막 공격   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
     routes(){return {ROUTE,ROUTE_KO};},
     busy(){return pending>0||!idle()||!!document.querySelector('.mrfc');},
     queued(){return pending;},
+    quiet(){try{const cut=stage.dataset.teamSkill==='on'||stage.classList.contains('skill-cutscene')||!!document.getElementById('skill-cinematic')?.classList.contains('on')||!!document.querySelector('.mrfc');
+      if(cut&&tagKillQ)tagKillHold=true;   // 처치가 예정된 런의 컷신이 시작되면 → 적이 쓰러질 때까지 계속 숨김 (컷신과 막타 사이에 잠깐 다시 뜨지 않게)
+      return cut||tagKillHold||!!gsDead||stage.classList.contains('lm-cleared');}catch(e){return false;}},   // (DHL 11-13) 컷인 · 막타 컷신 · 적이 쓰러진 뒤 = 게임 쪽 적 이름표를 숨길 때
     pause(on){globalPause=!!on;},
     freeze(on){window.MRClock?.pause(on);},   // (DHL 10-31) 연출 보기 플레이어: 멈춤/계속
     speed(n){window.MRClock?.rate(n);foeRate=Math.max(.2,Math.min(4,+n||1));try{foeEN()?.speed(foeRate);}catch(e){}},
