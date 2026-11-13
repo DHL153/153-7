@@ -8806,7 +8806,7 @@ let isGameOver = false;
         · 목록 = enemy/enemies.json (이름 · 크기 · 발 위치 · 연출 길이)  · 창구 = iframe.contentWindow.EN {ready, play('enter'|'attack'|'hurt'), state, fx, speed, hide}
         · 라운드 시작: 화면 정지 → 적 등장 → 공격 한 번 → 배경이 움직이며 주인공 등장  · 런으로 못 잡으면 적이 공격 한 번 (피해 없음) */
   let foeReg=null,foeKey=null,foeRate=1;
-  const foeRegP=fetch('enemy/enemies.json').then(r=>r.ok?r.json():{}).then(j=>{foeReg=j||{};return foeReg;}).catch(()=>{foeReg={};return foeReg;});
+  const foeRegP=fetch('enemy/enemies.json'+(location.search||''),{cache:'no-cache'})   /* (DHL 11-13) 적 목록이 옛 것으로 남아 적이 에너지 표시 가운데서 벗어나 보이지 않게 — 늘 새로 확인 */.then(r=>r.ok?r.json():{}).then(j=>{foeReg=j||{};return foeReg;}).catch(()=>{foeReg={};return foeReg;});
   const foeFrame=()=>$('enemy')?.querySelector('iframe.lm-foe-rig')||null;
   const foeEN=()=>{try{const f=foeFrame(),E=f&&f.contentWindow&&f.contentWindow.EN;return E&&E.ready()?E:null;}catch(e){return null;}};
   /* 크기 (DHL 11-12 '적이 너무 큼 · 주인공의 110~120%'): 몸통(coreH = 무기 · 뿔 · 날개 뺀 높이)을 주인공 키의 size 배로. 일반 1.15 · 보스 1.45 · 풍차 거인 1.8(날개는 화면 밖으로 나가도 됨) */
