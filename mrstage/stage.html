@@ -8854,8 +8854,8 @@ let isGameOver = false;
     try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate([{translate:'0 0'},{translate:'-4px 1px'},{translate:'3px -1px'},{translate:'-2px 0'},{translate:'0 0'}],{duration:190,easing:'linear'});}catch(_){}
     try{lmSnd(kind==='boss'?'sfx_hero_hit_heavy':'sfx_hero_hit',{gap:90});}catch(_){}}   // (DHL 11-12) 전용 피격음: 일반 적 = 가벼운 타격 · 보스 · 풍차 거인 = 무거운 타격
   function foeAttack(){if(!foeKey||gsDead)return Promise.resolve();const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
-    const hitEv=R.hitEv||['hit'],modeC=standMode()==='C'&&!standNow;let halted=false;foeAtkOn=true;
-    try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter'){heroFlinch();
+    const hitEv=R.hitEv||['hit'],modeC=standMode()==='C'&&!standNow;let halted=false,told=false;foeAtkOn=true;
+    try{E&&E.on((e,st)=>{if(foeAtkOn&&!gsDead&&hitEv.includes(e)&&st!=='hurt'&&st!=='enter'){heroFlinch();if(!told){told=true;try{window.parent?.postMessage?.({mrStage:'foeHit'},'*');}catch(_){}}   /* (DHL 11-14) 맞는 순간을 게임에 알림 → 이때 손패 봉인 */
       if(modeC&&!halted){halted=true;standNow=true;stage.classList.add('lm-still');setMul(ALL,null);}}});}catch(_){}   // C: 달리던 주인공이 맞는 순간에 멈춤 (미리 멈추면 맞을 줄 알고 기다리는 것처럼 보임 — DHL 11-12)
     foeAtkSnd(a);return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).then(()=>halted?new Promise(r=>setTimeout(r,380)):0).finally(()=>{foeAtkOn=false;if(halted){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}   // 맞고 잠깐 선 뒤 다시 달림
   function setupEnemy(o){
