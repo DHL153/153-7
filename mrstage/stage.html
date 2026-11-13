@@ -8101,7 +8101,10 @@ let isGameOver = false;
     if(v==='class')return FIN_CLASS[POS(finHero||1)]||'p5';return ['p5','ko','hades'].includes(v)?v:'cur';}
   async function finEnter(sl,num,out){const W=stage.clientWidth||400,H=stage.clientHeight||145,E=enemyPt(),home=heroPt(sl).x-actors[sl].off,hh=heroPt(sl).h,near=Math.max(-W*.5,E.front-home-hh*.55),st=finStyle();
     if(st==='p5'&&POS(num)===10){afterImg(sl,600);finFast=1.5;return null;}   // 브루노: 관통 동작 그대로, 막타만 검 방식
-    if(st==='p5'){afterImg(sl,520);finFast=1.6;return null;}   /* (DHL 11-13 '순간이동처럼 하는 것 없애기') 적 위 공중에 갑자기 나타나 내리꽂던 것 → 제자리(또는 화면 밖)에서 빠르게 달려들어 벰 */
+    if(st==='p5'){   /* (DHL 11-13) 검 계열 내리꽂기는 살리되 '갑자기 나타남' 없이: 제자리에서 땅을 박차고 화면 위로 솟구침 → 적 앞 하늘에서 떨어져 내리꽂음 */
+      if(!out){dust(sl,2);afterImg(sl,380);await tween(340,k=>{actors[sl].oy=k*H*1.1;});}   // 솟구침이 눈에 보이게 일정한 빠르기로
+      offsetTeam(near-hh*.35,[sl]);actors[sl].oy=H*1.0;show([sl],true);await sleep(60);afterImg(sl,340);
+      await tween(300,k=>{actors[sl].oy=H*1.0*(1-k*k);});actors[sl].oy=0;const f=footOf(sl);flipFx('fx21',[0,1,2,3,4,5,6,7],f.x+hh*.25,f.y,hh*2.4,{fps:20,z:42});try{MRFX.shake(stage,'m',true);}catch(e){}dust(sl,1);return false;}
     if(st==='ko'){afterImg(sl,900);finFast=1.7;return null;}   // B: 각자 동작(도약 · 낙하 · 박치기 · 관통) 그대로, 빠르게 + 잔상
     if(POS(num)===8){finHero=num;afterImg(sl,520);finFast=1.6;return null;}   /* (DHL 11-13) 니콜: 순간이동(FX24) 대신 빠르게 다가가 찌름 */
     if(out){offsetTeam(-W*.9,[sl]);show([sl],true);await dash(-W*.9,0,300,'out',[sl],2.4);}return false;}   /* C 로시 · 카르덴: 제자리에서 쏨 — (DHL 11-13) 화면 밖에 있었으면 번쩍 나타나지 않고 달려 들어옴 */
