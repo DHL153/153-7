@@ -1310,6 +1310,9 @@ html:not(.lmB) .otx .oef{display:block;font-size:9px;opacity:.75}
 #lmOrbTip .tSell small{display:block;margin-top:2px;font:700 11px/1.3 'Noto Sans KR',sans-serif;color:#ffe3cc}
 #lmOrbTip .tSell.arm{animation:lmRsArm .45s ease-in-out infinite alternate}
 #lmOrbTip .tBtns .tMore{background:#e2bd62;color:#1c2a4a;border:0}
+/* 배우기 쪽: 아래에 더 있음 */
+.ib{position:relative}.ib.lMore::after{content:"▼";position:absolute;z-index:40;left:50%;bottom:130px;translate:-50% 0;font-size:15px;line-height:1;color:#f1d48a;text-shadow:0 1px 2px #000c;pointer-events:none;animation:lMoreBob 1.1s ease-in-out infinite}
+@keyframes lMoreBob{50%{translate:-50% 4px}}@media (prefers-reduced-motion:reduce){.ib.lMore::after{animation:none}}
 #lmOrbTip .tHint{margin-top:7px;font-size:10.5px;color:#8e9bb5;text-align:center}#lmOrbTip.pin .tHint{display:none}
 @media (prefers-reduced-motion:reduce){#lmOrbTip{transition:none}}
 #sOpt svg{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;display:block;transform-origin:50% 50%;transform-box:fill-box}
@@ -3704,6 +3707,8 @@ function openInfo(tab,view,idx){
   showOv(`<div class="ib"><div class="ibTabs" role="tablist">${tabs}</div><div class="ibBody">${body}</div><button class="ibBack lmIco" onclick="(function(){const d=document.querySelector('.ib .cmBackBtn');if(d){d.click();return;}ibBackOut();})()" aria-label="뒤로" title="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button></div>`);
   const nb=document.querySelector('.ibBody');if(nb&&keep&&!document.querySelector('.cmV'))nb.scrollTop=sc;
   if(infoTab==='learn'&&learnView==='page')rbMount();
+  /* (11-14 QA) 배우기 쪽이 길어 아래가 가려질 때 흐림만 있어 '잘린 것'처럼 보였음 → 아래 화살표로 '더 있음' 표시, 끝까지 내리면 사라짐 */
+  if(infoTab==='learn'&&learnView==='page'&&nb){const lb=nb.closest('.ib'),chk=()=>{if(lb)lb.classList.toggle('lMore',nb.scrollHeight-nb.scrollTop-nb.clientHeight>12);};nb.addEventListener('scroll',chk,{passive:true});chk();setTimeout(chk,400);}
 }
 
 /* 🤝 동료 보기 (2026-10-28 DHL): 153-6의 캐릭터 미리보기 · 마이룸 반응을 그대로 — 누르면 갸웃 · 통통(love-react) + 분홍 오라 + 하트 5개 + 반짝이 + 말풍선, 소리 sfx_character_love */
@@ -4252,7 +4257,8 @@ function ltStatHTML(){
   const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length;
   const nD=Object.keys(DIFF).length,nC=Object.keys(LM_ST.clears).length;
   const pc=(a,b)=>b?Math.floor(a/b*100):0;
-  const parts=[[ '컬렉션',nOrb+nG,orbKeys.length+G.length],['배우기',LEARN_SEEN.length,LEARN.length],['해보기',PRACTICE_DONE.length,Object.keys(PRACTICES).length],['난이도 정복',nC,nD]];
+  const FK=Object.keys(FOE_KO),nF=FK.filter(k=>(CODEX.foe||{})[k]).length;   /* (11-14 QA) 적 15종이 빠져 0/87 — 컬렉션 창은 102 */
+  const parts=[[ '컬렉션',nOrb+nG+nF,orbKeys.length+G.length+FK.length],['배우기',LEARN_SEEN.length,LEARN.length],['해보기',PRACTICE_DONE.length,Object.keys(PRACTICES).length],['난이도 정복',nC,nD]];
   const all=Math.floor(parts.reduce((s,[,a,b])=>s+pc(a,b),0)/parts.length);
   const L=(k,v,cls)=>`<div class="st-row"><span>${k}</span><b class="${cls||''}">${v}</b></div>`;
   const R=([k,a,b])=>`<div class="st-row"><span>${k}</span><b class="bar" style="--p:${pc(a,b)}%">${pc(a,b)}% <small>(${a}/${b})</small></b></div>`;
@@ -5971,6 +5977,7 @@ html.lmB #lm-title .pl-go{border-width:12px 22px!important;border-image-width:12
 html.lmB #lm-title .st-row{background:var(--cream)!important;box-shadow:0 2px 0 #050a14!important}
 html.lmB #lm-title .st-row>span{color:#2a2118!important}
 html.lmB #lm-title .st-row>b,html.lmB #lm-title .st-row.head{background:var(--nv-900)!important}
+html.lmB #lm-title .st-row.head>span{color:#f6e7c3!important}   /* (11-14 QA) 머리 줄은 남색 바탕 — 어두운 글자라 '진행 내용'이 안 보였음 */
 html.lmB #lm-title .st-row>b.bar{background:linear-gradient(90deg,var(--nv-600) var(--p),var(--nv-900) var(--p))!important}
 
 /* ── 라운드 고르기 ── */
