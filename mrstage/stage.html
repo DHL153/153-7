@@ -4416,6 +4416,7 @@ html body #app .count .cnt-steam{display:inline-block;width:6px;height:6px;borde
 /* (DHL 11-11) 새벽 · 낮 · 노을마다 받은 그림(cel_dawn · cel_day · cel_dusk) — 한 동그라미가 자리를 옮기는 동안 그림이 서서히 바뀜 · 밤은 달(cel_moon) 그대로 */
 html body #battle-stage .sky-cel .cel-sun{background-image:none;filter:none!important}
 .sky-cel .cel-sun b{position:absolute;inset:0;background:center/66.4% no-repeat;opacity:0;transition:opacity 1.8s ease}
+.sky-cel .cel-sun b{filter:saturate(2.1) brightness(1.3)}   /* (11-14 QA) 하늘 전체에 걸린 채도 · 밝기 낮춤(배경 그림에 맞춤) 때문에 해가 회색 얼룩처럼 보였음 → 해만 되돌림 */
 .sky-cel .cel-sun .c0{background-image:url('assets/art/backgrounds/sky/cel_dawn.png')}
 .sky-cel .cel-sun .c1{background-image:url('assets/art/backgrounds/sky/cel_day.png')}
 .sky-cel .cel-sun .c2{background-image:url('assets/art/backgrounds/sky/cel_dusk.png')}
@@ -8834,7 +8835,13 @@ let isGameOver = false;
     f.style.width=w.toFixed(1)+'px';f.style.height=h.toFixed(1)+'px';f.style.left=(S/2-(R.mx||R.cx)*k).toFixed(1)+'px';   /* (DHL 11-12) mx = 몸의 가로 중심(무기 · 꼬리를 뺀 무게 중심) → 적이 에너지 표시 한가운데 아래에 오게 */f.style.top=(S*.9-R.gy*k).toFixed(1)+'px';f._k=k;
     const gk=parseFloat(stage.style.getPropertyValue('--gk'))||1,eb=parseFloat(stage.style.getPropertyValue('--lm-enemy-bottom'))||0,tall=Math.min(R.hud?(R.coreH||R.bodyH)*k*R.hud:R.bodyH*k+(R.float?4:0)+(R.hudUp||0)*k,H*(1-BATTLE_GROUND_LINE)-17*gk-10*gk);   /* (DHL 11-13) 에너지 표시는 적의 가장 높은 곳(무기 · 뿔 포함) 위 — 적을 가리지 않게. 풍차 거인만 hud 값으로 모자 위 */   // hud = 몸통 높이의 몇 배 자리에 표시를 둘지 (풍차 거인 0.8 = 어깨 높이에 겹쳐서 거인에 붙임)   // (DHL 11-12) 체력 · 방패 표시는 몸통 바로 위 — 날개 · 뿔이 높은 적(풍차 거인)도 화면 위쪽 벽에 붙지 않게
     stage.style.setProperty('--lm-hud-w',Math.max(70*gk,Math.min(S*1.4,(R.bodyW||R.bodyH)*k*(R.hudW||.7))).toFixed(1)+'px');   // hudW = 표시 폭(몸 너비 대비) — 풍차 거인은 이름표와 겹치지 않게 좁힘
-    stage.style.setProperty('--lm-hud-bottom',Math.min(H-17*gk-6*gk,eb+S*.1+tall+6*gk).toFixed(1)+'px');}
+    stage.style.setProperty('--lm-hud-bottom',Math.min(H-17*gk-6*gk,eb+S*.1+tall+6*gk).toFixed(1)+'px');hudClamp();}
+  /* (11-14 QA) 큰 적(거인전 3종)은 에너지 표시가 오른쪽 위 적 이름표 밑으로 파고들었음 → 게임이 알려 준 이름표 자리(왼쪽 끝 · 아래 끝)와 겹치면 표시 폭을 줄임 (가운데는 그대로) */
+  let tagBox=null;
+  function hudClamp(){try{if(!tagBox)return;const sr=stage.getBoundingClientRect(),z=sr.width/(stage.offsetWidth||sr.width)||1;
+    for(const id of ['boss-hud','normal-enemy-hp']){const e=$(id);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<4)continue;
+      const right=(r.right-sr.left)/z,top=(r.top-sr.top)/z,over=right-(tagBox.l-8);
+      if(over>0&&top<tagBox.b){const w=parseFloat(stage.style.getPropertyValue('--lm-hud-w'))||r.width/z;stage.style.setProperty('--lm-hud-w',Math.max(60,w-over*2).toFixed(1)+'px');}}}catch(e){}}
   /* 리그 적의 몸 상자(무대 좌표) — 가르기 · 처치 이펙트 자리용 */
   function foeRigBox(){const f=foeFrame(),R=foeReg&&foeReg[foeKey];if(!f||!R||!R.body)return null;const r=f.getBoundingClientRect(),sr=stage.getBoundingClientRect(),z=sr.width/(stage.offsetWidth||sr.width)||1,kx=r.width/1600,ky=r.height/900;
     const top=R.gy-(R.coreH||R.bodyH),x=(r.left-sr.left+R.body[0]*kx)/z,y=(r.top-sr.top+top*ky)/z,w=(R.body[2]-R.body[0])*kx/z,h=(R.gy-top)*ky/z;
@@ -8966,6 +8973,7 @@ let isGameOver = false;
     async setEnemy(o={}){await ready;await foeRegP;return seq(async()=>setupEnemy(o));},
     foeAttack(sid){return ready.then(()=>seq(()=>foeAttack(sid)));},   // 런으로 못 잡았을 때: 적이 공격 동작 한 번 (피해 없음)
     foeList(){return foeRegP;},
+    setTagBox(l,b){tagBox=(l>0)?{l,b}:null;try{foeSize();}catch(e){}},   // 적 이름표 자리 (무대 좌표)
     setCap(o){capO=o||null;if(finPend<=0){gsBroken=false;const sb=$('lm-sbar');if(sb&&!sb._busy&&!sb.classList.contains("flash")&&!sb.classList.contains("brk"))sb._lock=false;}drawCap();},   // 관통으로 깨진 방패는 다음 손패를 고를 때 다시 차오름   // (DHL 10-29) 관통: {cap:한 번 최대 피해, dmg:예상 피해(견습만), brk:3개 맞춤} · null = 숨김
     setHp(cur,max){if(finPend>0){finHp=[cur,max];if(max)maxHp=max;return;}hp=cur;if(max)maxHp=max;setHud();},   // (DHL 10-28) 마지막 일격 연출 중엔 체력을 한 번에 깎지 않음 — 공격마다 깎이고, 끝난 뒤 맞춤
     // 타격 한 번: num = 카드 캐릭터(무대에 없으면 동료로 나왔다 들어감), skill = 컷인, level = 세기(0~11), dmg·crit = 피해 숫자, combo = 연타 수
