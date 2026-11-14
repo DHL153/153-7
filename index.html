@@ -3822,18 +3822,24 @@ function vPopOut(e){if(e.target.closest('.vPop,.vChip'))return;vPopClose();}
 function vPopClose(){document.querySelectorAll('.vPop').forEach(e=>e.remove());document.querySelectorAll('.vChip.on').forEach(c=>{c.classList.remove('on');c.setAttribute('aria-expanded','false');});document.removeEventListener('pointerdown',vPopOut,true);}
 /* (11-06 외부 피드백 '원정 캠프에서 내 덱 목록') 내 덱 보기 — 카드 그대로 · 세계별 줄 · 같은 동료끼리 (발라트로 덱 보기, DHL A안)
    카드마다 번호 · 속성이 판마다 달라서 실제 카드 모양으로 보여 줌 (관통 세 가지를 맞출 카드가 있는지 확인) */
-function deckView(){deckViewClose();vPopClose&&vPopClose();if(!S)return;
+/* (DHL 11-14) 내 덱: 세계 안에서 번호순(큰 번호부터) · 이름순 고르기 + ★ 거르기. 고른 값은 창을 닫아도 그 판 동안 유지 */
+let dkSort='no',dkStar=0;
+function deckView(keep){const old=document.querySelector('.dkV .dkBody'),sy=keep&&old?old.scrollTop:0;deckViewClose();vPopClose&&vPopClose();if(!S)return;
   const ord=id=>NAMES.findIndex(x=>x[0]===TYPES[id].n);
   const pill=w=>`<span style="--wc:${WORLD_C[w]}">${WORLD_KO[w]} <b>${S.deck.filter(c=>cardW(c)===w).length}</b></span>`;
-  const s2=S.deck.filter(c=>c.star===2).length,s3=S.deck.filter(c=>c.star===3).length;
-  const rows=WORLDS.map(w=>{const cs=S.deck.filter(c=>cardW(c)===w).sort((a,b)=>ord(a.id)-ord(b.id)||b.star-a.star||b.no-a.no);if(!cs.length)return '';
+  const nS=k=>S.deck.filter(c=>c.star===k).length;
+  const cmp=dkSort==='no'?(a,b)=>cardNo(b)-cardNo(a)||ord(a.id)-ord(b.id)||b.star-a.star:(a,b)=>ord(a.id)-ord(b.id)||b.star-a.star||cardNo(b)-cardNo(a);
+  const rows=WORLDS.map(w=>{const cs=S.deck.filter(c=>cardW(c)===w&&(!dkStar||c.star===dkStar)).sort(cmp);if(!cs.length)return '';
     return `<div class="dkRow" style="--wc:${WORLD_C[w]}"><b class="dkW">${WORLD_KO[w]}</b><div class="dkCards">`+cs.map(c=>`<div class="card dz s${c.star}" style="border-color:${WORLD_C[cardW(c)]}">${cardFace(c)}</div>`).join('')+`</div></div>`;}).join('');
   const d=document.createElement('div');d.className='dkV';d.setAttribute('role','dialog');d.setAttribute('aria-label','내 덱');
   d.onclick=e=>{if(e.target===d)deckViewClose();};
+  const chip=(on,fn,h)=>`<button type="button" class="dkChip${on?' on':''}" aria-pressed="${on}" onclick="${fn};deckView(1)">${h}</button>`;
+  const star=k=>`<i>★${k}</i> <small>${nS(k)}</small>`;   /* ★ 글자는 화면 전체의 별 그림 바꾸기가 그림으로 바꿔 줌 (직접 그림 + alt="★"를 넣으면 그 바꾸기가 끝없이 돎) */
   d.innerHTML=`<div class="dkBox"><div class="dkHead"><h3>내 덱 <b>${S.deck.length}</b>장</h3><span class="dkPills">${WORLDS.map(pill).join('')}</span>`+
-    `<span class="dkStar">${s2?`<i>★2</i> ${s2}`:''}${s3?` <i>★3</i> ${s3}`:''}</span></div><div class="dkBody">${rows}</div>`+
+    `<span class="dkTools"><span class="dkSeg" role="group" aria-label="정렬">${chip(dkSort==='no',"dkSort='no'",'번호')}${chip(dkSort==='name',"dkSort='name'",'이름')}</span>`+
+    `<span class="dkSeg" role="group" aria-label="별">${chip(!dkStar,'dkStar=0','전체')}${[1,2,3].filter(k=>nS(k)).map(k=>chip(dkStar===k,'dkStar='+k,star(k))).join('')}</span></span></div><div class="dkBody">${rows}</div>`+
     `<button type="button" class="ibBack lmIco dkClose" onclick="deckViewClose()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_back.webp" alt=""></button></div>`;
-  document.body.appendChild(d);d.querySelector('.dkClose').focus({preventScroll:true});}
+  document.body.appendChild(d);if(sy)d.querySelector('.dkBody').scrollTop=sy;if(!keep)d.querySelector('.dkClose').focus({preventScroll:true});}
 function deckViewClose(){document.querySelectorAll('.dkV').forEach(e=>e.remove());}
 function runInfoHTML(){
   if(!S)return '';ensureFoes();
@@ -10170,6 +10176,12 @@ html.lmB .ib .cSub.riCat button.on{color:#3a2606!important}html.lmB .ib .cSub.ri
 .dkHead h3{margin:0;font-size:22px;color:#ffd66a;font-weight:900}.dkHead h3 b{font-size:1.1em}
 .dkPills{display:inline-flex;gap:6px;flex-wrap:wrap}.dkPills span{padding:3px 11px;border-radius:99px;background:var(--wc);color:#fff;font-size:14px;font-weight:800;text-shadow:0 1px 1px #0008}
 .dkStar{font-size:14px;font-weight:800;color:var(--dim,#c8d0da)}.dkStar i{font-style:normal;color:#ffd66a}
+.dkTools{display:inline-flex;flex-wrap:wrap;gap:6px 10px;margin-left:auto}.dkSeg{display:inline-flex;gap:4px}
+.dkChip{display:inline-flex;align-items:center;gap:3px;min-height:32px;padding:3px 11px;border-radius:99px;border:1.5px solid #3a4c6e;background:#0f1a2e;color:#c8d0da;font:800 13px/1 inherit;cursor:pointer}
+.dkChip.on{background:#f6e7c3;border-color:#f1d48a;color:#2a2118}.dkChip i{font-style:normal;color:#e0a800}.dkChip img{width:14px;height:14px}.dkChip small{font-size:11px;opacity:.75}
+/* (DHL 11-14 '덱 확인하니 그림 · 이름 · 번호가 군데군데 빠짐' — 폰) 카드 수십 장이 한꺼번에 움직임 · 그림자 층을 만들어 폰 그래픽 메모리가 모자라면 조각이 안 그려짐
+   → 덱 보기 안에서는 카드 움직임(층을 따로 만드는 것)을 끔 */
+.dkV .card,.dkV .card *,.dkV .card *::before,.dkV .card *::after{animation:none!important;transition:none!important;will-change:auto!important}
 .dkBody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-right:4px}
 .dkRow{display:flex;gap:10px;align-items:stretch}
 .dkW{flex:none;width:34px;writing-mode:vertical-rl;text-orientation:upright;display:flex;align-items:center;justify-content:center;border-radius:9px;background:var(--wc);color:#fff;font-size:15px;font-weight:900;letter-spacing:2px;text-shadow:0 1px 1px #0008}
