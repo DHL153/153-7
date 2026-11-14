@@ -2809,9 +2809,9 @@ function cardFace(c){
   const nm=t.ko,nmc=nm.length>6?' xs':nm.length>4?' sm':'';
   const pl=typeof ICON_IMG!=='undefined'&&ICON_IMG['plate_'+w];
   const stars=Array(c.star).fill(ICO(c.star>=3?'star3':'star2')).join('');
-  const sealAge=c.seal&&c.sealAt?performance.now()-c.sealAt:1e9,sealNew=sealAge>=0&&sealAge<900;   // 방금 걸린 봉인만 사슬 감기는 연출
-  const sealH=c.seal?`<span class="dzSeal${sealNew?' new':''}"${sealNew?` style="--sd:-${Math.round(sealAge)}ms"`:''} title="봉인 — 족보에 못 들어가요. 런에 같이 내거나 버리면 풀려요"></span>`:'';
-  return `<span class="dzi${d?' mood-'+d:''}"${c.seal?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
+  const sealOn=c.seal&&!c.sealWait,sealAge=sealOn&&c.sealAt?performance.now()-c.sealAt:1e9,sealNew=sealAge>=0&&sealAge<900;   // 방금 걸린 봉인만 사슬 감기는 연출
+  const sealH=sealOn?`<span class="dzSeal${sealNew?' new':''}"${sealNew?` style="--sd:-${Math.round(sealAge)}ms"`:''} title="봉인 — 족보에 못 들어가요. 런에 같이 내거나 버리면 풀려요"></span>`:'';
+  return `<span class="dzi${d?' mood-'+d:''}"${sealOn?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
     `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${TYPES[c.id].n}${c.aw==='B'?'_b':''}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
@@ -3209,9 +3209,9 @@ function tick(now){
       else{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];popMsg('⚔ 거인: 약점이 바뀌었어요 — 속성 '+weakTo(f.el));}}}
   if(S.runs<=0)return lose();
   if(S.foe.rule&&S.foe.rule.k==='hook'&&S.hand.length){const out=shuffle(S.hand).slice(0,2);S.hand=S.hand.filter(c=>!out.includes(c));popMsg('🪝 갈고리! '+out.map(c=>TYPES[c.id].ko).join(' · ')+' 버려짐');}
-  lmSealQueue();fill();rollIntent();bossTick();render();
+  {const had=new Set(S.hand.map(c=>c.uid));fill();lmSealQueue();if(S._sealPend)S._sealNew=S.hand.filter(c=>!had.has(c.uid)).map(c=>c.uid);}rollIntent();bossTick();render();
 }
-/* 🔒 봉인 (DHL 11-13): 기사 · 편력 기사에서 런으로 적을 못 잡으면 적의 공격으로 손에 남은 카드 1장(무작위)이 봉인됨.
+/* 🔒 봉인 (DHL 11-13): 기사 · 편력 기사에서 런으로 적을 못 잡으면 적의 공격으로 그 런 뒤 새로 받는 카드 1장(무작위)이 봉인됨 (11-14: 들고 있던 카드는 건드리지 않음).
    봉인된 카드는 족보 · 점수 · 머지에 못 들어감. 런에 같이 내거나 버리면 손에서 나가며 풀림. 라운드가 끝나면 모두 풀림. 견습 · 튜토리얼 · 연습장은 없음.
    봇 시험: claude/seal-bot-test.md */
 const SEAL_N={app:0,knight:1,errant:1};
@@ -3224,15 +3224,28 @@ let lmSealT=0,lmSealSeq=0;
 function lmSealQueue(){if(!lmSealOn())return;S._sealPend=1;S._sealId=++lmSealSeq;clearTimeout(lmSealT);lmSealT=setTimeout(()=>lmSealLand(),20000);}
 function lmSealLand(avoid){try{if(!S||!S._sealPend)return;S._sealPend=0;clearTimeout(lmSealT);if(S.selecting||S.inShop||!S.hand||!S.hand.length||S.score>=S.tgt)return;lmSeal(avoid);render();}catch(e){}}
 window.addEventListener('message',e=>{const d=e.data;if(d&&(d.mrStage==='foeHit'||d.mrStage==='foeAtkEnd')&&S&&S._sealPend&&d.id===S._sealId)lmSealLand();});
-function lmSeal(avoid){if(!lmSealOn())return;const got=[];for(let i=0;i<SEAL_N[S.diff];i++){let pool=S.hand.filter(c=>!c.seal);if(pool.length<=1)break;if(avoid){const p2=pool.filter(c=>!S.sel.includes(c.uid));if(p2.length)pool=p2;}
-    try{const p3=pool.filter(c=>{const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');return el&&!el.classList.contains('lmDfHold')&&!el.classList.contains('lmDfHoldV');});if(p3.length)pool=p3;}catch(e){}   /* (11-14 QA) 아직 덱에서 안 들어온(숨겨 둔) 새 카드는 피함 — 안 보이는 데서 잠기고 사슬 두른 채 날아왔음 */   /* 낼 수 있는 카드는 늘 1장 이상 남김 */const c=pool[Math.random()*pool.length|0];c.seal=true;c.sealAt=performance.now();S.sel=S.sel.filter(u=>u!==c.uid);got.push(c);}
-  if(!got.length)return;S.sealSeen=(S.sealSeen||0)+1;
-  popMsg('🔒 '+got.map(c=>c.fog?'?':TYPES[c.id].ko).join(' · ')+' 봉인!'+(S.sealSeen<=2?' 족보에 못 들어가요 — 런에 같이 내거나 버리면 풀려요':''));
-  try{window.LMS&&LMS.play('sfx_seal_lock',{vol:.85});}catch(e){}}   // 사슬이 감기고 '철컥' (DHL 11-13 ElevenLabs)
+/* (DHL 11-14 '봉인되는 카드를 새로 받는 카드로 한정') 손에 들고 있던 카드는 건드리지 않고, 그 런 뒤에 덱에서 새로 받는 카드 가운데 1장만 봉인.
+   새 카드는 전투가 끝나야 덱에서 날아오므로: 맞는 순간엔 '어느 카드'만 정해 두고(sealWait · 규칙상으로는 이미 봉인),
+   그 카드가 손에 들어와 앞면이 된 직후에 사슬이 감김 + 알림 · 효과음. 새로 받은 카드가 없으면(덱 바닥) 봉인 없음 */
+function lmSeal(avoid){if(!lmSealOn())return;const got=[],fresh=S._sealNew||[];for(let i=0;i<SEAL_N[S.diff];i++){if(S.hand.filter(c=>!c.seal).length<=1)break;   /* 낼 수 있는 카드는 늘 1장 이상 남김 */
+    const pool=S.hand.filter(c=>!c.seal&&fresh.includes(c.uid));if(!pool.length)break;
+    const c=pool[Math.random()*pool.length|0];c.seal=true;c.sealWait=1;delete c.sealAt;S.sel=S.sel.filter(u=>u!==c.uid);got.push(c);}
+  S._sealNew=null;if(!got.length)return;S.sealSeen=(S.sealSeen||0)+1;
+  const shown=c=>{try{const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');return !!el&&!el.classList.contains('lmDfHold')&&!el.classList.contains('lmDfHoldV')&&!document.getElementById('hand').classList.contains('lmDfWait');}catch(e){return true;}};
+  const t0=performance.now();let told=false;
+  const land=()=>{const L=got.filter(c=>c.seal&&c.sealWait&&S&&S.hand&&S.hand.includes(c));if(!L.length)return;
+    L.forEach(c=>{delete c.sealWait;c.sealAt=performance.now();});render();
+    if(!told){told=true;popMsg('🔒 '+L.map(c=>c.fog?'?':TYPES[c.id].ko).join(' · ')+' 봉인!'+(S.sealSeen<=2?' 족보에 못 들어가요 — 런에 같이 내거나 버리면 풀려요':''));
+      try{window.LMS&&LMS.play('sfx_seal_lock',{vol:.85});}catch(e){}}};   // 사슬이 감기고 '철컥' (DHL 11-13 ElevenLabs)
+  const wait=()=>{if(!got.some(c=>c.seal&&c.sealWait))return;
+    if(got.every(c=>!c.sealWait||shown(c))||performance.now()-t0>15000)return void setTimeout(land,noMotionSeal()?0:480);   // 덱에서 날아와 뒤집힌 다음에
+    setTimeout(wait,60);};
+  wait();}
+const noMotionSeal=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
 
 /* 봉인 뒷정리 (11-13 QA): ① 라운드가 끝나면(이김 · 짐) 바로 풀림 — 예전엔 다음 전투 시작 때 풀려서 원정 캠프 · 야영 · 덱 보기 · 저장에 봉인이 남았음
    ② 손패가 전부 봉인인데 버리기도 없으면(덱이 얇을 때) 더 할 수 있는 게 없음 → 모두 풀어 줌 */
-function lmSealClear(){try{clearTimeout(lmSealT);if(S)S._sealPend=0;if(S&&S.deck)S.deck.forEach(c=>{delete c.seal;delete c.sealAt;});}catch(e){}}
+function lmSealClear(){try{clearTimeout(lmSealT);if(S){S._sealPend=0;S._sealNew=null;}if(S&&S.deck)S.deck.forEach(c=>{delete c.seal;delete c.sealAt;delete c.sealWait;});}catch(e){}}
 function lmSealGuard(){try{if(!S||S.busy||S.anim||S.selecting||S.inShop||!S.hand||!S.hand.length||S.runs<=0||S.dis>0)return;if(S.hand.every(c=>c.seal)){S.hand.forEach(c=>{delete c.seal;delete c.sealAt;});popMsg('🔓 손패가 모두 봉인 — 봉인이 풀렸어요');render();}}catch(e){}}
 {const _w=win;win=function(){lmSealClear();return _w.apply(this,arguments);};const _l=lose;lose=function(){lmSealClear();return _l.apply(this,arguments);};const _f=fill;fill=function(){const r=_f.apply(this,arguments);setTimeout(lmSealGuard,0);return r;};}
 
