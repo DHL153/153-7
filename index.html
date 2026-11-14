@@ -2562,12 +2562,9 @@ const WALK={   // w: [밝음, 안개, 어둠] 가중치
   wagon:{ic:'🎁',ko:'버려진 짐마차',w:[1,2,3]},
   knight:{ic:'🐎',ko:'떠돌이 기사',w:[2,2,2]},
   scroll:{ic:'📜',ko:'고문서',w:[3,2,1]},
-  star:{ic:'🔭',ko:'별자리 관측',w:[3,1,0]},
   bandit:{ic:'⚔',ko:'산적 습격',w:[0,2,4]},
   spring:{ic:'⛲',ko:'신비한 샘',w:[0,2,2]},
-  gamble:{ic:'🎲',ko:'풍차 도박',w:[0,1,3]},
-  trap:{ic:'🕳',ko:'함정',w:[0,1,3]},
-  mist:{ic:'🌙',ko:'고요한 밤',w:[3,2,0]}
+  gamble:{ic:'🎲',ko:'풍차 도박',w:[0,1,3]}   // (DHL 11-14) 별자리 관측 · 함정 · 고요한 밤 삭제
 };
 function rollWalk(t){const ks=Object.keys(WALK).filter(k=>WALK[k].w[t]>0&&!(k==='spring'&&S.orbs.length<2)&&!(k==='gamble'&&S.gold<2));let r=Math.random()*ks.reduce((a,k)=>a+WALK[k].w[t],0);for(const k of ks){r-=WALK[k].w[t];if(r<0)return k;}return ks[0];}
 const NIGHT=h=>`<div class="night"><div class="moon"></div><div class="stars"></div>${h}</div>`;
@@ -2580,10 +2577,9 @@ function walkPick(t,el){if(S.walk.k)return;const k=rollWalk(t);S.walk.k=k;S.walk
 function walkPrep(k){const w=S.walk;
   if(k==='wagon'){const pool=Object.keys(ORBS).filter(o=>!S.orbs.includes(o)&&ORBS[o].r!=='r');w.orb=pool[Math.random()*pool.length|0];}
   if(k==='knight')w.cards=shuffle(TYPE_IDS.slice()).slice(0,2).map(id=>({id,el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:2,no:rndNo()}));
-  if(k==='scroll'){const top=Object.entries(S.htCount||{}).filter(([h])=>h!=='solo').sort((a,b)=>b[1]-a[1]).map(x=>x[0])[0];w.hts=top?[top,shuffle(HT_ORDER.filter(h=>h!=='solo'&&h!==top))[0]]:shuffle(HT_ORDER.filter(h=>h!=='solo')).slice(0,2);}
-  if(k==='trap'){const p=S.deck.filter(c=>c.star===1);w.lost=p[Math.random()*p.length|0];}}
+  if(k==='scroll'){const top=Object.entries(S.htCount||{}).filter(([h])=>h!=='solo').sort((a,b)=>b[1]-a[1]).map(x=>x[0])[0];w.hts=top?[top,shuffle(HT_ORDER.filter(h=>h!=='solo'&&h!==top))[0]]:shuffle(HT_ORDER.filter(h=>h!=='solo')).slice(0,2);}}
 const wBtn=(on,b,s,dis)=>`<button class="campBtn" ${dis?'disabled':''} onclick="${on}"><b>${b}</b>${s?`<small>${s}</small>`:''}</button>`;
-function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h2>${W.ic} ${W.ko}</h2><p class="omNote">${d}</p>${body}`));
+function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h2>${W.ko}</h2><p class="omNote">${d}</p>${body}`));
   const end=m=>{S.walk=null;campDone(`🌙 ${m}`);};
   if(k==='wagon'){const full=S.orbs.length>=S.maxOrb,g=4+S.jang;
     if(sub==null)return H('길가에 짐마차가 버려져 있어요. 짐 속에서 무언가 반짝여요.',wBtn('walkEv(1)',full?`💰${g} 챙기기`:`${ORBS[w.orb].ko} 구슬 줍기`,full?'구슬칸이 가득해서 대신 돈을 챙겨요':ORBS[w.orb].d));
@@ -2592,10 +2588,7 @@ function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h
     const c=w.cards[sub];S.deck.push({uid:S.uid++,id:c.id,star:2,el:c.el,no:c.no||rndNo()});return end(`떠돌이 기사 ${TYPES[c.id].ko} ★2 합류 — 덱 ${S.deck.length}장`);}
   if(k==='scroll'){if(sub==null)return H('무너진 예배당에서 낡은 고문서를 찾았어요. 한 권은 당신이 즐겨 쓰는 수법이에요.',w.hts.map(h=>`<div class="skipGot">${HT[h][0]} Lv${S.lv[h]||1} → Lv${(S.lv[h]||1)+1}</div>`).join('')+wBtn('walkEv(1)','두 권 모두 읽기'));
     w.hts.forEach(h=>S.lv[h]=(S.lv[h]||1)+1);return end('고문서 — '+w.hts.map(h=>HT[h][0]+' Lv'+S.lv[h]).join(' · '));}
-  if(k==='star'){if(sub==null){if(S.jang<8){S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff);const R=S.foesNext[2].rule;w.msg=`${S.jang+1}장 거인: ${R.ic} ${R.ko}`;return H('맑은 밤하늘에 다음 길이 그려져요.',`<div class="rsRule"><b>${R.ic} ${R.ko}</b><br>${R.d}</div>`+wBtn('walkEv(1)','기억해 두기',`그리고 별똥별 값 💰2`));}
-      return H('마지막 밤의 별이 유난히 밝아요.',wBtn('walkEv(1)',`💰${3+S.jang} 줍기`));}
-    if(S.jang<8){S.gold+=2;return end('별자리 — '+w.msg);}S.gold+=3+S.jang;return end(`별빛 아래 💰${3+S.jang}`);}
-  if(k==='bandit'){const g=8+S.jang;if(sub==null)return H('산적들이 길을 막아섰어요!',wBtn('walkEv(1)','⚔ 맞서 싸운다',`다음 라운드 목표 ×1.3 · 이기면 보상 💰+${g}`)+wBtn('walkEv(2)','🏃 도망친다',`💰${Math.min(3,S.gold)} 떨어뜨려요`));
+  if(k==='bandit'){const g=8+S.jang;if(sub==null)return H('산적들이 길을 막아섰어요!',wBtn('walkEv(1)','맞서 싸운다',`다음 라운드 목표 ×1.3 · 이기면 보상 💰+${g}`)+wBtn('walkEv(2)','도망친다',`💰${Math.min(3,S.gold)} 떨어뜨려요`));
     if(sub===1){const f=S.foes[S.rd+1];if(f)f.bandit=g;return end(`산적과 맞서기로 — 다음 라운드 ×1.3, 이기면 💰+${g}`);}
     const l=Math.min(3,S.gold);S.gold-=l;return end(`산적에게서 도망 — 💰${l} 잃음`);}
   if(k==='spring'){const can=S.orbs.filter(o=>(S.ost[o]||1)<3);
@@ -2603,11 +2596,8 @@ function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h
     if(sub===0)return end('샘을 그냥 지나쳤어요');
     const others=S.orbs.filter(o=>o!==sub),gone=others[Math.random()*others.length|0];S.ost[sub]=(S.ost[sub]||1)+1;S.orbs.splice(S.orbs.indexOf(gone),1);delete S.ost[gone];if(S.ostate)delete S.ostate[gone];
     return end(`샘 — ${ORBS[sub].ko} ◆+1, ${ORBS[gone].ko} 사라짐`);}
-  if(k==='gamble'){const bet=Math.max(0,Math.floor(S.gold/2));if(sub==null)return H('풍차 아래 노름꾼이 주사위를 흔들어요. 반반이래요.',wBtn('walkEv(1)',`🎲 💰${bet} 걸기`,`이기면 💰${bet*2} · 지면 💰0`)+wBtn('walkEv(0)','안 해요'));
+  if(k==='gamble'){const bet=Math.max(0,Math.floor(S.gold/2));if(sub==null)return H('풍차 아래 노름꾼이 주사위를 흔들어요. 반반이래요.',wBtn('walkEv(1)',`💰${bet} 걸기`,`이기면 💰${bet*2} · 지면 💰0`)+wBtn('walkEv(0)','안 해요'));
     if(sub===0)return end('노름판을 지나쳤어요');S.gold-=bet;if(Math.random()<0.5){S.gold+=bet*2;return end(`풍차 도박 승리! 💰+${bet}`);}return end(`풍차 도박 패배… 💰-${bet}`);}
-  if(k==='trap'){const c=w.lost;if(sub==null)return H('발밑이 꺼졌어요!',c?`<div class="packRow"><div class="card dz s1" style="border-color:${WORLD_C[cardW(c)]}">${cardFace(c)}</div></div><p class="omNote">${TYPES[c.id].ko}이(가) 구덩이에 빠져 길을 잃었어요.</p>`+wBtn('walkEv(1)','…계속 간다'):wBtn('walkEv(1)','겨우 빠져나왔다'));
-    if(c)S.deck.splice(S.deck.indexOf(c),1);return end(c?`함정 — ${TYPES[c.id].ko} 이탈 (덱 ${S.deck.length}장)`:'함정을 겨우 피했어요');}
-  if(k==='mist'){const g=w.paid+2;if(sub==null)return H('아무 일 없이 조용한 밤이에요. 길가에서 동전 몇 닢을 주웠어요.',wBtn('walkEv(1)',`💰${g} 줍기`));S.gold+=g;return end(`고요한 밤 💰${g}`);}
 }
 
 /* 가끔 손님 (30%): 야영 기본 3개에 4번째 선택지가 하나 더 */
@@ -5785,6 +5775,65 @@ html.lmUiOn .rest .cpSub:has(.wRow) h2{zoom:var(--lmUi)}
 /* (DHL 11-11) 야영: 카드는 화면에 맞게 커지는데 '다음 빌런' 칸 · 설명 줄 · 골드 · 아래 버튼 줄은 고정 크기 → 같은 배율. */
 html.lmUiOn .rest .cpNext,html.lmUiOn .rest .cpDesc,html.lmUiOn .rest .cpGold,html.lmUiOn .rest .cpFoot3,html.lmUiOn .rest>.cpBack{zoom:var(--lmUi)}
 
+/* ── (DHL 11-14) 야영 시안 A: 밤 산책 사건 화면 · 간판 등불 한쪽 · 결과 줄 ── */
+.cpHead2{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:1.2vw}
+.cpHead2 .cpSide{display:flex;align-items:flex-end;min-width:0}
+.cpHead2 .cpSideL{justify-content:flex-end}
+.cpHead2 .cpSideR{justify-content:flex-start;align-self:center}
+.cpHead2 .cpGold{position:static;display:inline-flex;align-items:center;gap:4px}
+.rest .cpSub.wEv{background:none;border:0;box-shadow:none;padding:0 4px;overflow:visible;max-height:none;gap:3vw}
+.rest .cpSub.wEv .cpEvArt{--cw:min(20vw,42vh);filter:drop-shadow(0 10px 18px #000c)}
+html.lmUiOn .rest .cpSub.wEv .cpEvArt{--cw:min(calc(20vw / var(--lmUi)),calc(var(--lmVh) * 42))}
+.rest .cpSub.wEv .cpSubIn{max-width:460px}
+.rest .wEv .omNote{font-size:clamp(15px,2.4vh,18px);line-height:1.45;color:#f3e6c8;opacity:1;margin:0 0 12px}
+.rest .wEv .rsRule{background:#1a2a47e6;border:1px solid #c9a24a66;border-radius:12px;padding:12px 14px;text-align:left;color:#c9bfa8;font-size:clamp(13px,2vh,15px);line-height:1.4}
+.rest .wEv .rsRule b{color:#f3e6c8;font-size:clamp(16px,2.6vh,19px)}
+.rest .wEv .campBtn{align-items:center;justify-content:center;text-align:center;min-height:54px;margin:10px 0 0;background:#233759;border:2px solid #c9a24a;border-radius:14px;box-shadow:inset 0 1px 0 #2e476f,0 3px 0 #0009;color:#f3e6c8}
+.rest .wEv .campBtn b{color:#f3e6c8;font-size:clamp(16px,2.5vh,18px)}
+.rest .wEv .campBtn small{color:#c9bfa8;opacity:1;font-size:clamp(12px,1.8vh,13px)}
+.rest .wEv .campBtn:hover:not(:disabled){border-color:#f1d48a;box-shadow:inset 0 1px 0 #2e476f,0 0 12px #f1d48a44,0 3px 0 #0009}
+.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type{background:#e8674a;border:0;box-shadow:0 4px 0 #8f3320,0 0 22px #e8674a55;margin-top:16px}
+.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type b{color:#fff8ec}
+.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type small{color:#ffe7c2}
+.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type:hover:not(:disabled){box-shadow:0 4px 0 #8f3320,0 0 28px #e8674a88}
+.rest .wEv .cpSubIn:has(.campNames) .campBtn{background:none;border:0;box-shadow:none;min-height:44px;margin-top:6px}
+.rest .wEv .cpSubIn:has(.campNames) .campBtn b{color:#c9bfa8;font-size:15px;text-decoration:underline;text-underline-offset:4px}
+.rest .wEv .cpSubIn:has(.campNames) .campBtn small{display:none}
+.rest .wEv .campNames{display:grid;grid-template-columns:1fr;gap:10px;margin-top:4px}
+.rest .wEv .campNames button{min-height:54px;background:#233759;border:2px solid #c9a24a;border-radius:14px;box-shadow:inset 0 1px 0 #2e476f,0 3px 0 #0009;color:#f3e6c8;font-family:inherit;font-size:clamp(15px,2.4vh,17px);font-weight:900}
+.rest .wEv .campNames button:hover{border-color:#f1d48a}
+.rest .wEv .skipGot{display:flex;align-items:center;justify-content:center;gap:8px;background:none;border:0;border-radius:0;padding:4px 0;margin:0;color:#f1d48a;font-size:clamp(15px,2.3vh,17px);font-weight:900}
+.rest .wEv .skipGot::before{content:"";width:7px;height:7px;transform:rotate(45deg);background:#c9a24a;flex:none}
+.rest .cpSub.wEvN{flex-direction:column;margin:auto 0}
+.rest.sub.wEvR{padding-bottom:18vh}
+.rest .cpSub.wEvN .cpSubIn{max-width:none;width:100%}
+.rest .wEv .night>h2{position:static;width:auto;height:auto;overflow:visible;clip:auto}
+.rest .wEv:not(.wEvN) .night>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.rest .wEvN .night>h2{margin:0 0 12px;text-align:center;color:#f1d48a;font-size:clamp(20px,3.2vh,26px)}
+.rest .wEvN .wCard{width:min(18vw,40vh)}
+.rest .wEvN .packRow{display:flex;justify-content:center;gap:16px}
+.rest .wEvN .packRow .card{width:min(16vw,34vh)}
+/* 결과 줄: 그림 + 진행 + 결과 */
+.rest .cpDesc.cpRes{flex-direction:row;justify-content:flex-start;gap:14px;text-align:left;border-color:#c9a24a;background:linear-gradient(#13213bf0,#0a1122f0);box-shadow:inset 0 1px 0 #f1d48a33,0 6px 14px #0008;animation:cpResIn .35s ease-out}
+.cpResTh{position:relative;flex:none;height:100%;max-height:72px;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid #c9a24a;background:#0a1020}
+.cpResTh .cpArt,.cpResTh .cpWArt{left:0;top:0;width:100%;height:100%}
+.cpResTx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cpResTx small{display:flex;align-items:center;gap:5px;font-size:.72em;font-weight:800;color:#93a3bd;letter-spacing:.03em}
+.cpResTx small img{height:1.2em}
+.rest .cpRes .cpResTx b{color:#f3e6c8;font-size:1.05em;line-height:1.3}
+.rest .cpRes .cpResTx>span{opacity:1;color:#ffcf5a;font-weight:800;font-size:.9em}
+@keyframes cpResIn{from{opacity:0;transform:translateY(6px)}}
+@media (orientation:portrait){
+  .cpHead2{gap:2cqw}
+  .rest .cpSub.wEv{gap:2cqh}
+  .rest .cpSub.wEv .cpEvArt{--cw:min(50cqw,32cqh)}
+  .rest .cpSub.wEv .cpSubIn{max-width:none}
+  .rest .wEvN .wCard{width:min(31cqw,34cqh)}
+  .rest .wEvN .wRow{gap:2.5cqw}
+  .rest .wEvN .packRow .card{width:min(40cqw,30cqh)}
+  .cpResTh{max-height:64px}
+}
+@media (prefers-reduced-motion:reduce){.rest .cpDesc.cpRes{animation:none}}
 /* (QA 11-11) 게임 중 옵션 창 뒤로 타이틀의 플레이 · 옵션 · 컬렉션 버튼이 흐릿하게 비치던 것 — 게임 중에는 창만 보이게 */
 html body #lm-title.ingame.ingame>:not(.lt-pop){display:none!important}
 </style>
@@ -7062,8 +7111,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     return {st,cost,off,d:G.d(g)};}
   const lamp=on=>`<i class="cpLamp${on?'':' off'}"></i>`;
   function header(){const mx=S.campMax||2,left=S.campLeft,ls=[];for(let i=0;i<mx;i++)ls.push(lamp(i<left));
-    const h=Math.ceil(ls.length/2);
-    return `<div class="cpHead"><div class="cpLamps">${ls.slice(0,h).join('')}</div><div class="cpSign"><b>야영</b></div><div class="cpLamps">${ls.slice(h).join('')}</div><span class="cpGold">💰${S.gold}</span></div>`;}
+    /* (DHL 11-14 '왼쪽 불 2개, 오른쪽 1개 이상') 등불(남은 정비)은 왼쪽에 한 줄로 모으고, 오른쪽 칸은 골드 — 간판 양옆이 늘 한 쌍 */
+    return `<div class="cpHead cpHead2"><div class="cpSide cpSideL"><div class="cpLamps">${ls.join('')}</div></div><div class="cpSign"><b>야영</b></div><div class="cpSide cpSideR"><span class="cpGold">💰${S.gold}</span></div></div>`;}
   window.restHeader=header;
   function card(k,I,guest){const sel=S.restSel===k;
     return `<div class="cpSt${guest?' guest':''}${I.off?' off':''}${sel?' sel':''}" onclick="restTap('${k}')" onmouseenter="restHover('${k}')" onmouseleave="restHover()">`+
@@ -7071,14 +7120,17 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
       `<b class="cpNm">${guest?GUESTS[S.campGuest.k].ko:NM[k]}</b><span class="cpStat">${I.cost?`<em class="cpCost"><img src="assets/ui/maple/icons/coin.webp" alt="">${I.cost}</em>`:''}${I.st}</span></div>`;}
   function all(){const L=Object.keys(CAMP).map(k=>[k,info(k),0]);const g=S.campGuest;if(g&&!g.used)L.unshift(['guest',gInfo(g),1]);return L;}
   function desc(k){if(!k){const last=S.campLog[S.campLog.length-1];
-      return `<div class="cpDesc"><b>${S.campLog.length?'✔ '+last.split(' — ')[0]:'정비 '+(S.campMax||2)+'번'}</b><span>${S.campLog.length?(last.split(' — ')[1]||''):'같은 정비를 두 번 해도 돼요'}</span></div>`;}
+      if(S.campLog.length){const mx=S.campMax||2,n=S.campLog.length,parts=last.replace(/^🌙\s*/,'').split(' — '),th=S.campLastArt||'';
+        /* (DHL 11-14 '아래 멘트 디자인 필요') 결과 줄 = 방금 한 정비 그림 + 진행 + 결과(앞부분 크게, 뒷부분 작게) */
+        return `<div class="cpDesc cpRes">${th?`<span class="cpResTh">${th}</span>`:''}<span class="cpResTx"><small><img src="assets/ui/icon/check.webp" alt="">정비 ${n}/${mx} 완료${S.campLeft>0?` · 하나 더 고를 수 있어요`:''}</small><b>${parts[0]}</b>${parts[1]?`<span>${parts[1]}</span>`:''}</span></div>`;}
+      return `<div class="cpDesc"><b>${'정비 '+(S.campMax||2)+'번'}</b><span>같은 정비를 두 번 해도 돼요</span></div>`;}
     const L=all().find(x=>x[0]===k);if(!L)return desc();const I=L[1];
     const nm=k==='guest'?GUESTS[S.campGuest.k].ko:NM[k];
     return `<div class="cpDesc"><b>${nm}</b><span>${I.d}</span>${I.off?`<em>${I.off}</em>`:''}</div>`;}
   window.restHover=k=>{const d=document.querySelector('.rest .cpDesc');if(!d)return;if(k&&window.lmTutInboxOff)lmTutInboxOff();d.outerHTML=desc(k||S.restSel);};
   window.restTap=k=>{const L=all().find(x=>x[0]===k);if(!L)return;
     if(S.restSel!==k){S.restSel=k;return campOpen();}
-    if(L[1].off)return;S.restSel=null;
+    if(L[1].off)return;S.restSel=null;S.campLastArt=art(k==='guest'?S.campGuest.k:k);
     if(k==='guest')return guestGo();return campPick(k);};
   campOpen=function(){if(S.rd>=2||deckIs('restless'))return;S.campSel=[];
     if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];S.restSel=null;}
@@ -7095,7 +7147,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
       let a='';const pick=/packRow/.test(h);h=h.replace(/<button class="rsInfo" onclick="([^"]+)">← (?:뒤로|돌아가기)<\/button>/g,'<button class="cpBack lmIco" onclick="$1" aria-label="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button>');if(pick){}else if(S.walk&&S.walk.k&&h.indexOf('class="night"')>=0&&h.indexOf('wRow')<0)a=`<div class="cpEvArt">${wart(S.walk.k)}<i class="cpFr gold"></i><b class="cpNm">${WALK[S.walk.k].ko}</b></div>`;
       else if(S.campK&&/campNames|packRow/.test(h)&&!S.walk)a=`<div class="cpEvArt">${art(S.campK)}<i class="cpFr"></i><b class="cpNm">${NM[S.campK]}</b></div>`;
       else if(S.campGuestUsing&&S.campGuest)a=`<div class="cpEvArt">${art(S.campGuest.k)}<i class="cpFr gold"></i><b class="cpNm">${GUESTS[S.campGuest.k].ko}</b></div>`;
-      h=`<div class="rest sub">${header()}<div class="cpSub${a?' art':''}">${a}<div class="cpSubIn">${h}</div></div></div>`;}
+      const ev=!!S.walk;   /* (DHL 11-14 시안 A) 밤 산책 사건 = 상자 없이 카드가 주인공, 이름은 카드에만 */
+      h=`<div class="rest sub${ev?' wEvR':''}">${header()}<div class="cpSub${a?' art':''}${ev?' wEv':''}${ev&&!a?' wEvN':''}">${a}<div class="cpSubIn">${h}</div></div></div>`;}
     return _so.apply(this,arguments.length?[h].concat([].slice.call(arguments,1)):[h]);};
   const _cp=campPick;campPick=function(k,name){if(k==='merge'||k==='leave')S.campK=k;return _cp.apply(this,arguments);};
   const _gg=guestGo;guestGo=function(sub){S.campGuestUsing=true;return _gg.apply(this,arguments);};
@@ -7106,7 +7159,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     S.walk.ord.map(t=>`<div class="wCard" onclick="walkPick(${t},this)"><div class="wIn"><div class="wBack t${t}">${wart('p'+t)}<i class="cpFr"></i><b class="cpNm">${PATHS[t].ko}</b><span class="cpStat">${['안전','알 수 없음','대박 · 낭패'][t]}</span></div><div class="wFront"></div></div></div>`).join('')+`</div>`));};
   walkPick=function(t,el){if(S.walk.k)return;const k=rollWalk(t);S.walk.k=k;S.walk.t=t;const W=WALK[k];walkPrep(k);
     document.querySelectorAll('.wCard').forEach(x=>{if(x!==el)x.classList.add('fade');});
-    el.querySelector('.wFront').innerHTML=`${wart(k)}<i class="cpFr gold"></i><b class="cpNm">${W.ko}</b>`;el.classList.add('flip');setTimeout(()=>walkEv(),1100);};
+    el.querySelector('.wFront').innerHTML=`${wart(k)}<i class="cpFr gold"></i><b class="cpNm">${W.ko}</b>`;el.classList.add('flip');S.campLastArt=wart(k);setTimeout(()=>walkEv(),1100);};
 })();
 
 /* 🔨 머지 고르기 창 (DHL 10-29 "이 화면도 우리 UI로"): 색 버튼 → 결과 카드 미리보기 + 세계 방패 · 속성 코인 고르기 */
