@@ -1033,7 +1033,7 @@ html:has(#ov:not([hidden])),body:has(#ov:not([hidden])){overflow:hidden!importan
 .rbFoe b{display:flex;align-items:center;justify-content:center;gap:4px;line-height:1.25}
 .rbEls{display:flex!important;justify-content:center;gap:4px 8px;flex-wrap:wrap}
 .rbEls em{display:inline-flex;align-items:center;gap:3px;font-style:normal;white-space:nowrap}.rbEls small{font-size:.92em;color:#aebbc4}
-.rbRule b{white-space:nowrap}.rbRule .rbOk{font-size:11px;color:#ffb4b4;font-weight:800}
+.rbRule b{white-space:nowrap}@media (orientation:portrait){.rbRule b{white-space:normal;overflow-wrap:anywhere}}.rbRule .rbOk{font-size:11px;color:#ffb4b4;font-weight:800}
 .rbRw{white-space:nowrap;display:inline-flex;align-items:center;gap:3px}.rbRw em{font-style:normal}.rbRw b{font:900 1.25em/1 'Noto Sans KR',sans-serif!important;color:#ffb800!important;text-shadow:none!important}
 @media (max-height:460px){.rbEls{display:none!important}}
 .rbSkip span{line-height:1.35}
@@ -3768,7 +3768,7 @@ function learnHTML(){
   /* (DHL 11-14 B안 통일) 진도 패널(막대 + 이어서 보기 · 용어 사전 같은 크기) → 차례 패널 → 니콜과 다시 배우기 패널 */
   const seenN=LEARN_ORDER.filter(k=>LEARN_SEEN.includes(k)).length,N=LEARN_ORDER.length,pc=Math.round(100*seenN/Math.max(1,N));
   return `<section class="riSec"><div class="riH"><b>배우기 진도</b><small>${N}쪽 중 ${seenN}쪽 봄</small></div><div class="riProg"><b>${seenN}<small>/ ${N}</small></b><span class="riBar"><i style="width:${pc}%"></i></span></div>`+
-    `<div class="riBtns"><button type="button" class="riBtn" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':`이어서 보기 <small>${lPos(next)+1}쪽</small>`}</button><button type="button" class="riBtn cream" onclick="openInfo('learn','dict')">용어 사전</button></div></section>`+
+    `<div class="riBtns"><button type="button" class="riBtn" onclick="openInfo('learn','page',${next==null?0:next})">${next==null?'처음부터 다시':`이어서 보기 <small style="margin-left:.45em">${lPos(next)+1}쪽</small>`}</button><button type="button" class="riBtn cream" onclick="openInfo('learn','dict')">용어 사전</button></div></section>`+
     `<section class="riSec"><div class="riH"><b>차례</b><small>한 장씩 넘기며 배워요</small></div><div class="lList">${rows}</div></section>`+
     `<section class="riSec"><div class="riH"><b>니콜과 다시 배우기</b><small>처음 안내를 다시 봐요</small></div><div class="riBtns"><button type="button" class="riBtn cream" onclick="lmTutReplayBtn(this,'app')">견습 기사 안내</button><button type="button" class="riBtn cream" ${typeof ltDiffOpen==='function'&&!ltDiffOpen('knight')?'disabled':''} onclick="lmTutReplayBtn(this,'knight')">기사 · 머지 & 런</button></div></section>`;
 }
@@ -3883,7 +3883,7 @@ function codexHTML(){
   const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length,FK=Object.keys(FOE_KO),nF=FK.filter(k=>CODEX.foe[k]).length;
   /* (DHL 11-14 B안 통일) 맨 위 '수집 현황' 패널: 전체 % + 분류 4칸(탭 겸 진행도) · 아래 '○○ 도감' 패널 */
   const sub=[['orb','구슬',nOrb,orbKeys.length],['mate','동료',30,30],['foe','적',nF,FK.length],['giant','거인',nG,G.length]],pc=(a,b)=>Math.round(100*a/Math.max(1,b));
-  const got=sub.reduce((a,x)=>a+x[2],0),all=sub.reduce((a,x)=>a+x[3],0);
+  const cnt=sub.filter(x=>x[0]!=='mate'),got=cnt.reduce((a,x)=>a+x[2],0),all=cnt.reduce((a,x)=>a+x[3],0);   /* (11-14 QA) 동료는 처음부터 모두 주므로 수집률에서 뺌 — 타이틀 컬렉션(0%)과 도감(24%)이 서로 달랐음 */
   const top=`<section class="riSec"><div class="riH"><b>수집 현황</b><small>${got} / ${all}</small></div><div class="riProg"><b>${pc(got,all)}<small>%</small></b><span class="riBar"><i style="width:${pc(got,all)}%"></i></span></div>`+
     `<div class="cSub riCat" role="tablist">${sub.map(([k,n,a,b])=>`<button role="tab" aria-selected="${k===codexSub}" class="${k===codexSub?'on':''}" onclick="codexSub='${k}';codexSel=null;openInfo('codex')">${n}<small>${a}/${b}</small><span class="riBar"><i style="width:${pc(a,b)}%"></i></span></button>`).join('')}</div></section>`;
   const cur=sub.find(x=>x[0]===codexSub)||sub[0],hint={orb:'원정 캠프에서 만나요 · 눌러서 효과',mate:'눌러서 동료를 만나요',foe:'전투에서 만나요 · 눌러서 움직임',giant:'거인 라운드에서 만나요'}[cur[0]];
@@ -5715,6 +5715,7 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 #lm-title .pl-dk.lock .pl-name b{color:#aab4c8}
 #lm-title .pl-dk .pl-dkNew{font-style:normal;font-size:10px;vertical-align:3px;margin-left:4px;padding:1px 6px;border-radius:99px;background:#e2552a;color:#fff}
 #lm-title .pl-dk .pl-dkDots{margin-right:auto;display:flex;gap:3px;align-items:center}
+@media (max-width:480px){#lm-title .pl-dk .pl-dkDots{flex:1 1 100%}}   /* (11-14 QA) 390 폭에서 훈장이 2개 + 1개로 꺾이던 것 → 점 한 줄 · 훈장 한 줄 */
 #lm-title .pl-dk .pl-dkDots i{width:5px;height:5px;border-radius:50%;background:#2a211855}
 #lm-title .pl-dk .pl-dkDots i.lk{background:#2a211822}
 #lm-title .pl-dk .pl-dkDots i.on{background:#2a2118;transform:scale(1.5)}
