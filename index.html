@@ -2578,7 +2578,7 @@ function walkPrep(k){const w=S.walk;
   if(k==='wagon'){const pool=Object.keys(ORBS).filter(o=>!S.orbs.includes(o)&&ORBS[o].r!=='r');w.orb=pool[Math.random()*pool.length|0];}
   if(k==='knight')w.cards=shuffle(TYPE_IDS.slice()).slice(0,2).map(id=>({id,el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:2,no:rndNo()}));
   if(k==='scroll'){const top=Object.entries(S.htCount||{}).filter(([h])=>h!=='solo').sort((a,b)=>b[1]-a[1]).map(x=>x[0])[0];w.hts=top?[top,shuffle(HT_ORDER.filter(h=>h!=='solo'&&h!==top))[0]]:shuffle(HT_ORDER.filter(h=>h!=='solo')).slice(0,2);}}
-const wBtn=(on,b,s,dis)=>`<button class="campBtn" ${dis?'disabled':''} onclick="${on}"><b>${b}</b>${s?`<small>${s}</small>`:''}</button>`;
+const wBtn=(on,b,s,dis,kind)=>`<button class="campBtn lmK w${kind||'ok'}" ${dis?'disabled':''} onclick="${on}"><b>${b}</b>${s?`<small>${s}</small>`:''}</button>`;
 function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h2>${W.ko}</h2><p class="omNote">${d}</p>${body}`));
   const end=m=>{S.walk=null;campDone(`🌙 ${m}`);};
   if(k==='wagon'){const full=S.orbs.length>=S.maxOrb,g=4+S.jang;
@@ -2588,15 +2588,15 @@ function walkEv(sub){const w=S.walk,k=w.k,W=WALK[k],H=(d,body)=>showOv(NIGHT(`<h
     const c=w.cards[sub];S.deck.push({uid:S.uid++,id:c.id,star:2,el:c.el,no:c.no||rndNo()});return end(`떠돌이 기사 ${TYPES[c.id].ko} ★2 합류 — 덱 ${S.deck.length}장`);}
   if(k==='scroll'){if(sub==null)return H('무너진 예배당에서 낡은 고문서를 찾았어요. 한 권은 당신이 즐겨 쓰는 수법이에요.',w.hts.map(h=>`<div class="skipGot">${HT[h][0]} Lv${S.lv[h]||1} → Lv${(S.lv[h]||1)+1}</div>`).join('')+wBtn('walkEv(1)','두 권 모두 읽기'));
     w.hts.forEach(h=>S.lv[h]=(S.lv[h]||1)+1);return end('고문서 — '+w.hts.map(h=>HT[h][0]+' Lv'+S.lv[h]).join(' · '));}
-  if(k==='bandit'){const g=8+S.jang;if(sub==null)return H('산적들이 길을 막아섰어요!',wBtn('walkEv(1)','맞서 싸운다',`다음 라운드 목표 ×1.3 · 이기면 보상 💰+${g}`)+wBtn('walkEv(2)','도망친다',`💰${Math.min(3,S.gold)} 떨어뜨려요`));
+  if(k==='bandit'){const g=8+S.jang;if(sub==null)return H('산적들이 길을 막아섰어요!',wBtn('walkEv(1)','맞서 싸운다',`다음 라운드 목표 ×1.3 · 이기면 보상 💰+${g}`,0,'risk')+wBtn('walkEv(2)','도망친다',`💰${Math.min(3,S.gold)} 떨어뜨려요`,0,'safe'));
     if(sub===1){const f=S.foes[S.rd+1];if(f)f.bandit=g;return end(`산적과 맞서기로 — 다음 라운드 ×1.3, 이기면 💰+${g}`);}
     const l=Math.min(3,S.gold);S.gold-=l;return end(`산적에게서 도망 — 💰${l} 잃음`);}
   if(k==='spring'){const can=S.orbs.filter(o=>(S.ost[o]||1)<3);
-    if(sub==null)return H('샘물에 구슬을 담그면 하나는 빛나고, 하나는 녹아 사라진대요.',`<div class="campNames">`+can.map(o=>`<button onclick="walkEv('${o}')">${ORBS[o].ko} ◆+1</button>`).join('')+`</div>`+wBtn('walkEv(0)','그냥 지나간다','아무 일도 없어요'));
+    if(sub==null)return H('샘물에 구슬을 담그면 하나는 빛나고, 하나는 녹아 사라진대요.',`<div class="campNames">`+can.map(o=>`<button class="lmK wrisk" onclick="walkEv('${o}')">${ORBS[o].ko} ◆+1</button>`).join('')+`</div>`+wBtn('walkEv(0)','그냥 지나간다',0,0,'safe'));
     if(sub===0)return end('샘을 그냥 지나쳤어요');
     const others=S.orbs.filter(o=>o!==sub),gone=others[Math.random()*others.length|0];S.ost[sub]=(S.ost[sub]||1)+1;S.orbs.splice(S.orbs.indexOf(gone),1);delete S.ost[gone];if(S.ostate)delete S.ostate[gone];
     return end(`샘 — ${ORBS[sub].ko} ◆+1, ${ORBS[gone].ko} 사라짐`);}
-  if(k==='gamble'){const bet=Math.max(0,Math.floor(S.gold/2));if(sub==null)return H('풍차 아래 노름꾼이 주사위를 흔들어요. 반반이래요.',wBtn('walkEv(1)',`💰${bet} 걸기`,`이기면 💰${bet*2} · 지면 💰0`)+wBtn('walkEv(0)','안 해요'));
+  if(k==='gamble'){const bet=Math.max(0,Math.floor(S.gold/2));if(sub==null)return H('풍차 아래 노름꾼이 주사위를 흔들어요. 반반이래요.',wBtn('walkEv(1)',`💰${bet} 걸기`,`이기면 💰${bet*2} · 지면 💰0`,0,'risk')+wBtn('walkEv(0)','안 해요',0,0,'safe'));
     if(sub===0)return end('노름판을 지나쳤어요');S.gold-=bet;if(Math.random()<0.5){S.gold+=bet*2;return end(`풍차 도박 승리! 💰+${bet}`);}return end(`풍차 도박 패배… 💰-${bet}`);}
 }
 
@@ -5773,20 +5773,15 @@ html.lmUiOn .rest .cpSub.wEv .cpEvArt{--cw:min(calc(20vw / var(--lmUi)),calc(var
 .rest .wEv .omNote{font-size:clamp(15px,2.4vh,18px);line-height:1.45;color:#f3e6c8;opacity:1;margin:0 0 12px}
 .rest .wEv .rsRule{background:#1a2a47e6;border:1px solid #c9a24a66;border-radius:12px;padding:12px 14px;text-align:left;color:#c9bfa8;font-size:clamp(13px,2vh,15px);line-height:1.4}
 .rest .wEv .rsRule b{color:#f3e6c8;font-size:clamp(16px,2.6vh,19px)}
-.rest .wEv .campBtn{align-items:center;justify-content:center;text-align:center;min-height:54px;margin:10px 0 0;background:#233759;border:2px solid #c9a24a;border-radius:14px;box-shadow:inset 0 1px 0 #2e476f,0 3px 0 #0009;color:#f3e6c8}
-.rest .wEv .campBtn b{color:#f3e6c8;font-size:clamp(16px,2.5vh,18px)}
-.rest .wEv .campBtn small{color:#c9bfa8;opacity:1;font-size:clamp(12px,1.8vh,13px)}
-.rest .wEv .campBtn:hover:not(:disabled){border-color:#f1d48a;box-shadow:inset 0 1px 0 #2e476f,0 0 12px #f1d48a44,0 3px 0 #0009}
-.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type{background:#e8674a;border:0;box-shadow:0 4px 0 #8f3320,0 0 22px #e8674a55;margin-top:16px}
-.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type b{color:#fff8ec}
-.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type small{color:#ffe7c2}
-.rest .wEv .cpSubIn:not(:has(.campNames,.packRow)) .campBtn:only-of-type:hover:not(:disabled){box-shadow:0 4px 0 #8f3320,0 0 28px #e8674a88}
-.rest .wEv .cpSubIn:has(.campNames) .campBtn{background:none;border:0;box-shadow:none;min-height:44px;margin-top:6px}
-.rest .wEv .cpSubIn:has(.campNames) .campBtn b{color:#c9bfa8;font-size:15px;text-decoration:underline;text-underline-offset:4px}
-.rest .wEv .cpSubIn:has(.campNames) .campBtn small{display:none}
-.rest .wEv .campNames{display:grid;grid-template-columns:1fr;gap:10px;margin-top:4px}
-.rest .wEv .campNames button{min-height:54px;background:#233759;border:2px solid #c9a24a;border-radius:14px;box-shadow:inset 0 1px 0 #2e476f,0 3px 0 #0009;color:#f3e6c8;font-family:inherit;font-size:clamp(15px,2.4vh,17px);font-weight:900}
-.rest .wEv .campNames button:hover{border-color:#f1d48a}
+.rest .wEv .campBtn,.rest .wEv .campNames button{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;width:100%;min-height:64px;margin:10px 0 0;padding:0 4px!important;font-family:inherit;cursor:pointer}
+.rest .wEv .campBtn b,.rest .wEv .campNames button{color:#fff8ec!important;font-size:clamp(16px,2.5vh,18px);font-weight:900}
+.rest .wEv .campBtn small{color:#ffe9cf!important;opacity:1;font-size:clamp(12px,1.8vh,13px);font-weight:700}
+.rest .wEv .campBtn.wsafe:not(:has(small)){min-height:56px}
+html.lmB .rest .wEv .wok{--kb:url(assets/ui/kit/btn_orange.webp);--kbp:url(assets/ui/kit/btn_orange_pressed.webp)}
+html.lmB .rest .wEv .wrisk{--kb:url(assets/ui/kit/btn_red.webp);--kbp:url(assets/ui/kit/btn_red_pressed.webp)}
+html.lmB .rest .wEv .wsafe{--kb:url(assets/ui/kit/btn_blue.webp);--kbp:url(assets/ui/kit/btn_blue_pressed.webp)}
+.rest .wEv .campBtn.wok{margin-top:16px}
+.rest .wEv .campNames{display:grid;grid-template-columns:1fr;gap:0;margin-top:4px}
 .rest .wEv .skipGot{display:flex;align-items:center;justify-content:center;gap:8px;background:none;border:0;border-radius:0;padding:4px 0;margin:0;color:#f1d48a;font-size:clamp(15px,2.3vh,17px);font-weight:900}
 .rest .wEv .skipGot::before{content:"";width:7px;height:7px;transform:rotate(45deg);background:#c9a24a;flex:none}
 .rest .cpSub.wEvN{flex-direction:column;margin:auto 0}
