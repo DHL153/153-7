@@ -2210,7 +2210,12 @@ function scoringCards(cards,ht,foe){cards=cards.filter(c=>!c.seal);if(!cards.len
     const g=Object.values(byKey(cardNo)).filter(a=>W(a)>=2);   // 겹친 이름 족보까지: 2장 이상 묶음 모두
     return g.flat();}
   // 원소 · 세계 결속: 가장 무거운 속성(세계)을 고르고, 그 속성을 가진 카드(★3 니콜 · 카르덴은 모든 속성 · 세계) 모두
-  const bestKey=(f,keys)=>keys.map(k=>[k,W(cards.filter(c=>f(c).includes(k)))]).sort((a,b)=>b[1]-a[1])[0][0];
+  /* (DHL 11-14 '10번 스카이 로시가 왜 빠지죠?') 두 세계(속성)가 모두 결속을 채우면(예: 스카이 5 · 네온 5) 예전엔 목록 앞쪽(러스트 → 네온 → 스카이)을 골라,
+     이미 이름 족보로 점수에 들어간 카드만 있는 쪽이 뽑히고 다른 쪽 카드는 '족보 밖'이 됐음 → 결속을 채운 것들 가운데 '이 결속으로 새로 점수에 들어오는 카드의 힘'이 가장 큰 쪽 */
+  const inName=new Set(Object.values(byKey(cardNo)).filter(a=>W(a)>=2).flat());
+  const bestKey=(f,keys)=>{const L=keys.map(k=>{const cs=cards.filter(c=>f(c).includes(k));return {k,w:W(cs),add:cs.filter(c=>!inName.has(c)).reduce((t,c)=>t+battlePower(c,foe),0)};});
+    const top=Math.max(...L.map(x=>x.w)),need=Math.min(5,top),ok=L.filter(x=>x.w>=need);
+    return ok.sort((a,b)=>b.add-a.add||b.w-a.w)[0].k;};
   if(ht==='elf'){const k=bestKey(elsOf,ELS);return cards.filter(c=>elsOf(c).includes(k));}
   if(ht==='world'){const k=bestKey(worldsOf,WORLDS);return cards.filter(c=>worldsOf(c).includes(k));}
   const best=cards.slice().sort((a,b)=>battlePower(b,foe)-battlePower(a,foe))[0];return [best];   // 홀로 런: 가장 센 1장
