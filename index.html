@@ -8761,10 +8761,13 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
 <style id="lm-qa-1115">
 /* (DHL 11-15 QA '일관되지 않은 · 디테일하지 않은 UI') */
 /* C1 머지 창 · 각성 창: 버튼을 다른 창과 같은 키트 버튼으로 — 머지 = 초록(머지 색) · 머지 하지 않음 = 크림 */
+@media not all and (orientation:portrait){   /* (DHL 11-15) 모바일 세로는 이전 버튼(작은 회색 · 큰 주황) — 키트 버튼은 폭이 커서 머지 버튼이 창 밖으로 넘침 */
 html.lmB body .mgGo:not(#_){height:auto;min-height:52px;padding:2px 30px;border-radius:0;border:0 solid transparent;border-width:12px 15px;border-image:url(assets/ui/kit/btn_green.webp) 40 46 40 46 fill / 12px 15px / 0 stretch;background:none;box-shadow:none;color:#fff;text-shadow:0 2px 0 #0009;font-size:clamp(17px,2.6vh,21px);filter:drop-shadow(0 3px 0 #000b)}
 html.lmB body .mgGo:not(#_):active{border-image-source:url(assets/ui/kit/btn_green_pressed.webp);translate:0 2px}
 html.lmB body .mgSkip:not(#_){min-height:52px;padding:2px 16px;border-radius:0;border:0 solid transparent;border-width:12px 15px;border-image:url(assets/ui/kit/btn_cream.webp) 40 46 40 46 fill / 12px 15px / 0 stretch;background:none;box-shadow:none;color:#2a2118;font:900 clamp(14px,2.2vh,17px)/1.2 "Noto Sans KR",sans-serif;filter:drop-shadow(0 3px 0 #000b)}
 html.lmB body .mgSkip:not(#_):active{border-image-source:url(assets/ui/kit/btn_cream_pressed.webp);translate:0 2px}
+}
+@media (orientation:portrait) and (max-width:400px){html.lmB body .mgGo:not(#_){padding:0 20px}html.lmB body .mgFoot:not(#_){gap:8px}}   /* (DHL 11-15) 좁은 폰(360px)에서도 머지 버튼이 창 안에 */
 /* D1 상점 구슬 순서 · 판매 버튼: 게임에서 가장 작던 버튼(26px) → 누르기 좋은 크기 */
 html.lmB .shop .ordRow{gap:10px;margin:2px 0 8px}
 html.lmB .shop .ordRow>button{min-width:136px!important;min-height:52px!important;font-size:17px!important;border-image-width:12px 15px!important;padding:2px 16px!important}
