@@ -7377,7 +7377,7 @@ html.lmB #lm-title .lt-cb.lc-t,#lm-title .lt-cb.lc-t{position:relative;flex:1;mi
     const nOrb=orbKeys.filter(k=>CODEX.orb[k]).length,nG=G.filter(g=>CODEX.giant[g.k]).length,nM=30,tM=30,FK=Object.keys(FOE_KO),nF=FK.filter(k=>(CODEX.foe||{})[k]).length;
     const all=nOrb+nG+nF,tot=orbKeys.length+G.length+FK.length,pc=Math.round(all/tot*100);   /* 동료는 처음부터 모두 주므로 수집률에서 뺌 (DHL 10-29) */
     const T=(k,cls,name,sub,n,t,art)=>{const p=t?Math.round(n/t*100):0,done=n>=t&&k!=='mate';
-      return `<button type="button" class="lt-cb lc-t ${cls}${done?' done':''}" onclick="ltPop();window._lmBack=()=>ltPop('col');codexSub='${k}';codexSel=null;openInfo('codex')"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${k==='mate'?`<em>${t}<u>명</u></em>`:`<span class="lc-bar"><i style="--p:${p}%"></i></span><em>${n} <u>/ ${t}</u></em>`}</span>${done?'<span class="lc-badge">★ 완성</span>':''}</button>`;};
+      return `<button type="button" class="lt-cb lc-t ${cls}${done?' done':''}" onclick="ltPop();window._lmBack=()=>ltPop('col');codexSub='${k}';codexSel=null;openInfo('codex')"><span class="lc-art">${art}</span><span class="lc-txt"><b>${name}</b><small>${sub}</small>${k==='mate'?`<em>${t}<u>명</u></em>`:`<span class="lc-barRow"><span class="lc-bar"><i style="--p:${p}%"></i></span>${done?'<span class="lc-badge">★ 완성</span>':''}</span><em>${n} <u>/ ${t}</u></em>`}</span></button>`;};
     const emb=['mill','crown','bell'].map(e=>`<span><img src="assets/ui/orb/emb_${e}.webp" alt=""></span>`).join('');
     return `<div class="lc-wrap"><div class="lc-head"><div class="lc-rib">컬렉션</div><div class="lc-sum"><span>전체 수집</span><span class="lc-bar"><i style="--p:${pc}%"></i></span><b>${pc}%</b></div></div><div class="lc-list">`+
       T('mate','lc-mate','동료','처음부터 모두 함께 달려요',nM,tM,`<img src="${A}characters/char_0004.png" alt=""><img src="${A}characters/char_0009.png" alt=""><img src="${A}characters/char_0001.png" alt="">`)+
@@ -8576,6 +8576,12 @@ function lmEndless(){hideOv();delete S._bgmEnd;S.endless=true;S._statEnded=1;cas
 #lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{position:relative}#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t .lc-txt>em{position:absolute;right:14px;top:9px;margin:0}#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t.done .lc-txt>em{top:auto;bottom:8px}
 @media (max-height:700px){#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t .lc-txt>small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}}   /* 개수는 제목 줄 오른쪽으로 — 칸이 낮아도 잘리지 않게 (완성 배지가 있으면 아래쪽) */   /* (11-13 DHL 모바일 세로 버그) 칸 높이를 화면 높이 계산식으로 잡았더니 세로 화면에서 칸이 납작해져 글자 · 진행 막대가 잘림 → 남는 높이를 네 칸이 나눠 가짐 (56~118px) */   /* (11-12) 칸이 4개(동료 · 구슬 · 적 · 거인 규칙)가 되어 높이를 줄임 */
 @media (max-height:500px){#lm-title .lt-card.wide:has(.lc-sum){min-height:0!important;max-height:96vh;max-height:96dvh}#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t{height:clamp(40px,calc((96dvh - 175px)/4),72px)!important}#lm-title .lt-card:has(.lc-sum) .lc-head{padding:0}#lm-title .lt-card:has(.lc-sum) .lc-wrap,#lm-title .lt-card:has(.lc-sum) .lc-list{gap:6px}#lm-title .lt-card:has(.lc-sum) .lt-mb.back{margin-top:6px;min-height:36px}}
+/* (DHL 11-15 '완성 배지 · 숫자 겹침') 네 칸 같은 틀: 오른쪽 위 = 개수 하나(막대 위엔 글자 없음) · 다 모으면 그 자리에 '★ 완성'(칸 안쪽), 개수는 숨김 */
+#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t .lc-txt>em{position:absolute;right:16px;top:12px;bottom:auto;margin:0}
+#lm-title .lt-card:has(.lc-sum) .lc-list>.lt-cb.lc-t.done .lc-txt>em{display:none}
+#lm-title .lc-barRow{display:flex;align-items:center;gap:8px;min-width:0}
+#lm-title .lc-barRow .lc-bar{flex:1 1 auto;min-width:0}
+#lm-title .lc-barRow .lc-badge{position:static;flex:none;white-space:nowrap}   /* 완성 배지 = 막대 오른쪽 끝(제목 · 칸 테두리와 겹치지 않음) */
 #lm-title .lt-cb.lc-t.lock{pointer-events:none}
 #lm-title .lc-t.lock .lc-art img{filter:grayscale(1) brightness(.4) blur(.5px)}
 #lm-title .lc-t.lock .lc-txt{opacity:.55}
