@@ -10273,7 +10273,12 @@ html.lmB .ib .cSub.riCat button.on{color:#3a2606!important}html.lmB .ib .cSub.ri
 #ov .riSec .lRow{width:100%;background:#ffffff08!important;border:0!important;box-shadow:inset 0 0 0 1px #c99a3e33!important;border-radius:10px;margin:0 0 6px}
 #ov .riSec .lRow.now{box-shadow:inset 0 0 0 2px #f3d58a!important;background:#f3d58a14!important}
 #ov .riSec .lRow .tag{white-space:nowrap}
-.ib .riBtn.arm{white-space:normal;font-size:13px}.ib .riBtn:disabled{filter:grayscale(.7) brightness(.6)}
+.ib .riBtn.arm{white-space:normal;font-size:13px}
+/* (QA 11-16) 좁은 폰: '니콜과 다시 배우기' 두 버튼이 상자 밖으로 넘치던 것 — 칸이 줄어들고 글자는 두 줄까지 */
+.ib .riBtns{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ib .riBtn{min-width:0}
+@media (max-width:420px){.ib .riBtn{white-space:normal;text-align:center;font-size:14px;word-break:keep-all}}
+/* (QA 11-16) 좁은 폰: 설정 탭 4개(게임 · 그래픽 · 오디오 · 조작)가 창 양옆으로 삐져나오던 것 */
+@media (max-width:420px){html.lmB #lm-title .ls-tabs{gap:5px}html.lmB #lm-title .ls-tab{min-width:0;flex:1 1 0;padding-left:0!important;padding-right:0!important;border-width:9px 9px!important;border-image-width:9px 9px!important;font-size:clamp(14px,4vw,17px)!important}}.ib .riBtn:disabled{filter:grayscale(.7) brightness(.6)}
 .dkOpen{display:flex;width:100%;justify-content:space-between;align-items:center;cursor:pointer;font:inherit;font-weight:800;color:inherit;text-align:left}
 .dkOpen small{color:var(--dim,#a9b4c2);font-weight:400}
 .dkV{position:fixed;inset:0;z-index:450;background:#050a14b3;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
