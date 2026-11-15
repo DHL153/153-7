@@ -8872,7 +8872,7 @@ let isGameOver = false;
     const els=[...stage.querySelectorAll('.mr-rig-slot-canvas,.battle-team-hero')].filter(e=>{try{return !e.hidden&&+getComputedStyle(e).opacity>.05&&e.getBoundingClientRect().width>4;}catch(_){return false;}});
     if(!els.length)return;const big=els.reduce((a,b)=>a.getBoundingClientRect().width>=b.getBoundingClientRect().width?a:b),r=big.getBoundingClientRect(),sr=stage.getBoundingClientRect();
     /* (DHL 11-15 '적 공격을 받는 피드백이 적음') 더 크게: 몸 키에 비례해 뒤로 밀림 → 하얗게 번쩍 → 붉게 물듦 · 타격 불꽃 + 튀는 파편 · 주인공 쪽 가장자리 붉은 번쩍. 거인(보스)은 1.5배 */
-    const HP0=heroPt(0),hh=(HP0&&HP0.h>0)?HP0.h:60,B=kind==='boss'?1.5:1,kb=Math.max(10,hh*.16)*B,lite=(typeof gameSettings!=='undefined'&&gameSettings.reduceFx);
+    const HP0=heroPt(0),hh=(HP0&&HP0.h>0)?HP0.h:60,B=kind==='boss'?1.5:1,kb=Math.max(12,hh*.2)*B,lite=(typeof gameSettings!=='undefined'&&gameSettings.reduceFx);
     els.forEach(el=>{try{el.animate([{translate:'0 0',rotate:'0deg'},{translate:`${-kb}px ${-kb*.18}px`,rotate:`${-4*B}deg`,offset:.16},{translate:`${-kb*.8}px ${-kb*.08}px`,rotate:`${-3*B}deg`,offset:.42},{translate:`${kb*.18}px 0`,rotate:'.8deg',offset:.8},{translate:'0 0',rotate:'0deg'}],{duration:380+60*(B-1)*2,easing:'cubic-bezier(.2,.75,.3,1)'});
       el.animate([{filter:'brightness(1)'},{filter:'brightness(2.6) saturate(.5)',offset:.12},{filter:'brightness(1.15) sepia(1) saturate(7) hue-rotate(-38deg)',offset:.34},{filter:'brightness(1.05) sepia(.5) saturate(3) hue-rotate(-38deg)',offset:.7},{filter:'brightness(1)'}],{duration:420});}catch(_){}});
     if(!lite&&HP0&&HP0.h>0){try{
@@ -8882,9 +8882,9 @@ let isGameOver = false;
         d.style.left=cx+'px';d.style.top=cy+'px';d.style.setProperty('--w',Math.max(8,hh*(.12+Math.random()*.1))+'px');d.style.rotate=(a*180/Math.PI)+'deg';stage.appendChild(d);
         d.animate([{translate:'0 0',opacity:1,scale:'1 1'},{translate:`${Math.cos(a)*L}px ${Math.sin(a)*L*.7-hh*.12}px`,opacity:0,scale:'.3 1'}],{duration:260+Math.random()*140,easing:'cubic-bezier(.1,.7,.3,1)',fill:'forwards'});setTimeout(()=>d.remove(),440);}
     }catch(_){}}
-    /* 시안 B (localStorage lm_herohit = 'b'): 손으로 그린 이펙트 시트(막타용 FX23 별 섬광 · 거인은 FX25 속도선 고리)를 붉은 주황으로 물들여 주인공 몸에서 터뜨림. 기본 = A(코드 불꽃) */
-    let hitB=false;try{hitB=localStorage.getItem('lm_herohit')==='b';}catch(_){}
-    if(hitB&&HP0&&HP0.h>0){try{const cx=HP0.x+hh*.12,cy=HP0.y;flipFx('fx23',[1,2,3,4,5,6,7],cx,cy,hh*(kind==='boss'?2.6:2),{fps:24,z:8,col:'#ff6a3c'});if(kind==='boss')flipFx('fx25',[0,1,2,3,4,5,6,7],cx,cy,hh*3,{fps:22,z:8,col:'#ff3b2f'});}catch(_){}}
+    /* B(기본 · lm_herohit = 'a' 면 코드 불꽃 A): 손으로 그린 이펙트 시트(막타용 FX23 별 섬광 · 거인은 FX25 속도선 고리)를 붉은 주황으로 물들여 주인공 몸에서 터뜨림. */
+    let hitB=true;try{hitB=localStorage.getItem('lm_herohit')!=='a';}catch(_){}   /* (DHL 11-15) B로 확정 — 이펙트는 살짝 작게 · 넉백은 살짝 크게 */
+    if(hitB&&HP0&&HP0.h>0){try{const cx=HP0.x+hh*.12,cy=HP0.y;flipFx('fx23',[1,2,3,4,5,6,7],cx,cy,hh*(kind==='boss'?2.25:1.7),{fps:24,z:8,col:'#ff6a3c'});if(kind==='boss')flipFx('fx25',[0,1,2,3,4,5,6,7],cx,cy,hh*2.6,{fps:22,z:8,col:'#ff3b2f'});}catch(_){}}
     else try{const sp=document.createElement('i');sp.className='lm-hero-hit';/* (DHL 11-14 버그) 주인공 리그는 무대 전체 크기 캔버스에 그려져, 캔버스 크기로 자리를 잡으면 불꽃이 무대의 62% 지점(적 쪽)에 무대 절반 크기로 떴음 → 주인공 몸 위치 · 키 기준 */const hp=heroPt(0);if(hp&&hp.h>0){sp.style.left=(hp.x+hp.h*.18)+'px';sp.style.top=hp.y+'px';sp.style.setProperty('--s',Math.max(36,hp.h*(kind==='boss'?1.35:1.05))+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),340);}   /* (11-14) 주인공 위치를 못 구하면 불꽃은 생략 — 예전처럼 적 쪽에 뜨지 않게 */}catch(_){}
     try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate(kind==='boss'?[{translate:'0 0'},{translate:'-9px 3px'},{translate:'7px -3px'},{translate:'-5px 2px'},{translate:'3px -1px'},{translate:'0 0'}]:[{translate:'0 0'},{translate:'-6px 2px'},{translate:'4px -2px'},{translate:'-2px 1px'},{translate:'0 0'}],{duration:kind==='boss'?300:220,easing:'linear'});}catch(_){}
     try{lmSnd(kind==='boss'?'sfx_hero_hit_heavy':'sfx_hero_hit',{gap:90});}catch(_){}}   // (DHL 11-12) 전용 피격음: 일반 적 = 가벼운 타격 · 보스 · 풍차 거인 = 무거운 타격
