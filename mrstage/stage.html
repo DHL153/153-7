@@ -5498,6 +5498,7 @@ html body #battle-stage .far-mill{left:5%}
 .lm-hero-hit::before,.lm-hero-hit::after{content:"";position:absolute;left:50%;top:50%;width:150%;height:9%;translate:-50% -50%;border-radius:99px;background:linear-gradient(90deg,#0000,#fff 35%,#fff 65%,#0000);rotate:28deg}.lm-hero-hit::after{rotate:-34deg;width:120%}
 .lm-hero-shard{position:absolute;z-index:8;width:var(--w,10px);height:3px;margin:-1.5px 0 0 0;border-radius:2px;background:linear-gradient(90deg,#fff,#ffd27a 55%,#ff7a3c00);pointer-events:none;transform-origin:0 50%;mix-blend-mode:screen}
 .lm-hero-puff{position:absolute;z-index:8;width:var(--s,20px);height:var(--s,20px);margin:calc(var(--s,20px)/-2) 0 0 calc(var(--s,20px)/-2);border-radius:50%;background:radial-gradient(circle,#e9dcc6cc,#b9a79655 55%,#0000 72%);pointer-events:none}
+#battle-stage.lm-hero-gone .mr-rig-slot-canvas,#battle-stage.lm-hero-gone #battle-rig-canvas,#battle-stage.lm-hero-gone .battle-team-hero,#battle-stage.lm-hero-gone .hero{visibility:hidden!important}
 .lm-hero-mote{position:absolute;z-index:9;width:var(--s,4px);height:var(--s,4px);border-radius:50%;background:#fff;box-shadow:0 0 6px 2px #ffe9a8,0 0 12px 4px #ffd27a88;pointer-events:none}
 .lm-hero-vig{position:absolute;inset:0;z-index:7;pointer-events:none;background:linear-gradient(90deg,#ff3b2fb8,#ff3b2f38 16%,#0000 38%);mix-blend-mode:screen;animation:lmHeroVig .45s ease-out forwards}
 @keyframes lmHeroVig{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
@@ -8758,14 +8759,14 @@ let isGameOver = false;
     const T=(window.MR_FX_TUNING&&window.MR_FX_TUNING.route&&window.MR_FX_TUNING.route.xcut)||RT_DEF.xcut;
     flip(T.sheet||'fx10',R(T.from??0,T.to??7),h.x,h.y,h.h*(T.size||1.45)*1.1,{fps:T.fps||18,flipX:true});
     shake(10);
-    const dm=mode||(()=>{try{return localStorage.getItem('lm_herodeath')||'';}catch(_){return '';}})();
-    if(dm){await heroDeath(dm);return;}
+    const dm=mode||(()=>{try{return localStorage.getItem('lm_herodeath')||'b';}catch(_){return 'b';}})();   /* (DHL 11-15) B(조각으로 부서져 터짐)로 확정 · 'off' = 예전처럼 */
+    if(dm!=='off'){await heroDeath(dm);return;}
     await sleep(420);
   }
   /* (DHL 11-15 시안) 패배: 적의 마지막 공격에 주인공이 쓰러지는 연출 — a 크게 날아가 쓰러짐 · ab 날아가며 조각 파편 · b 조각으로 부서져 터짐 · c 빛가루로 흩어짐
-     기본은 꺼짐(예전 그대로). localStorage lm_herodeath = a | ab | b | c 로 켬. 다음 라운드가 시작되면 heroRevive()로 되돌림 */
+     기본 = b. localStorage lm_herodeath = a | ab | c | off 로 바꿔 볼 수 있음. 다음 라운드가 시작되면 heroRevive()로 되돌림 */
   let deathAnims=[];
-  function heroRevive(){deathAnims.forEach(a=>{try{a.cancel();}catch(_){}});deathAnims=[];stage.querySelectorAll('.lm-hero-dead,.lm-hero-dust,.lm-hero-mote').forEach(e=>e.remove());stage.classList.remove('lm-hero-down');}
+  function heroRevive(){deathAnims.forEach(a=>{try{a.cancel();}catch(_){}});deathAnims=[];stage.querySelectorAll('.lm-hero-dead,.lm-hero-dust,.lm-hero-mote').forEach(e=>e.remove());stage.classList.remove('lm-hero-down','lm-hero-gone');}
   async function heroDeath(m){heroRevive();
     const HP=heroPt(0),hh=(HP&&HP.h>0)?HP.h:60,cx=HP.x,cy=HP.y,fy=cy+hh*.55,lite=(typeof gameSettings!=='undefined'&&gameSettings.reduceFx);
     const els=[...stage.querySelectorAll('.mr-rig-slot-canvas,.battle-team-hero')].filter(e=>{try{return !e.hidden&&+getComputedStyle(e).opacity>.05&&e.getBoundingClientRect().width>4;}catch(_){return false;}});
@@ -8796,7 +8797,7 @@ let isGameOver = false;
     }else if(m==='b'){
       /* 조각으로 부서져 터짐: 몸이 하얗게 부풀다 사라지고, 부서짐 조각(FX26) + 파편이 사방으로 */
       els.forEach(el=>{el.style.transformOrigin=`${cx}px ${cy}px`;keep(el,[{scale:1,filter:'brightness(3) saturate(.3) opacity(1)'},{scale:1.12,offset:.5,filter:'brightness(4) saturate(0) opacity(1)'},{scale:1.25,filter:'brightness(4) saturate(0) opacity(0)'}],{duration:170});   /* 사라짐은 filter opacity로 (캔버스 opacity는 다른 규칙이 !important로 잡고 있음) */});
-      await sleep(110);
+      await sleep(110);stage.classList.add('lm-hero-gone');   /* 패배 화면이 주인공에 붙이는 .lm-down(회색 · !important)이 사라진 몸을 다시 보이게 하지 않도록 */
       flipFx('fx26',[0,1,2,3,4,5,6,7,8,9,10,11],cx,fy,hh*2.6,{fps:16,z:9,col:'#ff6a3c'});flipFx('fx25',[0,1,2,3,4,5,6,7],cx,cy,hh*4.4,{fps:16,z:9,col:'#ffd27a'});
       shards(22);shake(22);try{lmSnd('sfx_hero_hit_heavy',{gap:0});}catch(_){}
       await sleep(900);
@@ -8806,7 +8807,7 @@ let isGameOver = false;
       if(!lite)for(let i=0;i<26;i++){const d=document.createElement('i');d.className='lm-hero-mote';const x0=cx+(Math.random()-.5)*hh*.8,y0=cy+(Math.random()-.5)*hh*1.1,dl=Math.random()*520;
         d.style.left=x0+'px';d.style.top=y0+'px';d.style.setProperty('--s',Math.max(3,hh*(.04+Math.random()*.05))+'px');stage.appendChild(d);
         d.animate([{translate:'0 0',opacity:0},{opacity:1,offset:.2},{translate:`${(Math.random()-.5)*hh*.7}px ${-hh*(.7+Math.random()*.9)}px`,opacity:0}],{duration:900+Math.random()*500,delay:dl,easing:'ease-out',fill:'both'});setTimeout(()=>d.remove(),dl+1500);}
-      await sleep(1150);
+      await sleep(1150);stage.classList.add('lm-hero-gone');
     }
     stage.classList.add('lm-hero-down');
   }
