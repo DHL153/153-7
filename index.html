@@ -7759,6 +7759,7 @@ html .ib .lBot button:not(.go):not(.try),html.lmB .ib .lBot button:not(.go):not(
   /* (DHL 10-29) '뒤로' = 바로 앞 화면: 메인 메뉴 배우기 목록 · 게임 중 옵션 · 컬렉션으로 / 게임 중 배우기 장 · 기호 사전 → 배우기 목록 */
   const _ll2=ltLearn;ltLearn=function(){window._lmBack=()=>{ltPlayTab='try';ltPop('play');};return _ll2.apply(this,arguments);};
   document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.ib .ibBack');if(!b)return;
+    if(document.querySelector('.ib .cmBackBtn'))return;   /* (DHL 11-15 '전이 아니라 전전으로 감') 동료 상세에서는 먼저 동료 목록으로 — 한 번 더 누르면 컬렉션 */
     const fn=window._lmBack,inLearnSub=typeof infoTab!=='undefined'&&infoTab==='learn'&&(learnView==='page'||learnView==='dict');
     if(fn){e.stopImmediatePropagation();e.preventDefault();window._lmBack=null;hideOv();try{fn();}catch(err){}return;}
     if(inLearnSub){e.stopImmediatePropagation();e.preventDefault();openInfo('learn','list');}
