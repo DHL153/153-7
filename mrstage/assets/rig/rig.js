@@ -410,6 +410,21 @@
          반바지 밑단 위로는 다리를 그리지 않음(rig.def.hemClip) → 다리가 바지를 뚫지 않음
        · 팔 = 어깨(윗팔) + 팔꿈치(건틀릿) 2뼈. 가려진 어깨·윗팔·건틀릿 커프는 시트 그림이 밑에 있어 돌려도 구멍 없음
      공개 API 그대로: update(dt,{vx,facing,stepHz}) · attack(name,opts) · busy · events(hit) · setExpression · facingScale */
+  /* 공격 준비 자세 (DHL 11-15 시안, opt-in): 밖에서 an.readyOn = true · an.readyName = 공격 이름 을 주면, 동작이 없을 때 그 공격의 '당기는' 부분(맞는 순간의 60% 지점)까지만 하고 그 자세로 멈춰 섬.
+     같은 공격이 들어오면 멈춘 자리에서 이어서 치고, readyOn 이 꺼지면 거꾸로 돌려 선 자세로. 멈춰 있는 동안 busy = false */
+  function readyStep(an, dt) {
+    const a = an.act;
+    if (an.readyOn) {
+      if (!a) { if (an.attack(an.readyName || "thrust", {})) { const c = an.act; c.ready = an.readyAt ?? (c.def.hitAt ?? c.def.dur * .4) * (an.readyK ?? .6); c.speed = 1.3; an.autoHold = 0 } }
+      else if (a.ready != null && !a.unready && a.t >= a.ready) { a.t = a.ready; a.freeze = Math.max(a.freeze || 0, dt * 2) }
+    } else if (a && a.ready != null) a.unready = true;
+    const b = an.act; if (b && b.unready) { b.freeze = 0; b.t -= dt * (2.6 + (b.speed || 1)); if (b.t <= 0) an.act = null }
+  }
+  function readyTake(an, def, opts) {   // 준비 자세에서 같은 공격 = 이어서
+    const a = an.act; if (!a || a.ready == null) return false;
+    if (a.def === def && !a.unready) { delete a.ready; a.freeze = 0; a.speed = opts.speed || 1; return true }
+    return false;
+  }
   const Brawler = {
     init(an, rig, opts) {
       an.brawl = rig.def.brawler; an.runSpeed = opts.runSpeed || 620; an.G = Object.assign({}, GAIT_DEFAULTS);
@@ -427,7 +442,8 @@
     },
     attack(an, name, opts = {}) {
       const acts = an.brawl.actions || {}; const def = acts[name] || (name === "wave" ? acts.hop : null) || (name === "thrust" ? acts.smash : null); if (!def) return false;
-      if (an.act && an.act.t < (an.act.def.cancelAt ?? an.act.def.dur)) return false;
+      if (readyTake(an, def, opts)) return true;
+      if (an.act && an.act.ready == null && an.act.t < (an.act.def.cancelAt ?? an.act.def.dur)) return false;
       an.act = { name, def, t: 0, speed: opts.speed || 1, hit: false, freeze: 0 }; return true;
     },
     ik(H, T, l1, l2, bend) {
@@ -442,6 +458,7 @@
       if (want !== an.facing) { an.facing = want; an.turnT = .16; an.prevLVx = -an.prevLVx }
       an.turnT = Math.max(0, an.turnT - dt);
       const lvx = vx * an.facing, sp = Math.abs(vx);
+      readyStep(an, dt);
       const act = an.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * act.speed; if (act.t >= act.def.dur) an.act = null }
       const D = an.act ? an.act.def : null, at = an.act ? an.act.t : 0, tr = k => D && D[k] ? track(D[k], at) : 0;
       an.A = damp(an.A, D ? 0 : smooth(15, 200, sp), D ? 16 : 7, dt); const A = an.A, I = 1 - A;
@@ -552,13 +569,14 @@
     attack(name = "thrust", opts = {}) {
       if (this.brawl) return Brawler.attack(this, name, opts);
       const def = (this.rig.def.actions && this.rig.def.actions[name]) || (this.rig.def.carry ? null : ACTIONS[name]); if (!def) return false;   // per-character actions in rig.json override the built-ins · carry(v16): 두 손이 총에 붙은 캐릭터는 내장 동작(찌르기·인사 등 손 그림이 바뀌는 것)을 쓰지 않음(G28)
-      if (this.act && this.act.t < this.act.def.cancelAt) return false;
+      if (readyTake(this, def, opts)) { this.autoHold = def.holdAt != null ? (opts.hold || 0) : 0; return true }
+      if (this.act && this.act.ready == null && this.act.t < this.act.def.cancelAt) return false;
       const e = {}; for (const s of ["near", "far"]) { const f = this.ft[s]; e[s] = { x: f.x, lift: f.lift, ang: f.ang, lockW: this.odo + f.x } }
       this.act = { name, def, t: 0, speed: opts.speed || 1, entry: e, hit: false, prev: this.act ? { def: this.act.def, t: this.act.t } : null };
       this.autoHold = def.holdAt != null ? (opts.hold || 0) : 0;   // opts.hold(초, opt-in 2026-10-21 4 로시): 누르고 있는 것처럼 holdAt 자세에서 그만큼 연사 — 게임 전투 '짧은 연사'
       return true;
     }
-    get busy() { return !!this.act }
+    get busy() { return !!this.act && this.act.ready == null }
     /** hold-to-fire (carry characters, rig.json actions.fire): fire(true) on press, fire(false) on release.
         While held the pose stays braced and shots repeat (event "fire" per shot); a tap still fires a short burst. (carry v16) */
     fire(on) {
@@ -1402,6 +1420,7 @@
       this.turnT = Math.max(0, this.turnT - dt);
       const lvx = vx * this.facing, sp = Math.abs(vx);
       this.odo += lvx * dt; this.events.length = 0;
+      readyStep(this, dt);
       const act = this.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * (act.speed || 1); if (this.autoHold > 0 && act.t >= act.def.holdAt) this.autoHold -= dt; /* 누름 시간은 holdAt 자세에 닿은 뒤부터 */ if (act.def.holdAt != null && (this.trigger || this.autoHold > 0) && act.t > act.def.holdAt) act.t = act.def.holdAt; /* holdAt(carry v16): 누르고 있는 동안 연사 자세 유지 */ /* freeze: 타격 정지(hitStop, opt-in) 동안 동작 시간 멈춤 — 몸·칼 흔들림은 계속 */ if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
       const D = act && act.def, at = act ? act.t : 0;
       this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? (D.aDamp || 14) : 8, dt);   // aDamp(opt-in, 2 러스트 둘시네 10-19): 달리다 공격하면 달리기 다리→선 다리를 빨리(기본 14) — 달리기 그림이 선 자세로 꺾이는 사이 프레임·두 그림 겹침을 줄임
