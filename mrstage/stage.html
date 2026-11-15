@@ -5495,6 +5495,13 @@ html body #battle-stage .far-mill{left:5%}
 /* 처치 후 퇴장이 끝나면 적 · 체력 막대 · 숫자도 치움 (다음 라운드 입장 때 다시) */
 #enemy.lm-rigfoe,#enemy:has(iframe.lm-foe-rig),html body #app #battle-stage #enemy.boss-enemy:has(iframe.lm-foe-rig){overflow:visible!important;filter:none!important}   /* 새 보스: 예전 보스용 붉은 테두리 빛 없음 (DHL 11-12) */
 .lm-hero-hit{position:absolute;z-index:8;width:var(--s,48px);height:var(--s,48px);margin:calc(var(--s,48px)/-2) 0 0 calc(var(--s,48px)/-2);pointer-events:none;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#ffe9a8cc 30%,#ff9a3c66 52%,#0000 70%);mix-blend-mode:screen;animation:lmHeroHit .3s ease-out forwards}
+.lm-hero-hit::before,.lm-hero-hit::after{content:"";position:absolute;left:50%;top:50%;width:150%;height:9%;translate:-50% -50%;border-radius:99px;background:linear-gradient(90deg,#0000,#fff 35%,#fff 65%,#0000);rotate:28deg}.lm-hero-hit::after{rotate:-34deg;width:120%}
+.lm-hero-shard{position:absolute;z-index:8;width:var(--w,10px);height:3px;margin:-1.5px 0 0 0;border-radius:2px;background:linear-gradient(90deg,#fff,#ffd27a 55%,#ff7a3c00);pointer-events:none;transform-origin:0 50%;mix-blend-mode:screen}
+.lm-hero-puff{position:absolute;z-index:8;width:var(--s,20px);height:var(--s,20px);margin:calc(var(--s,20px)/-2) 0 0 calc(var(--s,20px)/-2);border-radius:50%;background:radial-gradient(circle,#e9dcc6cc,#b9a79655 55%,#0000 72%);pointer-events:none}
+#battle-stage.lm-hero-gone .mr-rig-slot-canvas,#battle-stage.lm-hero-gone #battle-rig-canvas,#battle-stage.lm-hero-gone .battle-team-hero,#battle-stage.lm-hero-gone .hero{visibility:hidden!important}
+.lm-hero-mote{position:absolute;z-index:9;width:var(--s,4px);height:var(--s,4px);border-radius:50%;background:#fff;box-shadow:0 0 6px 2px #ffe9a8,0 0 12px 4px #ffd27a88;pointer-events:none}
+.lm-hero-vig{position:absolute;inset:0;z-index:7;pointer-events:none;background:linear-gradient(90deg,#ff3b2fb8,#ff3b2f38 16%,#0000 38%);mix-blend-mode:screen;animation:lmHeroVig .45s ease-out forwards}
+@keyframes lmHeroVig{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
 @keyframes lmHeroHit{0%{transform:scale(.3);opacity:1}40%{transform:scale(1.15);opacity:.95}100%{transform:scale(1.5);opacity:0}}
 #enemy iframe.lm-foe-rig{position:absolute;border:0;background:transparent;pointer-events:none;max-width:none!important;max-height:none!important;color-scheme:normal;
   -webkit-mask-image:linear-gradient(to right,#0000,#000 7%,#000 93%,#0000),linear-gradient(to bottom,#0000,#000 6%,#000 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,#0000,#000 7%,#000 93%,#0000),linear-gradient(to bottom,#0000,#000 6%,#000 100%);mask-composite:intersect}
@@ -8745,14 +8752,64 @@ let isGameOver = false;
   let demoPh='';   // (DHL 10-29 '연출 앞뒤 다른 캐릭터 잔상') 바깥 화면이 무대를 보여줄 때만 알 수 있게: live = 연출 캐릭터 준비됨 · end = 연출 끝(원래 캐릭터로 되돌리기 전)
   /* (DHL 11-01 '패배: 적이 공격 → 적 공격 이펙트 → 화면 전환 → 패배 메시지') 적의 마지막 공격 — 적이 주인공 쪽으로 덮치고, 주인공 자리에 적 공격 이펙트(전투와 같은 시트 · 좌우 반전) + 흔들림
      (적 #enemy 의 translate 는 다른 규칙이 !important 로 잡고 있어 CSS 애니메이션이 안 먹음 → transform 으로 직접 움직임) */
-  async function foeStrike(){lmSnd('sfx_counter');
+  async function foeStrike(mode){lmSnd('sfx_counter');
     const en=$('enemy'),E=enemyPt(),h=heroPt(0),dx=Math.max(20,(E.x-h.x)*.55);
     if(en){try{en.animate([{transform:'translateX(0)'},{transform:`translateX(${-dx*.15}px) scale(1.04)`,offset:.25},{transform:`translateX(${-dx}px) scale(1.12)`,offset:.55},{transform:'translateX(0)'}],{duration:620,easing:'cubic-bezier(.3,0,.3,1)'});}catch(e){}}
     await sleep(330);
     const T=(window.MR_FX_TUNING&&window.MR_FX_TUNING.route&&window.MR_FX_TUNING.route.xcut)||RT_DEF.xcut;
     flip(T.sheet||'fx10',R(T.from??0,T.to??7),h.x,h.y,h.h*(T.size||1.45)*1.1,{fps:T.fps||18,flipX:true});
     shake(10);
+    const dm=mode||(()=>{try{return localStorage.getItem('lm_herodeath')||'b';}catch(_){return 'b';}})();   /* (DHL 11-15) B(조각으로 부서져 터짐)로 확정 · 'off' = 예전처럼 */
+    if(dm!=='off'){await heroDeath(dm);return;}
     await sleep(420);
+  }
+  /* (DHL 11-15 시안) 패배: 적의 마지막 공격에 주인공이 쓰러지는 연출 — a 크게 날아가 쓰러짐 · ab 날아가며 조각 파편 · b 조각으로 부서져 터짐 · c 빛가루로 흩어짐
+     기본 = b. localStorage lm_herodeath = a | ab | c | off 로 바꿔 볼 수 있음. 다음 라운드가 시작되면 heroRevive()로 되돌림 */
+  let deathAnims=[];
+  function heroRevive(){deathAnims.forEach(a=>{try{a.cancel();}catch(_){}});deathAnims=[];stage.querySelectorAll('.lm-hero-dead,.lm-hero-dust,.lm-hero-mote').forEach(e=>e.remove());stage.classList.remove('lm-hero-down','lm-hero-gone');}
+  async function heroDeath(m){heroRevive();
+    const HP=heroPt(0),hh=(HP&&HP.h>0)?HP.h:60,cx=HP.x,cy=HP.y,fy=cy+hh*.55,lite=(typeof gameSettings!=='undefined'&&gameSettings.reduceFx);
+    const els=[...stage.querySelectorAll('.mr-rig-slot-canvas,.battle-team-hero')].filter(e=>{try{return !e.hidden&&+getComputedStyle(e).opacity>.05&&e.getBoundingClientRect().width>4;}catch(_){return false;}});
+    const keep=(el,kf,o)=>{try{const a=el.animate(kf,Object.assign({fill:'forwards'},o));deathAnims.push(a);return a;}catch(_){return null;}};
+    const ox=`${cx}px ${fy}px`;
+    /* 맞는 순간: 잠깐 멈춤(슬로) + 큰 섬광 + 고리 + 붉은 번쩍 */
+    try{lmSnd('sfx_hero_hit_heavy',{gap:0});}catch(_){}
+    flipFx('fx23',[1,2,3,4,5,6,7],cx+hh*.1,cy,hh*3,{fps:20,z:9,col:'#ff5a3c'});flipFx('fx25',[0,1,2,3,4,5,6,7],cx,cy,hh*3.6,{fps:18,z:9,col:'#ff3b2f'});
+    if(!lite){const v=document.createElement('i');v.className='lm-hero-vig';v.style.animationDuration='.8s';stage.appendChild(v);setTimeout(()=>v.remove(),820);}
+    els.forEach(el=>keep(el,[{filter:'brightness(3) saturate(.3)'},{filter:'brightness(3) saturate(.3)',offset:.5},{filter:'brightness(1.2) sepia(1) saturate(7) hue-rotate(-38deg)'}],{duration:150,fill:'none'}));
+    shake(18);await sleep(130);
+    const shards=(n,col)=>{if(lite)return;for(let i=0;i<n;i++){const d=document.createElement('i');d.className='lm-hero-shard lm-hero-dust';const a=Math.PI*(.55+Math.random()*.9),L=hh*(.8+Math.random()*1.2);
+      d.style.left=cx+'px';d.style.top=cy+'px';d.style.setProperty('--w',Math.max(10,hh*(.16+Math.random()*.16))+'px');d.style.rotate=(a*180/Math.PI)+'deg';if(col)d.style.background=col;stage.appendChild(d);
+      d.animate([{translate:'0 0',opacity:1},{translate:`${Math.cos(a)*L}px ${Math.sin(a)*L*.7-hh*.2}px`,opacity:0}],{duration:420+Math.random()*260,easing:'cubic-bezier(.1,.7,.3,1)',fill:'forwards'});setTimeout(()=>d.remove(),760);}};
+    if(m==='a'||m==='ab'){
+      /* 포물선으로 날아가 땅에 떨어짐 → 한 번 튀고 누움 → 흑백으로 식음 */
+      const dx=-Math.max(hh*.25,Math.min(hh*1.7,cx-hh*2.1)),T=820;   /* 누웠을 때 몸이 화면 왼쪽 밖으로 나가지 않게 */
+      els.forEach(el=>{el.style.transformOrigin=ox;keep(el,[{translate:'0 0',rotate:'0deg',filter:'brightness(1.2) sepia(1) saturate(7) hue-rotate(-38deg)'},
+        {translate:`${dx*.5}px ${-hh*.95}px`,rotate:'-55deg',offset:.32,easing:'ease-in'},
+        {translate:`${dx*.86}px ${hh*.02}px`,rotate:'-88deg',offset:.62,filter:'brightness(1.1) sepia(.6) saturate(3) hue-rotate(-38deg)',easing:'ease-out'},
+        {translate:`${dx*.95}px ${-hh*.16}px`,rotate:'-82deg',offset:.76,easing:'ease-in'},
+        {translate:`${dx}px ${hh*.04}px`,rotate:'-90deg',filter:'grayscale(1) brightness(.55)'}],{duration:T});});
+      if(m==='ab')shards(14);
+      const dust=(x,n)=>{if(lite)return;for(let i=0;i<n;i++){const d=document.createElement('i');d.className='lm-hero-dust lm-hero-puff';d.style.left=(x+(Math.random()-.5)*hh*.9)+'px';d.style.top=(fy-hh*.06)+'px';d.style.setProperty('--s',hh*(.3+Math.random()*.3)+'px');stage.appendChild(d);
+        d.animate([{translate:'0 0',scale:.4,opacity:.75},{translate:`${(Math.random()-.5)*hh*.8}px ${-hh*(.15+Math.random()*.3)}px`,scale:1.5,opacity:0}],{duration:520+Math.random()*200,easing:'ease-out',fill:'forwards'});setTimeout(()=>d.remove(),760);}};
+      setTimeout(()=>{dust(cx+dx*.86,7);shake(9);try{lmSnd('sfx_hero_hit',{gap:0});}catch(_){}},T*.62);setTimeout(()=>dust(cx+dx,4),T*.98);
+      await sleep(T+260);
+    }else if(m==='b'){
+      /* 조각으로 부서져 터짐: 몸이 하얗게 부풀다 사라지고, 부서짐 조각(FX26) + 파편이 사방으로 */
+      els.forEach(el=>{el.style.transformOrigin=`${cx}px ${cy}px`;keep(el,[{scale:1,filter:'brightness(3) saturate(.3) opacity(1)'},{scale:1.12,offset:.5,filter:'brightness(4) saturate(0) opacity(1)'},{scale:1.25,filter:'brightness(4) saturate(0) opacity(0)'}],{duration:170});   /* 사라짐은 filter opacity로 (캔버스 opacity는 다른 규칙이 !important로 잡고 있음) */});
+      await sleep(110);stage.classList.add('lm-hero-gone');   /* 패배 화면이 주인공에 붙이는 .lm-down(회색 · !important)이 사라진 몸을 다시 보이게 하지 않도록 */
+      flipFx('fx26',[0,1,2,3,4,5,6,7,8,9,10,11],cx,fy,hh*2.6,{fps:16,z:9,col:'#ff6a3c'});flipFx('fx25',[0,1,2,3,4,5,6,7],cx,cy,hh*4.4,{fps:16,z:9,col:'#ffd27a'});
+      shards(22);shake(22);try{lmSnd('sfx_hero_hit_heavy',{gap:0});}catch(_){}
+      await sleep(900);
+    }else{
+      /* 빛가루로 흩어짐: 하얗게 빛나며 위로 떠오르듯 옅어지고, 빛 알갱이가 올라감 */
+      els.forEach(el=>{el.style.transformOrigin=ox;keep(el,[{translate:'0 0',filter:'brightness(1.6) saturate(.5) blur(0px) opacity(1)'},{translate:`${-hh*.12}px ${-hh*.04}px`,offset:.3,filter:'brightness(2.6) saturate(.2) blur(0px) opacity(.9)'},{translate:`${-hh*.2}px ${-hh*.3}px`,filter:'brightness(3.4) saturate(0) blur(2px) opacity(0)'}],{duration:900,easing:'ease-in'});});
+      if(!lite)for(let i=0;i<26;i++){const d=document.createElement('i');d.className='lm-hero-mote';const x0=cx+(Math.random()-.5)*hh*.8,y0=cy+(Math.random()-.5)*hh*1.1,dl=Math.random()*520;
+        d.style.left=x0+'px';d.style.top=y0+'px';d.style.setProperty('--s',Math.max(3,hh*(.04+Math.random()*.05))+'px');stage.appendChild(d);
+        d.animate([{translate:'0 0',opacity:0},{opacity:1,offset:.2},{translate:`${(Math.random()-.5)*hh*.7}px ${-hh*(.7+Math.random()*.9)}px`,opacity:0}],{duration:900+Math.random()*500,delay:dl,easing:'ease-out',fill:'both'});setTimeout(()=>d.remove(),dl+1500);}
+      await sleep(1150);stage.classList.add('lm-hero-gone');
+    }
+    stage.classList.add('lm-hero-down');
   }
   async function demo(o){
     demoPh='prep';const before=[...activeBattleTeam];clearTimeout(demo._t);stage.classList.add('lm-demo');
@@ -8867,10 +8924,22 @@ let isGameOver = false;
   function heroFlinch(){const now=performance.now();if(now-flinchAt<110)return;flinchAt=now;
     const els=[...stage.querySelectorAll('.mr-rig-slot-canvas,.battle-team-hero')].filter(e=>{try{return !e.hidden&&+getComputedStyle(e).opacity>.05&&e.getBoundingClientRect().width>4;}catch(_){return false;}});
     if(!els.length)return;const big=els.reduce((a,b)=>a.getBoundingClientRect().width>=b.getBoundingClientRect().width?a:b),r=big.getBoundingClientRect(),sr=stage.getBoundingClientRect();
-    els.forEach(el=>{try{el.animate([{translate:'0 0',rotate:'0deg'},{translate:'-9px -2px',rotate:'-3deg',offset:.18},{translate:'-7px -1px',rotate:'-2.5deg',offset:.4},{translate:'2px 0',rotate:'.6deg',offset:.78},{translate:'0 0',rotate:'0deg'}],{duration:300,easing:'cubic-bezier(.2,.75,.3,1)'});
-      el.animate([{filter:'brightness(1)'},{filter:'brightness(2.4) saturate(.6)',offset:.2},{filter:'brightness(1)'}],{duration:200});}catch(_){}});
-    try{const sp=document.createElement('i');sp.className='lm-hero-hit';/* (DHL 11-14 버그) 주인공 리그는 무대 전체 크기 캔버스에 그려져, 캔버스 크기로 자리를 잡으면 불꽃이 무대의 62% 지점(적 쪽)에 무대 절반 크기로 떴음 → 주인공 몸 위치 · 키 기준 */const hp=heroPt(0);if(hp&&hp.h>0){sp.style.left=(hp.x+hp.h*.18)+'px';sp.style.top=hp.y+'px';sp.style.setProperty('--s',Math.max(30,hp.h*.75)+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),320);}   /* (11-14) 주인공 위치를 못 구하면 불꽃은 생략 — 예전처럼 적 쪽에 뜨지 않게 */}catch(_){}
-    try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate([{translate:'0 0'},{translate:'-4px 1px'},{translate:'3px -1px'},{translate:'-2px 0'},{translate:'0 0'}],{duration:190,easing:'linear'});}catch(_){}
+    /* (DHL 11-15 '적 공격을 받는 피드백이 적음') 더 크게: 몸 키에 비례해 뒤로 밀림 → 하얗게 번쩍 → 붉게 물듦 · 타격 불꽃 + 튀는 파편 · 주인공 쪽 가장자리 붉은 번쩍. 거인(보스)은 1.5배 */
+    const HP0=heroPt(0),hh=(HP0&&HP0.h>0)?HP0.h:60,B=kind==='boss'?1.5:1,kb=Math.max(12,hh*.2)*B,lite=(typeof gameSettings!=='undefined'&&gameSettings.reduceFx);
+    els.forEach(el=>{try{el.animate([{translate:'0 0',rotate:'0deg'},{translate:`${-kb}px ${-kb*.18}px`,rotate:`${-4*B}deg`,offset:.16},{translate:`${-kb*.8}px ${-kb*.08}px`,rotate:`${-3*B}deg`,offset:.42},{translate:`${kb*.18}px 0`,rotate:'.8deg',offset:.8},{translate:'0 0',rotate:'0deg'}],{duration:380+60*(B-1)*2,easing:'cubic-bezier(.2,.75,.3,1)'});
+      el.animate([{filter:'brightness(1)'},{filter:'brightness(2.6) saturate(.5)',offset:.12},{filter:'brightness(1.15) sepia(1) saturate(7) hue-rotate(-38deg)',offset:.34},{filter:'brightness(1.05) sepia(.5) saturate(3) hue-rotate(-38deg)',offset:.7},{filter:'brightness(1)'}],{duration:420});}catch(_){}});
+    if(!lite&&HP0&&HP0.h>0){try{
+      const v=document.createElement('i');v.className='lm-hero-vig';stage.appendChild(v);setTimeout(()=>v.remove(),460);
+      const cx=HP0.x+hh*.18,cy=HP0.y,N=kind==='boss'?9:6;
+      for(let i=0;i<N;i++){const d=document.createElement('i');d.className='lm-hero-shard';const a=Math.PI*(.72+Math.random()*.56),L=hh*(.45+Math.random()*.55)*B;
+        d.style.left=cx+'px';d.style.top=cy+'px';d.style.setProperty('--w',Math.max(8,hh*(.12+Math.random()*.1))+'px');d.style.rotate=(a*180/Math.PI)+'deg';stage.appendChild(d);
+        d.animate([{translate:'0 0',opacity:1,scale:'1 1'},{translate:`${Math.cos(a)*L}px ${Math.sin(a)*L*.7-hh*.12}px`,opacity:0,scale:'.3 1'}],{duration:260+Math.random()*140,easing:'cubic-bezier(.1,.7,.3,1)',fill:'forwards'});setTimeout(()=>d.remove(),440);}
+    }catch(_){}}
+    /* B(기본 · lm_herohit = 'a' 면 코드 불꽃 A): 손으로 그린 이펙트 시트(막타용 FX23 별 섬광 · 거인은 FX25 속도선 고리)를 붉은 주황으로 물들여 주인공 몸에서 터뜨림. */
+    let hitB=true;try{hitB=localStorage.getItem('lm_herohit')!=='a';}catch(_){}   /* (DHL 11-15) B로 확정 — 이펙트는 살짝 작게 · 넉백은 살짝 크게 */
+    if(hitB&&HP0&&HP0.h>0){try{const cx=HP0.x+hh*.12,cy=HP0.y;flipFx('fx23',[1,2,3,4,5,6,7],cx,cy,hh*(kind==='boss'?2.25:1.7),{fps:24,z:8,col:'#ff6a3c'});if(kind==='boss')flipFx('fx25',[0,1,2,3,4,5,6,7],cx,cy,hh*2.6,{fps:22,z:8,col:'#ff3b2f'});}catch(_){}}
+    else try{const sp=document.createElement('i');sp.className='lm-hero-hit';/* (DHL 11-14 버그) 주인공 리그는 무대 전체 크기 캔버스에 그려져, 캔버스 크기로 자리를 잡으면 불꽃이 무대의 62% 지점(적 쪽)에 무대 절반 크기로 떴음 → 주인공 몸 위치 · 키 기준 */const hp=heroPt(0);if(hp&&hp.h>0){sp.style.left=(hp.x+hp.h*.18)+'px';sp.style.top=hp.y+'px';sp.style.setProperty('--s',Math.max(36,hp.h*(kind==='boss'?1.35:1.05))+'px');stage.appendChild(sp);setTimeout(()=>sp.remove(),340);}   /* (11-14) 주인공 위치를 못 구하면 불꽃은 생략 — 예전처럼 적 쪽에 뜨지 않게 */}catch(_){}
+    try{if(typeof gameSettings==='undefined'||gameSettings.screenShake!==false)stage.animate(kind==='boss'?[{translate:'0 0'},{translate:'-9px 3px'},{translate:'7px -3px'},{translate:'-5px 2px'},{translate:'3px -1px'},{translate:'0 0'}]:[{translate:'0 0'},{translate:'-6px 2px'},{translate:'4px -2px'},{translate:'-2px 1px'},{translate:'0 0'}],{duration:kind==='boss'?300:220,easing:'linear'});}catch(_){}
     try{lmSnd(kind==='boss'?'sfx_hero_hit_heavy':'sfx_hero_hit',{gap:90});}catch(_){}}   // (DHL 11-12) 전용 피격음: 일반 적 = 가벼운 타격 · 보스 · 풍차 거인 = 무거운 타격
   function foeAttack(sid){const tell=k=>{try{window.parent?.postMessage?.({mrStage:k,id:sid},'*');}catch(_){}};if(!foeKey||gsDead){tell('foeAtkEnd');return Promise.resolve();}const R=foeReg[foeKey]||{},E=foeEN();const as=R.attacks||['attack'],a=as[foeAtkN++%as.length];   // 공격이 여러 개면 번갈아 (풍차 거인: 내려찍기 → 폭풍 날개 → …)
     const hitEv=R.hitEv||['hit'],modeC=standMode()==='C'&&!standNow;let halted=false,told=false;foeAtkOn=true;
@@ -8899,7 +8968,7 @@ let isGameOver = false;
   // 라운드 시작 (한 번에): 밤 · 모두 숨김 → 땅 · 적 · 팀 → 리그 준비 → 하늘 밝아지며 왼쪽에서 걸어 들어옴
   async function round(o){
     const W=stage.clientWidth||400;window.LM_PACK=Array.isArray(o.pack)?o.pack:null;
-    standNow=false;show(ALL,false);setMul(ALL,null);offsetTeam(-W*.75);resetCharge();
+    try{heroRevive();}catch(e){}standNow=false;show(ALL,false);setMul(ALL,null);offsetTeam(-W*.75);resetCharge();
     stage.classList.remove('lm-cleared','lm-foe-dead');stage.classList.add('lm-still');
     window.MRBattleSky?.setStage(3,true);skyN=3;
     if(o.ground)setBattleStageBackground(backgroundPath('battle',Math.max(1,Math.min(30,o.ground|0))));
@@ -8982,7 +9051,7 @@ let isGameOver = false;
     hit(o={}){if(o.killed&&!o.noFoe)tagKillQ=true;if(o.final){finPend++;stage.classList.add('lm-fin');return seq(async()=>{try{await finale(o);}finally{finPend--;gsBlock=null;if(finPend<=0)stage.classList.remove('lm-fin');if(finPend<=0&&finHp){hp=finHp[0];if(finHp[1])maxHp=finHp[1];finHp=null;setHud();}try{drawGems();}catch(e){}}});}quick(o);return Promise.resolve();},
     demo(o={}){return ready.then(()=>seq(()=>demo(o)));},
     demoPhase(){return demoPh;},
-    foeStrike(){return ready.then(()=>foeStrike());},   // (DHL 11-01) 패배 연출: 적의 마지막 공격   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
+    foeStrike(m){return ready.then(()=>foeStrike(m));},heroRevive(){try{heroRevive();}catch(e){}},   // (DHL 11-01) 패배 연출: 적의 마지막 공격   // ★14 전투 연출 미리보기 (게임 상태는 그대로)
     routes(){return {ROUTE,ROUTE_KO};},
     busy(){return pending>0||!idle()||!!document.querySelector('.mrfc');},
     queued(){return pending;},
