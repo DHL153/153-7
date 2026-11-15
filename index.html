@@ -8784,6 +8784,10 @@ html body .sToken #sFoeName{font-size:11px;bottom:-9px}
 html body .sTgtBox>small,html body .sGrid .sCell>small,html body .sGrid .sCell>small>span,html body #btns .sortBox>small{font-size:11.5px}
 html body .rbEls .kNo{font-size:11.5px}html body .nfKeys .nfK small{font-size:11px}
 }
+/* C4 돌아가기(↩) 크기 통일: 야영만 40px로 작게 보이던 것 → 다른 창과 같은 44px */
+html body #ov .rest .cpBack.lmIco:not(#_):not(#__){width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+/* C6 상점 설명 칸: 흰 평면 상자 → 플레이 창 설명 칸과 같은 크림색 + 금 테 */
+html.lmB .shop .sDesc{background:var(--cream,#f6e7c3)!important;color:#2a2118!important;border:2px solid #c99a3e;box-shadow:0 3px 0 #0008,inset 0 0 0 1px #fff6}
 /* C8 보상 받기: 다른 주 버튼과 같은 굵기 */
 html body #ov .cashGo,html body #ov [onclick="cashCollect()"]{font-weight:900}
 </style>
