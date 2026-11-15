@@ -5376,8 +5376,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
         const sw=(p.querySelector('.shop').getBoundingClientRect().width)||860,g=Math.min(p.clientHeight/Math.max(1,bot+(parseFloat(cs.paddingBottom)||0)),p.clientWidth*.94/sw,2.4);
         if(g>1.03){p.classList.add('lmFit');p.style.setProperty('--lmz',(g*.995).toFixed(3));if(p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';return;}}
       if(r>=.995){if(p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';return;}
-      if(r<.6)return;
-      p.classList.add('lmFit');let z=r;
+      const shopP=!!p.querySelector('.shop')&&matchMedia('(orientation:portrait)').matches;if(r<.6&&!shopP)return;   /* (DHL 11-15 '가끔 모바일 세로에서 크게 나옴') 원정 캠프는 화면이 조금 짧아도(주소창 등) 포기하지 말고 0.6배까지 줄이고 남는 만큼만 스크롤 */
+      p.classList.add('lmFit');let z=shopP?Math.max(r,.6):r;
       for(let i=0;i<4;i++){p.style.setProperty('--lmz',z.toFixed(3));const r2=need();if(r2>=.995){if(p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';break;}z*=r2*.995;if(z<.6){z=.6;p.style.setProperty('--lmz','0.6');break;}}
       if(need()>=.96&&p.scrollHeight>p.clientHeight)p.style.overflowY='hidden';};   // 남은 몇 px(장식)은 스크롤 대신 숨김
     const _so2=showOv;showOv=function(){const r=_so2.apply(this,arguments);fitPanel();requestAnimationFrame(fitPanel);setTimeout(fitPanel,350);return r;};
