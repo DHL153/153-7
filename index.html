@@ -3491,8 +3491,8 @@ function openShop(){
   // 설명 말풍선
   const inf=S.pick?itemInfo(S.pick):null;
   h+=`<div class="sDesc">${inf?`<b class="sdN">${inf.name}</b><span class="sdT">${inf.desc}</span>`:'물건을 누르거나, 구슬칸으로 끌어서 사세요'}</div>`;
-  if(S.pick&&S.pick.startsWith('own')){const i=+S.pick.slice(3);h+=`<div class="ordRow"><button onclick="moveOrb(${i},-1)" ${i<=0?'disabled':''}><img class="lmIcA" src="assets/ui/icon/arrow_l.webp" alt="">앞으로</button>${actBtn(S.pick,inf)}<button onclick="moveOrb(${i},1)" ${i>=S.orbs.length-1?'disabled':''}>뒤로<img class="lmIcA" src="assets/ui/icon/arrow_r.webp" alt=""></button></div>`;}
-  if(!(S.pick&&S.pick.startsWith('own')))h+=`<div class="ordRow lmOrdPh" aria-hidden="true"><button tabindex="-1"><img class="lmIcA" src="assets/ui/icon/arrow_l.webp" alt="">앞으로</button><button class="act" tabindex="-1">판매 💰0</button><button tabindex="-1">뒤로<img class="lmIcA" src="assets/ui/icon/arrow_r.webp" alt=""></button></div>`;   // 📱 세로: 구슬을 눌러 버튼 줄이 생겨도 화면이 들썩이지 않게 자리를 미리 잡아 둠 (DHL 10-28)
+  if(S.pick&&S.pick.startsWith('own')){const i=+S.pick.slice(3);h+=`<div class="ordRow"><button onclick="moveOrb(${i},-1)" ${i<=0?'disabled':''}><img class="lmIcA" src="assets/ui/icon/arrow_l.webp" alt="">왼쪽</button>${actBtn(S.pick,inf)}<button onclick="moveOrb(${i},1)" ${i>=S.orbs.length-1?'disabled':''}>오른쪽<img class="lmIcA" src="assets/ui/icon/arrow_r.webp" alt=""></button></div>`;}
+  if(!(S.pick&&S.pick.startsWith('own')))h+=`<div class="ordRow lmOrdPh" aria-hidden="true"><button tabindex="-1"><img class="lmIcA" src="assets/ui/icon/arrow_l.webp" alt="">왼쪽</button><button class="act" tabindex="-1">판매 💰0</button><button tabindex="-1">오른쪽<img class="lmIcA" src="assets/ui/icon/arrow_r.webp" alt=""></button></div>`;   // 📱 세로: 구슬을 눌러 버튼 줄이 생겨도 화면이 들썩이지 않게 자리를 미리 잡아 둠 (DHL 10-28)
   h+=orderHelp();
   h+=`<div class="sellZone">여기에 놓으면 판매</div>`;
   // 윗줄: 버튼 + 구슬 2 + 족보서
@@ -8756,6 +8756,35 @@ function ltStoryPlay(i){LM_STORY[i].play();}   /* (DHL 10-30) 목록 창은 그�
   window.lmLoseCards=()=>{seen=null;return loseFx();};   // 패배는 반격 연출 끝(lose 래퍼 안)에서 부름
 })();
 </script>
+<style id="lm-qa-1115">
+/* (DHL 11-15 QA '일관되지 않은 · 디테일하지 않은 UI') */
+/* C1 머지 창 · 각성 창: 버튼을 다른 창과 같은 키트 버튼으로 — 머지 = 초록(머지 색) · 머지 하지 않음 = 크림 */
+html.lmB body .mgGo:not(#_){height:auto;min-height:52px;padding:2px 30px;border-radius:0;border:0 solid transparent;border-width:12px 15px;border-image:url(assets/ui/kit/btn_green.webp) 40 46 40 46 fill / 12px 15px / 0 stretch;background:none;box-shadow:none;color:#fff;text-shadow:0 2px 0 #0009;font-size:clamp(17px,2.6vh,21px);filter:drop-shadow(0 3px 0 #000b)}
+html.lmB body .mgGo:not(#_):active{border-image-source:url(assets/ui/kit/btn_green_pressed.webp);translate:0 2px}
+html.lmB body .mgSkip:not(#_){min-height:52px;padding:2px 16px;border-radius:0;border:0 solid transparent;border-width:12px 15px;border-image:url(assets/ui/kit/btn_cream.webp) 40 46 40 46 fill / 12px 15px / 0 stretch;background:none;box-shadow:none;color:#2a2118;font:900 clamp(14px,2.2vh,17px)/1.2 "Noto Sans KR",sans-serif;filter:drop-shadow(0 3px 0 #000b)}
+html.lmB body .mgSkip:not(#_):active{border-image-source:url(assets/ui/kit/btn_cream_pressed.webp);translate:0 2px}
+/* D1 상점 구슬 순서 · 판매 버튼: 게임에서 가장 작던 버튼(26px) → 누르기 좋은 크기 */
+html.lmB .shop .ordRow{gap:10px;margin:2px 0 8px}
+html.lmB .shop .ordRow>button{min-width:136px!important;min-height:52px!important;font-size:17px!important;border-image-width:12px 15px!important;padding:2px 16px!important}
+html.lmB .shop .ordRow>button.act{min-width:156px!important}
+html.lmB .shop .ordRow>button .lmIcA{width:16px;height:16px;vertical-align:-2px;margin:0 4px}
+/* C2 플레이 › 배우기 목록: 회색 평면 줄 → 런 정보 › 배우기와 같은 남색 줄 · 목록은 창 안에서 스크롤(마지막 줄이 '뒤로'에 잘리지 않게) */
+#lm-title .pl-learn{min-height:0;display:flex;flex-direction:column;flex:1}
+#lm-title .pl-learn .lList{overflow:auto;min-height:0;flex:1;padding:2px;max-height:min(calc(92vh - 232px),520px)}
+#lm-title .pl-learn .lRow{flex:none;width:100%;background:#ffffff08;border:0;box-shadow:inset 0 0 0 1px #c99a3e33;border-radius:10px;color:#e8edf6}
+#lm-title .pl-learn .lRow.now{box-shadow:inset 0 0 0 2px #f3d58a;background:#f3d58a14}
+#lm-title .pl-learn .lRow .n{background:#22304a}#lm-title .pl-learn .lRow.now .n{background:var(--gold);color:#221a00}#lm-title .pl-learn .lRow.seen .n{background:#22c55e;color:#052e16}
+#lm-title .pl-learn .lRow .tx small{color:#9fb0cc}#lm-title .pl-learn .lRow .tag{white-space:nowrap;background:#22304a;color:#9fb0cc}
+#lm-title .pl-learn .lRow.now .tag{background:#3b3320;color:var(--gold)}#lm-title .pl-learn .lRow.seen .tag{background:#14361f;color:#86efac}
+/* D2 · D3 작은 글자(9~10px) → 11px 이상 */
+@media (min-height:600px){
+html body .sToken #sFoeName{font-size:11px;bottom:-9px}
+html body .sTgtBox>small,html body .sGrid .sCell>small,html body .sGrid .sCell>small>span,html body #btns .sortBox>small{font-size:11.5px}
+html body .rbEls .kNo{font-size:11.5px}html body .nfKeys .nfK small{font-size:11px}
+}
+/* C8 보상 받기: 다른 주 버튼과 같은 굵기 */
+html body #ov .cashGo,html body #ov [onclick="cashCollect()"]{font-weight:900}
+</style>
 <style id="lm-back-44">
 /* (DHL 10-31 B안) 돌아가기 ↩ · 닫기 ✕ 원판 버튼은 어디서나 44px — 머지 창 · 야영 · 하단 버튼 줄 · 안내 · 배우기/도감 · 구슬 창 · 연출 보기 · 첫 실행 연출 다시 보기 */
 html body .cpBack.cpBack:not(#_),html body .cpFoot3 .cpBack:not(#_),html body .mgFoot .cpBack:not(#_),html body .rest .cpBack:not(#_),
