@@ -7111,7 +7111,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     if(S.restSel!==k){S.restSel=k;return campOpen();}
     if(L[1].off)return;S.restSel=null;S.campLastArt=art(k==='guest'?S.campGuest.k:k);
     if(k==='guest')return guestGo();return campPick(k);};
-  campOpen=function(){if(S.rd>=2||deckIs('restless'))return;S.campSel=[];
+  campOpen=function(){if(S.rd>=2||deckIs('restless'))return;S.campSel=[];if(S.walk)S.walk=null;   /* (리뷰 11-15) 야영 화면으로 돌아오면 산책 상태를 비움 — 남은 산책 값(예: 삭제된 사건이 든 옛 저장)이 정비 화면을 산책 화면으로 꾸미지 않게 */
     if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];S.restSel=null;}
     S.inRest=true;const L=all();if(S.restSel&&!L.find(x=>x[0]===S.restSel))S.restSel=null;
     const sel=S.restSel&&L.find(x=>x[0]===S.restSel);
