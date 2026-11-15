@@ -3103,7 +3103,7 @@ function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.le
 function doDiscard(){
   if(S.busy||!S.sel.length||S.dis<=0)return;if(S._sealPend){lmSealLand(true);if(!S.sel.length)return;}if(fogReveal(()=>doDiscard(),false))return;S._fogRev=null;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
-  const out=selCards();if(out.some(c=>c.seal))try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8,delay:120});}catch(e){}out.forEach(c=>delete c.seal);const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();bossTick();$('tip').textContent='';render();
+  const out=selCards();if(out.some(c=>c.seal))try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8,delay:120});}catch(e){}out.forEach(c=>delete c.seal);const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();if(lmEmptyLose())return;bossTick();$('tip').textContent='';render();
 }
 /* 머지 & 런 (기사 이상): 고른 카드 안의 같은 이름 · 같은 ★ 짝을 먼저 합치고 달린다 */
 function runPairs(cs){ // 미리보기용: 복사본으로 합쳐 본 짝 목록
@@ -3219,7 +3219,7 @@ function tick(now){
       else{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];popMsg('⚔ 거인: 약점이 바뀌었어요 — 속성 '+weakTo(f.el));}}}
   if(S.runs<=0)return lose();
   if(S.foe.rule&&S.foe.rule.k==='hook'&&S.hand.length){const out=shuffle(S.hand).slice(0,2);S.hand=S.hand.filter(c=>!out.includes(c));popMsg('🪝 갈고리! '+out.map(c=>TYPES[c.id].ko).join(' · ')+' 버려짐');}
-  {const had=new Set(S.hand.map(c=>c.uid));fill();lmSealQueue();if(S._sealPend)S._sealNew=S.hand.filter(c=>!had.has(c.uid)).map(c=>c.uid);}rollIntent();bossTick();render();
+  {const had=new Set(S.hand.map(c=>c.uid));fill();lmSealQueue();if(S._sealPend)S._sealNew=S.hand.filter(c=>!had.has(c.uid)).map(c=>c.uid);}if(lmEmptyLose())return;rollIntent();bossTick();render();
 }
 /* 🔒 봉인 (DHL 11-13): 기사 · 편력 기사에서 런으로 적을 못 잡으면 적의 공격으로 그 런 뒤 새로 받는 카드 1장(무작위)이 봉인됨 (11-14: 들고 있던 카드는 건드리지 않음).
    봉인된 카드는 족보 · 점수 · 머지에 못 들어감. 런에 같이 내거나 버리면 손에서 나가며 풀림. 라운드가 끝나면 모두 풀림. 견습 · 튜토리얼 · 연습장은 없음.
@@ -3256,6 +3256,8 @@ const noMotionSeal=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)'
 /* 봉인 뒷정리 (11-13 QA): ① 라운드가 끝나면(이김 · 짐) 바로 풀림 — 예전엔 다음 전투 시작 때 풀려서 원정 캠프 · 야영 · 덱 보기 · 저장에 봉인이 남았음
    ② 손패가 전부 봉인인데 버리기도 없으면(덱이 얇을 때) 더 할 수 있는 게 없음 → 모두 풀어 줌 */
 function lmSealClear(){try{clearTimeout(lmSealT);if(S){S._sealPend=0;S._sealNew=null;}if(S&&S.deck)S.deck.forEach(c=>{delete c.seal;delete c.sealAt;delete c.sealWait;});}catch(e){}}
+/* (DHL 11-15 '덱에 카드가 없으면 끝나지 않음') 손패도 덱도 비었는데 적이 살아 있으면 낼 카드가 없음 → 패배 */
+function lmEmptyLose(){try{if(!S||S.practice||S.sandbox||S.inShop||!S.foe||S.score>=S.tgt)return false;if(S.hand.length||S.draw.length)return false;popMsg('낼 카드가 없어요 — 덱이 바닥났어요');lose();return true;}catch(e){return false;}}
 function lmSealGuard(){try{if(!S||S.busy||S.anim||S.selecting||S.inShop||!S.hand||!S.hand.length||S.runs<=0||S.dis>0)return;if(S.hand.every(c=>c.seal)){S.hand.forEach(c=>{delete c.seal;delete c.sealAt;});popMsg('🔓 손패가 모두 봉인 — 봉인이 풀렸어요');render();}}catch(e){}}
 {const _w=win;win=function(){lmSealClear();return _w.apply(this,arguments);};const _l=lose;lose=function(){lmSealClear();return _l.apply(this,arguments);};const _f=fill;fill=function(){const r=_f.apply(this,arguments);setTimeout(lmSealGuard,0);return r;};}
 
