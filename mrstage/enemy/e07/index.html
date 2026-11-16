@@ -40,7 +40,7 @@ canvas{display:block;width:100%;height:auto}
   </div>
   <div id="err"></div>
 </div>
-<script src="mill.js"></script>
+<script src="mill.js?v=3"></script>
 <script>
 (async()=>{
 const load=s=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(new Error('load '+s));i.src=s});
@@ -136,7 +136,7 @@ function draw(now){const o=OUT;bg();
   // the giant: blades behind, then the body, then the glowing cracks and eyes
   drawBlades(o,M.multiply(o.pose==='slam'?PM:new DOMMatrix()));
   if(fx&&o.rage){const BMx=M.multiply(o.pose==='slam'?PM:new DOMMatrix()),hub=o.pose==='slam'?SLAM.hub:HUB,sc=o.pose==='slam'?BS/SLAM.s:BS;g.save();g.globalCompositeOperation='lighter';
-    for(let k=0;k<4;k++){g.setTransform(BMx.translate(hub[0],hub[1]).rotate((ANG0-o.bladeAng+k*Math.PI/2)*180/Math.PI).scale(sc));const x=IM.blade.width-60;const gr=g.createRadialGradient(x,0,4,x,0,150);gr.addColorStop(0,`rgba(255,120,40,${.55+.15*Math.sin(now/90+k)})`);gr.addColorStop(1,'rgba(255,60,20,0)');g.fillStyle=gr;g.beginPath();g.arc(x,0,150,0,7);g.fill()}g.restore()}
+    for(let k=0;k<4;k++){g.setTransform(BMx.translate(hub[0],hub[1]).rotate((ANG0-o.bladeAng+k*Math.PI/2)*180/Math.PI).scale(sc));const x=IM.blade.width-60;const gr=g.createRadialGradient(x,0,4,x,0,170);gr.addColorStop(0,`rgba(255,70,30,${.7+.2*Math.sin(now/90+k)})`);gr.addColorStop(1,'rgba(255,30,10,0)');g.fillStyle=gr;g.beginPath();g.arc(x,0,170,0,7);g.fill();/* (DHL 11-16 시안) 붉은 날개 끝 꼬리: 도는 반대쪽으로 붉은 잔상 — 거꾸로 도는 게 눈에 보이게 */const sp=Math.min(1,Math.abs(o.bladeW)/1.4),dir=Math.sign(o.bladeW)||1;if(sp>.05){for(let i=1;i<=7;i++){const a=dir*i*.07;g.globalAlpha=sp*(1-i/8)*.55;g.fillStyle='rgba(255,50,20,1)';g.beginPath();g.arc(Math.cos(a)*x,Math.sin(a)*x,46-i*4,0,7);g.fill()}g.globalAlpha=1}}g.restore()}
   drawBody(o,MP);
   // particles
   if(fx){g.save();g.setTransform(S);for(const p of parts){if(p.t<0)continue;const al=Math.max(0,1-p.t/p.life);g.globalAlpha=al;

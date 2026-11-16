@@ -8323,13 +8323,18 @@ let isGameOver = false;
          if(Zh){Zh.style.display='block';Zh.style.left=(lh/M*100)+'%';Zh.style.width=((Math.min(hp,M)-lh)/M*100)+'%';}}
        else{H.style.display='none';if(Zh)Zh.style.display='none';}}}
     if(o.dmg>0){const eff=o.brk||!(o.cap>0)?o.dmg:Math.min(o.dmg,o.hit||o.dmg),to=Math.max(0,hp-eff);P.style.display='block';P.style.left=(to/M*100)+'%';P.style.width=((Math.min(hp,M)-to)/M*100)+'%';P.classList.toggle('kill',to<=0);}else P.style.display='none';}
+  let millCall=false;
+  /* (DHL 11-16 B안) 풍차 거인 2페이지 전환: 런이 끝난 뒤 따로 한 장면 — 화면 당김 · 붉은 번쩍 · 거인 포효(공격 동작) · 큰 글씨 */
+  async function millRage(t,sub,cb){if(gsDead){try{cb&&cb();}catch(e){}return;}const E=enemyPt();try{stage.style.transformOrigin=`${E.x}px ${E.y}px`;stage.animate([{transform:'scale(1)'},{transform:'scale(1.08)',offset:.35},{transform:'scale(1.08)',offset:.8},{transform:'scale(1)'}],{duration:1900,easing:'cubic-bezier(.2,.8,.3,1)'});}catch(e){}
+    millPhase2();try{cb&&cb();}catch(e){}await sleep(260);try{const R=foeReg[foeKey]||{};if(R.attacks&&R.attacks.length)foePlay(R.attacks[0]);}catch(e){}
+    bigText(t,'brk',sub);await sleep(1700);}
   function millPhase2(){if(stage.classList.contains('lm-mill2'))return;stage.classList.add('lm-mill2');try{foeEN()?.rage(true);}catch(e){}   /* (DHL 11-12) 새 풍차 거인: 분노 2페이즈 (날개 달아오름 · 증기 · 균열) */
     if(!$('lm-mill-vig')){const v=document.createElement('div');v.id='lm-mill-vig';stage.appendChild(v);}
     try{MRFX.shake(stage,'l',true);MRFX.flash?.(stage,'rgba(255,60,40,.45)');}catch(e){}lmSnd(foeKey?'sfx_mill_rage':'sfx_boss_rule_trigger',{vol:foeKey?1:.8,gap:1000});
     const ba=document.querySelector('#battle-stage .boss-art.lm-mill');if(ba)try{ba.animate([{scale:'1.12'},{scale:'1.2'},{scale:'1.12'}],{duration:520,easing:'cubic-bezier(.3,1.6,.5,1)'});}catch(e){}}
   function setHud(){
     if(!hud)return;drawCap();
-    if(hp>0&&!gsDead&&hp<=maxHp*.5&&(document.querySelector('#battle-stage .boss-art.lm-mill')||(foeKey&&foeReg&&foeReg[foeKey]&&foeReg[foeKey].kind==='final')))millPhase2();   /* (11-12 버그) 새 풍차 거인(리그)은 예전 그림이 없어 2페이즈가 시작되지 않던 문제 */
+    if(hp>0&&!gsDead&&hp<=maxHp*.5&&!millCall&&(document.querySelector('#battle-stage .boss-art.lm-mill')||(foeKey&&foeReg&&foeReg[foeKey]&&foeReg[foeKey].kind==='final')))millPhase2();   /* (DHL 11-16 B안) 게임이 millRage를 부르는 판에서는 런이 끝난 뒤 한 번에 전환 */   /* (11-12 버그) 새 풍차 거인(리그)은 예전 그림이 없어 2페이즈가 시작되지 않던 문제 */
     hud.style.display='block';
     const fill=$('boss-hp-fill'),text=$('boss-hp-text'),name=$('boss-name');
     const pct=Math.max(0,Math.min(100,hp/Math.max(1,maxHp)*100));
@@ -8906,7 +8911,7 @@ let isGameOver = false;
   function foeMount(key){const en=$('enemy');if(!en)return false;const R=foeReg&&foeReg[key];if(!R){foeKey=null;window.LM_FOE_RIG=null;en.classList.remove('lm-rigfoe');const o=foeFrame();if(o)o.remove();return false;}
     let f=foeFrame();
     if(f&&foeKey===key){try{f.contentWindow.EN&&f.contentWindow.EN.hide();}catch(e){}}
-    else{f=document.createElement('iframe');f.className='lm-foe-rig';f.setAttribute('tabindex','-1');f.setAttribute('aria-hidden','true');f.setAttribute('scrolling','no');f.src='enemy/'+key+'/index.html';en.replaceChildren(f);}
+    else{f=document.createElement('iframe');f.className='lm-foe-rig';f.setAttribute('tabindex','-1');f.setAttribute('aria-hidden','true');f.setAttribute('scrolling','no');f.src='enemy/'+key+'/index.html'+(key==='e07'?'?v=3':'');en.replaceChildren(f);}
     foeKey=key;window.LM_FOE_RIG=key;en.classList.add('lm-rigfoe');f.classList.toggle('lm-foe-float',!!R.float);return true;}
   async function foeWait(ms){const t0=performance.now();while(performance.now()-t0<ms){if(foeEN())return true;await new Promise(r=>setTimeout(r,60));}return !!foeEN();}
   async function foePlay(st,max){const E=foeEN();if(!E)return false;try{E.speed(foeRate);E.play(st);}catch(e){return false;}
@@ -8947,7 +8952,7 @@ let isGameOver = false;
       if(modeC&&!halted){halted=true;standNow=true;stage.classList.add('lm-still');setMul(ALL,null);}}});}catch(_){}   // C: 달리던 주인공이 맞는 순간에 멈춤 (미리 멈추면 맞을 줄 알고 기다리는 것처럼 보임 — DHL 11-12)
     foeAtkSnd(a);return foePlay(a,((R.attackMs||2500)*1.4+2500)/foeRate).then(()=>halted?new Promise(r=>setTimeout(r,380)):0).finally(()=>{foeAtkOn=false;tell('foeAtkEnd');if(halted){standNow=false;if(!gsDead){stage.classList.remove('lm-still');setMul(ALL,null);}}});}   // 맞고 잠깐 선 뒤 다시 달림
   function setupEnemy(o){
-    stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');try{splitEnd();}catch(e){}gsDead=false;tagKillQ=false;tagKillHold=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
+    stage.classList.remove('lm-foe-dead','lm-mill2','lm-impact','lm-impact2','lm-rgb','lm-ko');millCall=false;try{splitEnd();}catch(e){}gsDead=false;tagKillQ=false;tagKillHold=false;gsBroken=false;gsSh=null;{const sb=$('lm-sbar');if(sb){sb._lock=false;sb._busy=false;clearTimeout(sb._t);sb.classList.remove('brk','flash');}}   /* (DHL 10-31) 새 적: 앞 적 연출에서 잠긴 방패 바(0)를 풀어 처음부터 가득으로 */
     kind=o.kind==='boss'?'boss':'normal';enemyName=o.name||'';hp=maxHp=Math.max(1,o.maxHp||1);if(o.hp!=null)hp=o.hp;
     clearBattleVisualQueue(true);
     const enemy=$('enemy');
@@ -9040,7 +9045,9 @@ let isGameOver = false;
     setSky(n,instant){skyN=n|0;window.MRBattleSky?.setStage(skyN%5,instant!==false);},
     // 적: kind 'normal'(망령 8종) | 'boss'(보스 4종, WARNING 등장)
     async setEnemy(o={}){await ready;await foeRegP;return seq(async()=>setupEnemy(o));},
-    foeAttack(sid){return ready.then(()=>seq(()=>foeAttack(sid)));},   // 런으로 못 잡았을 때: 적이 공격 동작 한 번 (피해 없음)
+    foeAttack(sid){return ready.then(()=>seq(()=>foeAttack(sid)));},
+    millManual(on){millCall=!!on;},   // (DHL 11-16) 풍차 거인: 2페이지 전환을 게임이 직접 부름
+    millRage(t,sub,cb){millCall=true;return ready.then(()=>seq(()=>millRage(String(t||''),sub?String(sub):'',typeof cb==='function'?cb:null)));},   // cb: 전환 순간에 게임이 약점을 바꿈   // 런으로 못 잡았을 때: 적이 공격 동작 한 번 (피해 없음)
     foeList(){return foeRegP;},
     setTagBox(l,b){tagBox=(l>0)?{l,b}:null;try{foeSize();}catch(e){}},   // 적 이름표 자리 (무대 좌표)
     setCap(o){capO=o||null;if(finPend<=0){gsBroken=false;const sb=$('lm-sbar');if(sb&&!sb._busy&&!sb.classList.contains("flash")&&!sb.classList.contains("brk"))sb._lock=false;}drawCap();},   // 관통으로 깨진 방패는 다음 손패를 고를 때 다시 차오름   // (DHL 10-29) 관통: {cap:한 번 최대 피해, dmg:예상 피해(견습만), brk:3개 맞춤} · null = 숨김

@@ -3207,6 +3207,7 @@ function tick(now){
     if(GK==='regen'&&S.score>0){const h=Math.min(S.score,Math.round(S.tgt*0.1));S.score-=h;popMsg('✚ 거인: 갑옷 회복 +'+h.toLocaleString());}
     if(GK==='rekey'&&armorOn()){const f=S.foe;if(Math.random()<0.5){const o=WORLDS.filter(w=>w!==f.home);f.home=o[Math.random()*o.length|0];popMsg('⚔ 거인: 약점이 바뀌었어요 — 세계 '+WORLD_KO[f.home]);}
       else{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];popMsg('⚔ 거인: 약점이 바뀌었어요 — 속성 '+weakTo(f.el));}}}
+  if(S.foe&&S.foe.boss==='windmill'&&!S.foe.wm2&&S.score>=S.tgt*0.5)lmMill2();   /* (DHL 11-16 B안) 풍차 거인 2페이지 */
   if(S.runs<=0)return lose();
   if(S.foe.rule&&S.foe.rule.k==='hook'&&S.hand.length){const out=shuffle(S.hand).slice(0,2);S.hand=S.hand.filter(c=>!out.includes(c));popMsg('🪝 갈고리! '+out.map(c=>TYPES[c.id].ko).join(' · ')+' 버려짐');}
   {const had=new Set(S.hand.map(c=>c.uid));fill();lmSealQueue();if(S._sealPend)S._sealNew=S.hand.filter(c=>!had.has(c.uid)).map(c=>c.uid);}if(lmEmptyLose())return;rollIntent();bossTick();render();
@@ -4765,7 +4766,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
   // ── 무대 붙이기
   const mid=document.querySelector('#mainArea .midZone');if(!mid)return;
   const box=document.createElement('div');box.id='lmStage';
-  box.innerHTML='<iframe src="mrstage/stage.html?v=r155" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
+  box.innerHTML='<iframe src="mrstage/stage.html?v=r158" title="전투" aria-label="전투 무대" tabindex="-1"></iframe><div id="lmFoeTag" aria-live="polite"></div>';
   mid.insertBefore(box,mid.firstChild);
   const fr=box.querySelector('iframe'),tag=box.querySelector('#lmFoeTag');
   // ── 무대가 준비되기 전 호출은 모아 두었다가 순서대로
@@ -4799,7 +4800,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     /* (DHL 10-30) 편력 피날레: 스카이아크 알론소전 = 러스트 알론소 단독 · 풍차 거인전 = 세 알론소(러스트 · 네온 · 스카이) — 땅은 그 장 세계 */
     if(S.foe.boss==='skyAlonso'){team=[1];ground=1+OFF[fw];}
     if(S.foe.boss==='windmill'){team=[1,11,21];ground=1+OFF[fw];}
-    const rd=S.rd,tm=team.slice();const bossArt=(window.LM_BOSS_ART||{})[S.foe.boss]||null;const pack=S.foe.boss==='windmill'?[38,25,12]:null;try{foeRigSet(S.foe,S.jang||1,S.rd||0);if(S.foe.rig&&!S.practice&&!S.sandbox)codexMark('foe',S.foe.rig);}catch(e){}call(st=>st.round({ground,pack,team:tm,rd,enemy:{kind:boss?'boss':'normal',name:S.foe.name,maxHp,hp,level:S.jang,bossArt,rig:S.foe.rig||null}}));   // 라운드 시작을 한 번에: 주인공의 배경 · 밤에서 걸어 들어옴
+    const rd=S.rd,tm=team.slice();const bossArt=(window.LM_BOSS_ART||{})[S.foe.boss]||null;const pack=S.foe.boss==='windmill'?[38,25,12]:null;try{const sw=document.querySelector('#lmStage iframe')?.contentWindow?.MRStage;sw?.millManual?.(S.foe.boss==='windmill');}catch(e){}try{foeRigSet(S.foe,S.jang||1,S.rd||0);if(S.foe.rig&&!S.practice&&!S.sandbox)codexMark('foe',S.foe.rig);}catch(e){}call(st=>st.round({ground,pack,team:tm,rd,enemy:{kind:boss?'boss':'normal',name:S.foe.name,maxHp,hp,level:S.jang,bossArt,rig:S.foe.rig||null}}));   // 라운드 시작을 한 번에: 주인공의 배경 · 밤에서 걸어 들어옴
     renderTag();setTimeout(warmHand,2500);
   }
   // ── 적 정보: 적 머리 쪽
@@ -8617,6 +8618,14 @@ async function lmEnding(){
   S.busy=true;S._bgmEnd='win';hideOv();await lmScene('ending');S.busy=false;
   showOv(runEndHTML(true));
 }
+/* (DHL 11-16 B안) 풍차 거인 2페이지: 체력 절반을 넘긴 런이 끝나면 분노 — 약점(세계 · 속성 · 번호)이 바뀜. LM_WM2 = 'all'(셋 다) · 'one'(하나) */
+var LM_WM2='all';
+function lmMill2(){const f=S.foe;if(!f||f.wm2)return;f.wm2=1;
+  const nx={home:f.home,el:f.el,no:f.no},nw=()=>{const o=WORLDS.filter(w=>w!==f.home);nx.home=o[Math.random()*o.length|0];},ne=()=>{const o=ELS.filter(e=>e!==f.el);nx.el=o[Math.random()*o.length|0];},nn=()=>{let n=rndNo(),g=0;while(n===f.no&&g++<20)n=rndNo();nx.no=n;};
+  if(LM_WM2==='one'){[nw,ne,nn][Math.random()*3|0]();}else{nw();ne();nn();}
+  const tx='약점이 바뀌었어요 — '+WORLD_KO[nx.home]+' · '+weakTo(nx.el)+' · 번호 '+nx.no;
+  let done=false;const apply=()=>{if(done)return;done=true;if(S.foe!==f)return;Object.assign(f,nx);try{render();}catch(e){}popMsg('🌪 풍차 거인 분노! '+tx);};   /* 화면에서 거인이 분노하는 순간에 약점이 바뀜 (그 전에 아이콘이 먼저 바뀌지 않게) */
+  try{const sw=document.querySelector('#lmStage iframe')?.contentWindow?.MRStage;if(sw&&sw.millRage){sw.millRage('풍차 거인 분노!',tx,apply);setTimeout(apply,15000);}else apply();}catch(e){apply();}}
 function lmEndless(){hideOv();delete S._bgmEnd;S.endless=true;S._statEnded=1;cashOut();}
 </script>
 
