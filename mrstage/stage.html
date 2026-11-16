@@ -8911,7 +8911,7 @@ let isGameOver = false;
   function foeMount(key){const en=$('enemy');if(!en)return false;const R=foeReg&&foeReg[key];if(!R){foeKey=null;window.LM_FOE_RIG=null;en.classList.remove('lm-rigfoe');const o=foeFrame();if(o)o.remove();return false;}
     let f=foeFrame();
     if(f&&foeKey===key){try{f.contentWindow.EN&&f.contentWindow.EN.hide();}catch(e){}}
-    else{f=document.createElement('iframe');f.className='lm-foe-rig';f.setAttribute('tabindex','-1');f.setAttribute('aria-hidden','true');f.setAttribute('scrolling','no');f.src='enemy/'+key+'/index.html';en.replaceChildren(f);}
+    else{f=document.createElement('iframe');f.className='lm-foe-rig';f.setAttribute('tabindex','-1');f.setAttribute('aria-hidden','true');f.setAttribute('scrolling','no');f.src='enemy/'+key+'/index.html'+(key==='e07'?'?v=3':'');en.replaceChildren(f);}
     foeKey=key;window.LM_FOE_RIG=key;en.classList.add('lm-rigfoe');f.classList.toggle('lm-foe-float',!!R.float);return true;}
   async function foeWait(ms){const t0=performance.now();while(performance.now()-t0<ms){if(foeEN())return true;await new Promise(r=>setTimeout(r,60));}return !!foeEN();}
   async function foePlay(st,max){const E=foeEN();if(!E)return false;try{E.speed(foeRate);E.play(st);}catch(e){return false;}

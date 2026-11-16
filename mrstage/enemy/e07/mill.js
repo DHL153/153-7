@@ -81,6 +81,9 @@
         if (s >= .82) this.play("idle");
       }
       // blades: angular velocity chases its target (wK = how hard it is driven), angle integrates
+      /* (DHL 11-16 시안) 분노(2페이지): 날개가 멈칫하다 거꾸로 돈다 — 모든 상태의 목표 속도를 뒤집으면 속도가 줄다 0을 지나 반대로 붙음 (타이틀 화면 '붉게 거꾸로 도는 풍차' 복선) */
+      if (R && this._r0 == null) this._r0 = this.t; if (!R) this._r0 = null;
+      if (R && this.rev !== false) { if (this.t - this._r0 < .7) { wT = 0; wK = 7 } else { wT = -wT; wK = Math.min(wK, 1.6) } }   // 먼저 0.7초 멈칫(급정지) → 거꾸로
       this.w += (wT - this.w) * Math.min(1, wK * dt); this.ang += this.w * dt;
       this.glow += (glowT - this.glow) * Math.min(1, 10 * dt);
       o.bladeAng = this.ang; o.bladeW = this.w; o.glowK = this.glow; o.rage = R;
