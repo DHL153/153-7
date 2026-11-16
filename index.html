@@ -2778,9 +2778,12 @@ function targets(){
 const hurtCount=()=>({w:S.deck.filter(c=>c.out).length,s:S.deck.filter(c=>c.st&&c.st.hit).length});
 const selCards=()=>S.sel.map(u=>S.hand.find(c=>c.uid===u)).filter(Boolean);
 const MK_KO={up:'같은 세계관',mix:'혼합'};
+/* (DHL 11-16 버그 '해제하고 다른 카드로 내면 반드시 내야 하는 카드를 안 내도 됨') 바람 종: 늘 골라진 카드가 손에 있으면 선택에서 빠지지 않게 */
+function lmBellOn(){return !!(S&&S.foe&&S.foe.rule&&S.foe.rule.k==='bell'&&S.forced!=null&&S.hand&&S.hand.some(c=>c.uid===S.forced));}
+function lmBellSel(){if(!lmBellOn()||S.sel.includes(S.forced))return;S.sel.unshift(S.forced);if(S.sel.length>5)S.sel.length=5;}
 function canMergeAllowed(){return !deckIs('campfire')&&!(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge');}
 const mergeRun=()=>DIFF[S.diff].mergeRun;   // 기사 이상: 머지도 런 1번
-function canMerge(){if(deckIs('campfire')||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return null;if(mergeRun())return null;   // 기사 이상: 따로 머지하지 않고 런할 때 합쳐짐
+function canMerge(){if(deckIs('campfire')||(S.foe&&S.foe.rule&&S.foe.rule.k==='nomerge'))return null;if(lmBellOn()&&S.sel.includes(S.forced))return null;   /* (DHL 11-16) 바람 종: 늘 골라진 카드는 머지할 수 없음 — 반드시 내야 하는 카드 */if(mergeRun())return null;   // 기사 이상: 따로 머지하지 않고 런할 때 합쳐짐
 const c=selCards();return c.length===2&&!c[0].fog&&!c[1].fog?mergeKind(c[0],c[1]):null;}
 function twinKind(c){if(c.fog)return null;let k=null;S.hand.forEach(o=>{if(o.fog)return;const m=mergeKind(c,o);if(m==='up'||(m&&!k))k=m;});return k;}
 
@@ -2882,7 +2885,7 @@ function renderAtk(){
   bar.innerHTML=`${a.ic} <b>${a.ko}</b> · ${a.d(n)}<br>→ `+(cs.length?`<b>${cs.map(c=>c.fog?'?':TYPES[c.id].ko).join(' · ')}</b> ${res}`:(S.sel.length||k==='mark'?'✔ 피해 없음':'카드를 고르면 결과가 보여요'));
 }
 /* ───────── 렌더 ───────── */
-function render(){
+function render(){try{if(S&&!S.busy&&!S.inShop&&S.sel)lmBellSel();}catch(e){}
   try{const bk=(S&&S.deckK)||'';if(window._lmBk!==bk){window._lmBk=bk;lmDeckBack();}}catch(e){}   // (DHL 11-12) 카드 뒷면 = 지금 판의 덱 (연습 · 연습장으로 바뀌면 기본 뒷면으로)
   if(S.orbs&&S.orbs.some(k=>!ORBS[k]))S.orbs=S.orbs.filter(k=>ORBS[k]);
   // 진행 표시줄: 3장 ✔망령 ━ ⚔수문장 ━ 👑거인
@@ -3091,6 +3094,7 @@ function fogReveal(then,showHand){const fc=selCards().filter(c=>c.fog);if(!fc.le
     if(r.keys&&r.keys.n){const kb=$('keyBar');if(kb){kb.classList.remove('flash');void kb.offsetWidth;kb.classList.add('flash');}}}catch(e){}
   setTimeout(()=>{S.busy=false;document.querySelectorAll('#hand .card.fogRev').forEach(x=>{x.classList.remove('fogRev');x.style.animationDelay='';});then();},420+fc.length*90+(showHand?650:450));return true;}
 function doDiscard(){
+  try{lmBellSel();}catch(e){}
   if(S.busy||!S.sel.length||S.dis<=0)return;if(S._sealPend){lmSealLand(true);if(!S.sel.length)return;}if(fogReveal(()=>doDiscard(),false))return;S._fogRev=null;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
   const out=selCards();if(out.some(c=>c.seal))try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8,delay:120});}catch(e){}out.forEach(c=>delete c.seal);const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();if(lmEmptyLose())return;bossTick();$('tip').textContent='';render();
@@ -3133,6 +3137,7 @@ function runChain(){
 const wsum=cs=>cs.reduce((s,c)=>s+(c.seal?0:weight(c)),0);
 function psyShort(){return S.foe&&S.foe.rule&&S.foe.rule.k==='psychic'&&wsum(selCards())<5&&wsum(S.hand)>=5;}
 function doPlay(merged){
+  try{lmBellSel();}catch(e){}
   if(S.busy||!S.sel.length||S.runs<=0)return;
   if(S._sealPend){lmSealLand(true);if(!S.sel.length)return;}
   if(!selCards().some(c=>!c.seal)){popMsg('🔒 봉인된 카드만으로는 런할 수 없어요 — 다른 카드와 같이 내거나 버리세요');const bp=$('bPlay');if(bp){bp.classList.remove('lmNo');void bp.offsetWidth;bp.classList.add('lmNo');}return;}
@@ -4166,7 +4171,7 @@ function showOv(h){$('panel').innerHTML=h;$('ov').hidden=false;if(S&&S.foes)try{
 function hideOv(){$('ov').hidden=true;}
 
 $('bPlay').onclick=()=>doPlay();$('bDis').onclick=()=>doDiscard();   /* 손패 리그 연출(슬픈 표정 → 사라짐)을 거치도록 — 함수 원본을 바로 묶으면 연출이 건너뛰어짐 */$('bMerge').onclick=doMerge;
-$('bClear').onclick=()=>{S.sel=[];render();};
+$('bClear').onclick=()=>{S.sel=[];lmBellSel();render();};
 $('bSort').onclick=()=>{try{window.LMS&&LMS.play('sfx_hand_sort',{vol:.7,gap:120});}catch(e){}const o=Object.keys(SORT_KO);S.sort=o[(o.indexOf(S.sort)+1)%o.length];sortHand();render();$('tip').textContent='정렬: '+o.map(k=>k===S.sort?'['+SORT_KO[k]+']':SORT_KO[k]).join(' → ');};
 $('bLearn').onclick=()=>{if(S)openInfo('learn','list');};
 $('bInfo').onclick=()=>{if(S){S.orbs.forEach(k=>codexMark('orb',k));LEARN_SEEN.length?openInfo('run'):openInfo('learn','list');}};   // 처음 온 사람은 배우기, 이후엔 이번 판
