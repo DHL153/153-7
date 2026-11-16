@@ -33,6 +33,8 @@ python3 tab.py capR none F1c                           # 요약 표
 | `KV` | 숙련 봇이 맞춤 1개에 주는 가치(목표 대비) | `0.08` |
 | `TMUL` | 모든 목표(체력) 배수 | `1` |
 | `DIFF` | `batch.sh`의 난이도 | `knight` |
+| `FIN` | `1`이면 편력 8장 스카이아크 알론소 뒤 풍차 거인까지 (클리어 = 풍차 거인 격파) | 끔 |
+| `WM2` | 풍차 거인 2페이지(체력 절반): `off` 그대로 · `one` 약점 1개 바뀜 · `all` 세계 · 속성 · 번호 모두 바뀜 | `off` |
 
 **추천안 F1c:** `GATE=tough PRE=cap HITF=0.35 BRK=now TGH=3,4,5 GROG=1.5 GN=1 REG=1`
 

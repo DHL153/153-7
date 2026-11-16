@@ -195,6 +195,10 @@ function playRound(){
      if(!skip){if(GK==='riposte'&&S.lastN<=1&&S.runs>0)S.runs--;if(GK==='regen'&&S.score>0)S.score-=Math.min(S.score,Math.round(S.tgt*0.1));
       if(GK==='rekey'){const f=S.foe;if(Math.random()<0.5){const o=WORLDS.filter(w=>w!==f.home);f.home=o[Math.random()*o.length|0];}else{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];}}}}
     if(ENEMY==='heal'){const h=Math.min(S.score,Math.round(S.tgt*0.2));S.score-=h;ST.healLost+=h/S.tgt;}
+    /* 풍차 거인 2페이지 (WM2): 체력 절반을 넘기면 약점이 바뀜 — one: 세계 또는 속성 1개 · all: 세계 · 속성 · 번호 모두 */
+    if(S.foe.boss==='windmill'&&!S.foe.wm2&&S.score>=S.tgt*0.5){S.foe.wm2=1;const f=S.foe,M=process.env.WM2||'off';ST.wm2=(ST.wm2||0)+1;
+      if(M==='one'){if(Math.random()<0.5){const o=WORLDS.filter(w=>w!==f.home);f.home=o[Math.random()*o.length|0];}else{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];}}
+      if(M==='all'){{const o=WORLDS.filter(w=>w!==f.home);f.home=o[Math.random()*o.length|0];}{const o=ELS.filter(e=>e!==f.el);f.el=o[Math.random()*o.length|0];}{let n=rndNo(),g=0;while(n===f.no&&g++<20)n=rndNo();f.no=n;}}}
     if(S.runs<=0)break;
     if(K==='hook'&&S.hand.length){const out=shuffle(S.hand.slice()).slice(0,2);S.hand=S.hand.filter(c=>!out.includes(c));}
     fill();rollIntent();bossTick();
@@ -329,6 +333,7 @@ function maybeCamp(){
     if(pr){applyMerge(pr[0],pr[1]);S.deck.splice(S.deck.indexOf(pr[1]),1);S.merges++;}}
   S.foes[S.rd].camped=true;return true;}
 /* ---------- 한 판 ---------- */
+const FIN=process.env.FIN==='1';
 function game(){
   newGame(DK);let jmax=ENDLESS?JMAX:8;
   while(true){
@@ -336,6 +341,10 @@ function game(){
     if(maybeCamp()){S.rd++;continue;}
     const won=playRound();
     if(!won){ST.deathJ[S.jang]=(ST.deathJ[S.jang]||0)+1;if(S.jang>8)ST.endlessJ.push(S.jang);else ST.endlessJ.push(S.jang);return false;}
+    if(S.jang===8&&S.rd===2&&FIN&&S.diff==='errant'&&!S.finale){ST.sky=(ST.sky||0)+1;   /* 편력: 스카이아크 알론소 → (상점 없이) 풍차 거인 — 본체 lmFinale와 같게 */
+      const old=S.foes[2],prev=S.tgt;S.foes[2]={rd:2,home:old.home,hero:old.hero,no:rndNo(),name:'풍차 거인',el:ELS[Math.random()*5|0],atk:old.atk,ints:[],atype:null,rule:bossRule(8,S.diff),boss:'windmill',tx:1};
+      {const base=roundTgt(2)||1;S.foes[2].tx=Math.max(1.5,prev*1.25/base);}S.finale=1;
+      const w2=playRound();if(!w2){ST.deathJ.mill=(ST.deathJ.mill||0)+1;return false;}}
     if(S.jang===8&&S.rd===2)ST.clear++;
     if(S.jang>=jmax&&S.rd===2){ST.endlessJ.push(jmax+1);return true;}
     cashOut();shop();if(deckIs('thinpurse')&&S.gold>DECK_V.thin)S.gold=DECK_V.thin;
@@ -350,7 +359,7 @@ const bs=T.map(t=>t.b),p25=pct(bs,0.25),p40=pct(bs,0.4),p60=pct(bs,0.6),p90=pct(
 const tierStat=f=>{const a=T.filter(f);const rs=a.map(t=>t.runs).sort((x,y)=>x-y);return {n:a.length,kill:+(a.filter(t=>t.won).length/Math.max(1,a.length)).toFixed(3),medRuns:rs[rs.length>>1],avgRuns:+(a.filter(t=>t.won).reduce((s,t)=>s+t.runs,0)/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),otk:+(a.filter(t=>t.won&&t.runs===1).length/Math.max(1,a.length)).toFixed(3),brkShare:+(a.reduce((s,t)=>s+t.bshare,0)/Math.max(1,a.length)).toFixed(2),zeroBrkWin:+(a.filter(t=>t.won&&t.brks===0).length/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),brks:+(a.reduce((s,t)=>s+t.brks,0)/Math.max(1,a.length)).toFixed(2)};};
 const tiers={top10:tierStat(t=>t.b>=p90),mid:tierStat(t=>t.b>=p40&&t.b<=p60),bot25:tierStat(t=>t.b<=p25),all:tierStat(()=>true),cut:[p25,p40,p60,p90].map(x=>+x.toFixed(2))};
 tiers.byRd=[0,1,2].map(rd=>{const a=T.filter(t=>t.rd===rd),b=a.map(t=>t.b).sort((x,y)=>x-y),q=p=>b[Math.min(b.length-1,Math.floor(b.length*p))];const P90=q(0.9),P40=q(0.4),P60=q(0.6),P25=q(0.25);const ts=f=>tierStat(t=>t.rd===rd&&f(t));return {top10:ts(t=>t.b>=P90),mid:ts(t=>t.b>=P40&&t.b<=P60),bot25:ts(t=>t.b<=P25),all:ts(()=>true)};});
-const out={seal:{per:(ST.seals||0)/ST.games,dump:(ST.sealDump||0)/ST.games,disc:(ST.sealDisc||0)/ST.games},deathJ:ST.deathJ,bar:GATE==='bar'?{BF,PIER,BMODE,blockedRunShare:+((ST.barBlockedRuns||0)/Math.max(1,ST.barRuns||0)).toFixed(3),rollFail:ST.rolls?+(ST.rollFail/ST.rolls).toFixed(3):null}:null,gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
+const out={fin:{sky:(ST.sky||0)/ST.games,wm2:(ST.wm2||0)/ST.games},seal:{per:(ST.seals||0)/ST.games,dump:(ST.sealDump||0)/ST.games,disc:(ST.sealDisc||0)/ST.games},deathJ:ST.deathJ,bar:GATE==='bar'?{BF,PIER,BMODE,blockedRunShare:+((ST.barBlockedRuns||0)/Math.max(1,ST.barRuns||0)).toFixed(3),rollFail:ST.rolls?+(ST.rollFail/ST.rolls).toFixed(3):null}:null,gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
   runsPerRound:ST.runsUsed/ST.rounds,disPerRound:ST.disUsed/ST.rounds,firstRunWinShare:ST.firstRunWin/ST.rounds,bigHitShare:ST.bigHit/ST.rounds,
   medOver:med(ST.overRatio),q90Over:q(ST.overRatio,0.9),runsLeftAtWin:med(ST.runsLeftAtWin),
   medLoss:med(ST.lossRatio),campPerGame:ST.camp/ST.games,mergesPerGame:ST.merges/ST.games,
