@@ -2736,6 +2736,9 @@ function beginRound(){
   const prevW=S.world;S.world=JANG_WORLD(S.jang);if(prevW&&prevW!==S.world)try{window.LMS&&LMS.play('sfx_world_change',{vol:.85,gap:2000});}catch(e){}   // 다음 장 — 세계가 바뀌면 풍차 문 '슈와앙' (11-04 ElevenLabs)
   S.anim=null;S.hp=1;S.inj=[];S.marks=[];S.deck.forEach(c=>{delete c.fog;delete c.seal;if(c.st){delete c.st.psn;delete c.st.pd;}});S.usedHT=[];S.lockHT=null;   // 부상 · 상처는 잠잘 때까지 이어짐
   fill(true);if(K==='house'){S.hand.forEach(c=>c.fog=true);try{window.LMS&&LMS.play('sfx_card_fog',{delay:380,vol:.8,gap:400});}catch(e){}}rollIntent();bossTick();render();
+  /* (11-17 QA) 거인의 출전 금지(기억의 기둥 · 봉쇄 · 부상 · 별 시들기)에 덱 전부가 걸리면 손패 0장으로 시작해 런도 버리기도 못 하고 그대로 멈췄음
+     → 낼 카드가 없는 패배 (11-15 '손패 · 덱이 비었는데 적이 살아 있으면 패배'와 같은 규칙). 적 등장이 시작된 뒤에 */
+  if(!S.practice&&!S.sandbox&&!S.hand.length&&!S.draw.length){const s0=S;setTimeout(()=>{try{if(S===s0&&S.foe&&!S.hand.length&&!S.draw.length&&!S.selecting&&!S.inShop&&S.score<S.tgt){popMsg('출전할 수 있는 동료가 없어요');lose();}}catch(e){}},1200);}
 }
 /* 손패 채우기 — 뱀: 첫 손패 뒤에는 런 · 버리기마다 3장만 */
 function fill(first){S.hl=null;if(S.sandbox&&S.draw.length<(S.handNow||S.handN)){const inH=new Set(S.hand.map(c=>c.uid));S.draw=shuffle(S.deck.filter(c=>!inH.has(c.uid)&&!S.draw.includes(c)).concat(S.draw));}const R=S.foe&&S.foe.rule,fog=R&&R.k==='fog',lim=!first&&R&&R.k==='serpent'?3:99;let n=0,nFog=0;
@@ -3255,7 +3258,11 @@ function lmSealClear(){try{clearTimeout(lmSealT);if(S){S._sealPend=0;S._sealNew=
 /* (DHL 11-15 '덱에 카드가 없으면 끝나지 않음') 손패도 덱도 비었는데 적이 살아 있으면 낼 카드가 없음 → 패배 */
 function lmEmptyLose(){try{if(!S||S.practice||S.sandbox||S.inShop||!S.foe||S.score>=S.tgt)return false;if(S.hand.length||S.draw.length)return false;popMsg('낼 카드가 없어요 — 덱이 바닥났어요');lose();return true;}catch(e){return false;}}
 function lmSealGuard(){try{if(!S||S.busy||S.anim||S.selecting||S.inShop||!S.hand||!S.hand.length||S.runs<=0||S.dis>0)return;if(S.hand.every(c=>c.seal)){S.hand.forEach(c=>{delete c.seal;delete c.sealAt;});popMsg('🔓 손패가 모두 봉인 — 봉인이 풀렸어요');render();}}catch(e){}}
-{const _w=win;win=function(){lmSealClear();return _w.apply(this,arguments);};const _l=lose;lose=function(){lmSealClear();return _l.apply(this,arguments);};const _f=fill;fill=function(){const r=_f.apply(this,arguments);setTimeout(lmSealGuard,0);return r;};}
+/* (11-17 QA) 라운드가 끝나면 뒷면(안개) 표시도 지움 — 안개 · 뒤집힌 집 거인을 이기면 손에 남은 뒷면 카드가 덱에 뒷면인 채 남아, 캠프의 덱 보기와 다음 장 야영(모닥불 머지 · 떠나보내기)에서 '?'로 보였음 */
+const lmFogClear=()=>{try{if(S&&S.deck)S.deck.forEach(c=>{delete c.fog;});}catch(e){}};
+/* (11-17 QA) 이기는 연출 중에 그 판을 버리고 새 판을 시작하면, 연출이 끝난 뒤 옛 판의 보상 창이 새 판에 떠서 1라운드를 안 치르고 보상 · 캠프로 넘어갔음
+   → win()을 부른 판에만 표(S._winPend)를 달고(맨 바깥 덧씌움), 연출을 다 거친 맨 안쪽에서는 표가 있는 판만 보상으로 */
+{const _w=win;win=function(){if(!S||!S._winPend)return;S._winPend=0;lmSealClear();lmFogClear();return _w.apply(this,arguments);};const _l=lose;lose=function(){lmSealClear();lmFogClear();return _l.apply(this,arguments);};const _f=fill;fill=function(){const r=_f.apply(this,arguments);setTimeout(lmSealGuard,0);return r;};}
 
 /* ───────── 전투 띠 (M&R 한 줄) ───────── */
 const cv=$('strip'),g=cv.getContext('2d');
@@ -4167,7 +4174,15 @@ if(document.getElementById('rb_p4k')){
 
 
 }
-function showOv(h){$('panel').innerHTML=h;$('ov').hidden=false;if(S&&S.foes)try{renderSide();}catch(e){}}
+/* (11-17 QA) 창 틀(#panel)이 없으면 다시 만든다 — '메인 메뉴로'가 떠 있던 창을 통째로 보관(ltExit)해 두는 동안 #panel이 화면에 없어서,
+   그 상태로 '새로운 런' · 컬렉션 · 배우기를 누르면 오류가 나고 라운드 고르기 창이 안 떠 판이 멈췄음 (빈 전투 화면에 누를 것이 없음) */
+function lmOvPanel(){let p=$('panel');if(!p){p=document.createElement('div');p.className='panel';p.id='panel';$('ov').appendChild(p);}return p;}
+function showOv(h){lmOvPanel().innerHTML=h;$('ov').hidden=false;if(S&&S.foes)try{renderSide();}catch(e){}}
+/* (11-17 QA) 메인 메뉴에 나가 있는 동안(타이틀이 떠 있고 게임 중 옵션이 아님) 판의 창이 뜨려 하면 미뤄 둔다.
+   이기는 · 지는 연출 중에 '메인 메뉴로' 나가면 연출이 끝난 뒤 보상 창 · 게임 오버 창이 타이틀 위에 떠 버렸음 (그대로 누르면 타이틀을 뒤에 둔 채 판이 진행됨).
+   → 그 창은 '계속하기'로 돌아왔을 때 띄움 (ltCont). 타이틀에서 여는 안내 창(배우기 · 도감 = .ib)은 그대로 뜸 */
+var _ovLate=null;
+function lmAway(){try{const t=$('lm-title');return !!(S&&t&&!t.hidden&&!t.classList.contains('ingame')&&document.body.classList.contains('lm-titleOn'));}catch(e){return false;}}
 function hideOv(){$('ov').hidden=true;}
 
 $('bPlay').onclick=()=>doPlay();$('bDis').onclick=()=>doDiscard();   /* 손패 리그 연출(슬픈 표정 → 사라짐)을 거치도록 — 함수 원본을 바로 묶으면 연출이 건너뛰어짐 */$('bMerge').onclick=doMerge;
@@ -4175,7 +4190,8 @@ $('bClear').onclick=()=>{S.sel=[];lmBellSel();render();};
 $('bSort').onclick=()=>{try{window.LMS&&LMS.play('sfx_hand_sort',{vol:.7,gap:120});}catch(e){}const o=Object.keys(SORT_KO);S.sort=o[(o.indexOf(S.sort)+1)%o.length];sortHand();render();$('tip').textContent='정렬: '+o.map(k=>k===S.sort?'['+SORT_KO[k]+']':SORT_KO[k]).join(' → ');};
 $('bLearn').onclick=()=>{if(S)openInfo('learn','list');};
 $('bInfo').onclick=()=>{if(S){S.orbs.forEach(k=>codexMark('orb',k));LEARN_SEEN.length?openInfo('run'):openInfo('learn','list');}};   // 처음 온 사람은 배우기, 이후엔 이번 판
-document.addEventListener('keydown',e=>{if(!$('ov').hidden)return;if(e.key==='Enter')doPlay();if(e.key==='m'&&!document.body.classList.contains('lm-noMergeBtn'))doMerge();});
+/* (11-17 QA) Enter = 런 · m = 머지 단축키는 전투 화면이 보일 때만 — 타이틀 · 옵션 창 · 연출 보기에서도 먹어서, 판이 없으면 오류가 나고 판이 있으면 가려진 전투에서 런이 나갔음 */
+document.addEventListener('keydown',e=>{if(!$('ov').hidden||!S||!$('lm-title').hidden||S.selecting||S.inShop||document.body.classList.contains('lmFxDemo')||document.getElementById('mr-story')||document.querySelector('.dkV'))return;if(e.key==='Enter')doPlay();if(e.key==='m'&&!document.body.classList.contains('lm-noMergeBtn'))doMerge();});
 /* ───────── ▶ 시작 흐름 (2026-10-27) — 153-6 index.html의 runStartupIntro · startGame 순서를 그대로 옮김 ─────────
    첫 실행: 풍차 로고(3초, 날개가 깨어남) → 스토리 8컷 → 로딩(풍차 가속 + 구슬이 풍차로) → 포털로 빨려 들어가며 타이틀
    다시 켤 때: 로딩 → 타이틀.  (언어 선택 단계는 번역표가 생기면 153-6과 같은 자리에 켠다) */
@@ -4374,7 +4390,8 @@ var _ovPark=null;
 function ltExit(){const o=$('ov');ltPop();
   if(S&&o&&!o.hidden){_ovPark={S,cls:o.className,kids:[...o.childNodes]};o.replaceChildren();o.hidden=true;}
   ltShow();}
-function ltCont(){const pk=_ovPark;ltHide();if(!S)return;
+function ltCont(){const pk=_ovPark,late=_ovLate;_ovLate=null;ltHide();if(!S)return;
+  if(late&&late.S===S){render();showOv(late.h);if(/cashFx/.test(late.h))try{cashTally();}catch(e){}return;}   /* (11-17 QA) 나가 있는 동안 떴어야 할 창(보상 · 게임 오버 · 밤 산책 사건 등)을 지금 띄움 — 보관해 둔 옛 창 대신 */
   if(pk&&pk.S===S){const o=$('ov');o.className=pk.cls;o.replaceChildren(...pk.kids);o.hidden=false;render();
     if(S.tgt>0&&S.score>=S.tgt&&!S.anim&&!S.selecting&&!S.inShop&&!document.querySelector('#panel .cash,#panel .goB')){o.hidden=true;win();}   // 나가 있는 동안 이긴 처리가 막혔으면 다시
     return;}
@@ -5634,8 +5651,10 @@ html.lmB body #app.bl #orbs .orb.bump{animation:none}html.lmB body #app.bl #orbs
   lose=function(){
     if(on)return;on=true;if(S)S.busy=true;
     const short=Math.max(0,(S&&S.tgt||0)-(S&&S.score||0)),T=DEF_I18N[lang()];
+    /* (11-17 QA) 지는 연출 중에 그 판을 버리고 새 판을 시작하면(Esc › 메인 메뉴로 › 새로운 런), 옛 판의 연출이 이어져 새 판이 시작하자마자 게임 오버가 됐음 → 판이 바뀌었으면 여기서 그만둠 */
+    const s0=S,gone=()=>{if(S===s0)return false;on=false;skip=null;const x=document.getElementById('lmDefeat');if(x)x.remove();const ap=document.getElementById('app');if(ap)ap.classList.remove('lmDown','lmHitBack','lmHitSmall');stageReset();return true;};
     (async()=>{
-      try{await waitStage();
+      try{await waitStage();if(gone())return;
         const a=document.getElementById('app'),box=document.getElementById('lmStage'),se=stageEls();
         const o=document.createElement('div');o.id='lmDefeat';o.setAttribute('role','status');o.setAttribute('aria-live','polite');
         o.innerHTML='<div class="dfVig"></div><div class="dfCracks"></div><div class="dfStageFx"><div class="dfHitFlash"></div><img class="dfSlash" src="assets/ui/defeat/slash.webp" alt=""></div>'+
@@ -5658,6 +5677,7 @@ html.lmB body #app.bl #orbs .orb.bump{animation:none}html.lmB body #app.bl #orbs
         if(a){a.classList.remove('lmHitBack');void a.offsetWidth;a.classList.add('lmHitBack');}
         if(se)se.hs.forEach(h=>h.classList.add('lm-knock'));
         if(strike)try{await strike;}catch(e){}
+        if(gone())return;
         // ② 주인공이 쓰러짐 · 적은 으쓱
         await sleep(330);if(se){se.hs.forEach(h=>{h.classList.remove('lm-knock');h.classList.add('lm-down');});}
         await sleep(450);if(se&&se.en){se.en.classList.remove('lm-strike');se.en.classList.add('lm-gloat');}
@@ -5670,8 +5690,10 @@ html.lmB body #app.bl #orbs .orb.bump{animation:none}html.lmB body #app.bl #orbs
         await sleep(420);o.classList.add('ph5');
         await sleep(skip?900:2100);o.classList.add('out');await new Promise(r=>setTimeout(r,380));o.remove();
       }catch(e){console.warn('[패배 연출]',e);const o=document.getElementById('lmDefeat');if(o)o.remove();}
+      if(gone())return;
       on=false;skip=null;   /* (DHL 10-31) 패배 연출이 다 끝난 뒤 손패 카드 애니메이션 → 게임 오버 */
       try{if(window.lmLoseCards)await window.lmLoseCards();}catch(e){}
+      if(S!==s0)return;
       if(S)S.busy=false;_lose();
     })();
   };
@@ -7022,7 +7044,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     e.preventDefault();e.stopImmediatePropagation();}
   window.addEventListener('keydown',onKey,true);   // 창(window) 단계에서 먼저 받아 메뉴 단축키 · Esc 옵션 창보다 앞섬
   function open(i){cur=i;build();P.hidden=false;
-    ltHide();const b=B();b.classList.remove('lmFxOut','lmFxLive');b.classList.add('lmFxDemo','lmFxPlay');
+    clearTimeout(window._lmFxOutT);ltHide();const b=B();b.classList.remove('lmFxOut','lmFxLive');b.classList.add('lmFxDemo','lmFxPlay');
     const ov=document.getElementById('ov');if(ov&&!ov.hidden)b.classList.add('lmFxPeek');   // (DHL 10-29) 보상 · 캠프 창이 무대를 가리면 연출 동안만 숨김
     const bx=box();if(bx)bx.classList.add('lmHit');
     play();}
@@ -7051,7 +7073,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const st=stg(),b=B();b.classList.remove('lmFxLive');rush(st);
     const bx=box();if(bx)bx.classList.remove('lmHit');b.classList.remove('lmFxPeek','lmFxPlay');b.classList.add('lmFxOut');
     try{ltShow();ltPop('fxdemo');}catch(e){}
-    setTimeout(()=>b.classList.remove('lmFxDemo','lmFxOut'),600);}
+    clearTimeout(window._lmFxOutT);window._lmFxOutT=setTimeout(()=>b.classList.remove('lmFxDemo','lmFxOut'),600);}   /* (11-17 QA) 타이머 번호를 기억 — 닫자마자 다른 연출을 열면 이 타이머가 재생 중에 가림막을 걷어 버렸음 */
   window.lmFxDemo={
     one(p){open(p-1);},
     combo(){open(10);},
@@ -7171,6 +7193,8 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     if(k==='guest')return guestGo();return campPick(k);};
   campOpen=function(){if(S.rd>=2||deckIs('restless'))return;S.campSel=[];if(S.walk)S.walk=null;   /* (리뷰 11-15) 야영 화면으로 돌아오면 산책 상태를 비움 — 남은 산책 값(예: 삭제된 사건이 든 옛 저장)이 정비 화면을 산책 화면으로 꾸미지 않게 */
     if(S.campFor!==S.jang*3+S.rd){S.campFor=S.jang*3+S.rd;S.campGuest=rollGuest(S.vouch.includes('campv2'));S.campLeft=S.campMax||2;S.campLog=[];S.restSel=null;}
+    /* (11-17 QA) 굴리던 모닥불 머지가 남아 있으면(굴리는 중에 게임을 껐다 켬) 그 화면부터 — 머지와 값은 이미 치렀는데 '확인'을 못 눌러 정비 수가 안 줄었고, 그대로 야영을 열면 정비를 하나 더 할 수 있었음 */
+    if(S.campRoll&&S.deck.some(c=>c.uid===S.campRoll.uid)){S.inRest=true;S.campK='merge';return campRoll();}
     S.inRest=true;const L=all();if(S.restSel&&!L.find(x=>x[0]===S.restSel))S.restSel=null;
     const sel=S.restSel&&L.find(x=>x[0]===S.restSel);
     let nfH='';try{if(armorOn()&&typeof nextFoeHTML==='function'){const nf=S.rd<2?S.foes[S.rd+1]:null;if(nf)nfH=`<div class="nextFoe nf2 cpNext"><small>다음 빌런 · ${S.jang}장 ${RD_KO[S.rd+1]}</small>${nextFoeHTML(nf)}</div>`;}}catch(e){}   /* (DHL 10-30) 야영에서도 다음 빌런 */
@@ -7180,7 +7204,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   window.restLeave=go=>{S.inRest=false;S.restSel=null;if(go)return campFinish();startRound();};
   /* 정비 뒤 화면(이름 고르기 · 카드 고르기 · 손님 · 밤 산책)도 같은 숲 배경 안에 */
   const _so=showOv;showOv=function(h){
-    if(S&&S.inRest&&typeof h==='string'&&h.indexOf('class="rest"')<0){
+    if(S&&S.inRest&&typeof h==='string'&&h.indexOf('class="rest"')<0&&!/class="ib[ "]/.test(h)){   /* (11-17 QA) 안내 창(런 정보 · 배우기 · 도감)은 감싸지 않음 — 야영 틀 안에 갇혀 탭 · 뒤로 버튼이 잘리고 마우스로 닫을 수 없었음 */
       let a='';const pick=/packRow/.test(h);h=h.replace(/<button class="rsInfo" onclick="([^"]+)">← (?:뒤로|돌아가기)<\/button>/g,'<button class="cpBack lmIco" onclick="$1" aria-label="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button>');if(pick){}else if(S.walk&&S.walk.k&&h.indexOf('class="night"')>=0&&h.indexOf('wRow')<0)a=`<div class="cpEvArt">${wart(S.walk.k)}<i class="cpFr gold"></i><b class="cpNm">${WALK[S.walk.k].ko}</b></div>`;
       else if(S.campK&&/campNames|packRow/.test(h)&&!S.walk)a=`<div class="cpEvArt">${art(S.campK)}<i class="cpFr"></i><b class="cpNm">${NM[S.campK]}</b>${(()=>{try{return `<span class="cpStat">${info(S.campK).st}</span>`;}catch(e){return '';}})()}</div>`;   /* (11-14 QA) 고른 정비 카드의 아래 띠가 비어 있었음 → 첫 화면과 같은 상태 줄 */
       else if(S.campGuestUsing&&S.campGuest)a=`<div class="cpEvArt">${art(S.campGuest.k)}<i class="cpFr gold"></i><b class="cpNm">${GUESTS[S.campGuest.k].ko}</b></div>`;
@@ -8050,7 +8074,7 @@ body.lmFxPlay:not(.lmFxLive) #lmFxPlayer.isPlaying:not(.seen) .fpLoad{opacity:1}
 #lm-title .lm-fxbar:focus-visible{outline:3px solid #f6cf63;outline-offset:2px}
 #lm-title .fx2 .fxIcs .fxW img{width:70%!important;height:70%!important}
 /* 연출 보는 동안: 무대만 보이게 나머지 화면은 어둡게 */
-body.lmFxDemo::after{content:'';position:fixed;inset:0;background:#05080f;z-index:900;pointer-events:none}
+body.lmFxDemo::after{content:'';position:fixed;inset:0;background:#05080f;z-index:900;pointer-events:auto}   /* (11-17 QA) 가림막이 누르기를 통과시켜, 연출 보기 중 안 보이는 런 · 버리기 · 런 정보 · 옵션 버튼이 눌렸음 → 가림막이 막음 */
 body.lmFxDemo #lmStage{position:fixed!important;left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;margin:0!important;transform:translate(-50%,-50%)!important;width:min(96vw,calc(88vh * 16 / 9))!important;height:auto!important;aspect-ratio:16/9;max-height:none!important;z-index:901;opacity:0;transition:none}
 body.lmFxDemo.lmFxLive #lmStage{opacity:1;transition:opacity .2s}
 body.lmFxDemo #keyBar,body.lmFxDemo #lmToast,body.lmFxDemo #lmFoeTag{visibility:hidden!important}
@@ -10493,7 +10517,7 @@ const LM_TERMS=[
   try{const _dp=doPlay;doPlay=function(){if(won())return;return _dp.apply(this,arguments);};}catch(e){}
   try{const _dd=doDiscard;doDiscard=function(){if(won())return;return _dd.apply(this,arguments);};}catch(e){}
   try{const _dm=doMerge;doMerge=function(){if(won())return;return _dm.apply(this,arguments);};}catch(e){}
-  try{const _w=win;win=function(){try{const key=(S.endless?'e':'')+(S.finale?'f':'')+S.jang+'-'+S.rd,now=Date.now();if(S._winKey===key&&now-(S._winAt||0)<15000)return;S._winKey=key;S._winAt=now;}catch(e){}return _w.apply(this,arguments);};}catch(e){}
+  try{const _w=win;win=function(){try{const key=(S.endless?'e':'')+(S.finale?'f':'')+S.jang+'-'+S.rd,now=Date.now();if(S._winKey===key&&now-(S._winAt||0)<15000)return;S._winKey=key;S._winAt=now;}catch(e){}try{S._winPend=1;}catch(e){}return _w.apply(this,arguments);};}catch(e){}
   try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(won()){['bPlay','bDis','bMerge'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});}}catch(e){}return r;};}catch(e){}
 })();
 </script>
@@ -10538,5 +10562,15 @@ html.lmB #hand .card.dz.noscore .dzi[data-seal]{filter:none!important}   /* 고�
   window.addEventListener('pagehide',()=>{try{save();}catch(e){}});
   window.lmRunSave={save,clear,load,restore,KEY};
 })();
+/* (11-17 QA) 창이 다른 창으로 바뀐 직후 0.26초 동안은 그 창을 누른 것으로 치지 않음 — 더블클릭의 두 번째 클릭이 새로 뜬 창의 같은 자리 버튼을 눌렀음
+   (동료 팩 첫 카드를 두 번 누르면 카드를 받자마자 그 자리의 '다음 라운드'가 눌려 남은 골드를 못 쓰고 캠프를 떠남). 같은 창을 다시 그릴 때(구매 확인 · 보상 받기 두 번)는 해당 없음 · 키보드는 해당 없음 */
+(()=>{let kind='',at=0;const _so=showOv;
+  showOv=function(){const r=_so.apply(this,arguments);try{const p=document.querySelector('#panel>*');const k=p?p.tagName+'.'+(typeof p.className==='string'?p.className.split(/\s+/).slice(0,2).join('.'):'')+(p.tagName==='H2'?':'+p.textContent.slice(0,8):''):'';if(k!==kind){kind=k;at=performance.now();}}catch(e){}return r;};
+  document.addEventListener('click',e=>{try{if(e.detail>0&&performance.now()-at<260&&e.target&&e.target.closest&&e.target.closest('#ov')){e.stopImmediatePropagation();e.preventDefault();}}catch(_){}},true);
+})();
+/* (11-17 QA) 메인 메뉴에 나가 있는 동안 판의 창은 미룸 — 모든 showOv 덧씌움의 맨 바깥 */
+(()=>{const _so=showOv;showOv=function(h){if(typeof h==='string'&&!/class="ib[ "]/.test(h)&&lmAway()){_ovLate={h,S};
+    try{if(S._statEnded){const p=document.querySelector('#lm-title .lt-play');if(p)p.innerHTML='플레이<span class="ltv-sub"></span>';}}catch(e){}   /* 나가 있는 동안 판이 끝났으면 타이틀 버튼도 '계속하기' → '플레이' */
+    return;}return _so.apply(this,arguments);};})();
 </script>
 </body></html>
