@@ -9490,7 +9490,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
         if(H.length>=2){const a=H[0],b=H[1],n=f.no||cardNo(a);a.no=n;b.no=n;a.w=f.home;a.id=f.home+'_'+TYPES[a.id].n;b.el=weakTo(f.el);S.tut.kp=[a.uid,b.uid];sortHand&&sortHand();render();}}
     tutBoost();render();}catch(e){console.warn('[안내]',e);}cls();return r;};
   /* 1장에서는 지지 않음: 런이 다 떨어져도 니콜이 런 1번을 돌려줌 */
-  const _lose=lose;lose=function(){if(lmTutCh1()&&S.runs<=0&&S.score<S.tgt){S.runs=1;try{fill();}catch(e){}render();say('tut.save',{face:'sad',face2:'happy',seq:['nod','nod'],force:1});return;}
+  const _lose=lose;lose=function(){if(lmTutCh1()&&S.runs<=0&&S.score<S.tgt){S.runs=1;try{fill();}catch(e){}render();say('tut.save',{face:'sad',face2:'happy',seq:['nod','nod'],force:1,auto:4500});return;}   /* (QA 11-18) 스스로 닫힘 — 안 닫히면 말풍선을 누르기 전까지 뒤 안내(방패 · 야영 · 졸업)가 전부 안 나옴 */
     return _lose.apply(this,arguments);};
   /* ── 니콜 ── */
   let box,cv,bub,fxc=null,G=null,last=0,raf=0,cur=null,ringSel=[],ringT=null;

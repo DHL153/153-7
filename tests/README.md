@@ -28,7 +28,7 @@ node tests/smoke.js
 | `node tests/bots/monkey.js` | **무작위 조작 봇** — 보이는 버튼 · 카드 · 구슬 · 탭을 아무거나 누름(덜 눌러 본 것 먼저). Esc · 키보드 · 더블클릭 · 5연타 · 우클릭 · 끌기 · 새로고침 · 창 크기 바꾸기를 섞음 | `SECS` (기본 540초) |
 | `node tests/bots/full.js` | **완주 봇** — 점수만 올려 주고 진짜 클릭으로 엔딩 → 무한 원정까지 | 3~10분 |
 | `node tests/bots/exhaust.js` | **카드 소진 행렬** — 난이도 × 거인 규칙 24종 × 얇은 덱으로 판이 끝(승리 · 패배)까지 가는지 | 약 15분 |
-| `node tests/bots/run-cases.js` | **표적 테스트 모음** (`cases/`) — 메인 메뉴 나갔다 오기 · 연출 중 판 버리기 · 연타 · 더블클릭 · 새로고침 뒤 이어하기 · 낼 카드 0장 · 단축키 | 약 25분 |
+| `node tests/bots/run-cases.js` | **표적 테스트 모음** (`cases/`) — 메인 메뉴 나갔다 오기 · 연출 중 판 버리기 · 연타 · 더블클릭 · 새로고침 뒤 이어하기 · 낼 카드 0장 · 단축키 · **첫 실행 안내 따라가기**(`tutorial-*` — 견습 1-1 → 3-3 졸업 · 기사 첫 판, 대사 · 빛 · 잠금을 단계마다 확인) | 약 35분 |
 
 봇이 매번 보는 것: 스크립트 오류 · 없는 파일 · 숫자 아님(NaN) · 골드/런 음수 · 구슬 칸 초과 · 카드 중복 · 라운드 밖에 남은 봉인/뒷면 · **할 수 있는 일이 없는데 판이 안 끝남** · **누를 수 있는 것이 하나도 없음** · 120번 눌러도 화면이 안 바뀜 · 화면의 undefined/NaN 글자.
 
@@ -45,6 +45,8 @@ MODE=game TUT=1 STORY=1 SPEED=2 node tests/bots/monkey.js
 DIFF=errant JUMP=8 ENDR=3 node tests/bots/full.js
 # 표적 테스트 중 이름에 camp · fog가 든 것만
 node tests/bots/run-cases.js camp fog
+# 첫 실행 안내만 (대사마다 한 줄씩 보려면 V=1)
+V=1 node tests/bots/cases/tutorial-app.js
 ```
 - `SEED`를 바꾸면 다른 길로 갑니다. 발견이 있으면 `★`로 찍히고 종료 코드가 1이에요.
 - 화면 사진 · 기록(`findings.json` — 발견 직전 조작 25개 포함)은 저장소 밖 임시 폴더(`OUT_DIR`, 기본 `/tmp/lm-bots`)에 쌓여요.
