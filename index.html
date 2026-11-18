@@ -9409,6 +9409,11 @@ body.lmTutGate.lmTutNum #hand .card.lmTutOk .dzno,body.lmTutGate.lmTutNum #hand 
 /* (DHL 11-12 시안 A '삼각형이 계속 맞지 않음') 꼬리를 둥근 모서리 자리(위 18px)가 아니라 세로 가운데에, 몸과 1px 겹치고 그림자(drop-shadow)도 함께 */
 #lmNic .bub::before{content:"";position:absolute;left:-9px;top:50%;translate:0 -50%;width:10px;height:15px;background:#fff;clip-path:polygon(100% 0,0 50%,100% 100%)}
 #lmNic .bub b{color:#b8362c}
+#lmNic .skp{position:absolute;pointer-events:auto;cursor:pointer;display:flex;align-items:center;gap:4px;border:1px solid #ffffff66;background:#0b1428e6;color:#dfe6fb;font:800 12px/1 'Noto Sans KR',sans-serif;padding:7px 11px;border-radius:99px;white-space:nowrap;box-shadow:0 2px 0 #0008}
+#lmNic .skp:hover{background:#1a2a55;color:#fff}
+#lmNic .skp.cf{background:#2f8f4e;color:#fff;border-color:#bff0cf}
+#lmNic .skp .lmIcA{width:13px;height:13px;margin:0;vertical-align:0;filter:brightness(0) invert(1)}
+#lmNic .bub.wait~.skp,#lmNic .bub.out~.skp,#lmNic .skp[hidden]{display:none}
 #lmNic .bub.wait{visibility:hidden;animation:none}
 #lmNic .bub.up::before{left:var(--tx,50%);top:auto;bottom:-9px;translate:-50% 0;width:15px;height:10px;clip-path:polygon(0 0,100% 0,50% 100%)}   /* 머리 위 말풍선: 꼬리는 니콜 머리 위(--tx) */
 @keyframes tutPop{from{opacity:0;scale:.8}}
@@ -9467,7 +9472,9 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   /* 새 판: 조건이 맞으면 안내 켜기 · 안내 중이던 판이 끝나면 다시는 안 나옴 */
   const _ng=newGame;newGame=function(diff){if(S&&S.tut)finish();const r=_ng.apply(this,arguments);
     try{const first=(LM_ST.runs||0)===0&&(LM_ST.bestRound||0)<=1;
-      if(S&&S.diff==='app'&&!S.practice&&!S.sandbox&&!done()&&(first||force)){S.tut={learn:[0,1],seen:{}};force=false;}
+      /* (DHL 11-18 A안) 안내를 끝내지 못한 채 게임을 껐으면(안내 중인 판은 저장하지 않음) 다음 새 판에서 안내를 처음부터 다시 */
+      let began=false;try{began=localStorage.getItem('lm_tut_started')==='1';}catch(e){}
+      if(S&&S.diff==='app'&&!S.practice&&!S.sandbox&&!done()&&(first||force||began)){S.tut={learn:[0,1],seen:{}};force=false;try{localStorage.setItem('lm_tut_started','1');}catch(e){}}
       let kd=false;try{kd=localStorage.getItem('lm_tut_knight_done')==='1';}catch(e){}
       if(S&&S.diff==='knight'&&!S.practice&&!S.sandbox&&(!kd||forceK)){S.tut={mode:'knight',learn:LEARN_ORDER.slice(),seen:{}};forceK=false;}}catch(e){}
     cls();return r;};
@@ -9490,7 +9497,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
         if(H.length>=2){const a=H[0],b=H[1],n=f.no||cardNo(a);a.no=n;b.no=n;a.w=f.home;a.id=f.home+'_'+TYPES[a.id].n;b.el=weakTo(f.el);S.tut.kp=[a.uid,b.uid];sortHand&&sortHand();render();}}
     tutBoost();render();}catch(e){console.warn('[안내]',e);}cls();return r;};
   /* 1장에서는 지지 않음: 런이 다 떨어져도 니콜이 런 1번을 돌려줌 */
-  const _lose=lose;lose=function(){if(lmTutCh1()&&S.runs<=0&&S.score<S.tgt){S.runs=1;try{fill();}catch(e){}render();say('tut.save',{face:'sad',face2:'happy',seq:['nod','nod'],force:1});return;}
+  const _lose=lose;lose=function(){if(lmTutCh1()&&S.runs<=0&&S.score<S.tgt){S.runs=1;try{fill();}catch(e){}render();say('tut.save',{face:'sad',face2:'happy',seq:['nod','nod'],force:1,auto:4500});return;}   /* (QA 11-18) 스스로 닫힘 — 안 닫히면 말풍선을 누르기 전까지 뒤 안내(방패 · 야영 · 졸업)가 전부 안 나옴 */
     return _lose.apply(this,arguments);};
   /* ── 니콜 ── */
   let box,cv,bub,fxc=null,G=null,last=0,raf=0,cur=null,ringSel=[],ringT=null;
@@ -9529,7 +9536,21 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
     G.stepFx(dt);const g=fxc.getContext('2d');if(!G.parts.length&&!(col&&col.a>0)){if(fxDirty){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);fxDirty=false;}return;}   /* 그릴 게 없으면 화면 전체 캔버스는 쉼 */
     g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);g.save();if(nicClip){g.beginPath();g.rect(nicClip[0]*dpr,nicClip[1]*dpr,nicClip[2]*dpr,nicClip[3]*dpr);g.clip();}G.drawFx(g,dpr,col);g.restore();fxDirty=true;}
   function mk(){if(box)return;box=document.createElement('div');box.id='lmNic';box.setAttribute('aria-live','polite');cv=document.createElement('canvas');cv.setAttribute('aria-hidden','true');bub=document.createElement('div');bub.className='bub';bub.setAttribute('role','button');bub.tabIndex=0;
-    bub.onclick=()=>{if(must()){nudge();return;}hideNic();};box.append(cv,bub);document.body.appendChild(box);fxc=document.createElement('canvas');fxc.id='lmNicFx';fxc.setAttribute('aria-hidden','true');document.body.appendChild(fxc);}
+    bub.onclick=()=>{if(must()){nudge();return;}hideNic();};box.append(cv,bub);
+    /* (DHL 11-18) 안내 건너뛰기: 말풍선 옆 작은 버튼 — 한 번 누르면 '확인', 3초 안에 한 번 더 누르면 안내 끝 (상점 구매 버튼과 같은 방식 · 새 글자 없음) */
+    skp=document.createElement('button');skp.type='button';skp.className='skp';skp.onclick=e=>{e.stopPropagation();if(!skp.classList.contains('cf')){skLabel(true);clearTimeout(skT);skT=setTimeout(()=>skLabel(false),3000);return;}clearTimeout(skT);skLabel(false);tutSkip();};skLabel(false);box.appendChild(skp);document.body.appendChild(box);fxc=document.createElement('canvas');fxc.id='lmNicFx';fxc.setAttribute('aria-hidden','true');document.body.appendChild(fxc);}
+  let skp=null,skT=0;
+  function skLabel(cf){if(!skp)return;const W=t=>{try{return (window.MRLocale&&MRLocale.t&&MRLocale.t(t))||t;}catch(e){return t;}};skp.classList.toggle('cf',!!cf);skp.innerHTML=cf?'<img class="lmIcA" src="assets/ui/icon/check.webp" alt="">'+W('확인'):W('건너뛰기')+' »';}
+  /* 말풍선 오른쪽(자리가 없으면 아래 · 위)에 붙임. 졸업 인사 · 일으켜 주는 말에는 안 보임 */
+  function skPlace(){if(!skp)return;const on=!!(cur&&!cur.o.force&&S&&S.tut&&!S.tut.fin&&!/\.grad$/.test(cur.k));skp.hidden=!on;if(!on){if(skp.classList.contains('cf'))skLabel(false);return;}
+    const b=bub.getBoundingClientRect(),q=box.getBoundingClientRect();if(!b.width)return;const w=skp.offsetWidth,h=skp.offsetHeight;let x=b.right+8,y=b.top+(b.height-h)/2;
+    if(cur.o.rs||bub.classList.contains('up')){x=b.left;y=b.top-h-6;}   /* 라운드 고르기 · 머리 위 말풍선: 오른쪽은 라운드 칸이라 말풍선 위에 */
+    else if(x+w>innerWidth-8){x=Math.max(8,b.right-w);y=b.bottom+6;if(y+h>innerHeight-6)y=b.top-h-6;}
+    skp.style.left=(x-q.left)+'px';skp.style.top=(y-q.top)+'px';}
+  function tutSkip(){if(!S||!S.tut||S.tut.fin)return;S.tut.learn=LEARN_ORDER.slice();finish();
+    try{document.querySelectorAll('.lmTutDim').forEach(e=>rsDim(e,false));gate();if(cmpEl)cmpEl.hidden=true;}catch(e){}
+    try{render();}catch(e){}}
+  window.lmTutSkip=tutSkip;
   function anchor(){const A=cur&&cur.o.anchor&&document.querySelector(cur.o.anchor);if(A){const q=A.getBoundingClientRect();if(q.width)return {left:q.left,width:q.width,top:q.top,bottom:q.bottom,height:q.height,ov:1};}
     const o=document.getElementById('orbs');let r=o&&o.getBoundingClientRect();
     if(!r||r.width<40||r.bottom<0){const h=document.getElementById('hand');r=h&&h.getBoundingClientRect();if(r)r={left:r.left,width:r.width,top:r.top-70,bottom:r.top+4,height:74};}
@@ -9571,6 +9592,7 @@ function lmTutLock(k){return lmTutOn()&&!S.tut.learn.includes(k);}
   function tick(now){raf=requestAnimationFrame(tick);const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;try{gate();cmpTrack();}catch(e){}
     if(!box||!box.classList.contains('on')){if(newOn||ringSel.length)fx();else rgs.forEach(d=>d.style.display='none');nicFx(dt,false);return;}
     if(!leaving)place();   /* 퇴장하는 동안은 그 자리에서 */
+    skPlace();
     const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);let view=null;
     if(G){drive(dt);G.update(dt);const H=cv.height;view={x:cv.width*.46,y:H*.985,k:H*.955/975};G.draw(g,view);sfxEv();}
     fx();nicFx(dt,true,view);}

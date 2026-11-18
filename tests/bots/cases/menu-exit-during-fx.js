@@ -18,8 +18,8 @@ const {boot,tap,st,btns,until,newRun,shot,done,rec,clickSel,cont}=require('../li
       const okk=mode==='lose'?/goB/.test(s.scr):mode==='win'?(/cash/.test(s.scr)||await until(p,()=>!!document.querySelector('#cashBtn:not([disabled])'),40000)):(s.s.inShop&&/shop/.test(s.scr));
       rec(`T1-h ${mode} 계속하기 → 이어짐`,!!okk&&!p.errs.length,s.scr+' lock='+s.lock+' '+p.errs.slice(0,2).join('|'));
       if(mode!=='lose'){ // 끝까지 진행되는지
-        if(mode==='win'){await until(p,()=>!!document.querySelector('#cashBtn:not([disabled])'),40000);await clickSel(p,'#cashBtn');}
-        const sh=await until(p,()=>S.inShop&&!!document.querySelector('#panel .shop'),20000);const g1=await p.evaluate(()=>S.gold);await clickSel(p,'.sBtns .next');await p.waitForTimeout(900);s=await st(p);
+        if(mode==='win'){await until(p,()=>!!document.querySelector('#cashBtn:not([disabled])'),40000);await p.waitForTimeout(450);await clickSel(p,'#cashBtn');await p.waitForTimeout(900);if(await p.evaluate(()=>{const b=document.getElementById('cashBtn');return !!b&&!b.disabled;}))await clickSel(p,'#cashBtn');}   /* 숫자가 오르는 중의 첫 클릭은 '바로 세기'라 한 번 더 */
+        const sh=await until(p,()=>S.inShop&&!!document.querySelector('#panel .shop'),20000);const g1=await p.evaluate(()=>S.gold);await p.waitForTimeout(450);/* 창이 바뀐 직후 0.26초는 클릭이 무시됨 */await clickSel(p,'.sBtns .next');await p.waitForTimeout(900);s=await st(p);
         rec(`T1-h ${mode} 그 뒤 캠프 → 다음 라운드까지`,sh&&/rsB/.test(s.scr)&&s.s.rd===1,`${s.scr} rd=${s.s.rd} 골드 ${g1}`);}
     }else rec(`T1-h ${mode} 계속하기 버튼`,mode==='lose',`플레이 버튼: ${lbl} (진 판이면 없어도 됨)`);
     await p.ctx.close();

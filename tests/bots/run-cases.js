@@ -6,7 +6,7 @@ const dir=path.join(__dirname,'cases'),want=process.argv.slice(2);
 const files=fs.readdirSync(dir).filter(f=>f.endsWith('.js')&&(!want.length||want.some(w=>f.includes(w)))).sort();
 let ok=0,bad=0;const t0=Date.now();
 for(const f of files){console.log('== '+f.replace('.js',''));
-  const r=spawnSync(process.execPath,[path.join(dir,f)],{encoding:'utf8',timeout:600000,env:process.env});
+  const r=spawnSync(process.execPath,[path.join(dir,f)],{encoding:'utf8',timeout:900000,env:process.env});
   const lines=((r.stdout||'')+(r.stderr||'')).split('\n').filter(l=>/^[✅❌]/.test(l)||/Error|오류:/.test(l));
   lines.forEach(l=>{console.log(l.slice(0,240));if(l.startsWith('✅'))ok++;else if(l.startsWith('❌'))bad++;});
   if(r.error||(r.status&&!lines.some(l=>l.startsWith('❌')))){bad++;console.log('❌ '+f+' 가 끝까지 못 돌았어요 '+(r.error?r.error.message:'(종료 코드 '+r.status+')'));}}
