@@ -19,7 +19,7 @@ const {boot,tap,st,btns,until,newRun,shot,done,rec,clickSel,cont}=require('../li
       rec(`T1-h ${mode} 계속하기 → 이어짐`,!!okk&&!p.errs.length,s.scr+' lock='+s.lock+' '+p.errs.slice(0,2).join('|'));
       if(mode!=='lose'){ // 끝까지 진행되는지
         if(mode==='win'){await until(p,()=>!!document.querySelector('#cashBtn:not([disabled])'),40000);await clickSel(p,'#cashBtn');}
-        const sh=await until(p,()=>S.inShop&&!!document.querySelector('#panel .shop'),20000);const g1=await p.evaluate(()=>S.gold);await clickSel(p,'.sBtns .next');await p.waitForTimeout(900);s=await st(p);
+        const sh=await until(p,()=>S.inShop&&!!document.querySelector('#panel .shop'),20000);const g1=await p.evaluate(()=>S.gold);await p.waitForTimeout(450);await clickSel(p,'.sBtns .next');   // 창이 바뀐 직후 0.26초는 클릭이 무시되므로 잠깐 기다림await p.waitForTimeout(900);s=await st(p);
         rec(`T1-h ${mode} 그 뒤 캠프 → 다음 라운드까지`,sh&&/rsB/.test(s.scr)&&s.s.rd===1,`${s.scr} rd=${s.s.rd} 골드 ${g1}`);}
     }else rec(`T1-h ${mode} 계속하기 버튼`,mode==='lose',`플레이 버튼: ${lbl} (진 판이면 없어도 됨)`);
     await p.ctx.close();
