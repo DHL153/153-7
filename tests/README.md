@@ -19,3 +19,36 @@ node tests/smoke.js
 - 필요: Node.js 18+ · `playwright` (smoke.js만). 클라우드 세션에는 이미 있어요. 내 PC에서는 `npm i -g playwright && npx playwright install chromium`.
 - 규칙을 **일부러** 바꾼 커밋이면 1)의 기준을 다시 저장하세요. (규칙 검사는 "바뀌었는지"만 알려 줌)
 - smoke.js 환경값: `PLAYS`(런 몇 번까지, 기본 20) · `SECS`(최대 초, 기본 240) · `SHOT=폴더`(마지막 화면 저장) · `HEADED=1`(창 보이기)
+
+## 버그 찾기 봇 (`tests/bots/`) — 2026-11-17 QA에서 버그 11건을 찾은 도구
+위 두 도구가 "안 깨졌는지"를 본다면, 이쪽은 **사람이 안 해 볼 조작까지 해서 멈춤 · 엉뚱한 창을 찾아요.** 모두 진짜 마우스 클릭으로 누릅니다.
+
+| 도구 | 하는 일 | 시간 |
+|---|---|---|
+| `node tests/bots/monkey.js` | **무작위 조작 봇** — 보이는 버튼 · 카드 · 구슬 · 탭을 아무거나 누름(덜 눌러 본 것 먼저). Esc · 키보드 · 더블클릭 · 5연타 · 우클릭 · 끌기 · 새로고침 · 창 크기 바꾸기를 섞음 | `SECS` (기본 540초) |
+| `node tests/bots/full.js` | **완주 봇** — 점수만 올려 주고 진짜 클릭으로 엔딩 → 무한 원정까지 | 3~10분 |
+| `node tests/bots/exhaust.js` | **카드 소진 행렬** — 난이도 × 거인 규칙 24종 × 얇은 덱으로 판이 끝(승리 · 패배)까지 가는지 | 약 15분 |
+| `node tests/bots/run-cases.js` | **표적 테스트 모음** (`cases/`) — 메인 메뉴 나갔다 오기 · 연출 중 판 버리기 · 연타 · 더블클릭 · 새로고침 뒤 이어하기 · 낼 카드 0장 · 단축키 | 약 25분 |
+
+봇이 매번 보는 것: 스크립트 오류 · 없는 파일 · 숫자 아님(NaN) · 골드/런 음수 · 구슬 칸 초과 · 카드 중복 · 라운드 밖에 남은 봉인/뒷면 · **할 수 있는 일이 없는데 판이 안 끝남** · **누를 수 있는 것이 하나도 없음** · 120번 눌러도 화면이 안 바뀜 · 화면의 undefined/NaN 글자.
+
+### 자주 쓰는 실행
+```bash
+# 판 안에 머무는 무작위 봇 5분 (이길 수 있게 좋은 패 · 점수 도움)
+MODE=game SECS=300 ASSIST=.45 BOOST=.6 node tests/bots/monkey.js
+# 메뉴 · 안내 창 · 컬렉션까지 돌아다니는 무작위 봇
+SECS=300 node tests/bots/monkey.js
+# 얇은 덱(5장 안팎)으로 카드 소진 길 / 첫 실행 안내 켠 채
+MODE=game THIN=5 node tests/bots/monkey.js
+MODE=game TUT=1 STORY=1 SPEED=2 node tests/bots/monkey.js
+# 편력 8장부터 엔딩 · 무한 원정 3라운드
+DIFF=errant JUMP=8 ENDR=3 node tests/bots/full.js
+# 표적 테스트 중 이름에 camp · fog가 든 것만
+node tests/bots/run-cases.js camp fog
+```
+- `SEED`를 바꾸면 다른 길로 갑니다. 발견이 있으면 `★`로 찍히고 종료 코드가 1이에요.
+- 화면 사진 · 기록(`findings.json` — 발견 직전 조작 25개 포함)은 저장소 밖 임시 폴더(`OUT_DIR`, 기본 `/tmp/lm-bots`)에 쌓여요.
+- **한 번에 하나씩** 돌리세요. 두 개를 같이 돌리면 서로 느려져 '막힘'으로 잘못 잡힐 수 있어요.
+- 봇은 화면 그리기를 초당 15번으로 줄여 돌려요(`FPS=0`이면 끔). 연출 타이밍까지 보려면 끄고 돌리세요.
+- 새 버그를 고치면 `cases/`에 그 재현을 한 파일로 넣어 두세요 (`lib.js`의 `boot · newRun · clickSel · killRound · cont · reload · rec` 사용).
+
