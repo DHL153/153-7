@@ -2,7 +2,7 @@
    빛나는 카드 · 버튼만 진짜 마우스로 누르고, 단계마다 말풍선 글 · 빛 위치 · 잠금 · 음영을 확인.
    배울 것을 다 한 라운드는 점수를 목표 바로 아래로 두고 한 번에 끝냄(시간 줄이기).
    cases/tutorial-app.js · tutorial-knight.js · tutorial-quit.js 가 이 파일을 불러 씀.  V=1 이면 대사마다 한 줄씩 찍음 */
-const {boot,tap,st,btns,until,newRun,shot,done,rec,clickSel,cont,reload}=require('./lib.js');
+const {boot,tap,st,btns,until,newRun,shot,done,rec,clickSel,cont,reload,killRound}=require('./lib.js');
 const LOG=process.env.V==='1';
 const sleep=(p,ms)=>p.waitForTimeout(ms);
 
@@ -28,8 +28,10 @@ async function pickLit(p){let g=await snap(p);for(let i=0;i<8;i++){const c=g.rin
 async function waitLit(p,n,b){for(let i=0;i<16&&b.rings.filter(r=>r.kind==='card'&&!r.keep).length<n;i++){await sleep(p,300);b=await snap(p);}return b;}
 const badText=t=>!t||/\{|\}|undefined|NaN|\[object/.test(t);
 
+const skipBtn=p=>p.evaluate(()=>{const e=document.querySelector('#lmNic .skp');if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect(),W=innerWidth,H=innerHeight,h=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+  return {x:r.left+r.width/2,y:r.top+r.height/2,t:e.textContent.trim(),cf:e.classList.contains('cf'),inView:r.left>=0&&r.top>=0&&r.right<=W&&r.bottom<=H,hit:h===e||e.contains(h)};});
 /* 안내를 따라가는 운전수. 새 대사가 나올 때마다 hooks[k] 를 부름. stop(s) 가 참이면 끝 */
-async function drive(p,o){const seen=[],said={},t0=Date.now(),hooks=o.hooks||{};let lastAct=Date.now(),idleSince=0,shopBuy=0,roundKey='',guardT=0,restDone={},lastScr='',scrT=0;
+async function drive(p,o){const seen=[],said={},skips=o.skips||[],t0=Date.now(),hooks=o.hooks||{};let lastAct=Date.now(),idleSince=0,shopBuy=0,roundKey='',guardT=0,restDone={},lastScr='',scrT=0;
   const need=o.need||(()=>null);   // 그 라운드에서 점수 건너뛰기 전에 꼭 봐야 하는 대사
   while(Date.now()-t0<(o.ms||420000)){await sleep(p,330);let s=await snap(p);
     if(!s.tut){return {seen,said,why:'안내 없음',s};}
@@ -39,6 +41,7 @@ async function drive(p,o){const seen=[],said={},t0=Date.now(),hooks=o.hooks||{};
       const want=await lineOf(p,k),alt=base==='tut.1_1.pair'?await lineOf(p,'tut.1_1.go'):base==='tut.k.pair'?await lineOf(p,'tut.k.go'):null;
       const got=b&&b.bub?b.bub.t:'';said[k]={got,want,ok:!!got&&!badText(got)&&(got===want||got===alt),inView:!!(b&&b.bub&&b.bub.inView),rings:b?b.rings:[],gate:b?b.gate:false,at:(b||s).jang+'-'+(b||s).rd,scr:(b||s).scr,see:(b||s).see};
       if(LOG)console.log('  💬',k,'@'+said[k].at,JSON.stringify(got),said[k].ok?'':'≠ '+want,'빛',said[k].rings.map(r=>r.kind+(r.label?'('+r.label+')':'')).join(','),said[k].gate?'잠금':'');
+      if(b&&b.bub&&!/\.grad$|tut\.save/.test(base)){const sk=await skipBtn(p);skips.push({k,ok:!!(sk&&sk.inView&&sk.hit),over:sk?b.rings.filter(r=>Math.abs(r.x-sk.x)<30&&Math.abs(r.y-sk.y)<16).length:0});}
       if(hooks[base]){await hooks[base](b||s,k);}s=await snap(p);}
     if(o.stop&&o.stop(s,seen))return {seen,said,why:'끝',s};
     if(s.over)return {seen,said,why:'게임 오버',s};
@@ -73,14 +76,16 @@ async function drive(p,o){const seen=[],said={},t0=Date.now(),hooks=o.hooks||{};
     {const x=await snap(p);if(!x.tut||x.tut.seen.some(k=>!seen.includes(k))||(x.nicOn&&!x.bub&&Date.now()-idleSince<6000)||x.busy||x.gate)continue;}   // 방금 새 대사가 나왔거나 말풍선이 뜨는 중이면 먼저 확인
     if(o.beforeKill&&await o.beforeKill(s)===false){idleSince=0;continue;}
     await p.evaluate(()=>{S.score=Math.max(S.score,S.tgt-1);if(S.sel.length){S.sel=[];render();}});
-    const u=await p.evaluate(()=>{const h=S.hand.filter(c=>!c.seal&&!c.fog);return (h[0]||S.hand[0]).uid;});await clickSel(p,'#hand .card[data-uid="'+u+'"]');await sleep(p,200);await clickSel(p,'#bPlay');await sleep(p,600);idleSince=0;}
+    /* 거인 규칙(예: 다섯 장을 모아야 런)에 맞게 게임이 추천하는 패를 냄 — 추천이 없으면 한 장 */
+    const us=await p.evaluate(()=>{const b=__MK.best();if(b&&b.length)return b;const h=S.hand.filter(c=>!c.seal&&!c.fog);return [(h[0]||S.hand[0]).uid];});
+    for(const u of us){await clickSel(p,'#hand .card[data-uid="'+u+'"]');await sleep(p,180);}await sleep(p,150);await clickSel(p,'#bPlay');await sleep(p,600);idleSince=0;}
   return {seen,said,why:'시간 초과',s:await snap(p)};}
 const sayRec=(R,k,name)=>{const key=R.seen.find(x=>x.split('@')[0]===k),v=key&&R.said[key];rec(`${name} — 말풍선`,!!(v&&v.ok&&v.inView),v?`${JSON.stringify(v.got)}${v.ok?'':' ≠ '+JSON.stringify(v.want)}${v.inView?'':' (화면 밖)'} @${v.at}`:'대사가 안 나옴');return v;};
 
 /* ── 견습: 1-1 → 3-3 졸업 ── */
 async function partApp(){const p=await boot({seed:311,tut:true});await newRun(p,'app');let s=await snap(p);
   rec('처음 하는 사람이 견습 새 판 → 안내 켜짐',!!(s.tut&&s.tut.mode==='app'&&!s.tut.fin),s.scr);if(!s.tut){await p.ctx.close();return;}
-  const N={};   // 단계별로 모은 것
+  const N={},skips=[];   // 단계별로 모은 것
   const hooks={
     'tut.rs.first':async b=>{const d=await p.evaluate(()=>({other:[...document.querySelectorAll('#ov .rb3:not(.cur) button')].every(x=>x.disabled),go:(()=>{const g=document.querySelector('#ov .rb3.cur .rbGo');return !!g&&!g.disabled;})()}));
       rec('1-1 라운드 고르기: 지금 라운드 \'선택\'만 눌림 · 다른 칸은 잠김',d.other&&d.go&&b.rings.some(r=>r.kind==='btn'),`다른 칸 잠김 ${d.other} 선택 ${d.go} 빛 ${b.rings.length}개`);},
@@ -110,7 +115,8 @@ async function partApp(){const p=await boot({seed:311,tut:true});await newRun(p,
       rec('1-2: 버린 뒤 손패에 짝이 두 개(두 쌍) · 네 장에 빛',two>=2&&b.rings.filter(r=>r.kind==='card').length===4,`짝 ${two}개 빛 ${b.rings.filter(r=>r.kind==='card').length}장`);},
     'tut.1_3.start':async b=>{b=await waitLit(p,2,b);const lit=b.rings.filter(r=>r.kind==='card');rec('1-3: 머지 버튼이 켜짐 · 같은 동료 두 장에 빛',b.see.bMerge&&lit.length===2,`머지 ${b.see.bMerge} 빛 ${lit.length}장`);N.star0=await p.evaluate(()=>S.hand.concat(S.draw,S.deck||[]).filter(c=>c.star>=2).length);},
     'tut.2_1.start':async b=>{b=await waitLit(p,2,b);rec('2-1: 열쇠 줄이 나타남 · 열쇠 짝 두 장에 빛',b.see.keyBar&&b.rings.filter(r=>r.kind==='card').length===2,`열쇠 줄 ${b.see.keyBar} 빛 ${b.rings.map(r=>r.kind).join(',')}`);},
-    'tut.2_2.camp':async b=>{const d=await p.evaluate(()=>{const C=document.querySelector('#ov .rb3.cur'),g=C&&C.querySelector('.rbGo'),k=C&&C.querySelector('.rbSkip:not(.boss) button');return {go:!!g&&g.disabled,camp:!!k&&!k.disabled};});
+    'tut.2_2.shop':async b=>{await shot(p,'tut_shop.png');},'tut.3_3.bridge':async b=>{await shot(p,'tut_bridge.png');},'tut.2_3.rule':async b=>{await shot(p,'tut_rule.png');},
+    'tut.2_2.camp':async b=>{await shot(p,'tut_camp.png');const d=await p.evaluate(()=>{const C=document.querySelector('#ov .rb3.cur'),g=C&&C.querySelector('.rbGo'),k=C&&C.querySelector('.rbSkip:not(.boss) button');return {go:!!g&&g.disabled,camp:!!k&&!k.disabled};});
       rec('2-2 라운드 고르기: \'선택\'은 잠기고 야영하기만 눌림',d.go&&d.camp&&b.rings.some(r=>r.kind==='btn'),`선택 잠김 ${d.go} 야영 ${d.camp}`);},
     'tut.3_2.awaken':async b=>{b=await waitLit(p,2,b);rec('3장: 별 2개 같은 동료 두 장에 빛 (각성)',b.rings.filter(r=>r.kind==='card').length===2&&b.gate,`빛 ${b.rings.map(r=>r.kind).join(',')} 잠금 ${b.gate}`);},
   };
@@ -121,7 +127,7 @@ async function partApp(){const p=await boot({seed:311,tut:true});await newRun(p,
     if(s.jang===2&&s.rd===0)return !has('tut.2_1.start')?'tut.2_1.start':null;
     if(s.jang===3&&s.rd===0)return !has('tut.3_2.awaken')?'tut.3_2.awaken':null;return null;};
   let saveDone=0;
-  const R=await drive(p,{hooks,need,ms:560000,
+  const R=await drive(p,{hooks,need,skips,ms:560000,
     /* 1-3에서 한 번: 런 1번 남기고 약한 패를 내서 '1장에서는 지지 않음' 확인 */
     beforeKill:async s=>{if(s.jang===1&&s.rd===2&&!saveDone){saveDone=1;N.merged=await p.evaluate(()=>S.hand.concat(S.draw).filter(c=>c.star>=2).length);
         await p.evaluate(()=>{S.runs=1;S.score=0;if(S.sel.length){S.sel=[];}render();});const u=await p.evaluate(()=>S.hand.slice().sort((a,b)=>cardNo(a)-cardNo(b))[0].uid);
@@ -158,6 +164,7 @@ async function partApp(){const p=await boot({seed:311,tut:true});await newRun(p,
   /* 4-1 전투 시작: 버튼 전부 보임 */
   for(let i=0;i<30;i++){const x=await snap(p);if(!x.ov&&x.hand&&!x.busy)break;if(/cash/.test(x.scr))await clickSel(p,'#cashBtn');else if(/shop/.test(x.scr))await clickSel(p,'.sBtns .next');else if(/rsB/.test(x.scr))await clickSel(p,'#ov .rb3.cur .rbGo');await sleep(p,700);}
   const s4=await snap(p);rec('4-1 전투: 버리기 · 머지 · 열쇠 줄이 다 보이고 안내 없음',s4.jang===4&&s4.see.bDis&&s4.see.bMerge&&s4.see.keyBar&&!s4.nicOn&&!s4.gate,`${s4.jang}-${s4.rd} ${JSON.stringify(s4.see)} 니콜 ${s4.nicOn}`);
+  {const bad=skips.filter(x=>!x.ok||x.over);rec('대사마다 건너뛰기 버튼이 화면 안에 보이고 눌림 · 빛나는 곳을 가리지 않음',skips.length>=20&&!bad.length,`${skips.length}개 중 문제 ${bad.length}: ${bad.map(x=>x.k.replace('tut.','')+(x.ok?'':'(안 보임)')+(x.over?'(빛 가림)':'')).join(' ')}`);}
   rec('견습 안내 내내 스크립트 오류 없음',!p.errs.length,p.errs.slice(0,3).join(' | '));
   await p.ctx.close();}
 
@@ -182,13 +189,51 @@ async function partKnight(){const p=await boot({seed:321,tut:true});await p.eval
   rec('기사 안내 내내 스크립트 오류 없음',!p.errs.length,p.errs.slice(0,3).join(' | '));
   await p.ctx.close();}
 
-/* ── 안내 도중에 게임을 끄면 (지금 동작을 적어 두기만 함) ── */
+/* ── 안내 도중에 게임을 끄면: 다음 새 판에서 안내를 처음부터 다시 (DHL 11-18 A안) ── */
 async function partQuit(){const p=await boot({seed:331,tut:true});await newRun(p,'app');
   const R=await drive(p,{ms:200000,need:(s,seen)=>{const has=k=>seen.some(x=>x.split('@')[0]===k);if(s.jang===1&&s.rd===0)return !has('tut.1_1.three')?'tut.1_1.three':null;if(s.jang===1&&s.rd===1)return !has('tut.1_2.done')?'tut.1_2.done':null;return null;},stop:s=>s.jang===1&&s.rd===2&&s.selecting});
   const a=await snap(p);await reload(p);const t=await p.evaluate(()=>({btn:(document.querySelector('.lt-play')||{}).textContent,save:!!localStorage.getItem('lm_run_v1'),done:localStorage.getItem('lm_tut_done'),runs:LM_ST.runs,best:LM_ST.bestRound}));
   await newRun(p,'app');const b=await snap(p);
-  console.log(`ℹ️ 안내 도중(1-3 고르기)에 끄고 다시 켬 → 타이틀 버튼 "${(t.btn||'').trim()}" · 저장된 판 ${t.save} · 안내 끝 저장 ${t.done} · 기록 판수 ${t.runs} 최고 라운드 ${t.best} → 새 판에서 안내 ${b.tut&&!b.tut.fin?'다시 나옴':'안 나옴'}`);
-  /* 판정하지 않음(ℹ️만): 안내 중인 판은 저장하지 않는 설계(11-13) — 이어하기를 줄지 · 안내를 다시 줄지는 DHL 판단 대기 */
+  if(LOG)console.log(`ℹ️ 안내 도중(1-3 고르기)에 끄고 다시 켬 → 타이틀 버튼 "${(t.btn||'').trim()}" · 저장된 판 ${t.save} · 안내 끝 저장 ${t.done} · 기록 판수 ${t.runs} 최고 라운드 ${t.best} → 새 판에서 안내 ${b.tut&&!b.tut.fin?'다시 나옴':'안 나옴'}`);
+  rec('안내 도중(1-3)에 껐다 켠 뒤 새 판 → 안내가 처음부터 다시 나옴 (A안)',!!(b.tut&&!b.tut.fin)&&t.done!=='1',`타이틀 "${(t.btn||'').trim()}" 최고 라운드 ${t.best} 새 판 안내 ${!!(b.tut&&!b.tut.fin)} (끄기 전 ${a.jang}-${a.rd} ${R.why})`);
+  const said=await until(p,()=>!!S.tut.seen['tut.rs.first'],8000);rec('다시 나온 안내: 1-1 라운드 고르기 한마디부터',said);
   await p.ctx.close();}
 
-module.exports={partApp,partKnight,partQuit,drive,snap};
+/* ── 안내 건너뛰기 (말풍선 옆 버튼: 한 번 = '확인', 한 번 더 = 안내 끝) ── */
+async function partSkip(){let p=await boot({seed:341,tut:true});await newRun(p,'app');
+  /* 1) 1-1 전투 중(잠금 상태)에 건너뛰기 */
+  let got=null;await drive(p,{ms:60000,hooks:{'tut.1_1.pair':async b=>{b=await waitLit(p,2,b);got=b;}},stop:()=>!!got});
+  let k=await skipBtn(p);rec('1-1 말풍선 옆에 건너뛰기 버튼이 보이고 눌림',!!(k&&k.inView&&k.hit&&/건너뛰기/.test(k.t)),JSON.stringify(k));await shot(p,'skip_1_1.png');
+  await p.mouse.click(k.x,k.y);await sleep(p,400);let k2=await skipBtn(p),s=await snap(p);
+  rec('한 번 누르면 \'확인\'으로 바뀌고 안내는 그대로',!!(k2&&k2.cf&&/확인/.test(k2.t))&&!s.tut.fin&&s.gate,`${JSON.stringify(k2&&k2.t)} 안내 끝 ${s.tut.fin}`);await shot(p,'skip_confirm.png');
+  await sleep(p,3400);k2=await skipBtn(p);rec('3초 동안 안 누르면 \'건너뛰기\'로 돌아옴',!!(k2&&!k2.cf),JSON.stringify(k2&&k2.t));
+  await p.mouse.click(k2.x,k2.y);await sleep(p,350);k2=await skipBtn(p);await p.mouse.click(k2.x,k2.y);await sleep(p,1200);s=await snap(p);
+  const e=await p.evaluate(()=>({done:localStorage.getItem('lm_tut_done'),lock:LEARN_ORDER.filter(x=>lmTutLock(x)).length,cls:document.body.className.match(/lmTut\w+/g)||[]}));
+  rec('두 번 누르면 안내 끝: 저장 · 잠금 풀림 · 버리기 · 머지 · 열쇠 줄 켜짐 · 배우기 전부 열림',s.tut.fin&&e.done==='1'&&!s.gate&&!s.rings.length&&s.see.bDis&&s.see.bMerge&&s.see.keyBar&&e.lock===0&&!e.cls.length,`끝 ${s.tut.fin} 저장 ${e.done} 잠금 ${s.gate} 빛 ${s.rings.length} ${JSON.stringify(s.see)} 잠긴 배우기 ${e.lock} ${e.cls.join(',')}`);
+  await until(p,()=>!document.getElementById('lmNic').classList.contains('on'),30000);s=await snap(p);rec('건너뛴 뒤 니콜이 사라지고 다시 안 나옴',!s.nicOn&&!(await skipBtn(p)));await shot(p,'skip_after.png');
+  /* 그 판을 그대로 끝까지: 아무 카드나 골라 런 → 보상 → 캠프 → 1-2 → 1-3 (안내 없이 보통 게임) */
+  const any=await p.evaluate(()=>{const e=document.querySelectorAll('#hand .card')[5].getBoundingClientRect();return {x:e.left+e.width/2,y:e.top+e.height*.4};});await p.mouse.click(any.x,any.y);await sleep(p,300);s=await snap(p);rec('건너뛴 뒤 아무 카드나 골라짐',s.sel===1,`고른 카드 ${s.sel}`);
+  await p.evaluate(()=>{S.sel=[];render();});
+  for(let r=0;r<3;r++){if(!await killRound(p,60000))break;await until(p,()=>{const b=document.getElementById('cashBtn');return !!b&&!b.disabled;},20000);await sleep(p,500);await clickSel(p,'#cashBtn');await sleep(p,900);if(await p.evaluate(()=>!!document.getElementById('cashBtn')))await clickSel(p,'#cashBtn');
+    await until(p,()=>!!document.querySelector('#ov .sBtns .next'),15000);await sleep(p,600);await clickSel(p,'.sBtns .next');await until(p,()=>!!document.querySelector('#ov .rb3.cur .rbGo'),15000);await sleep(p,700);
+    if(r===0){const d=await p.evaluate(()=>({dim:document.querySelectorAll('.lmTutDim').length,camp:(()=>{const b=document.querySelector('#ov .rb3.cur .rbSkip:not(.boss) button');return !!b&&!b.disabled;})(),go:!document.querySelector('#ov .rb3.cur .rbGo').disabled}));rec('건너뛴 뒤 라운드 고르기: 음영 없음 · 선택 · 야영 둘 다 눌림',!d.dim&&d.camp&&d.go,JSON.stringify(d));}
+    await clickSel(p,'#ov .rb3.cur .rbGo');await sleep(p,800);}
+  s=await snap(p);const v=await st(p);rec('건너뛴 판을 2장까지 진행: 오류 · 이상 상태 없음',s.jang===2&&!p.errs.length&&!v.viol.length&&!s.nicOn,`${s.jang}-${s.rd} 오류 ${p.errs.slice(0,2).join('|')} 이상 ${v.viol.join(',')}`);
+  /* 새 판에서도 안내 안 나옴 */
+  await p.keyboard.press('Escape');await sleep(p,400);await tap(p,/메인 메뉴로/);await sleep(p,700);await newRun(p,'app');s=await snap(p);rec('건너뛴 뒤 견습 새 판 → 안내 안 나옴',!s.tut||s.tut.fin);
+  await p.ctx.close();
+  /* 2) 라운드 고르기 첫 화면에서 바로 건너뛰기 */
+  p=await boot({seed:342,tut:true});await newRun(p,'app');await until(p,()=>!!document.querySelector('#lmNic.on .bub:not(.wait)'),12000);await sleep(p,500);k=await skipBtn(p);
+  rec('첫 화면(라운드 고르기)에서도 건너뛰기 버튼이 보임',!!(k&&k.inView&&k.hit),JSON.stringify(k));await shot(p,'skip_rs.png');
+  if(k){await p.mouse.click(k.x,k.y);await sleep(p,350);k=await skipBtn(p);await p.mouse.click(k.x,k.y);await sleep(p,900);}
+  const d=await p.evaluate(()=>({fin:!!S.tut.fin,dim:document.querySelectorAll('.lmTutDim').length,dis:[...document.querySelectorAll('#ov .rb3.cur button')].filter(b=>b.disabled).length}));
+  rec('첫 화면에서 건너뛰면 라운드 고르기 음영 · 잠금이 바로 풀림',d.fin&&!d.dim&&!d.dis,JSON.stringify(d));
+  await clickSel(p,'#ov .rb3.cur .rbGo');const okb=await until(p,()=>S.hand.length>0&&!S.busy&&!S.anim,20000);s=await snap(p);rec('그대로 1-1 전투 시작: 버튼 전부 켜짐 · 니콜 없음',okb&&s.see.bDis&&s.see.bMerge&&s.see.keyBar&&!s.gate,JSON.stringify(s.see));
+  rec('건너뛰기 내내 스크립트 오류 없음',!p.errs.length,p.errs.slice(0,3).join(' | '));await p.ctx.close();
+  /* 3) 기사 첫 판 안내 건너뛰기 */
+  p=await boot({seed:343,tut:true});await p.evaluate(()=>localStorage.setItem('lm_tut_done','1'));await newRun(p,'knight');await sleep(p,1500);await clickSel(p,'#ov .rb3.cur .rbGo');
+  await until(p,()=>!!S.tut.seen['tut.k.pair'],25000);await until(p,()=>!!document.querySelector('#lmNic.on .bub:not(.wait)'),12000);await sleep(p,600);k=await skipBtn(p);await shot(p,'skip_knight.png');
+  if(k){await p.mouse.click(k.x,k.y);await sleep(p,350);k=await skipBtn(p);await p.mouse.click(k.x,k.y);await sleep(p,1000);}
+  s=await snap(p);const kd=await p.evaluate(()=>localStorage.getItem('lm_tut_knight_done'));rec('기사 첫 판 안내도 건너뛰기 → 끝 · 저장 · 잠금 풀림',!!k&&s.tut.fin&&kd==='1'&&!s.gate&&!s.rings.length&&!p.errs.length,`버튼 ${!!k} 끝 ${s.tut.fin} 저장 ${kd} 잠금 ${s.gate}`);
+  await p.ctx.close();}
+module.exports={partApp,partKnight,partQuit,partSkip,drive,snap};
