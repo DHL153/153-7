@@ -6542,6 +6542,8 @@ html.lmB .shop .ordRow>button{--kb:url(assets/ui/kit/btn_blue.webp);--kbp:url(as
 html.lmB .shop .ordRow>button.act{--kb:url(assets/ui/kit/btn_orange.webp);--kbp:url(assets/ui/kit/btn_orange_pressed.webp);position:static!important;transform:none!important;min-width:110px}
 html.lmB .shop .ordRow>button:active:not(:disabled){border-image-source:var(--kbp,var(--kb))!important;transform:translateY(2px);filter:drop-shadow(0 1px 0 #000b)}
 html.lmB .shop .ordRow>button:disabled{filter:grayscale(1) brightness(.6) drop-shadow(0 3px 0 #000a);opacity:.7;cursor:default}
+/* (DHL 11-19 디자인 점검 4) 결과 화면 버튼이 3개일 때(기사 도전 · 원정 계속하기 · 메인 메뉴 / 원정 계속하기 · 새로운 런 · 메인 메뉴): 가운데 버튼은 크림 — 파랑(권하는 것) · 크림 · 주황(나가기)으로 구분. 2개일 때는 그대로 */
+html.lmB body .goBtns .goBtn:not(:first-child):not(:last-child){--kb:url(assets/ui/kit/btn_cream.webp);--kbp:url(assets/ui/kit/btn_cream_pressed.webp);color:#2a2118!important;text-shadow:0 1px 0 #fff8!important}
 /* 🏕 왼쪽 간판 '원정 캠프' 한 줄 (글자 수가 늘어 두 줄로 꺾이던 것) */
 html.lmB .shopSign{white-space:nowrap!important;letter-spacing:1px!important;font-size:clamp(22px,min(5.2vh,2.6vw),40px)!important}
 @media (max-height:460px){html.lmB .shopSign{font-size:17px!important;letter-spacing:0!important}}
