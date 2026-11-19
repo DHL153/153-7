@@ -3935,7 +3935,10 @@ function foeCodexPlay(a){try{const f=document.querySelector('.cFoeStage iframe')
 function foeCodexTap(){document.querySelector('.cFoeStage .cmHint')?.remove();const L=(FOE_ATKS[codexSel]||['attack']).concat('hurt');try{const f=document.querySelector('.cFoeStage iframe'),E=f&&f.contentWindow&&f.contentWindow.EN;if(!E||!E.ready()||E.state()!=='idle')return;if(window._foeTapFor!==codexSel){window._foeTapFor=codexSel;window._foeTapN=0;}E.play(L[window._foeTapN++%L.length]);}catch(e){}}
 function foeCodexBoot(){const f=document.querySelector('.cFoeStage iframe');if(!f||f._boot)return;f._boot=1;let n=0;const t=setInterval(()=>{if(!f.isConnected||n++>150){clearInterval(t);return;}try{const E=f.contentWindow&&f.contentWindow.EN;if(E&&E.ready()){clearInterval(t);E.fx(!(typeof LM_SET!=='undefined'&&LM_SET.rm));E.play('enter');f.classList.add('on');}}catch(e){}},100);}
 function foeCodexHTML(pick){if(!(codexSel&&FOE_KO[codexSel]))window._foeBgFor=null;const K=Object.keys(FOE_KO),nF=K.filter(k=>CODEX.foe[k]).length;
-  let h=`<div class="cGrid cFoeGrid">`+K.map(k=>{const known=CODEX.foe[k],[kd,kc]=foeKind(k);const kn=foeKills(k),nd=FOE_NEED(k),dn=kn>=nd;return known?`<button class="cF ${kc}${codexSel===k?' sel':''}${dn?' done':''}" onclick="${pick(k)}"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>${FOE_KO[k]}</span><em class="cFk" aria-label="처치 ${Math.min(kn,nd)} / ${nd}"><i style="width:${Math.min(100,100*kn/nd)}%"></i><b>${dn?'✔ '+nd+'/'+nd:kn+'/'+nd}</b></em></button>`:`<button class="cF q ${kc}" disabled aria-label="아직 만나지 못한 적"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>???</span></button>`;}).join('')+`</div>`;
+  /* (DHL 11-19 '보스하고 일반하고 구분') 일반 적 · 보스 두 묶음 — 묶음 제목에 만난 수 */
+  const tile=k=>{const known=CODEX.foe[k],[kd,kc]=foeKind(k);const kn=foeKills(k),nd=FOE_NEED(k),dn=kn>=nd;return known?`<button class="cF ${kc}${codexSel===k?' sel':''}${dn?' done':''}" onclick="${pick(k)}"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>${FOE_KO[k]}</span><em class="cFk" aria-label="처치 ${Math.min(kn,nd)} / ${nd}"><i style="width:${Math.min(100,100*kn/nd)}%"></i><b>${dn?nd+'/'+nd:kn+'/'+nd}</b></em></button>`:`<button class="cF q ${kc}" disabled aria-label="아직 만나지 못한 적"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>???</span></button>`;};
+  const KB=K.filter(k=>FOE_RIG.boss.includes(k)).concat(K.filter(k=>FOE_RIG.final===k)),KN=K.filter(k=>!KB.includes(k)),sec=(t,L,c)=>`<h4 class="cFh ${c}"><b>${t}</b><small>${L.filter(k=>CODEX.foe[k]).length} / ${L.length}</small></h4><div class="cGrid cFoeGrid">`+L.map(tile).join('')+`</div>`;
+  let h=sec('일반 적',KN,'')+sec('보스',KB,'boss');
   const k=codexSel&&FOE_KO[codexSel]&&CODEX.foe[codexSel]?codexSel:null;
   if(k){const [kd,kc]=foeKind(k),I=FOE_INFO[k]||['',''];
     /* (DHL 11-13) 배경 = 전투 배경 30장 중 하나를 볼 때마다 무작위로 (적 자리인 오른쪽 부분) · 세계별 하늘색 */
@@ -5765,10 +5768,11 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 .cF.boss{border-color:#a5553a}.cF.fin{border-color:#d9a43a}.cF.sel{box-shadow:0 0 0 3px var(--gold,#f2b632)}
 .cF.q{cursor:default;opacity:.75}
 /* (DHL 11-19) 처치 횟수 줄: 막대 + '3/10' — 다 채우면 금색 */
+.ib .cFh{display:flex;align-items:baseline;gap:8px;margin:10px 2px 6px;padding-bottom:4px;border-bottom:1px solid #ffffff1f;font:900 14px/1.2 "Noto Sans KR",sans-serif;color:#e8eefc}.ib .cFh:first-of-type{margin-top:2px}.ib .cFh small{font-weight:800;color:#93a3bd}.ib .cFh.boss b{color:#f0a37a}
 .cF .cFk{position:relative;display:block;width:100%;height:15px;margin-top:3px;border-radius:99px;background:#0a1226;box-shadow:inset 0 0 0 1px #ffffff1c;overflow:hidden;font-style:normal}
 .cF .cFk i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#5b8fd6,#33619f);border-radius:99px}
-.cF .cFk b{position:relative;display:block;font:900 11px/15px "Noto Sans KR",sans-serif;color:#fff;text-align:center;text-shadow:0 1px 0 #000a}
-.cF.done .cFk i{background:linear-gradient(#f2c95a,#c8902a)}.cF.done .cFk b{color:#2a1a05;text-shadow:none}
+.cF .cFk i{z-index:0}.cF .cFk b{position:relative;z-index:1;display:block;font:900 11px/15px "Noto Sans KR",sans-serif;color:#fff;text-align:center;text-shadow:0 1px 0 #000a}
+.cF.done .cFk i{background:linear-gradient(#f2c95a,#c8902a)}html body .ib .cF.done .cFk b{color:#2a1a05!important;text-shadow:none!important}
 .cFoeTx .cFoeN{display:inline-block;white-space:nowrap;margin-left:6px;padding:1px 8px;border-radius:99px;background:#0a1226;color:#cfd8ea;font-weight:800}.cFoeTx .cFoeN.done{background:#e2b345;color:#2a1a05}.cF.q img{filter:brightness(0) opacity(.55)}.cF.q span{color:#6b7480}
 .cFoeDet{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px!important}
 .cFoeStage .cmHint{left:8px;top:8px;bottom:auto;transform:none}   /* 적은 그림이 바닥까지 차서 '눌러 보세요'를 왼쪽 위로 */
