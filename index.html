@@ -1220,6 +1220,8 @@ html,body{overflow-x:clip}
 /* 동료 보기 */
 .cmV{display:flex;flex-direction:column;gap:10px;height:100%}
 .cmTop{display:flex;align-items:center;gap:8px}.cmBackBtn{background:#3a4852;color:#fff;border-radius:9px;padding:7px 12px;font-weight:900;box-shadow:0 3px 0 #1b252c}
+/* (DHL 11-19 디자인 점검 2) 도감 › 동료 한 명 보기: 왼쪽 위 ↩ 와 아래 가운데 ↩ 가 같은 일을 함 → 아래 것만 보이게 (다른 창과 같은 자리). 자리는 그대로 두어 '4 / 30'이 가운데에 남고, 아래 ↩ · Esc가 이 버튼을 대신 누름 */
+html body .ib .cmTop .cmBackBtn{visibility:hidden!important;pointer-events:none!important}
 .cmCount{flex:1;text-align:center;font-weight:900;color:#c9d3d6}.cmNav{display:flex;gap:6px}.cmNav button{width:40px;height:36px;padding:0;border-radius:9px;background:#fe4a3c;color:#fff;font-weight:900;font-size:20px;box-shadow:0 3px 0 #a82a20}
 .cmMain{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:12px;flex:1;min-height:0}
 .cmStage{position:relative;overflow:hidden;border-radius:14px;border:3px solid var(--wc);min-height:240px;cursor:pointer;touch-action:manipulation;background:linear-gradient(180deg,color-mix(in srgb,var(--wc) 35%,#10161b),#10161b)}
