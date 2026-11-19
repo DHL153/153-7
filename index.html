@@ -275,6 +275,14 @@ button.elPick{flex:1;color:#fff;font-size:22px;padding:18px 0}
 .omBtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
 .omBtns button{padding:10px 4px;border-radius:9px;background:#2a2a34;border:1px solid #555;color:#eee;font-weight:800}
 .omBtns button:disabled{opacity:.35}.omBtns .omOk{background:var(--gold);color:#222;border:0}
+/* (DHL 11-19 디자인 점검 1) 전투 중 구슬 설명 창: 캠프 구슬 순서 줄과 같은 키트 버튼 + 아래 가운데 ↩ */
+html body .omBtns{grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+html body .omBtns>button{--kb:url(assets/ui/kit/btn_blue.webp);--kbp:url(assets/ui/kit/btn_blue_pressed.webp);border:0 solid transparent!important;border-image:var(--kb) 40 46 40 46 fill / 12px 15px / 0 stretch!important;background:none!important;
+  min-height:48px;padding:2px 14px!important;color:#fff!important;font:900 17px/1 'Noto Sans KR',sans-serif!important;text-shadow:0 1px 0 #0009;border-radius:0!important;box-shadow:none!important;filter:drop-shadow(0 3px 0 #000a)}
+html body .omBtns>button:active:not(:disabled){border-image-source:var(--kbp)!important;transform:translateY(2px);filter:drop-shadow(0 1px 0 #000b)}
+html body .omBtns>button:disabled{filter:grayscale(1) brightness(.6) drop-shadow(0 3px 0 #000a);opacity:.7;cursor:default}
+html body .omBtns>button .lmIcA{width:16px;height:16px;vertical-align:-2px;margin:0 4px}
+.omFoot{display:flex;justify-content:center;margin-top:12px}
 .skipGot{background:#14532d;border:1px solid #22c55e;border-radius:9px;padding:7px 9px;font-size:12.5px;font-weight:800;margin-bottom:6px}
 
 .dblTag{color:#facc15;font-weight:800}
@@ -3532,7 +3540,7 @@ function orbSlotHTML(k){const st=S.ost[k]||1,kd=orbKind(k);
 function orbModal(i){
   if(S.orbHidden&&!S.selecting){$('tip').textContent='⚙ 맷돌 — 구슬이 섞여 뒷면이 됐어요 (라운드가 끝나면 돌아와요)';return;}
   const k=S.orbs[i],st=S.ost[k]||1,kind=orbKind(k);
-  let h=`<div class="omTop"><small>${kind==='mul'?'곱하기 구슬':kind==='add'?'더하기 구슬':'카드 순서 구슬'} · ${i+1}번째 칸</small><button class="omX lmIco" onclick="hideOv()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button></div>`+
+  let h=`<div class="omTop"><small>${kind==='mul'?'곱하기 구슬':kind==='add'?'더하기 구슬':'카드 순서 구슬'} · ${i+1}번째 칸</small></div>`+
     `<h2 class="omName">${kind==='mul'?'<i class="ok mul">×</i>':kind==='add'?'<i class="ok add">+</i>':''}${ORBS[k].ko}</h2>`;
   {h+='<div class="omTiers">'+[1,2,3].map(s=>{const t=tierText(k,s);return `<div class="omTier${s===st?' cur':''}"><b>${dia(s)}</b><span>${t||(s===2?'더하기 ×2 · 곱하기 ×1.5':'더하기 ×3 · 곱하기 ×2')}</span>${s===st?'<em>현재</em>':''}</div>`;}).join('')+'</div>'+
     `<p class="omNote">같은 구슬을 원정 캠프에서 또 사면 머지돼서 다음 단계로 올라가요.</p>`;}
@@ -3540,7 +3548,9 @@ function orbModal(i){
   h+=`<p class="omNote">구슬은 <b>왼쪽부터</b> 발동해요. 더하기를 먼저, 곱하기를 나중에 두면 점수가 커져요.</p>`;
   if(DIFF[S.diff].hint&&S.orbs.length>1){const ok=bestOrder().join()===S.orbs.join();h+=`<div class="ordHelp">`+(ok?'✔ 지금 순서가 좋아요':`<button onclick="S.orbs=bestOrder();render();orbModal(S.orbs.indexOf('${k}'))">추천 순서로 ⇅</button>`)+`</div>`;}
   if(S.foe&&S.foe.rule&&S.foe.rule.k==='leaf'&&S.foe.rule.on)h+=`<button class="omSell" onclick="leafSell(${i})">🍂 이 구슬 팔기 💰${sellPrice(k)} — 녹슨 잎 풀기</button>`;
-  h+=`<div class="omBtns"><button onclick="bMoveOrb(${i},-1)" ${i<=0?'disabled':''}>← 왼쪽</button><button onclick="bMoveOrb(${i},1)" ${i>=S.orbs.length-1?'disabled':''}>오른쪽 →</button><button class="omOk" onclick="hideOv()">확인</button></div>`;
+  /* (DHL 11-19 디자인 점검 1) 다른 창과 같게: 키트 버튼(캠프 구슬 순서 줄과 같은 파랑 + 화살표 그림) · 닫기는 아래 가운데 ↩ 하나 */
+  h+=`<div class="omBtns"><button onclick="bMoveOrb(${i},-1)" ${i<=0?'disabled':''}><img class="lmIcA" src="assets/ui/icon/arrow_l.webp" alt="">왼쪽</button><button onclick="bMoveOrb(${i},1)" ${i>=S.orbs.length-1?'disabled':''}>오른쪽<img class="lmIcA" src="assets/ui/icon/arrow_r.webp" alt=""></button></div>`+
+    `<div class="omFoot"><button class="omX lmIco" onclick="hideOv()" aria-label="뒤로" title="뒤로"><img src="assets/ui/icon/btn_back.webp" alt=""></button></div>`;
   showOv(h);
 }
 function leafSell(i){const k=S.orbs[i];S.gold+=sellPrice(k);delete S.ost[k];S.orbs.splice(i,1);S.foe.rule.on=false;hideOv();popMsg('🍂 녹슨 잎이 걷혔다! 카드 힘이 돌아와요');render();}
