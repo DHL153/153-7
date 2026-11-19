@@ -39,7 +39,9 @@ async function drive(p,o){const seen=[],said={},skips=o.skips||[],t0=Date.now(),
     for(const k of s.tut.seen)if(!seen.includes(k)){seen.push(k);const base=k.split('@')[0];
       let b=null;for(let i=0;i<24;i++){const x=await snap(p);if(x.bub){b=x;break;}if(x.titleOn)break;await sleep(p,250);}
       const want=await lineOf(p,k),alt=base==='tut.1_1.pair'?await lineOf(p,'tut.1_1.go'):base==='tut.k.pair'?await lineOf(p,'tut.k.go'):null;
-      const got=b&&b.bub?b.bub.t:'';said[k]={got,want,ok:!!got&&!badText(got)&&(got===want||got===alt),inView:!!(b&&b.bub&&b.bub.inView),rings:b?b.rings:[],gate:b?b.gate:false,at:(b||s).jang+'-'+(b||s).rd,scr:(b||s).scr,see:(b||s).see};
+      /* 잠그지 않는 대사(응원 · 거인 규칙)는 런을 내면 바로 닫힘 → 봇이 막 런을 낸 참이면 이미 닫혀 있음. 닫힌 말풍선에 남은 글로 확인 */
+      let late='';if(!b){late=await p.evaluate(()=>{const u=document.querySelector('#lmNic .bub');return u?u.textContent.trim():'';});if(LOG)console.log('  (이미 닫힌 말풍선)',k,JSON.stringify(late));}
+      const got=b&&b.bub?b.bub.t:late;said[k]={got,want,ok:!!got&&!badText(got)&&(got===want||got===alt),inView:!!(b&&b.bub?b.bub.inView:late),rings:b?b.rings:[],gate:b?b.gate:false,at:(b||s).jang+'-'+(b||s).rd,scr:(b||s).scr,see:(b||s).see};
       if(LOG)console.log('  💬',k,'@'+said[k].at,JSON.stringify(got),said[k].ok?'':'≠ '+want,'빛',said[k].rings.map(r=>r.kind+(r.label?'('+r.label+')':'')).join(','),said[k].gate?'잠금':'');
       if(b&&b.bub&&!/\.grad$|tut\.save/.test(base)){const sk=await skipBtn(p);skips.push({k,ok:!!(sk&&sk.inView&&sk.hit),over:sk?b.rings.filter(r=>Math.abs(r.x-sk.x)<30&&Math.abs(r.y-sk.y)<16).length:0});}
       if(hooks[base]){await hooks[base](b||s,k);}s=await snap(p);}

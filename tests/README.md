@@ -30,6 +30,8 @@ node tests/smoke.js
 | `node tests/bots/exhaust.js` | **카드 소진 행렬** — 난이도 × 거인 규칙 24종 × 얇은 덱으로 판이 끝(승리 · 패배)까지 가는지 | 약 15분 |
 | `node tests/bots/run-cases.js` | **표적 테스트 모음** (`cases/`) — 메인 메뉴 나갔다 오기 · 연출 중 판 버리기 · 연타 · 더블클릭 · 새로고침 뒤 이어하기 · 낼 카드 0장 · 단축키 · **첫 실행 안내 따라가기**(`tutorial-*` — 견습 1-1 → 3-3 졸업 · 기사 첫 판 · 안내 건너뛰기 · 도중에 끄기, 대사 · 빛 · 잠금을 단계마다 확인) | 약 40분 |
 
+| `node tests/bots/design.js <폴더>` | **디자인 일관성 점검** — 봇을 `DESIGN=<폴더>`로 돌려 모은 화면(사진 + 버튼 · 글자 · 판 모양)을 서로 비교해 '혼자 다른 것' 후보를 뽑음: 같은 이름인데 모양이 다른 버튼 · 키트 그림이 아닌 버튼 · 뒤로/닫기 종류 · 11px 미만 글자 · 잘린 글자 · 낮은 대비 · 늘어난 그림 · 작은 누름 칸 | 수집 20~40분 + 비교 1초 |
+
 봇이 매번 보는 것: 스크립트 오류 · 없는 파일 · 숫자 아님(NaN) · 골드/런 음수 · 구슬 칸 초과 · 카드 중복 · 라운드 밖에 남은 봉인/뒷면 · **할 수 있는 일이 없는데 판이 안 끝남** · **누를 수 있는 것이 하나도 없음** · 120번 눌러도 화면이 안 바뀜 · 화면의 undefined/NaN 글자.
 
 ### 자주 쓰는 실행
@@ -43,6 +45,11 @@ MODE=game THIN=5 node tests/bots/monkey.js
 MODE=game TUT=1 STORY=1 SPEED=2 node tests/bots/monkey.js
 # 편력 8장부터 엔딩 · 무한 원정 3라운드
 DIFF=errant JUMP=8 ENDR=3 node tests/bots/full.js
+# 디자인 점검: 화면을 모은 뒤(게임 봇 · 메뉴 봇 · 완주 봇을 같은 폴더로) 비교 — 뽑힌 것은 후보라 사진(폴더 안 png)으로 확인
+DESIGN=/tmp/lm-design MODE=game SECS=300 node tests/bots/monkey.js
+DESIGN=/tmp/lm-design SECS=360 node tests/bots/monkey.js
+DESIGN=/tmp/lm-design DIFF=knight JUMP=7 node tests/bots/full.js
+node tests/bots/design.js /tmp/lm-design
 # 표적 테스트 중 이름에 camp · fog가 든 것만
 node tests/bots/run-cases.js camp fog
 # 첫 실행 안내만 (대사마다 한 줄씩 보려면 V=1)
