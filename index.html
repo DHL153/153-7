@@ -2579,7 +2579,9 @@ function foeRigPick(f,jang,r){if(f.boss==='windmill')return FOE_RIG.final;if(f.b
   const k=c[Math.random()*c.length|0];S.foeSeen.push(k);return k;}
 function foeRigSet(f,jang,r){if(!f||f.rig!=null)return f;const k=foeRigPick(f,jang,r);f.rig=k;if(k)f.name=FOE_KO[k];return f;}
 function ensureFoes(){if(!S.foes||S.foesJang!==S.jang){S.foes=S.foesNext||makeFoes(JANG_WORLD(S.jang),S.jang,S.diff);S.foesNext=null;S.foesJang=S.jang;codexMark('giant',giantKey(S.foes[2].rule));}
-  S.foes.forEach((f,r)=>{if(!f.hero)f.hero=heroFor(S.jang,r);if(!f.no)f.no=rndNo();foeRigSet(f,S.jang,r);});S.foe=S.foes[S.rd];}
+  S.foes.forEach((f,r)=>{if(!f.hero)f.hero=heroFor(S.jang,r);lmHeroFix(f);if(!f.no)f.no=rndNo();foeRigSet(f,S.jang,r);});S.foe=S.foes[S.rd];}
+/* (DHL 11-19 '떠나보내기로 알론소를 모두 보내면 알론소가 주인공으로 나오면 안 됨') 주인공은 지금 덱에 남아 있는 동료 중에서 — 덱에 그 동료가 한 장도 없으면 남은 동료 중 무작위로 바꿈 */
+function lmHeroFix(f){try{if(!f||!S||!S.deck||!S.deck.length)return;const have=[...new Set(S.deck.map(c=>TYPES[c.id]&&TYPES[c.id].n).filter(Boolean))];if(!have.length||have.includes(f.hero))return;f.hero=have[Math.random()*have.length|0];}catch(e){}}
 /* 야영 (망령 · 수문장 대신): 그 라운드의 돈 · 머지 기회 · 원정 캠프를 모두 포기하고 정비 하나를 한다 */
 const scoutCost=()=>5+S.jang;
 const CAMP={
