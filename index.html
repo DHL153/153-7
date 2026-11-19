@@ -6555,6 +6555,14 @@ html body #lm-title .pl-dk .pl-dkC .pl-dkN{color:#93a3bd}
 html body #lm-title .pl-dk .pl-dkC img{filter:grayscale(1) brightness(1.2);opacity:.6}html body #lm-title .pl-dk .pl-dkC img.got{filter:none;opacity:1}
 html body #lm-title .pl-dk .pl-dkDots i{background:#f3e6c84d}html body #lm-title .pl-dk .pl-dkDots i.lk{background:#f3e6c822}html body #lm-title .pl-dk .pl-dkDots i.on{background:#ffd66a}
 html body #lm-title .pl-dk .pl-dkD.lk{color:#93a3bd}html body #lm-title .pl-dk.lock .pl-dkD.lk{color:#f3e6c8}html body #lm-title .pl-dk .pl-dkD.lk em{color:#ffb347}
+/* (DHL 11-19 '일반 크림색으로 들어간 곳 → 이 느낌의 색으로 · 전체') 밝은 크림 바탕 → 양피지 톤: 짙은 베이지 그러데이션 + 갈색 테 + 안쪽 음영.
+   키트 그림 btn_cream(·_pressed).webp 도 같은 톤으로 다시 칠함(금테는 그대로) → 선택된 탭 · 번호 정렬 · 머지 하지 않음 · 용어 사전 · 캠프 구매 버튼이 함께 바뀜 */
+:root{--parch:linear-gradient(#e0cfa3,#cbb682);--parch-bd:#7a5a1e;--parch-in:inset 0 0 0 1px #7a5a1e,inset 0 2px 0 #fff5,inset 0 -3px 7px #5a3d0e33}
+html.lmB body .shop .sDesc{background:var(--parch)!important;border-color:var(--parch-bd)!important;box-shadow:inset 0 1px 0 #fff5,inset 0 -3px 7px #5a3d0e33,0 3px 0 #0006!important}
+html.lmB body #lm-title .pl-white,html.lmB body #lm-title .st-row,html.lmB body .goWide,html.lmB body .goC{background:var(--parch)!important;box-shadow:var(--parch-in),0 2px 0 #050a14!important}
+html body .dkChip.on{background:var(--parch);border-color:var(--parch-bd)}
+html body #lmOrbTip .tNow{background:var(--parch)}
+html body #lm-title .lm-fxcard .fxChip.on,html body #lm-title .fx2 .fxSeg button.on,html body #lmFxPlayer .fpStars button.on,html body #lmFxPlayer .fpBar .fpSeg button.on{background:var(--parch)!important}
 /* 🏕 왼쪽 간판 '원정 캠프' 한 줄 (글자 수가 늘어 두 줄로 꺾이던 것) */
 html.lmB .shopSign{white-space:nowrap!important;letter-spacing:1px!important;font-size:clamp(22px,min(5.2vh,2.6vw),40px)!important}
 @media (max-height:460px){html.lmB .shopSign{font-size:17px!important;letter-spacing:0!important}}
