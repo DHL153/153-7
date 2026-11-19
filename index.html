@@ -6759,6 +6759,7 @@ body:has(#ov:not([hidden]) .rest) #midZone,body:has(#ov:not([hidden]) .rest) #ha
 .cpDesc b{color:#ffd66a;font-size:1.08em}
 .cpDesc span{white-space:pre-line;opacity:.92}
 .cpDesc em{font-style:normal;color:#ff9a7a;font-weight:800}
+.cpDesc b .cpOff{font-size:.86em}
 .cpFoot{display:flex;gap:14px;align-items:center;justify-content:center;min-height:max(46px,7vh)}
 .cpFoot button{font-family:inherit;cursor:pointer}
 .cpBack{width:max(23px,3.5vh);height:max(23px,3.5vh);border-radius:50%;border:0;padding:0;background:none;filter:drop-shadow(0 3px 4px #000c)}
@@ -7223,7 +7224,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
       return `<div class="cpDesc"><b>${'정비 '+(S.campMax||2)+'번'}</b><span>같은 정비를 두 번 해도 돼요</span></div>`;}
     const L=all().find(x=>x[0]===k);if(!L)return desc();const I=L[1];
     const nm=k==='guest'?GUESTS[S.campGuest.k].ko:NM[k];
-    return `<div class="cpDesc"><b>${nm}</b><span>${I.d}</span>${I.off?`<em>${I.off}</em>`:''}</div>`;}
+    return `<div class="cpDesc"><b>${nm}${I.off?` <em class="cpOff">· ${I.off}</em>`:''}</b><span>${I.d}</span></div>`;}   /* (DHL 11-19 디자인 점검 6) 못 하는 이유를 이름 옆으로 — 맨 아래 따로 두면 설명이 두 줄일 때 네 줄이 되어 칸 밖으로 잘림 */
   window.restHover=k=>{const d=document.querySelector('.rest .cpDesc');if(!d)return;if(k&&window.lmTutInboxOff)lmTutInboxOff();d.outerHTML=desc(k||S.restSel);};
   window.restTap=k=>{const L=all().find(x=>x[0]===k);if(!L)return;
     if(S.restSel!==k){S.restSel=k;return campOpen();}
