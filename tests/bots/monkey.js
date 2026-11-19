@@ -7,6 +7,7 @@ const E=(k,d)=>process.env[k]!=null?+process.env[k]:d;
 const SEED=E('SEED',1),STEPS=E('STEPS',2500),SECS=E('SECS',540),TUT=E('TUT',0),STORY=E('STORY',0),SPEED=E('SPEED',4),ASSIST=E('ASSIST',.3),BOOST=E('BOOST',0),RM=E('RM',0),VW=E('VW',1366),VH=E('VH',768),THIN=E('THIN',0);
 const MODE=process.env.MODE||'menu';
 const OUT=process.env.OUT||('out_'+SEED);fs.mkdirSync(OUT,{recursive:true});
+const DESIGN=process.env.DESIGN?path.resolve(process.env.DESIGN==='1'?'design':process.env.DESIGN):'',DS=require(path.join(__dirname,'design-snap.js'));   // DESIGN=1(또는 폴더): 디자인 점검용 화면 수집
 const MIME={'.html':'text/html','.js':'text/javascript','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.json':'application/json','.css':'text/css','.ogg':'audio/ogg','.mp3':'audio/mpeg','.woff2':'font/woff2','.svg':'image/svg+xml','.wav':'audio/wav'};
 let rs=SEED*2654435761>>>0;const rnd=()=>{rs|=0;rs=rs+0x6D2B79F5|0;let t=Math.imul(rs^rs>>>15,1|rs);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
 const pick=a=>a[Math.floor(rnd()*a.length)];
@@ -43,6 +44,7 @@ const pick=a=>a[Math.floor(rnd()*a.length)];
   while(step<STEPS&&Date.now()<tEnd){step++;
     let pr=await probe();if(!pr){await sleep(300);continue;}
     lastScr=pr.scr;scrSeen.set(pr.scr,(scrSeen.get(pr.scr)||0)+1);
+    if(DESIGN){if(await DS.snap(p,DESIGN,'m'+SEED+'_'))pr=await probe()||pr;}   // 디자인 점검: 처음 보는 화면을 저장
     for(const v of pr.viol)await flag('상태이상',v,{st:pr.st});
     // 막힘
     const now=Date.now();
@@ -88,7 +90,7 @@ const pick=a=>a[Math.floor(rnd()*a.length)];
       else if(r<.11){const x=20+rnd()*(VW-40),y=20+rnd()*(VH-40);act={a:'xy',x:x|0,y:y|0};await p.mouse.click(x,y);}
       else if(r<.16){const ms=300+Math.floor(rnd()*2200);act={a:'wait',ms};await sleep(ms);}
       else if(r<.164&&step>40){act={a:'reload'};await p.reload().catch(()=>{});await sleep(1500);}
-      else if(r<.168){const s=pick([[1366,768],[1920,1080],[1280,720],[1024,768],[1366,768],[1600,900]]);act={a:'resize',w:s[0],h:s[1]};await p.setViewportSize({width:s[0],height:s[1]});await sleep(400);}
+      else if(r<.168&&!DESIGN){const s=pick([[1366,768],[1920,1080],[1280,720],[1024,768],[1366,768],[1600,900]]);act={a:'resize',w:s[0],h:s[1]};await p.setViewportSize({width:s[0],height:s[1]});await sleep(400);}
       else if(pr.cands.length){
         // 덜 눌러 본 것 먼저
         const ws=pr.cands.map(c=>{const key=pr.scr+'|'+c.d+'|'+c.t.replace(/[0-9]+/g,'#');const n=cnt.get(key)||0;let w=1/(1+n*1.5);if(c.dis)w*=.25;if(/테스터|초기화|지우기|삭제/.test(c.t))w*=.05;if(MODE==='game'&&(/bInfo|bLearn|sOpt|rbInfo|rbOpt|shOpt/.test(c.d)||/안내|배우기|옵션/.test(c.t)))w*=.06;if(c.uid!=null)w=Math.max(w,.35);return {c,key,w};});

@@ -77,3 +77,39 @@ MK.probe=function(){return {scr:MK.screen(),st:MK.state(),viol:MK.viol(),lock:MK
 /* 좋은 패 고르기 (누를 카드 번호만 알려 줌 — 누르는 건 진짜 마우스) */
 MK.best=function(){try{if(typeof S==='undefined'||!S||!S.hand||!S.hand.length)return null;S._bestKey=null;const b=bestHint();if(!b||!b.cards)return null;return b.cards.map(c=>c.uid);}catch(e){return null;}};
 })();
+/* ── 디자인 점검용: 지금 화면에 보이는 버튼 · 글 · 판 · 그림의 모양을 숫자로 적어 줌 (tests/bots/design.js 가 모아서 비교) ── */
+(function(){const MK=window.__MK;if(!MK||MK.design)return;
+const vis=e=>{if(!e||!e.isConnected)return false;const r=e.getBoundingClientRect();if(r.width<3||r.height<3)return false;if(r.bottom<=0||r.right<=0||r.top>=innerHeight||r.left>=innerWidth)return false;
+  for(let x=e;x&&x!==document.documentElement;x=x.parentElement){const c=getComputedStyle(x);if(c.visibility==='hidden'||c.display==='none'||+c.opacity<0.06)return false;}return true;};
+const onTop=e=>{const r=e.getBoundingClientRect();for(const [fx,fy] of [[.5,.5],[.25,.5],[.75,.5],[.5,.25],[.5,.75]]){const x=r.left+r.width*fx,y=r.top+r.height*fy;if(x<0||y<0||x>=innerWidth||y>=innerHeight)continue;const h=document.elementFromPoint(x,y);if(h&&(h===e||e.contains(h)||h.contains(e)))return true;}return false;};
+const R=r=>[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)];
+const file=u=>{const m=/url\(["']?([^"')]+)/.exec(u||'');return m?m[1].split('/').slice(-2).join('/').split('?')[0]:'';};
+const rgb=c=>{const m=/rgba?\(([^)]+)\)/.exec(c||'');if(!m)return null;const a=m[1].split(/[, /]+/).map(Number);return {r:a[0],g:a[1],b:a[2],a:a.length>3?a[3]:1};};
+const lum=c=>{const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);};return .2126*f(c.r)+.7152*f(c.g)+.0722*f(c.b);};
+const solidBg=e=>{for(let x=e;x&&x!==document.documentElement;x=x.parentElement){const c=getComputedStyle(x);if(c.backgroundImage!=='none'||(c.borderImageSource&&c.borderImageSource!=='none'))return null;const b=rgb(c.backgroundColor);if(b&&b.a>=.92)return b;if(b&&b.a>.05)return null;}return null;};
+const EMO=/(\p{Extended_Pictographic})/u;
+MK.design=function(){const out={scr:MK.screen(),w:innerWidth,h:innerHeight,ctl:[],txt:[],box:[],img:[]};const seenC=new Set();
+  const isPtr=e=>getComputedStyle(e).cursor==='pointer';
+  for(const e of document.body.querySelectorAll('*')){const tag=e.tagName;if(tag==='SCRIPT'||tag==='STYLE'||tag==='IFRAME'||tag==='CANVAS')continue;if(!vis(e))continue;const cs=getComputedStyle(e),r=e.getBoundingClientRect();
+    const where=e.closest('#lm-title')?'title':e.closest('#ov')?'ov':e.closest('#lmNic')?'nic':'game';
+    /* 누르는 것 */
+    const strong=tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||e.hasAttribute('onclick')||e.getAttribute('role')==='button';
+    let ctl=strong;if(!ctl&&isPtr(e)){const p=e.parentElement;ctl=!(p&&p!==document.body&&isPtr(p));}
+    if(ctl&&!e.closest('#hand')&&onTop(e)){seenC.add(e);const t=((e.innerText||e.getAttribute('aria-label')||e.title||'')+'').replace(/\s+/g,' ').trim().slice(0,30);
+      out.ctl.push({d:MK.desc(e),p:e.parentElement?MK.desc(e.parentElement):'',t,r:R(r),where,tag,fs:+parseFloat(cs.fontSize).toFixed(1),fw:cs.fontWeight,ff:cs.fontFamily.split(',')[0].replace(/["']/g,'').trim(),col:cs.color,bg:cs.backgroundColor,bgi:file(cs.backgroundImage),bi:file(cs.borderImageSource),
+        rad:cs.borderTopLeftRadius,bw:cs.borderTopWidth,dis:!!(e.disabled||+cs.opacity<.6),img:!!e.querySelector('img'),ts:cs.textShadow!=='none',cut:(r.left<-1||r.top<-1||r.right>innerWidth+1||r.bottom>innerHeight+1)});}
+    /* 글: 자기 글자를 직접 가진 요소 */
+    let own='';for(const n of e.childNodes)if(n.nodeType===3)own+=n.nodeValue;own=own.replace(/\s+/g,' ').trim();
+    if(own&&onTop(e)){const bg=solidBg(e),fg=rgb(cs.color);let cr=null;if(bg&&fg&&fg.a>=.9){const a=lum(fg),b=lum(bg);cr=+((Math.max(a,b)+.05)/(Math.min(a,b)+.05)).toFixed(2);}
+      const clip=(cs.overflow!=='visible'||cs.textOverflow==='ellipsis')&&(e.scrollWidth>e.clientWidth+1||e.scrollHeight>e.clientHeight+2);
+      let par=null;for(let x=e.parentElement;x&&x!==document.body;x=x.parentElement){const pc=getComputedStyle(x);if(pc.overflowX!=='visible'||pc.overflowY!=='visible'){const pr=x.getBoundingClientRect();if((pc.overflowX==='hidden'&&(r.right>pr.right+2||r.left<pr.left-2))||(pc.overflowY==='hidden'&&(r.bottom>pr.bottom+2||r.top<pr.top-2)))par=MK.desc(x);break;}}
+      const em=EMO.exec(own);
+      out.txt.push({d:MK.desc(e),p:e.parentElement?MK.desc(e.parentElement):'',t:own.slice(0,40),r:R(r),where,tag,fs:+parseFloat(cs.fontSize).toFixed(1),fw:cs.fontWeight,ff:cs.fontFamily.split(',')[0].replace(/["']/g,'').trim(),col:cs.color,cr,clip,par,emo:em?em[1]:'',ctl:!!e.closest('button,[onclick],[role=button]'),ell:cs.textOverflow==='ellipsis'&&e.scrollWidth>e.clientWidth+1});}
+    /* 판: 테두리 · 배경이 있는 큰 칸 */
+    if(r.width>=120&&r.height>=60&&!ctl&&(cs.borderTopWidth!=='0px'||file(cs.borderImageSource)||file(cs.backgroundImage)||(rgb(cs.backgroundColor)||{a:0}).a>.3)&&where!=='nic')
+      out.box.push({d:MK.desc(e),r:R(r),where,bg:cs.backgroundColor,bgi:file(cs.backgroundImage),bi:file(cs.borderImageSource),rad:cs.borderTopLeftRadius,bw:cs.borderTopWidth,bc:cs.borderTopColor});
+    /* 그림: 깨짐 · 원본보다 크게 늘림 */
+    if(tag==='IMG'){const nw=e.naturalWidth,nh=e.naturalHeight;out.img.push({d:MK.desc(e),src:(e.getAttribute('src')||'').split('/').slice(-2).join('/'),r:R(r),where,broken:e.complete&&!nw,up:nw?+(r.width*(window.devicePixelRatio||1)/nw).toFixed(2):0,ar:nw&&r.height?+((r.width/r.height)/(nw/nh)).toFixed(2):1});}
+  }
+  return out;};
+})();
