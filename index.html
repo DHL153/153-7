@@ -3335,6 +3335,7 @@ cv.onclick=()=>{if(S.anim)S.anim.spd=S.anim.spd===1?3:S.anim.spd;};
 const ENEMY_KO=['망령','수문장','거인'];
 function pickVoucher(){const pool=Object.keys(VOUCH).filter(k=>!S.vouch.includes(k)&&!deckBanV(k)&&(!VOUCH[k].base||S.vouch.includes(VOUCH[k].base)||(k==='vault2'&&deckIs('merchant'))));return pool.length?pool[Math.random()*pool.length|0]:null;}
 function win(){
+  try{lmFoeKill(S.foe);}catch(e){}
   const last=S.jang===8&&S.rd===2&&!S.endless;
   if(last&&S.diff==='errant'&&!S.finale){lmFinale();return;}   /* (DHL 10-30) 편력: 스카이아크 알론소 → 반전 씬 → 풍차 거인 (저장 없음 — 지면 처음부터) */
   if(last){try{if(!S._statEnded)S._clearNew=!(LM_ST.clears||{})[S.diff];}catch(e){}try{lmStatEnd(true)}catch(e){}}
@@ -3731,6 +3732,12 @@ const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 let LEARN_SEEN=lsGet('lm_learn_seen',[]);
 let CODEX=lsGet('lm_codex',{orb:{},giant:{}});if(!CODEX.foe)CODEX.foe={};   // foe = 만난 적 (DHL 11-12)
+/* (DHL 11-19) 적 처치 횟수 — 도감에 '3/10'으로 표시. 다 채우면 그 적의 카드가 열림(카드 규칙은 다음 단계): 일반 10 · 보스 5 · 풍차 거인 3 */
+const FOE_NEED=k=>FOE_RIG.final===k?3:FOE_RIG.boss.includes(k)?5:10;
+function foeKills(k){return (CODEX.foeK&&CODEX.foeK[k])||0;}
+function foeCardOpen(k){return foeKills(k)>=FOE_NEED(k);}
+function lmFoeKill(f){if(!f||!f.rig||!FOE_KO[f.rig]||f._kc||!S||S.practice||S.sandbox)return;f._kc=1;CODEX.foeK=CODEX.foeK||{};const k=f.rig,was=foeKills(k);CODEX.foeK[k]=was+1;if(!CODEX.foe[k])CODEX.foe[k]=1;lsSet('lm_codex',CODEX);
+  if(was+1===FOE_NEED(k))try{popMsg('📖 '+FOE_KO[k]+' — 처치 '+FOE_NEED(k)+'회 달성!');}catch(e){}}
 function codexMark(kind,key){if(!key||CODEX[kind][key])return;CODEX[kind][key]=1;lsSet('lm_codex',CODEX);try{lmDeckCheck();}catch(e){}}
 const infoClose=()=>`<button class="iClose lmIco" onclick="ibBackOut()" aria-label="닫기" title="닫기"><img src="assets/ui/icon/btn_close.webp" alt=""></button>`;
 /* (11-06 외부 피드백 버그) 원정 캠프 · 야영 · 보상 창 위에서 런 정보 · 배우기를 열고 '뒤로'를 누르면 그 창이 닫혀 버려
@@ -3928,14 +3935,14 @@ function foeCodexPlay(a){try{const f=document.querySelector('.cFoeStage iframe')
 function foeCodexTap(){document.querySelector('.cFoeStage .cmHint')?.remove();const L=(FOE_ATKS[codexSel]||['attack']).concat('hurt');try{const f=document.querySelector('.cFoeStage iframe'),E=f&&f.contentWindow&&f.contentWindow.EN;if(!E||!E.ready()||E.state()!=='idle')return;if(window._foeTapFor!==codexSel){window._foeTapFor=codexSel;window._foeTapN=0;}E.play(L[window._foeTapN++%L.length]);}catch(e){}}
 function foeCodexBoot(){const f=document.querySelector('.cFoeStage iframe');if(!f||f._boot)return;f._boot=1;let n=0;const t=setInterval(()=>{if(!f.isConnected||n++>150){clearInterval(t);return;}try{const E=f.contentWindow&&f.contentWindow.EN;if(E&&E.ready()){clearInterval(t);E.fx(!(typeof LM_SET!=='undefined'&&LM_SET.rm));E.play('enter');f.classList.add('on');}}catch(e){}},100);}
 function foeCodexHTML(pick){if(!(codexSel&&FOE_KO[codexSel]))window._foeBgFor=null;const K=Object.keys(FOE_KO),nF=K.filter(k=>CODEX.foe[k]).length;
-  let h=`<div class="cGrid cFoeGrid">`+K.map(k=>{const known=CODEX.foe[k],[kd,kc]=foeKind(k);return known?`<button class="cF ${kc}${codexSel===k?' sel':''}" onclick="${pick(k)}"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>${FOE_KO[k]}</span></button>`:`<button class="cF q ${kc}" disabled aria-label="아직 만나지 못한 적"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>???</span></button>`;}).join('')+`</div>`;
+  let h=`<div class="cGrid cFoeGrid">`+K.map(k=>{const known=CODEX.foe[k],[kd,kc]=foeKind(k);const kn=foeKills(k),nd=FOE_NEED(k),dn=kn>=nd;return known?`<button class="cF ${kc}${codexSel===k?' sel':''}${dn?' done':''}" onclick="${pick(k)}"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>${FOE_KO[k]}</span><em class="cFk" aria-label="처치 ${Math.min(kn,nd)} / ${nd}"><i style="width:${Math.min(100,100*kn/nd)}%"></i><b>${dn?'✔ '+nd+'/'+nd:kn+'/'+nd}</b></em></button>`:`<button class="cF q ${kc}" disabled aria-label="아직 만나지 못한 적"><img src="assets/ui/foe/${k}.webp" alt="" loading="lazy"><span>???</span></button>`;}).join('')+`</div>`;
   const k=codexSel&&FOE_KO[codexSel]&&CODEX.foe[codexSel]?codexSel:null;
   if(k){const [kd,kc]=foeKind(k),I=FOE_INFO[k]||['',''];
     /* (DHL 11-13) 배경 = 전투 배경 30장 중 하나를 볼 때마다 무작위로 (적 자리인 오른쪽 부분) · 세계별 하늘색 */
     if(window._foeBgFor!==k||!window._foeBgN){window._foeBgFor=k;let n;do{n=1+(Math.random()*30|0);}while(n===window._foeBgN);window._foeBgN=window._foeBgForce||n;}
     const bn=window._foeBgN,bw=bn<=10?'rust':bn<=20?'neon':'sky';
     h=`<div class="cDet cFoeDet"><div class="cFoeStage w-${bw}" onclick="foeCodexTap()"><i class="cFoeBg" style="background-image:url(mrstage/assets/art/backgrounds/battle/bg_battle_${String(bn).padStart(4,'0')}.png)"></i><iframe src="mrstage/enemy/${k}/index.html" style="--fx:${FOE_CODEX_X[k]||0}%" title="${FOE_KO[k]}" tabindex="-1" scrolling="no" onload="foeCodexBoot()"></iframe><span class="cmHint">눌러 보세요</span></div>`+
-      `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small></div></div>`+h;   /* (DHL 11-13) 설명 글 · 버튼 줄 뺌 — 동료처럼 적을 누르면 반응(공격들 → 피격 차례로, 등장은 처음 한 번만) */
+      `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small> <small class="cFoeN${foeCardOpen(k)?' done':''}">처치 ${Math.min(foeKills(k),FOE_NEED(k))} / ${FOE_NEED(k)}</small></div></div>`+h;   /* (DHL 11-13) 설명 글 · 버튼 줄 뺌 — 동료처럼 적을 누르면 반응(공격들 → 피격 차례로, 등장은 처음 한 번만) */
     setTimeout(foeCodexBoot,0);}
   /* (11-14) 안내는 도감 패널 제목 줄로 옮김 */
   return h;}
@@ -5756,7 +5763,13 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 .cF{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;min-height:104px;padding:6px 4px 5px;border-radius:10px;background:#1b252c;border:2px solid #3b4d58;color:inherit;font-weight:800;cursor:pointer}
 .cF img{width:100%;height:68px;object-fit:contain;filter:drop-shadow(0 2px 0 #0008)}.cF span{font-size:11px;line-height:1.2;text-align:center;word-break:keep-all}
 .cF.boss{border-color:#a5553a}.cF.fin{border-color:#d9a43a}.cF.sel{box-shadow:0 0 0 3px var(--gold,#f2b632)}
-.cF.q{cursor:default;opacity:.75}.cF.q img{filter:brightness(0) opacity(.55)}.cF.q span{color:#6b7480}
+.cF.q{cursor:default;opacity:.75}
+/* (DHL 11-19) 처치 횟수 줄: 막대 + '3/10' — 다 채우면 금색 */
+.cF .cFk{position:relative;display:block;width:100%;height:15px;margin-top:3px;border-radius:99px;background:#0a1226;box-shadow:inset 0 0 0 1px #ffffff1c;overflow:hidden;font-style:normal}
+.cF .cFk i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#5b8fd6,#33619f);border-radius:99px}
+.cF .cFk b{position:relative;display:block;font:900 11px/15px "Noto Sans KR",sans-serif;color:#fff;text-align:center;text-shadow:0 1px 0 #000a}
+.cF.done .cFk i{background:linear-gradient(#f2c95a,#c8902a)}.cF.done .cFk b{color:#2a1a05;text-shadow:none}
+.cFoeTx .cFoeN{display:inline-block;white-space:nowrap;margin-left:6px;padding:1px 8px;border-radius:99px;background:#0a1226;color:#cfd8ea;font-weight:800}.cFoeTx .cFoeN.done{background:#e2b345;color:#2a1a05}.cF.q img{filter:brightness(0) opacity(.55)}.cF.q span{color:#6b7480}
 .cFoeDet{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px!important}
 .cFoeStage .cmHint{left:8px;top:8px;bottom:auto;transform:none}   /* 적은 그림이 바닥까지 차서 '눌러 보세요'를 왼쪽 위로 */
 .cFoeStage{cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(#2b3a67,#6f86b8 70%,#a9bbd8)}
