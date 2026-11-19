@@ -1,6 +1,6 @@
 /* 완주 봇: 진짜 클릭으로 1장 → 8장 → 엔딩 → 무한 원정까지. 점수만 올려 줘서(이기게) 모든 화면을 지나가며 오류 · 막힘 · 상태 이상을 봄
    env: DIFF DECK SEED MAXR(라운드 수 한도) ENDR(무한 원정 라운드 수) CAMP(야영 확률) SHOPBUY(구매 확률) JUMP(시작 장) */
-const {boot,tap,st,btns,until,newRun,shot,done,rec,clickSel}=require('./lib.js');const fs=require('fs');
+const {boot,tap,st,btns,until,newRun,shot,done,rec,clickSel}=require('./lib.js');const fs=require('fs');const DESIGN=process.env.DESIGN?require('path').resolve(process.env.DESIGN==='1'?'design':process.env.DESIGN):'',DS=require('./design-snap.js');
 const DIFF=process.env.DIFF||'app',DECK=process.env.DECK||'lamancha',SEED=+(process.env.SEED||51),MAXR=+(process.env.MAXR||40),ENDR=+(process.env.ENDR||4),CAMP=+(process.env.CAMP||.25),BUY=+(process.env.SHOPBUY||.6),JUMP=+(process.env.JUMP||0),SPEED=+(process.env.SPEED||4);
 let rs=SEED;const rnd=()=>{rs=(rs*1664525+1013904223)>>>0;return rs/4294967296;};
 (async()=>{
@@ -9,7 +9,7 @@ let rs=SEED;const rnd=()=>{rs=(rs*1664525+1013904223)>>>0;return rs/4294967296;}
   const tag=`${DIFF}/${DECK}`;const trail=[];const probs=[];let lastR='',rounds=0,endRounds=0,lastKey='',lastChange=Date.now(),sawEnd=false,sawFinale=false,sawMill2=false,overs=0;
   const note=(t,x)=>{probs.push(t+(x?' — '+x:''));console.log('❗',tag,t,x||'');};
   const t0=Date.now();
-  while(Date.now()-t0<(+(process.env.SECS||600))*1000){
+  while(Date.now()-t0<(+(process.env.SECS||600))*1000){if(DESIGN)await DS.snap(p,DESIGN,'f'+DIFF[0]+'_');
     const q=await p.evaluate(()=>{const o=document.getElementById('ov'),P=document.querySelector('#panel>*');return {scr:__MK.screen(),st:__MK.state(),viol:__MK.viol(),lock:__MK.lock(),story:!!document.getElementById('mr-story'),cash:!!document.querySelector('#cashBtn:not([disabled])'),cashWait:!!document.querySelector('#cashBtn[disabled]'),
       go:!!document.querySelector('#panel .goB'),goWait:!!document.querySelector('#panel .goB.goWait'),endless:!!document.querySelector('.goEndless'),rs:!!document.querySelector('#panel .rsB')&&!o.hidden,shop:!!document.querySelector('#panel .shop')&&!o.hidden,pack:!!(S&&S.packView)&&!o.hidden,rest:!!(S&&S.inRest),
       ovTxt:o.hidden?'':(document.getElementById('panel').innerText||'').slice(0,50).replace(/\s+/g,' '),mill2:!!(S&&S.foe&&S.foe.wm2),bad:__MK.badText()};}).catch(()=>null);
