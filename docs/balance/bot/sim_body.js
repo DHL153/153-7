@@ -309,7 +309,7 @@ function shop(){
       const norm=FOE_TIER.weak.concat(FOE_TIER.strong),boss=FOE_TIER.boss.concat([FOE_TIER.final]),pk=a=>a[Math.random()*a.length|0];
       const view=[0,1,2].map(()=>pk(norm));if(Math.random()<FOEBOSS)view[0]=pk(boss);   /* 팩 하나에 보스는 많아야 1장 · 10% */
       let ch=FOEONLY?FOEONLY:view[0];if(smart&&!FOEONLY)ch=view.slice().sort((a,b)=>FOE_STAR(b)-FOE_STAR(a))[0];
-      S.deck.push(foeCardNew(ch,S.uid++,1+(Math.random()*10|0)));ST.foeBought=(ST.foeBought||0)+1;ST.foeBy=ST.foeBy||{};ST.foeBy[ch]=(ST.foeBy[ch]||0)+1;acted=true;}
+      S.deck.push(foeCardNew(ch,S.uid++));ST.foeBought=(ST.foeBought||0)+1;ST.foeBy=ST.foeBy||{};ST.foeBy[ch]=(ST.foeBy[ch]||0)+1;acted=true;}
     // 동료 팩: 돈이 남으면 (똑똑: 덱에 같은 이름 ★1이 있는 카드)
     if(!packSold&&S.gold>=price(PACK_COST)+(smart?6:0)){packSold=true;S.gold-=price(PACK_COST);
       const view=shuffle(TYPE_IDS.slice()).slice(0,3).map(id=>({id,el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:Math.random()<0.05*(S.hone||1)?2:1}));

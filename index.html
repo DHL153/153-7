@@ -1968,8 +1968,8 @@ lmSetApply();
 <script src="assets/embed/icon_img.js"></script><script>
 /* 라만차 v3 핵심 규칙 — 손패 족보 + 머지 (UI와 분리, node에서도 실행됨) */
 const WORLDS=['rust','neon','sky'];
-const WORLD_KO={rust:'러스트',neon:'네온',sky:'스카이'};
-const WORLD_C={rust:'#b0552a',neon:'#985a82',sky:'#3f7d99'};   /* (DHL 11-06 아트 바이블) 카드 그림 팔레트 쪽으로 — 형광 자주·쨍한 파랑 대신 바랜 톤 · 흰 글씨 대비 4.5 이상 */
+const WORLD_KO={rust:'러스트',neon:'네온',sky:'스카이',foe:''};
+const WORLD_C={rust:'#b0552a',neon:'#985a82',sky:'#3f7d99',foe:'#6b1d2a'};   /* (DHL 11-06 아트 바이블) 카드 그림 팔레트 쪽으로 — 형광 자주·쨍한 파랑 대신 바랜 톤 · 흰 글씨 대비 4.5 이상 */
 const NAMES=[['alonso','알론소'],['dulcine','둘시네'],['sancho','산초'],['rosi','로시'],['gris','바실'],
              ['lucia','루시아'],['bruno','브루노'],['nicole','니콜'],['carden','카르덴'],['palome','팔로메']];
 const ELS=['물','불','전기','흙','바람'];
@@ -1984,7 +1984,7 @@ const STAR_MUL=[0,1,2,4];               // ★별 효과 배율 (구슬 효과)
 const BASE_POW={alonso:10,dulcine:9,sancho:8,rosi:7,lucia:6,bruno:5,nicole:4,carden:3,palome:2,gris:1};
 /* (DHL 10-29) 번호 = 힘, 카드마다 매판 무작위 (1~10, 번호마다 6장). 높은 번호 동료만 쓰는 단조로운 전투를 깨기 위해.
    번호가 없는 옛 카드(연습 · 배우기 · 이어하기 옛 판)는 동료 기본값으로 */
-const cardNo=c=>(c&&c.no)||BASE_POW[TYPES[c.id].n];
+const cardNo=c=>(c&&c.no)||BASE_POW[TYPES[c.id].n]||0;   /* 적 카드(∞)는 계산 중이 아니면 0 */
 /* 🂠 덱 종류 (DHL 11-12) — 기본 1 + 유리한 덱 3 + 교환 1 + 불리한 덱 11. 숫자는 초안(봇 클리어율로 맞춤). t: b=유리 · x=교환 · d=불리
    img = assets/ui/kit/decks/deck_<키>.webp (기본만 kit/card_back.webp) */
 const DECKS={
@@ -2074,13 +2074,15 @@ const FOE_AW={
 const FOE_TIER={weak:['e10','e11','e08','e01','e05'],strong:['e03','e02','e04','e12','e15','e14'],boss:['e06','e09','e13'],final:'e07'};   /* FOE_RIG와 같은 구분 (코어 · 봇에서도 쓰게 여기 둠) */
 const FOE_STAR=k=>FOE_TIER.final===k||FOE_TIER.boss.includes(k)?3:2;
 Object.keys(FOE_AW).forEach(k=>{TYPES['foe_'+k]={id:'foe_'+k,w:'foe',n:k,ko:k,els:[FOE_EL[k]],foe:1};});   /* TYPE_IDS에는 안 넣음 — 덱 · 동료 팩에 안 나옴 */
-const foeCardNew=(k,uid,no)=>({uid,id:'foe_'+k,star:FOE_STAR(k),el:FOE_EL[k],no,aw:'A'});
+const FOE_AX_IC={'화력':'alonso','방패':'alonso_b','맞춤':'gris','손패':'lucia_b'};   /* 적 각성 문양: 전용 그림이 오기 전까지 축마다 있던 문양을 씀 */
+const foeCardNew=(k,uid)=>({uid,id:'foe_'+k,star:FOE_STAR(k),el:FOE_EL[k],no:0,aw:'A'});
 const isFoeC=c=>!!(c&&TYPES[c.id]&&TYPES[c.id].foe), FA=(c,k)=>isFoeC(c)&&TYPES[c.id].n===k;   /* 적 카드 · 적 카드 각성 */
 const FAOFF=!!(typeof process!=='undefined'&&process.env&&process.env.FAOFF);
 const worldsOf=c=>isFoeC(c)?[]:S3(c,'carden')?WORLDS.slice():[cardW(c)];   /* 적 카드는 세계 없음 */
 const elsOf=c=>S3(c,'nicole')?ELS.slice():[c.el];
 const topStar=c=>c.star;
-const power=c=>Math.round(cardNo(c)*(c.mixed?MIX_X:STAR_X)[c.star]);
+const FOE_POW=[0,0,+(typeof process!=='undefined'&&process.env&&process.env.FOEP2||15),+(typeof process!=='undefined'&&process.env&&process.env.FOEP3||30)];   /* 적 카드 힘: 일반 15 · 보스 30 (번호와 무관) */
+const power=c=>TYPES[c.id]&&TYPES[c.id].foe?FOE_POW[c.star]:Math.round(cardNo(c)*(c.mixed?MIX_X:STAR_X)[c.star]);
 function mergeKind(a,b){
   if(!a||!b||a===b||TYPES[a.id].n!==TYPES[b.id].n)return null;
   if(isFoeC(a)||isFoeC(b))return null;                            // (11-20) 적 카드는 머지 안 됨
@@ -2242,10 +2244,12 @@ function handType(cards){
   }
   return bst;
 }
-function handInfo(cards,o){const a=cards.filter(c=>!c.seal);   /* (DHL 11-13) 봉인된 카드는 족보에 못 들어감 */a._info=1;if(o&&o.four)a._four=1;if(o&&o.skip)a._skip=1;return handType(a);}
+function handInfo(cards,o){return foeFit(cards,()=>handInfo0(cards,o));}
+function handInfo0(cards,o){const a=cards.filter(c=>!c.seal||FA(c,'e12'));   /* (DHL 11-13) 봉인된 카드는 족보에 못 들어감 */a._info=1;if(o&&o.four)a._four=1;if(o&&o.skip)a._skip=1;return handType(a);}
 
 /* 족보에 들어간 카드 (발라트로식: 이 카드들만 힘이 점수에 들어감) */
-function scoringCards(cards,ht,foe){cards=cards.filter(c=>!c.seal);if(!cards.length)return [];
+function scoringCards(cards,ht,foe){return foeFit(cards,()=>scoringCards0(cards,ht,foe));}
+function scoringCards0(cards,ht,foe){cards=cards.filter(c=>!c.seal||FA(c,'e12'));if(!cards.length)return [];
   if(ht==='march')return cards.slice();
   const byKey=f=>{const m={};cards.forEach(c=>{const k=f(c);(m[k]=m[k]||[]).push(c);});return m;};
   const W=a=>a.reduce((s,c)=>s+weight(c),0);
@@ -2265,11 +2269,17 @@ function scoringCards(cards,ht,foe){cards=cards.filter(c=>!c.seal);if(!cards.len
 }
 /* 점수 계산: 내는 순서대로. steps는 연출용
    ctx: orbs, lv, merges, discards(남은 버리기), runsLeft(이번 런 포함 남은 런), grow, deck */
-/* (11-20 실험 · 봇 전용 FOEWILD=1) 적 카드는 번호 없음 — 함께 낸 동료 카드 중 가장 많은 번호(같으면 높은 번호)를 따라감 */
-const FOEWILD=!!(typeof process!=='undefined'&&process.env&&process.env.FOEWILD);
-function score(cards,ctx){if(!FOEWILD||!cards.some(isFoeC))return score0(cards,ctx);
-  const cnt={};cards.forEach(c=>{if(!isFoeC(c)&&!c.seal){const n=cardNo(c);cnt[n]=(cnt[n]||0)+weight(c);}});const ks=Object.keys(cnt).map(Number).sort((a,b)=>cnt[b]-cnt[a]||b-a);
-  if(!ks.length)return score0(cards,ctx);const fs=cards.filter(isFoeC),old=fs.map(c=>c.no);fs.forEach(c=>c.no=ks[0]);try{return score0(cards,ctx);}finally{fs.forEach((c,i)=>c.no=old[i]);}}
+/* (DHL 11-21) 적 카드의 번호는 ∞ — 족보에서 어떤 번호로든 셈(같은 번호 족보 · 행진의 빈 칸). 가장 값진 족보가 되는 번호를 자동으로 고름.
+   적의 번호 맞춤에는 안 침(그리스 각성과 겹치지 않게). 힘은 번호와 따로 고정(FOE_POW). 계산하는 동안만 c.no를 잠깐 넣었다가 뺌 */
+let _foeFit=0;
+function foeFit(cards,fn){const fs=cards.filter(c=>isFoeC(c)&&(!c.seal||FA(c,'e12')));if(_foeFit||!fs.length)return fn();
+  const rest=cards.filter(c=>!isFoeC(c)&&!c.seal),ns=[...new Set(rest.map(cardNo))],cand=new Set(ns);ns.forEach(n=>{[n-2,n-1,n+1,n+2].forEach(x=>{if(x>=1&&x<=10)cand.add(x);});});if(!cand.size)cand.add(1);
+  const C=[...cand],val=()=>{const h=handInfo0(cards);return [h.ht].concat(h.bonds||[]).reduce((v,k)=>v+HT[k][1]*HT[k][2],0);};
+  _foeFit++;let best=null;
+  try{const k=Math.min(fs.length,2),rec=(i,pick)=>{if(i===k){fs.forEach((c,q)=>c.no=pick[Math.min(q,k-1)]);const v=val()+pick.reduce((a,b)=>a+b,0)*.001;if(!best||v>best.v)best={v,pick:pick.slice()};return;}for(const n of C){pick.push(n);rec(i+1,pick);pick.pop();}};
+    rec(0,[]);fs.forEach((c,q)=>c.no=best.pick[Math.min(q,k-1)]);return fn();}
+  finally{fs.forEach(c=>{c.no=0;});_foeFit--;}}
+function score(cards,ctx){return foeFit(cards,()=>score0(cards,ctx));}
 function score0(cards,ctx){
   cards=cards.filter(c=>!c.seal||(!FAOFF&&FA(c,'e12')));   /* (DHL 11-13) 봉인된 카드는 점수 · 족보에서 빠짐 — (11-20) 좀비 의사는 봉인되어도 들어감 */
   ctx=ctx||{}; const orbs=ctx.orbs||[], has=k=>orbs.includes(k), n=cards.length;
@@ -2450,7 +2460,7 @@ const heroFor=(j,r)=>NUM_NAME[Math.random()*NUM_NAME.length|0];   /* (DHL 10-30 
 const mixA=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 /* 판마다 8장의 세계 순서를 새로 섞음 — 세 장마다 세 세계가 한 번씩(같은 세계가 연달아 나오지 않게) */
 function worldSeq(n){const out=[];while(out.length<(n||8)){let b=mixA(WORLDS);if(out.length&&b[0]===out[out.length-1])b.push(b.shift());out.push(...b);}return out.slice(0,n||8);}
-const keyHit=(c,foe)=>foe?{w:worldsOf(c).includes(foe.home),e:elsOf(c).includes(weakTo(foe.el)),h:S3(c,'gris')||(foe.no?cardNo(c)===foe.no:TYPES[c.id].n===foe.hero)}:{w:false,e:false,h:false};
+const keyHit=(c,foe)=>foe?{w:worldsOf(c).includes(foe.home),e:elsOf(c).includes(weakTo(foe.el)),h:S3(c,'gris')||(!(TYPES[c.id]&&TYPES[c.id].foe)&&(foe.no?cardNo(c)===foe.no:TYPES[c.id].n===foe.hero))}:{w:false,e:false,h:false};
 function keysOf(cs,foe){const k={w:false,e:false,h:false};cs.forEach(c=>{const x=keyHit(c,foe);k.w=k.w||x.w;k.e=k.e||x.e;k.h=k.h||x.h;});k.n=(k.w?1:0)+(k.e?1:0)+(k.h?1:0);return k;}
 const KIC=k=>`<img class="kic" src="assets/ui/maple/icons/${{k:'sword',h:'crown',s:'shield_round'}[k]}.webp" alt="">`;
 const isWeakCard=(c,foe)=>!!foe&&(armorOn()?elsOf(c).includes(weakTo(foe.el)):matchX(c.el,foe)===2);
@@ -2863,9 +2873,9 @@ const ICO=k=>(k==='rust'||k==='neon'||k==='sky')?`<img class="wico" src="assets/
 const chipH=([cl,ic,txt,tt,bg])=>`<span class="chip ${cl}" title="${tt}"><i${bg?` style="background:${bg}"`:''}>${ICO(ic)}</i>${txt}</span>`;
 function cardFace(c){
   if(c.fog)return `<span class="dzi" data-fog="1" style="--wc:#555;--ec:#666"><span class="dzb"></span><span class="dzno">?</span><!--mg--><span class="nmbox"><span class="nm">?</span></span></span>`;
-  const t=TYPES[c.id],w=cardW(c),nat=cardNo(c),now=S&&S.foe?battlePower(c,S.foe):power(c),ek=EL_KEY[c.el];
+  const t=TYPES[c.id],w=cardW(c),FC=!!t.foe,now=S&&S.foe?battlePower(c,S.foe):power(c),nat=FC?power(c):cardNo(c),ek=EL_KEY[c.el];   /* FC = 적 카드: 번호 ∞ · 힘 고정 · 세계 없음 */
   const why=[];   // [색, 기호, 숫자, 설명(누르면 보이는 글), 기호 바탕색]
-  if(c.star>1){const x=(c.mixed?MIX_X:STAR_X)[c.star];if(x!==1)why.push(['g',c.star>=3?'star3':'star2','×'+x,`★${c.star}${c.mixed?' 혼합':''} ×${x}`]);}
+  if(c.star>1&&!FC){const x=(c.mixed?MIX_X:STAR_X)[c.star];if(x!==1)why.push(['g',c.star>=3?'star3':'star2','×'+x,`★${c.star}${c.mixed?' 혼합':''} ×${x}`]);}
   if(S&&S.foe){const f=S.foe,m=matchX(c.el,f);
     if(m===2)why.push(['g',ek,'×2','약점 ×2 — 적이 '+c.el+'에 약해요',EL_C[c.el]]);
     if(m===0.5)why.push(['r',ek,'×½','내성 ×½ (내림) — 적이 '+c.el+'에 강해요',EL_C[c.el]]);
@@ -2873,17 +2883,17 @@ function cardFace(c){
   // 타격·중독으로 깎인 힘은 왼쪽 칩(타격 −N · 중독 −N)으로만 — 오른쪽에 합계를 또 쓰지 않음
   const dbf=[];if(c.st){if(c.st.hit)dbf.push(['r','hit','−'+c.st.hit,'상처 −'+c.st.hit+' (잠자기 · 머지로 치료)']);if(c.st.psn)dbf.push(['p','poison','−'+(c.st.pd||0),'중독 −'+(c.st.pd||0)]);}
   const d=now>nat?'up':now<nat?'down':'';
-  const F=ART_FIT[c.id]||[0,1,0];const img=HAS_ART&&MR_ART.idle[c.id]?`<span class="dza"><img src="${MR_ART.idle[c.id]}" alt="" style="transform:translate(${F[0]}%,${F[2]}%) scale(${F[1]})"></span>`:'';
-  const nm=t.ko,nmc=nm.length>6?' xs':nm.length>4?' sm':'';
+  const F=ART_FIT[c.id]||[0,1,0];const img=FC?`<span class="dza dzaFoe"><img src="assets/ui/foe/${t.n}.webp" alt=""></span>`:HAS_ART&&MR_ART.idle[c.id]?`<span class="dza"><img src="${MR_ART.idle[c.id]}" alt="" style="transform:translate(${F[0]}%,${F[2]}%) scale(${F[1]})"></span>`:'';
+  const nm=t.ko,nmc=nm.length>8?' xs x2':nm.length>6?' xs':nm.length>4?' sm':'';
   const pl=typeof ICON_IMG!=='undefined'&&ICON_IMG['plate_'+w];
   const stars=Array(c.star).fill(ICO(c.star>=3?'star3':'star2')).join('');
   const sealOn=c.seal&&!c.sealWait,sealAge=sealOn&&c.sealAt?performance.now()-c.sealAt:1e9,sealNew=sealAge>=0&&sealAge<900;   // 방금 걸린 봉인만 사슬 감기는 연출
   const sealH=sealOn?`<span class="dzSeal${sealNew?' new':''}"${sealNew?` style="--sd:-${Math.round(sealAge)}ms"`:''} title="봉인 — 족보에 못 들어가요. 런에 같이 내거나 버리면 풀려요"></span>`:'';
-  return `<span class="dzi${d?' mood-'+d:''}"${sealOn?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
+  return `<span class="dzi${d?' mood-'+d:''}"${sealOn?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length&&!FC?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno${FC?' inf':''}"${FC?' aria-label="∞"':''}>${FC?'<i class="dzInf"></i>':nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
-    `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${ab3Ic(TYPES[c.id].n)}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
-    `<span class="dzwm" title="${WORLD_KO[w]}">${ICO(w)}</span><!--mg--><span class="nmbox${pl?' pl':''}"${pl?` style="--pl:url(${pl})"`:''}><span class="nm${nmc}">${nm}</span></span>`+
+    `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${FC?FOE_AX_IC[ab3(c).ax]:ab3Ic(TYPES[c.id].n)}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
+    (FC?'':`<span class="dzwm" title="${WORLD_KO[w]}">${ICO(w)}</span>`)+`<!--mg--><span class="nmbox${pl?' pl':''}"${pl?` style="--pl:url(${pl})"`:''}><span class="nm${nmc}">${nm}</span></span>`+
     `<span class="spark"></span>${sealH}</span>`;
 }
 function foeLine(f){
@@ -5225,7 +5235,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
         const hand=document.getElementById('hand');if(!hand)return;const seen=new Set();
         for(const el of hand.querySelectorAll('.card.dz[data-uid]')){
           const uid=el.dataset.uid,host=el.querySelector('.dza');const c=cardOf(uid);
-          if(!host||!c||el.classList.contains('fogc'))continue;seen.add(uid);
+          if(!host||!c||el.classList.contains('fogc')||/^foe_/.test(c.id))continue;seen.add(uid);   /* 적 카드는 손패 리그 없음(그림 그대로) */
           let r=HR.get(uid);if(r&&r.id!==c.id){HR.delete(uid);r=null;}
           r=r||hrMake(uid,c.id);if(!r)continue;
           if(r.cv.parentNode!==host)host.appendChild(r.cv);r.host=host;if(r.anim)host.classList.add('rigInst','rigOn');
@@ -6690,6 +6700,11 @@ html.lmB body .card.dz .dzi[data-w] .dzb,html.lmB body .card.dz .dzi[data-fog] .
 html.lmB body .card.dz .dzi[data-w=neon] .dzb{background:url(assets/ui/card/f_neon.webp?v=f) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_neon.webp?v=g) 50.4% 36.8%/77% 57.6% no-repeat!important}
 html.lmB body .card.dz .dzi[data-w=sky] .dzb{background:url(assets/ui/card/f_sky.webp?v=f) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_sky.webp?v=g) 50.4% 36.8%/77% 57.6% no-repeat!important}
 html.lmB body .card.dz .dzi[data-fog] .dzb{background:url(assets/ui/card/fog.webp?v=h) 0 0/100% 100% no-repeat!important}
+/* (DHL 11-21) 적 카드: 숯색 · 검붉은 틀(임시 — 네온 틀에서 색만 바꿈) · 번호 ∞(숫자 그림의 8을 눕힘) · 세계 문장 없음 */
+html.lmB body .card.dz .dzi[data-w=foe] .dzb,html.lmB body .card.dz .dzi[data-w=foe][data-st="1"] .dzb{background:url(assets/ui/card/f_foe.webp?v=a) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_foe.webp?v=b) 50.4% 36.8%/77% 57.6% no-repeat!important}
+.card.dz .dzInf{display:block;width:74%;aspect-ratio:96/75;background:url(assets/ui/card/inf.webp) center/contain no-repeat;filter:drop-shadow(0 1px 0 #0008)}
+.card.dz .dzno.inf{display:flex!important;align-items:center;justify-content:center}
+.card.dz .dzaFoe img{width:100%;height:100%;object-fit:contain;object-position:50% 78%}
 /* (DHL 11-07 카드 정보 줄이기 B안) ★1 = 힘 육각 없는 틀 · 숫자는 번호 하나 — 상성으로 힘이 번호와 달라질 때(강해짐 · 약해짐)만 육각을 얹음. ★2 · ★3은 그대로 */
 html.lmB body .card.dz .dzi[data-w][data-plain] .dzb,html.lmB body .card.dz .dzi[data-w][data-st="1"] .dzb{background:url(assets/ui/card/f_rust_s1.webp?v=b) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_rust.webp?v=g) 50.4% 36.8%/77% 57.6% no-repeat!important}
 html.lmB body .card.dz .dzi[data-w=neon][data-plain] .dzb,html.lmB body .card.dz .dzi[data-w=neon][data-st="1"] .dzb{background:url(assets/ui/card/f_neon_s1.webp?v=a) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_neon.webp?v=g) 50.4% 36.8%/77% 57.6% no-repeat!important}
@@ -6764,7 +6779,7 @@ html.lmB body .card.dz .dzi[data-w] .nmbox{position:absolute!important;left:22%!
   display:flex!important;align-items:center;justify-content:center;padding:0!important;z-index:5}
 html.lmB body .card.dz .dzi[data-w] .nmbox::before,html.lmB body .card.dz .dzi[data-w] .nmbox::after{content:none!important}
 html.lmB body .card.dz .dzi[data-w] .nm{position:static!important;font:900 10.5cqw/1 'Noto Sans KR',sans-serif!important;color:#4a2b0c!important;-webkit-text-stroke:0!important;text-shadow:0 1px 0 #fff9!important;white-space:nowrap}
-html.lmB body .card.dz .dzi[data-w] .nm.sm{font-size:9cqw!important}html.lmB body .card.dz .dzi[data-w] .nm.xs{font-size:7.6cqw!important}
+html.lmB body .card.dz .dzi[data-w] .nm.sm{font-size:9cqw!important}html.lmB body .card.dz .dzi[data-w] .nm.xs{font-size:7.6cqw!important}html.lmB body .card.dz .dzi[data-w] .nm.xs.x2{font-size:6.6cqw!important;white-space:normal!important;line-height:1.05!important;word-break:keep-all;text-align:center}
 /* 캐릭터는 그림 창 좌우·아래로는 안 나가게(창 안에만), 위로는 머리·무기가 살짝 튀어나와도 됨 */
 html.lmB body .card.dz .dzi[data-w] .dza{clip-path:inset(-60% 8.3% 0 8.3%)!important}
 /* 🃏 새 카드 마감 (시트 P2): 방패 세계 문장 · ★ 테두리 빛 · 고른 카드 빛 · ★3 포일 · 혼합 별 · 그림 숫자 */
@@ -7259,7 +7274,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   const MAP={'0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','+':'plus','−':'minus','-':'minus','×':'x','½':'half','.':'dot'};
   const O={"0":[0,72],"1":[74,58],"2":[134,73],"3":[209,70],"4":[281,77],"5":[360,71],"6":[433,75],"7":[510,72],"8":[584,75],"9":[661,73],"plus":[736,78],"minus":[816,73],"x":[891,73],"half":[966,74],"dot":[1042,38]};   // 숫자 그림 한 장(digits.webp 1082×96) 안의 [x, 폭]
   const SEL='.card.dz .dzi[data-w] .dzno,.card.dz .dzi[data-w] .dzpw';
-  function paint(el){const t=el.textContent.trim();if(el.dataset.dg===t)return;if(![...t].every(ch=>MAP[ch]))return;
+  function paint(el){const t=el.textContent.trim();if(!t||el.dataset.dg===t)return;   /* 빈 칸(적 카드 ∞ 그림)은 건드리지 않음 */if(![...t].every(ch=>MAP[ch]))return;
     el.dataset.dg=t;el.setAttribute('aria-label',t);
     el.innerHTML='<span class="lmDg" aria-hidden="true">'+[...t].map(ch=>{const [x,w]=O[MAP[ch]];return '<i style="width:'+(w/96).toFixed(3)+'em;background-position:-'+(x/96).toFixed(3)+'em 0"></i>';}).join('')+'</span><span class="lmDgT">'+t+'</span>';}
   let q=0;const run=()=>{q=0;document.querySelectorAll(SEL).forEach(paint);};
