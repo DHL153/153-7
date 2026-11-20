@@ -2263,7 +2263,12 @@ function scoringCards(cards,ht,foe){cards=cards.filter(c=>!c.seal);if(!cards.len
 }
 /* 점수 계산: 내는 순서대로. steps는 연출용
    ctx: orbs, lv, merges, discards(남은 버리기), runsLeft(이번 런 포함 남은 런), grow, deck */
-function score(cards,ctx){
+/* (11-20 실험 · 봇 전용 FOEWILD=1) 적 카드는 번호 없음 — 함께 낸 동료 카드 중 가장 많은 번호(같으면 높은 번호)를 따라감 */
+const FOEWILD=!!(typeof process!=='undefined'&&process.env&&process.env.FOEWILD);
+function score(cards,ctx){if(!FOEWILD||!cards.some(isFoeC))return score0(cards,ctx);
+  const cnt={};cards.forEach(c=>{if(!isFoeC(c)&&!c.seal){const n=cardNo(c);cnt[n]=(cnt[n]||0)+weight(c);}});const ks=Object.keys(cnt).map(Number).sort((a,b)=>cnt[b]-cnt[a]||b-a);
+  if(!ks.length)return score0(cards,ctx);const fs=cards.filter(isFoeC),old=fs.map(c=>c.no);fs.forEach(c=>c.no=ks[0]);try{return score0(cards,ctx);}finally{fs.forEach((c,i)=>c.no=old[i]);}}
+function score0(cards,ctx){
   cards=cards.filter(c=>!c.seal||(!FAOFF&&FA(c,'e12')));   /* (DHL 11-13) 봉인된 카드는 점수 · 족보에서 빠짐 — (11-20) 좀비 의사는 봉인되어도 들어감 */
   ctx=ctx||{}; const orbs=ctx.orbs||[], has=k=>orbs.includes(k), n=cards.length;
   /* 구슬 머지: ★2는 더하기 2배 · 곱하기 1.5배씩 (×3 → ×4.5), ★3은 더하기 3배 · 곱하기 ×6 */
