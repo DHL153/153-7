@@ -2051,13 +2051,39 @@ const STAR3B=STAR3;   /* 예전 B표를 읽던 곳이 깨지지 않게 */
 const S3OFF=!!(typeof process!=='undefined'&&process.env&&process.env.S3OFF);   /* 봇 비교용: 각성 전부 끔 */
 const S3=(c,n)=>!S3OFF&&c&&c.star===3&&TYPES[c.id].n===n;   // ★3 각성 (c.aw는 더 안 봄 — 옛 저장의 A/B는 무시)
 const S3B=()=>false;
-const ab3=c=>c&&c.star===3?STAR3[TYPES[c.id].n]:null;
-const worldsOf=c=>S3(c,'carden')?WORLDS.slice():[cardW(c)];
+const ab3=c=>isFoeC(c)?FOE_AW[TYPES[c.id].n]:c&&c.star===3?STAR3[TYPES[c.id].n]:null;
+/* (DHL 11-20) 적 카드 — 처치 횟수를 채운 적을 원정 캠프 '적 팩'에서 영입. 일반(망령 · 수문장) = ★2 · 보스 = ★3, 머지 안 됨 · 세계 없음 · 속성 고정 · 번호는 매판 무작위.
+   각성은 동료와 같은 4축(화력 · 방패 · 맞춤 · 손패) — '적일 때 하던 짓을 내 편으로'. 수치는 첫 값(봇으로 맞춤) */
+const FOE_EL={e01:'바람',e02:'전기',e03:'물',e04:'불',e05:'흙',e06:'바람',e07:'흙',e08:'전기',e09:'전기',e10:'물',e11:'흙',e12:'바람',e13:'불',e14:'불',e15:'물'};
+const FOE_AW={
+  e01:{ax:'화력',ko:'할퀴기',d:'맨 앞에 내면 힘 +15'},
+  e05:{ax:'화력',ko:'먼 화살',d:'맨 뒤에 내면 힘 +15'},
+  e11:{ax:'방패',ko:'등껍질 깨기',d:'이 카드의 피해는 방패에 1.5배'},
+  e08:{ax:'손패',ko:'북소리',d:'버릴 때 다음 런 배수 +3'},
+  e10:{ax:'손패',ko:'지켜보는 눈',d:'손에 남아 있으면 배수 +2'},
+  e02:{ax:'화력',ko:'돌격',d:'맨 앞에 내면 힘 ×2'},
+  e03:{ax:'화력',ko:'조준',d:'맨 뒤에 내면 배수 +4'},
+  e04:{ax:'화력',ko:'불씨',d:'함께 낸 불 속성 카드 힘 +8씩'},
+  e14:{ax:'화력',ko:'화염 방사',d:'함께 낸 카드 수만큼 힘 +6씩'},
+  e15:{ax:'방패',ko:'집게',d:'방패가 남은 적에게 힘 ×2'},
+  e12:{ax:'손패',ko:'죽지 않는 몸',d:'봉인되어도 족보에 들어감'},
+  e06:{ax:'손패',ko:'저주 막이',d:'손에 남아 있으면 새 카드가 봉인되지 않음'},
+  e09:{ax:'화력',ko:'타락한 축복',d:'족보에 있으면 배수 ×1.3'},
+  e13:{ax:'방패',ko:'강펀치',d:'이 카드의 피해는 방패에 3배'},
+  e07:{ax:'맞춤',ko:'풍차의 심장',d:'맞춤 3개면 배수 ×2'}};
+const FOE_TIER={weak:['e10','e11','e08','e01','e05'],strong:['e03','e02','e04','e12','e15','e14'],boss:['e06','e09','e13'],final:'e07'};   /* FOE_RIG와 같은 구분 (코어 · 봇에서도 쓰게 여기 둠) */
+const FOE_STAR=k=>FOE_TIER.final===k||FOE_TIER.boss.includes(k)?3:2;
+Object.keys(FOE_AW).forEach(k=>{TYPES['foe_'+k]={id:'foe_'+k,w:'foe',n:k,ko:k,els:[FOE_EL[k]],foe:1};});   /* TYPE_IDS에는 안 넣음 — 덱 · 동료 팩에 안 나옴 */
+const foeCardNew=(k,uid,no)=>({uid,id:'foe_'+k,star:FOE_STAR(k),el:FOE_EL[k],no,aw:'A'});
+const isFoeC=c=>!!(c&&TYPES[c.id]&&TYPES[c.id].foe), FA=(c,k)=>isFoeC(c)&&TYPES[c.id].n===k;   /* 적 카드 · 적 카드 각성 */
+const FAOFF=!!(typeof process!=='undefined'&&process.env&&process.env.FAOFF);
+const worldsOf=c=>isFoeC(c)?[]:S3(c,'carden')?WORLDS.slice():[cardW(c)];   /* 적 카드는 세계 없음 */
 const elsOf=c=>S3(c,'nicole')?ELS.slice():[c.el];
 const topStar=c=>c.star;
 const power=c=>Math.round(cardNo(c)*(c.mixed?MIX_X:STAR_X)[c.star]);
 function mergeKind(a,b){
   if(!a||!b||a===b||TYPES[a.id].n!==TYPES[b.id].n)return null;
+  if(isFoeC(a)||isFoeC(b))return null;                            // (11-20) 적 카드는 머지 안 됨
   if(a.seal||b.seal)return null;                                  // (DHL 11-13) 봉인된 카드는 머지 불가
   if(a.star!==b.star||a.star>=3)return null;                     // 오직 같은 ★끼리
   return (!a.mixed&&!b.mixed&&cardW(a)===cardW(b))?'up':'mix';    // up=순수, mix=혼합
@@ -2238,7 +2264,7 @@ function scoringCards(cards,ht,foe){cards=cards.filter(c=>!c.seal);if(!cards.len
 /* 점수 계산: 내는 순서대로. steps는 연출용
    ctx: orbs, lv, merges, discards(남은 버리기), runsLeft(이번 런 포함 남은 런), grow, deck */
 function score(cards,ctx){
-  cards=cards.filter(c=>!c.seal);   /* (DHL 11-13) 봉인된 카드는 점수 · 족보에서 빠짐 */
+  cards=cards.filter(c=>!c.seal||(!FAOFF&&FA(c,'e12')));   /* (DHL 11-13) 봉인된 카드는 점수 · 족보에서 빠짐 — (11-20) 좀비 의사는 봉인되어도 들어감 */
   ctx=ctx||{}; const orbs=ctx.orbs||[], has=k=>orbs.includes(k), n=cards.length;
   /* 구슬 머지: ★2는 더하기 2배 · 곱하기 1.5배씩 (×3 → ×4.5), ★3은 더하기 3배 · 곱하기 ×6 */
   const OS=k=>(ctx.ost&&ctx.ost[k])||1, A=(k,v)=>v*OS(k), X=(k,x)=>Math.round(x*(1+ORB_XS*(OS(k)-1))*100)/100;
@@ -2253,7 +2279,7 @@ function score(cards,ctx){
   const isHT=k=>ht===k||bonds.includes(k);
   let prev=0; const names=new Set(), worlds=new Set();
   let SC=!live.length?[]:ctx.scoringOnly?[...new Set([ht].concat(bonds).flatMap(k=>scoringCards(live,k,ctx.foe)))]:live;   // 걸린 족보 모두의 카드
-  const PALMIN=cards.length?Math.min(...cards.map(c=>NUM(c))):0, PALX=+(typeof process!=='undefined'&&process.env&&process.env.PALX||4), DULV=+(typeof process!=='undefined'&&process.env&&process.env.DULV||10);let sanCh=0;   /* (11-20) ★3 팔로메: 함께 낸 카드 중 번호가 가장 낮으면 힘 × · 산초: 이 카드 몫의 힘(방패 2배 계산용) */
+  const PALMIN=cards.length?Math.min(...cards.map(c=>NUM(c))):0, PALX=+(typeof process!=='undefined'&&process.env&&process.env.PALX||4), DULV=+(typeof process!=='undefined'&&process.env&&process.env.DULV||10);let sanCh=0;const FIRE=FAOFF?0:cards.filter(c=>FA(c,'e04')).length;   /* (11-20) ★3 팔로메: 함께 낸 카드 중 번호가 가장 낮으면 힘 × · 산초: 이 카드 몫의 힘(방패 2배 계산용) */
   const DUL=SC.filter(c=>S3(c,'dulcine')).length, SHIELD=0;
   cards.forEach((c,i)=>{
     const t=TYPES[c.id], last=i===n-1, notes=[], ps=PARTS(c), st=topStar(c); names.add(t.n); worldsOf(c).forEach(w=>worlds.add(w));
@@ -2265,6 +2291,13 @@ function score(cards,ctx){
     if(has('w_'+cardW(c))){ch+=A('w_'+cardW(c),20);fired.push('w_'+cardW(c));}
     if(DUL){const d=DULV*(DUL-(S3(c,'dulcine')?1:0));if(d){ch+=d;notes.push('🌹 +'+d);}}
     if(SHIELD){ch+=10*SHIELD;notes.push('🛡 +'+10*SHIELD);}
+    if(t.foe&&!FAOFF){const k=t.n;
+      if(k==='e01'&&i===0){ch+=15;notes.push('할퀴기 +15');}
+      if(k==='e05'&&last){ch+=15;notes.push('먼 화살 +15');}
+      if(k==='e02'&&i===0){ch*=2;notes.push('돌격 ×2');}
+      if(k==='e14'){ch+=6*n;notes.push('화염 방사 +'+6*n);}
+      if(k==='e15'&&ctx.shLeft>0){ch*=2;notes.push('집게 ×2');}}
+    if(FIRE&&!FA(c,'e04')&&elsOf(c).includes('불')){ch+=8*FIRE;notes.push('불씨 +'+8*FIRE);}
     if(S3(c,'palome')&&NUM(c)<=PALMIN){ch*=PALX;notes.push('🕊 작은 영웅 ×'+PALX);}
     if(i===0&&has('flag')){ch*=X('flag',3);notes.push('돌격 ×'+X('flag',3));fired.push('flag');}
     if(i===2&&has('bell')){ch*=X('bell',4);notes.push('축복 ×'+X('bell',4));fired.push('bell');}
@@ -2281,7 +2314,11 @@ function score(cards,ctx){
     const nRe=(has('even')&&NUM(c)%2===0?OS('even'):0)+(has('odd')&&NUM(c)%2===1?OS('odd'):0)+(S3(c,'rosi')?1:0)+(has('stage')&&LEADS.includes(t.n)?OS('stage'):0);
     if(nRe){const dm=mult-m0;chips+=ch*nRe;mult+=dm*nRe;ch+=ch*nRe;notes.push('재발동 ×'+nRe);if(has(NUM(c)%2===0?'even':'odd'))fired.push(NUM(c)%2===0?'even':'odd');}
     if(S3(c,'sancho')){sanCh+=ch;notes.push('🛡 방패 ×2');}
+    if(!FAOFF&&FA(c,'e11')){sanCh+=ch*.5;notes.push('🛡 방패 ×1.5');}
+    if(!FAOFF&&FA(c,'e13')){sanCh+=ch*2;notes.push('🛡 방패 ×3');}
     if(S3(c,'alonso')){mult*=1.5;notes.push('⚔ ×1.5');}
+    if(!FAOFF&&FA(c,'e03')&&last){mult+=4;notes.push('조준 +4');}
+    if(!FAOFF&&FA(c,'e09')){mult*=1.3;notes.push('타락한 축복 ×1.3');}
     if(last&&has('delu')&&n>1){const x=X('delu',[0,2,3,6][st]);mult*=x;notes.push('착각 ×'+x);fired.push('delu');}
     if(has('starmap')&&st===3){mult*=X('starmap',2);notes.push('별빛 ×'+X('starmap',2));fired.push('starmap');}
     prev=ch;
@@ -2334,6 +2371,7 @@ function score(cards,ctx){
   if(ctx.bonusMult){mult+=ctx.bonusMult;steps.push({i:-2,txt:'⚒ 담금질 +'+ctx.bonusMult+' 배수',pop:'+'+ctx.bonusMult+' 배수',chips,mult});}
   // 머지 콤보: 이번 런에서 머지가 2번이면 ×1.5, 3번 이상이면 ×2
   if((ctx.mcombo||0)>=2){const x=ctx.mcombo>=3?2:1.5;mult*=x;steps.push({i:-2,txt:(ctx.mcombo>=3?'트리플 머지!':'더블 머지!')+' ×'+x+' 배수',pop:'×'+x+' 배수',chips,mult,combo:1});}
+  {const E10=FAOFF?0:(ctx.held||[]).filter(c=>FA(c,'e10')&&!c.seal).length;if(E10){mult+=2*E10;steps.push({i:-2,txt:'지켜보는 눈 +'+2*E10+' 배수',pop:'+'+2*E10+' 배수',chips,mult});}}
   {const L3=0;if(L3){mult+=4*L3;steps.push({i:-2,txt:'✋ 빛나는 손 +'+4*L3+' 배수',pop:'+'+4*L3+' 배수',chips,mult});}}
   /* (DHL 11-09 '구슬은 머지 되어 있으면 다시 발동') ★2 · ★3 구슬은 ★ 수만큼 나눠서 다시 터짐 — 계산 결과는 그대로, 화면 단계만 나눔
      더하기 = 같은 값씩 ★ 번 (+6 → +6 → +6) · 곱하기 = 같은 비율씩 ★ 번, 숫자는 마지막에 한 번 (×6) */
@@ -2355,8 +2393,9 @@ function score(cards,ctx){
   let total=Math.floor(chips*mult),keys=null,capped=false,lim=null;const raw=total;
   if(armorOn()&&ctx.foe){keys=keysOf(SC,ctx.foe);const b=ARMOR_BON[keys.n];   /* (DHL 10-29) 맞춘 개수만큼 힘 +% (제한 없음) */
     if(b){chips=Math.round(chips*(1+b));total=Math.floor(chips*mult);}
+    if(!FAOFF&&keys.n>=3&&SC.some(c=>FA(c,'e07'))){mult=Math.round(mult*2*10)/10;total=Math.floor(chips*mult);steps.push({i:-2,txt:'풍차의 심장 ×2 배수',pop:'×2 배수',chips,mult});}
     steps.push({i:-2,armor:1,txt:'⚔ 맞춤 '+keys.n+'/3 · 공격 '+KX(keys.n)+(keys.n>=3?' · '+TD()+'!':''),pop:keys.n>=3?'⚔⚔⚔':'⚔',chips,mult});}
-  return {sanF:chips>0?Math.min(1,sanCh/chips):0,disUp,promote,orbUp,osUp,gold3,lvUp,ht,bonds,label,comboTag,chips,mult,total,raw,keys,capped,lim,steps};
+  return {sanF:chips>0?Math.min(3,sanCh/chips):0,disUp,promote,orbUp,osUp,gold3,lvUp,ht,bonds,label,comboTag,chips,mult,total,raw,keys,capped,lim,steps};
 }
 
 /* 목표 점수: 장(1~8) × 라운드(망령·수문장·거인) · 난이도별 x(전체 배수) · xg(장마다 추가 성장) */
@@ -2561,6 +2600,7 @@ const giantKey=R=>R?(R.k==='ban'?({'부상':'inj','세계 봉쇄':'wban','속성
    한 판 안에서는 같은 적이 다 나올 때까지 겹치지 않게 뽑음. 특별 보스(스카이아크 알론소)는 예전 그림 그대로(rig 0) */
 const FOE_KO={e01:'클로 망령',e02:'막대말 랜스 기사',e03:'유령 석궁 사수',e04:'불꽃 창 망령',e05:'산양 궁수',e06:'까마귀 주술사',e07:'녹슨 풍차 거인',e08:'졸음 북치기 새',e09:'타락 천사 사제',e10:'눈알 두꺼비',e11:'거북이 몽둥이 전사',e12:'좀비 의사',e13:'해골 복서 오우거',e14:'역병 의사 화염방사병',e15:'해적 게'};
 const FOE_RIG={weak:['e10','e11','e08','e01','e05'],strong:['e03','e02','e04','e12','e15','e14'],boss:['e06','e09','e13'],final:'e07'};
+Object.keys(FOE_KO).forEach(k=>{if(TYPES['foe_'+k])TYPES['foe_'+k].ko=FOE_KO[k];});   /* 적 카드 이름 (타입 등록은 코어 쪽 FOE_AW 옆) */
 function foeRigPick(f,jang,r){if(f.boss==='windmill')return FOE_RIG.final;if(f.boss)return 0;
   if(r===2)return FOE_RIG.boss[(Math.max(1,jang)-1)%FOE_RIG.boss.length];
   const pool=r===0?(jang<=4?FOE_RIG.weak:FOE_RIG.weak.concat(FOE_RIG.strong)):FOE_RIG.strong;
@@ -2779,7 +2819,7 @@ function sortHand(){
     z.push(9-c.star);return z.map(v=>String(v).padStart(2,'0')).join('|');};
   S.hand.sort((a,b)=>key(a)<key(b)?-1:key(a)>key(b)?1:0);
 }
-const ctx=(m)=>({tgt:S.tgt,mcombo:(S.runMerges||0)+(m||0),bonusMult:S.nextMult||0,orbs:S.offOrb?S.orbs.filter(k=>k!==S.offOrb):S.orbs,merges:S.merges,discards:S.dis,lv:S.lv,runsLeft:S.runs,grow:S.grow,deck:S.deck.length,foe:S.foe,usedHT:S.usedHT,lockHT:S.lockHT,scoringOnly:true,ost:S.ost,runsMax:S.runsMax,discCount:S.discCount||0,held:S.hand.filter(c=>!S.sel.includes(c.uid)),ostate:S.ostate||{},gold:S.gold,rng:()=>S.rv==null?(S.rv=Math.random()):S.rv});   // 족보에 들어간 카드만 힘
+const ctx=(m)=>({shLeft:armorOn()&&S.tgt&&!S.practice&&!S.sandbox?shNow():0,tgt:S.tgt,mcombo:(S.runMerges||0)+(m||0),bonusMult:S.nextMult||0,orbs:S.offOrb?S.orbs.filter(k=>k!==S.offOrb):S.orbs,merges:S.merges,discards:S.dis,lv:S.lv,runsLeft:S.runs,grow:S.grow,deck:S.deck.length,foe:S.foe,usedHT:S.usedHT,lockHT:S.lockHT,scoringOnly:true,ost:S.ost,runsMax:S.runsMax,discCount:S.discCount||0,held:S.hand.filter(c=>!S.sel.includes(c.uid)),ostate:S.ostate||{},gold:S.gold,rng:()=>S.rv==null?(S.rv=Math.random()):S.rv});   // 족보에 들어간 카드만 힘
 /* 적 의도: 런마다 새로 굴림 (표식은 손패에서 n+1장) */
 function rollIntent(){const f=S.foe;if(!f)return;const ks=f.ints||[f.atype];f.atype=ks[Math.random()*ks.length|0];
   S.marks=f.atype==='mark'?shuffle(S.hand.filter(c=>!c.fog)).slice(0,f.atk+1).map(c=>c.uid):[];}
