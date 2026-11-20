@@ -2084,7 +2084,7 @@ const FAOFF=!!(typeof process!=='undefined'&&process.env&&process.env.FAOFF), FA
 const worldsOf=c=>S3(c,'carden')?WORLDS.slice():[cardW(c)];   /* 적 카드의 세계는 c.w(판마다 정해짐) */
 const elsOf=c=>S3(c,'nicole')?ELS.slice():[c.el];
 const topStar=c=>c.star;
-const FOE_POW=[0,0,+(typeof process!=='undefined'&&process.env&&process.env.FOEP2||15),+(typeof process!=='undefined'&&process.env&&process.env.FOEP3||30)];   /* 적 카드 힘: 일반 15 · 보스 30 (번호와 무관) */
+const FOE_POW=[0,0,+(typeof process!=='undefined'&&process.env&&process.env.FOEP2||30),+(typeof process!=='undefined'&&process.env&&process.env.FOEP3||60)];   /* 적 카드 힘: 일반 30 · 보스 60 (DHL 11-21) (번호와 무관) */
 const power=c=>TYPES[c.id]&&TYPES[c.id].foe?FOE_POW[c.star]:Math.round(cardNo(c)*(c.mixed?MIX_X:STAR_X)[c.star]);
 function mergeKind(a,b){
   if(!a||!b||a===b||TYPES[a.id].n!==TYPES[b.id].n)return null;
