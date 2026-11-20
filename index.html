@@ -2583,7 +2583,7 @@ const VOUCH={ /* 증서: 기본 14 + 상위 14 (상위는 같은 판에서 기�
   sand:{ko:'시간의 모래',d:'목표 점수가 한 장 전 수준으로 · 대신 런 −1'}, sand2:{ko:'고대의 모래',d:'목표가 한 장 더 전으로 · 대신 버리기 −1',base:'sand',unlock:'무한 원정 12장 도달'},
   campv:{ko:'모닥불 연장',d:'야영 정비 2 → 3개'},           campv2:{ko:'야영지 정비',d:'야영할 때 손님이 꼭 찾아옴',base:'campv',unlock:'총 30번 야영'}
 };
-const VOUCH_COST=10, PACK_COST=4;
+const VOUCH_COST=10, PACK_COST=4, FOE_PACK_COST=8, FOE_PACK_BOSS=0.1;   /* 적 팩 8골드 · 보스는 팩 하나에 많아야 1장 · 10% */
 
 {const _br=bossRule;bossRule=function(){let r,i=0;do{r=_br.apply(this,arguments);}while(deckIs('campfire')&&r&&r.k==='nomerge'&&++i<40);return r;};}   // (DHL 11-12) 모닥불 덱에서는 '머지 금지' 규칙이 안 나옴
 if(typeof process!=='undefined'&&process.env&&process.env.HTV){process.env.HTV.split(',').forEach(x=>{const [k,c,m]=x.split(':');HT[k][1]=+c;HT[k][2]=+m;});}   // 봇 튜닝용
@@ -3530,7 +3530,7 @@ function cashCollect(){
 function collect(){
   S.gold+=S.cash;S.cash=0;S.boughtShop=false;S.inShop=true;
   S.rerollCost=S.rerollBase;S.pick=null;S.packView=null;
-  rollTop();S.pack={cost:S.freePack?0:price(PACK_COST),sold:false};S.flagUsed=S.flagJang===S.jang?S.flagUsed:0;S.freePack=false;
+  rollTop();S.pack={cost:S.freePack?0:price(PACK_COST),sold:false};S.fpack={cost:price(FOE_PACK_COST),sold:false};S.fpackView=null;   /* (DHL 11-21) 적 팩: 캠프마다 1번 */S.flagUsed=S.flagJang===S.jang?S.flagUsed:0;S.freePack=false;
   render();openShop();
 }
 
@@ -3549,6 +3549,7 @@ function itemInfo(key){
   if(key.startsWith('own')){const k=S.orbs[+key.slice(3)];return {name:ORBS[k].ko,desc:ORBS[k].d,act:`판매 💰${sellPrice(k)}`,ok:true};}
   if(key==='v'){const k=S.voucherOffer;return {name:VOUCH[k].ko+(VOUCH[k].base?' (상위)':''),desc:VOUCH[k].d+' · 판 내내 유지',act:'구매',ok:S.gold>=price(VOUCH_COST)};}
   if(key.startsWith('top')&&S.top[+key.slice(3)].kind==='card'){const it=S.top[+key.slice(3)];return {name:`동료: ${TYPES[it.id].ko} ★${it.star}`,desc:`${WORLD_KO[TYPES[it.id].w]} · ${it.el} — 덱에 1장 추가`,act:'구매',ok:S.gold>=it.cost};}
+  if(key==='fpack')return {name:'적 팩',desc:'처치한 적 3장 중 1장을 영입해요',act:'열기',ok:S.gold>=S.fpack.cost};
   if(key==='pack')return {name:'동료 팩',desc:'동료 카드 3장 중 1장을 골라 덱에 1장 더 넣어요 → 머지 확률 ↑',act:'열기',ok:S.gold>=S.pack.cost};
   const it=S.top[+key.slice(3)];
   if(it.kind==='orb'){if(S.orbs.includes(it.k)){const st=S.ost[it.k]||1;return {name:ORBS[it.k].ko+' 머지',desc:`가진 구슬 ★${st} → ★${st+1} · ${ORBS[it.k].d} → ${orbKind(it.k)==='mul'?'곱하는 값이 '+(1+0.5*st)+'배':orbKind(it.k)==='add'?'더하는 값이 '+(st+1)+'배':'효과가 더 세짐 (더하기 '+(st+1)+'배 · 곱하기 '+(1+0.5*st)+'배)'}`,act:'머지',ok:S.gold>=it.cost};}
@@ -3564,6 +3565,7 @@ function tileHTML(key,label,title,cost,cls,sold){
     (on?actBtn(key,info):'')+`</div>`;
 }
 function openShop(){
+  if(S.fpackView)return openFoePack();
   if(S.packView)return openPack();
   let h='<div class="shop">'+(S.campMsg?`<div class="skipGot">🏕 야영 — ${S.campMsg}</div>`:'');
   { const nf=S.rd<2?S.foes[S.rd+1]:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff))[0];
@@ -3586,7 +3588,8 @@ function openShop(){
   h+=`</div></div>`;
   // 아랫줄: 증서 + 동료 팩
   h+=`<div class="sBot"><div class="sV"><span class="lbl lmChap" title="${S.jang}장 증서" aria-label="${S.jang}장 증서"><b>${S.jang}</b></span>${S.voucherOffer?tileHTML('v',VOUCH[S.voucherOffer].base?'상위 증서':'증서',VOUCH[S.voucherOffer].ko,price(VOUCH_COST),'t-v'):'<div class="tile empty"></div>'}</div>`+
-     `<div class="sP">${S.pack.sold?'<div class="tile empty"></div>':tileHTML('pack','팩','동료 팩',S.pack.cost,'t-pack')}</div></div></div>`;
+     `<div class="sP">${S.pack.sold?'<div class="tile empty"></div>':tileHTML('pack','팩','동료 팩',S.pack.cost,'t-pack')}</div>`+
+     (foePackOn()?`<div class="sP sFP">${S.fpack.sold?'<div class="tile empty"></div>':tileHTML('fpack','팩','적 팩',S.fpack.cost,'t-pack t-fpack')}</div>`:'')+`</div></div>`;
   h+='</div>';
   showOv(h);
 }
@@ -3661,6 +3664,7 @@ function actItem(key,direct){
   const el=document.querySelector(`.tile[data-key="${key}"]`);
   if(key.startsWith('own')){const i=+key.slice(3);S.gold+=sellPrice(S.orbs[i]);delete S.ost[S.orbs[i]];if(S.ostate)delete S.ostate[S.orbs[i]];S.orbs.splice(i,1);S.pick=null;render();openShop();return;}
   if(key==='v'){const k=S.voucherOffer;S.gold-=price(VOUCH_COST);S.vouch.push(k);applyVoucher(k);S.voucherOffer=null;S.pick=null;popMsg(VOUCH[k].ko+'!',{art:el,kick:'증서 사용'});render();openShop();return;}
+  if(key==='fpack'){S.gold-=S.fpack.cost;S.fpack.sold=true;S.pick=null;S.fpackView=foePackRoll();render();openShop();return;}
   if(key==='pack'){S.gold-=S.pack.cost;S.pack.sold=true;S.pick=null;S.packView=shuffle(TYPE_IDS.slice()).slice(0,3).map(id=>({id,no:rndNo(),el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:Math.random()<0.05*(S.hone||1)?2:1}));render();openShop();return;}
   const it=S.top[+key.slice(3)];S.gold-=it.cost;it.sold=true;S.pick=null;
   if(it.kind==='card'){S.deck.push({uid:S.uid++,id:it.id,star:it.star,el:it.el,no:it.no||rndNo()});popMsg(`${TYPES[it.id].ko} ★${it.star} 합류!`,{art:el,kick:'동료 영입'});render();openShop();return;}
@@ -3683,6 +3687,19 @@ function applyVoucher(k){
 const price=c=>Math.max(1,Math.round(c*deckPriceX()*(1-(S.disc||0))));   // 산초의 흥정 할인
 function flagReroll(){if(S.gold<10)return;if(!S.vouch.includes('flagv2')&&S.flagJang===S.jang)return;const tj=S.rd<2?S.jang:S.jang+1,fs=S.rd<2?S.foes:(S.foesNext=S.foesNext||makeFoes(JANG_WORLD(S.jang+1),S.jang+1,S.diff));S.gold-=10;S.flagJang=S.jang;fs[2].rule=bossRule(tj,S.diff);fitBan(fs[2]);popMsg('🚩 '+tj+'장 거인: '+fs[2].rule.ic+' '+fs[2].rule.ko);render();openShop();}
 function reroll(){if(S.freeRR>0){S.freeRR--;S.pick=null;rollTop();render();openShop();return;}if(S.gold<S.rerollCost)return;(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).rr++;S.gold-=S.rerollCost;S.rerollCost+=deckIs('pricey')?2:1;S.pick=null;rollTop();render();openShop();}
+/* (DHL 11-21) 적 팩: 처치 횟수를 채운 적 중 3장 → 1장 영입. 해금한 적이 하나도 없으면 칸 자체가 안 나옴 */
+const foeOpenAll=()=>Object.keys(FOE_AW).filter(k=>{try{return foeCardOpen(k);}catch(e){return false;}});
+const foePackOn=()=>!!(S&&S.fpack&&!S.practice&&!S.sandbox&&foeOpenAll().length);
+function foePackRoll(){const all=foeOpenAll(),norm=shuffle(all.filter(k=>FOE_STAR(k)===2)),boss=shuffle(all.filter(k=>FOE_STAR(k)===3));
+  const v=norm.slice(0,3);if(boss.length&&(Math.random()<FOE_PACK_BOSS||!v.length)){if(v.length>=3)v[0]=boss[0];else v.unshift(boss[0]);}return shuffle(v);}
+function openFoePack(){
+  let h=`<h2>적 팩</h2><div class="packRow fpRow">`;
+  S.fpackView.forEach((k,i)=>{const c=foeCardNew(k,-1-i),A=FOE_AW[k];
+    h+=`<div class="fpCol"><div class="card dz s${c.star}" onclick="takeFoePack(${i})">${cardFace(c)}</div><div class="fpAw"><img src="assets/ui/card/abf_${k}.webp" alt=""><span><b>${A.ko}</b><small>${A.d}</small></span></div></div>`;});
+  h+=`</div><button type="button" class="packSkip" onclick="S.fpackView=null;openShop()">건너뛰기</button>`;
+  showOv(h);
+}
+function takeFoePack(i){const k=S.fpackView[i];S.deck.push(foeCardNew(k,S.uid++));S.fpackView=null;const cardEl=document.querySelectorAll('#panel .fpRow .card')[i];popMsg(FOE_KO[k]+' 합류!',{art:cardEl,kick:'적 영입'});render();openShop();}
 /* 동료 팩: 3장 중 1장 → 덱에 ★1 한 장 추가 */
 function openPack(){
   let h=`<h2>동료 팩</h2><p><small>1장을 골라 덱에 넣어요. 같은 카드가 많을수록 손패 머지가 잘 나와요.</small></p><div class="packRow">`;
@@ -3792,7 +3809,7 @@ const infoClose=()=>`<button class="iClose lmIco" onclick="ibBackOut()" aria-lab
    빌런 없는 전투판이 남고, 그 판을 '이긴 것'으로 처리돼 골드를 또 받던 문제
    → 안내 창을 열기 전 아래 창을 통째로 보관(이벤트 그대로)하고, 뒤로 누르면 그대로 되돌림 */
 var _ibPark=null;
-function ibPhase(){return S?[S.jang,S.rd,!!S.inShop,!!S.selecting,!!S.packView].join('|'):'';}
+function ibPhase(){return S?[S.jang,S.rd,!!S.inShop,!!S.selecting,!!(S.packView||S.fpackView)].join('|'):'';}
 function ibParkSave(){const o=$('ov'),p=$('panel');if(!o||o.hidden||!p||p.querySelector('.ib'))return;
   _ibPark={S,ph:ibPhase(),cls:o.className,kids:[...p.childNodes]};}
 function ibBackOut(){const pk=_ibPark;_ibPark=null;
@@ -6440,6 +6457,12 @@ html.lmB .sBox .tile.t-orb.r-r{background-image:url(assets/ui/kit/card_r.webp)!i
 html.lmB .sBox .tile.t-book{background-image:url(assets/ui/kit/book.webp)!important;padding-left:16%!important}
 html.lmB .sBox .tile.t-v{background-image:url(assets/ui/kit/deed.webp)!important}
 html.lmB .sBox .tile.t-pack{background-image:url(assets/ui/kit/pack.webp)!important;padding-top:14%!important}
+/* (DHL 11-21) 적 팩: 숯색 봉투(임시 — 동료 팩에서 색만 바꿈) · 글자는 밝게 */
+html.lmB .sBox .tile.t-pack.t-fpack{background-image:url(assets/ui/kit/pack_foe.webp)!important}
+html.lmB .sBox .tile.t-pack.t-fpack b{color:#f3e6c8!important}html.lmB .sBox .tile.t-pack.t-fpack small{color:#e8c9a0!important}
+#panel .fpRow{align-items:flex-start}#panel .fpCol{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0}#panel .fpCol>.card{width:100%}
+#panel .fpAw{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;padding:6px 10px 6px 6px;border-radius:10px;background:var(--parch,linear-gradient(#e0cfa3,#cbb682));box-shadow:var(--parch-in,inset 0 0 0 1px #7a5a1e);color:#3a2a0c;text-align:left}
+#panel .fpAw img{width:38px;height:38px;flex:none;object-fit:contain}#panel .fpAw b{display:block;font-size:13.5px;color:#5a2d0a}#panel .fpAw small{display:block;font-size:12px;line-height:1.3;word-break:keep-all;color:#3a2a0c!important;opacity:1!important}
 html.lmB .sBox .tile.t-orb b,html.lmB .sBox .tile.t-book b{color:#fff!important;text-shadow:0 1px 0 #000,0 0 3px #000!important;font-size:clamp(11px,1.6vh,14px)!important;line-height:1.15}
 html.lmB .sBox .tile.t-orb small,html.lmB .sBox .tile.t-book small{color:#d8e1f0!important;font-size:10px!important;text-shadow:0 1px 1px #000}
 html.lmB .sBox .tile.t-v b,html.lmB .sBox .tile.t-pack b{color:#3a2408!important;font-size:clamp(11px,1.6vh,14px)!important}
@@ -10227,11 +10250,13 @@ html.lmB .rb #rb_mgBtn{--kb:url(assets/ui/kit/btn_green.webp)}html.lmB .rb #rb_m
     if(S.confirm===key&&conf!==key){P('sfx_ui_click');return r;}   // 첫 누름 = 확인 대기
     if(key.startsWith('own'))P('sfx_orb_sell');
     else if(key==='v'){P('sfx_deed_use');P('sfx_spend',{vol:.6});}
-    else if(key==='pack'){P('sfx_pack_open');}
+    else if(key==='pack'||key==='fpack'){P('sfx_pack_open');}
     else if(it){P('sfx_spend',{vol:.6});P(it.kind==='orb'?'sfx_orb_equip':it.kind==='card'?'sfx_shop_buy':'sfx_book_use',{delay:90});}
     return r;});
   W('openPack',o=>function(){const r=o.apply(this,arguments);try{(S.packView||[]).forEach((x,i)=>P('sfx_pack_reveal',{delay:250+i*140,gap:0}));if((S.packView||[]).some(x=>(x.star||1)>=2))P('sfx_pack_rare',{delay:700});}catch(e){}return r;});
   W('takePack',o=>function(){P('sfx_shop_buy');return o.apply(this,arguments);});
+  W('openFoePack',o=>function(){const r=o.apply(this,arguments);try{(S.fpackView||[]).forEach((k,i)=>P('sfx_pack_reveal',{delay:250+i*140,gap:0}));if((S.fpackView||[]).some(k=>FOE_STAR(k)>=3))P('sfx_pack_rare',{delay:700});}catch(e){}return r;});
+  W('takeFoePack',o=>function(){P('sfx_shop_buy');return o.apply(this,arguments);});
   W('moveOrb',o=>function(){P('sfx_orb_swap');return o.apply(this,arguments);});
   W('bMoveOrb',o=>function(){P('sfx_orb_swap');return o.apply(this,arguments);});
 
