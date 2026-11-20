@@ -2074,6 +2074,7 @@ const FOE_AW={
 const FOE_TIER={weak:['e10','e11','e08','e01','e05'],strong:['e03','e02','e04','e12','e15','e14'],boss:['e06','e09','e13'],final:'e07'};   /* FOE_RIG와 같은 구분 (코어 · 봇에서도 쓰게 여기 둠) */
 const FOE_STAR=k=>FOE_TIER.final===k||FOE_TIER.boss.includes(k)?3:2;
 Object.keys(FOE_AW).forEach(k=>{TYPES['foe_'+k]={id:'foe_'+k,w:'rust',n:k,ko:k,els:[FOE_EL[k]],foe:1};});   /* TYPE_IDS에는 안 넣음 — 덱 · 동료 팩에 안 나옴 */
+const FOE_FIT={e07:[0,1.55,14]};   /* 카드 그림 맞춤 [가로 %, 배율, 세로 %] — 풍차 거인은 크게(전신이 아니어도 됨) */
 const FOE_AX_IC={'화력':'alonso','방패':'alonso_b','맞춤':'gris','손패':'lucia_b'};   /* 적 각성 문양: 전용 그림이 오기 전까지 축마다 있던 문양을 씀 */
 /* (DHL 11-21) 적 카드의 세계는 판마다 새로 정함 — 한 판(이어하기 포함) 안에서는 그대로. 15종을 세 세계에 5종씩 고르게 */
 function foeWorldRoll(){const ks=Object.keys(FOE_AW);for(let i=ks.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[ks[i],ks[j]]=[ks[j],ks[i]];}const o={};ks.forEach((k,i)=>o[k]=WORLDS[i%3]);return o;}
@@ -2886,7 +2887,7 @@ function cardFace(c){
   // 타격·중독으로 깎인 힘은 왼쪽 칩(타격 −N · 중독 −N)으로만 — 오른쪽에 합계를 또 쓰지 않음
   const dbf=[];if(c.st){if(c.st.hit)dbf.push(['r','hit','−'+c.st.hit,'상처 −'+c.st.hit+' (잠자기 · 머지로 치료)']);if(c.st.psn)dbf.push(['p','poison','−'+(c.st.pd||0),'중독 −'+(c.st.pd||0)]);}
   const d=now>nat?'up':now<nat?'down':'';
-  const F=ART_FIT[c.id]||[0,1,0];const img=FC?`<span class="dza dzaFoe"><img src="assets/ui/foe/${t.n}.webp" alt=""></span>`:HAS_ART&&MR_ART.idle[c.id]?`<span class="dza"><img src="${MR_ART.idle[c.id]}" alt="" style="transform:translate(${F[0]}%,${F[2]}%) scale(${F[1]})"></span>`:'';
+  const F=ART_FIT[c.id]||[0,1,0];const img=FC?`<span class="dza dzaFoe"><img src="assets/ui/foe/${t.n}.webp" alt=""${FOE_FIT[t.n]?` style="transform:translate(${FOE_FIT[t.n][0]}%,${FOE_FIT[t.n][2]}%) scale(${FOE_FIT[t.n][1]})"`:''}></span>`:HAS_ART&&MR_ART.idle[c.id]?`<span class="dza"><img src="${MR_ART.idle[c.id]}" alt="" style="transform:translate(${F[0]}%,${F[2]}%) scale(${F[1]})"></span>`:'';
   const nm=t.ko,nmc=nm.length>8?' xs x2':nm.length>6?' xs':nm.length>4?' sm':'';
   const pl=typeof ICON_IMG!=='undefined'&&ICON_IMG['plate_'+w];
   const stars=Array(c.star).fill(ICO(c.star>=3?'star3':'star2')).join('');
@@ -6707,10 +6708,10 @@ html.lmB body .card.dz .dzi[data-fog] .dzb{background:url(assets/ui/card/fog.web
 html.lmB body .card.dz .dzi[data-w][data-foe] .dzb{background:url(assets/ui/card/f_foe.webp?v=a) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_foe.webp?v=b) 50.4% 36.8%/77% 57.6% no-repeat!important}
 .card.dz .dzInf{display:block;width:86%;aspect-ratio:4/3;background:url(assets/ui/card/inf.webp?v=b) center/contain no-repeat;filter:drop-shadow(0 1px 0 #0008)}
 .card.dz .dzno.inf{display:flex!important;align-items:center;justify-content:center}
-/* 적 그림은 그림 창 한가운데에 (그림마다 가로 · 세로 비율이 달라 창에 맞춰 넣음) */
-html.lmB body .card.dz .dzi[data-w] .dza.dzaFoe{left:13.5%!important;right:13.5%!important;top:21%!important;height:47%!important;display:flex;align-items:center;justify-content:center;clip-path:none!important}
-html.lmB body .card.dz .dzi[data-w] .dza.dzaFoe::before{left:4%!important;right:4%!important;top:6%!important;bottom:0!important;opacity:.38}
-html.lmB body .card.dz .dzi[data-w] .dza.dzaFoe img{position:static!important;left:auto!important;top:auto!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:50% 50%!important;transform:none!important}
+/* 적 그림: 그림 창 전체를 칸으로 잡고 아래쪽에 세움(동료와 같은 눈높이) · 창 밖은 잘라 냄 — 큰 적(풍차 거인)은 FOE_FIT로 키워 창을 채움 */
+html.lmB body .card.dz .dzi[data-w] .dza.dzaFoe{left:11.6%!important;right:11.6%!important;top:8.2%!important;height:65%!important;display:flex;align-items:flex-end;justify-content:center;clip-path:inset(0 round 2%)!important}
+html.lmB body .card.dz .dzi[data-w] .dza.dzaFoe img{position:static!important;left:auto!important;top:auto!important;width:94%!important;height:72%!important;margin-bottom:2%;object-fit:contain!important;object-position:50% 100%!important;transform-origin:50% 100%}
+html.lmB body .card.dz .dzi[data-w] .dza.dzaFoe::before{left:8%!important;right:8%!important;top:30%!important;bottom:3%!important;opacity:.38}
 /* (DHL 11-07 카드 정보 줄이기 B안) ★1 = 힘 육각 없는 틀 · 숫자는 번호 하나 — 상성으로 힘이 번호와 달라질 때(강해짐 · 약해짐)만 육각을 얹음. ★2 · ★3은 그대로 */
 html.lmB body .card.dz .dzi[data-w][data-plain] .dzb,html.lmB body .card.dz .dzi[data-w][data-st="1"] .dzb{background:url(assets/ui/card/f_rust_s1.webp?v=b) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_rust.webp?v=g) 50.4% 36.8%/77% 57.6% no-repeat!important}
 html.lmB body .card.dz .dzi[data-w=neon][data-plain] .dzb,html.lmB body .card.dz .dzi[data-w=neon][data-st="1"] .dzb{background:url(assets/ui/card/f_neon_s1.webp?v=a) 0 0/100% 100% no-repeat,url(assets/ui/card/bg_neon.webp?v=g) 50.4% 36.8%/77% 57.6% no-repeat!important}
