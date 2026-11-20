@@ -221,7 +221,7 @@ function discard(keepSel){
   if(BOT==='normal')pool=H.filter(c=>c.uid!==S.forced);
   pool.sort((a,b)=>val(a)-val(b));const out=pool.slice(0,Math.min(5,pool.length,Math.max(1,H.length-3)));
   if(!out.length)return false;
-  const br=0,brB=out.filter(c=>S3(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;S.hand.forEach(c=>delete c.seal);}if(!FAOFF){const e8=out.filter(c=>FA(c,'e08')).length;if(e8)S.nextMult=(S.nextMult||0)+3*e8;}
+  const br=0,brB=out.filter(c=>S3(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;S.hand.forEach(c=>delete c.seal);}if(!FAOFF){const e8=out.filter(c=>FA(c,'e08')).length;if(e8)S.nextMult=(S.nextMult||0)+3*e8*FAX;}
   if(S.orbs.includes('diary')){S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br)S.gold+=3*br;
   out.forEach(c=>{if(c.seal){delete c.seal;ST.sealDisc=(ST.sealDisc||0)+1;}});S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.dis--;fill();bossTick();return true;}
 function doRun(pick){
