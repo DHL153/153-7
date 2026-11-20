@@ -2044,8 +2044,9 @@ const STAR3={
   bruno:{ic:'⚒',ax:'손패',ko:'담금질',d:'버릴 때 손패 봉인을 모두 풀고 다음 런 배수 +6'},
   nicole:{ic:'🌈',ax:'맞춤',ko:'원소의 아이',d:'모든 속성으로 셈'},
   carden:{ic:'🧭',ax:'맞춤',ko:'세계의 방랑자',d:'모든 세계로 셈'},
-  palome:{ic:'🕊',ax:'화력',ko:'작은 영웅',d:'함께 낸 카드 중 번호가 가장 낮으면 힘 ×'+(+(typeof process!=='undefined'&&process.env&&process.env.PALX||4))},
+  palome:{ic:'🕊',ax:'화력',ko:'작은 영웅',d:'함께 낸 카드 중 번호가 가장 낮으면 힘 ×4'},
   gris:{ic:'🔭',ax:'맞춤',ko:'별을 읽는 자',d:'적의 번호와 맞은 것으로 셈'}};
+const AB3_IC={sancho:'alonso_b',lucia:'lucia_b',bruno:'bruno_b'}, ab3Ic=n=>AB3_IC[n]||n;   /* 문양 그림: 있던 20장 중 10장을 다시 씀 (산초 = 방패 · 루시아 = 등불 · 브루노 = 담금질) */
 const STAR3B=STAR3;   /* 예전 B표를 읽던 곳이 깨지지 않게 */
 const S3OFF=!!(typeof process!=='undefined'&&process.env&&process.env.S3OFF);   /* 봇 비교용: 각성 전부 끔 */
 const S3=(c,n)=>!S3OFF&&c&&c.star===3&&TYPES[c.id].n===n;   // ★3 각성 (c.aw는 더 안 봄 — 옛 저장의 A/B는 무시)
@@ -2252,7 +2253,7 @@ function score(cards,ctx){
   const isHT=k=>ht===k||bonds.includes(k);
   let prev=0; const names=new Set(), worlds=new Set();
   let SC=!live.length?[]:ctx.scoringOnly?[...new Set([ht].concat(bonds).flatMap(k=>scoringCards(live,k,ctx.foe)))]:live;   // 걸린 족보 모두의 카드
-  const PALMIN=SC.length?Math.min(...SC.map(c=>NUM(c))):0, PALX=+(typeof process!=='undefined'&&process.env&&process.env.PALX||4), DULV=+(typeof process!=='undefined'&&process.env&&process.env.DULV||10);let sanCh=0;   /* (11-20) ★3 팔로메: 함께 낸 카드 중 번호가 가장 낮으면 힘 × · 산초: 이 카드 몫의 힘(방패 2배 계산용) */
+  const PALMIN=cards.length?Math.min(...cards.map(c=>NUM(c))):0, PALX=+(typeof process!=='undefined'&&process.env&&process.env.PALX||4), DULV=+(typeof process!=='undefined'&&process.env&&process.env.DULV||10);let sanCh=0;   /* (11-20) ★3 팔로메: 함께 낸 카드 중 번호가 가장 낮으면 힘 × · 산초: 이 카드 몫의 힘(방패 2배 계산용) */
   const DUL=SC.filter(c=>S3(c,'dulcine')).length, SHIELD=0;
   cards.forEach((c,i)=>{
     const t=TYPES[c.id], last=i===n-1, notes=[], ps=PARTS(c), st=topStar(c); names.add(t.n); worldsOf(c).forEach(w=>worlds.add(w));
@@ -2279,7 +2280,7 @@ function score(cards,ctx){
     // 재발동: 짝수의 북 · 홀수의 피리 — 이 카드의 힘과 더하기 배수를 한 번 더 (구슬 ◆ 단계만큼)
     const nRe=(has('even')&&NUM(c)%2===0?OS('even'):0)+(has('odd')&&NUM(c)%2===1?OS('odd'):0)+(S3(c,'rosi')?1:0)+(has('stage')&&LEADS.includes(t.n)?OS('stage'):0);
     if(nRe){const dm=mult-m0;chips+=ch*nRe;mult+=dm*nRe;ch+=ch*nRe;notes.push('재발동 ×'+nRe);if(has(NUM(c)%2===0?'even':'odd'))fired.push(NUM(c)%2===0?'even':'odd');}
-    if(S3(c,'sancho'))sanCh+=ch;
+    if(S3(c,'sancho')){sanCh+=ch;notes.push('🛡 방패 ×2');}
     if(S3(c,'alonso')){mult*=1.5;notes.push('⚔ ×1.5');}
     if(last&&has('delu')&&n>1){const x=X('delu',[0,2,3,6][st]);mult*=x;notes.push('착각 ×'+x);fired.push('delu');}
     if(has('starmap')&&st===3){mult*=X('starmap',2);notes.push('별빛 ×'+X('starmap',2));fired.push('starmap');}
@@ -2834,7 +2835,7 @@ function cardFace(c){
   return `<span class="dzi${d?' mood-'+d:''}"${sealOn?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
-    `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${TYPES[c.id].n}${c.aw==='B'?'_b':''}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
+    `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${ab3Ic(TYPES[c.id].n)}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
     `<span class="dzwm" title="${WORLD_KO[w]}">${ICO(w)}</span><!--mg--><span class="nmbox${pl?' pl':''}"${pl?` style="--pl:url(${pl})"`:''}><span class="nm${nmc}">${nm}</span></span>`+
     `<span class="spark"></span>${sealH}</span>`;
 }
@@ -3074,11 +3075,10 @@ function askFuse(a,b,mk){
   };
   S._redraw=draw;draw();
 }
-/* ★3 각성 갈림길: A · B 중 하나 */
-function askAwaken(c,next){const n=TYPES[c.id].n,A=STAR3[n],B=STAR3B[n];S._awNext=next;S._awC=c;
-  showOv(`<h2>✨ ${TYPES[c.id].ko} ★3 각성!</h2><p class="omNote">능력 하나를 고르세요. 이 카드에 판 내내 남아요.</p>`+
-    [['A',A],['B',B]].map(([k,x])=>`<button class="campBtn" onclick="pickAwaken('${k}')"><b>${x.ic} ${x.ko}</b><small>${x.d}</small></button>`).join(''));}
-function pickAwaken(k){const c=S._awC;c.aw=k;hideOv();popMsg('✨ '+(k==='B'?STAR3B:STAR3)[TYPES[c.id].n].ko);const f=S._awNext;S._awNext=null;f&&f();}
+/* ★3 각성 (11-20: 동료마다 1개 — 고르지 않고 보여 주기만) */
+function askAwaken(c,next){const x=STAR3[TYPES[c.id].n];S._awNext=next;S._awC=c;
+  showOv(`<h2>✨ ${TYPES[c.id].ko} ★3 각성!</h2><button class="campBtn mgGo" onclick="pickAwaken('A')"><b>${x.ic} ${x.ko}</b><small>${x.d}</small></button>`);}
+function pickAwaken(k){const c=S._awC;c.aw=k;hideOv();popMsg('✨ '+STAR3[TYPES[c.id].n].ko);const f=S._awNext;S._awNext=null;f&&f();}
 function finishMerge(a,b,keepEl,keepW,keepNo){
   const sick=c=>c.st&&(c.st.hit||c.st.psn), healed=sick(a)||sick(b);   // 머지 전 상태이상이 있었나
   const k=applyMerge(a,b,keepEl,keepW,keepNo);
@@ -3712,7 +3712,7 @@ const LEARN=[
   {t:'별로인 카드는 버리기',s:'새 카드로 바꾸기',at:1},
   {t:'이기면 원정 캠프',s:'구슬 · 동료 팩 · 족보서 · 증서',at:1},
   {t:'야영에서 정비하기',s:'모닥불 머지 · 떠나보내기 · 정찰 · 밤 산책',at:1},
-  {t:'별 3개 · 각성',s:'능력 둘 중 하나',at:1}
+  {t:'별 3개 · 각성',s:'동료마다 다른 능력',at:1}
 ];
 const LEARN_ORDER=[0,1,7,2,5,3,8,4,9,10,6];   /* 보이는 순서 = 첫 판에서 니콜이 알려주는 순서 */
 const lPos=k=>Math.max(0,LEARN_ORDER.indexOf(k)),lNext=()=>LEARN_ORDER.find(k=>!LEARN_SEEN.includes(k));
@@ -3761,7 +3761,7 @@ let cmTapCount=0,cmLastSfx=0,cmLastR=-1;
 function lmSfx(file,gain){const now=performance.now();if(now-cmLastSfx<140)return;cmLastSfx=now;
   try{const v=(typeof LM_SET!=='undefined'?(LM_SET.master/100)*(LM_SET.sfx/100):.45)*(gain||.27);if(v<=0)return;const a=new Audio('assets/audio/sfx/'+file);a.volume=Math.min(1,v);a.play().catch(()=>{});}catch(e){}}
 function cmDetailHTML(id){
-  const t=TYPES[id],w=t.w,A=STAR3[t.n],B=STAR3B[t.n],ord=CM_ORDER(),i=ord.indexOf(id);
+  const t=TYPES[id],w=t.w,A=STAR3[t.n],ord=CM_ORDER(),i=ord.indexOf(id);
   const img=HAS_ART&&MR_ART.idle[id],bg=typeof MR_BG!=='undefined'&&MR_BG[w]&&MR_BG[w][0];
   return `<div class="cmV" style="--wc:${WORLD_C[w]}">`+
    `<div class="cmTop"><button class="cmBackBtn lmIco lmIcoNav" onclick="codexSel=null;openInfo('codex')" aria-label="동료 목록으로" title="동료 목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><span class="cmCount">${i+1} / ${ord.length}</span><span class="cmNav"><button onclick="cmGo(-1)" aria-label="이전 동료">‹</button><button onclick="cmGo(1)" aria-label="다음 동료">›</button></span></div>`+
@@ -3771,7 +3771,7 @@ function cmDetailHTML(id){
    `<div class="cmInfo"><div class="cmName"><i class="cmNo">?</i><b>${t.ko}</b><span class="fel" style="background:${WORLD_C[w]}">${WORLD_KO[w]}</span></div>`+
      `<div class="cmRow"><small>속성</small><span class="cmEls">${t.els.map(e=>`<span class="fic" style="background:${EL_C[e]}">${EL_SYM[e]}</span>`).join('')}</span></div>`+
      `<div class="cmRow"><small>번호 · 힘</small><b class="cmPow">매판 1~10</b><small class="cmNote">같은 동료 둘이면 머지 → ★2 → ★3</small></div>`+
-     `<div class="cmAw"><small>★3 각성 · 둘 중 하나</small><div><span><b>${A.ic} ${A.ko}</b><em>${A.d}</em></span><span><b>${B.ic} ${B.ko}</b><em>${B.d}</em></span></div></div>`+
+     `<div class="cmAw"><small>★3 각성</small><div class="cmAw1"><span><b>${A.ic} ${A.ko}</b><em>${A.d}</em></span></div></div>`+
    `</div></div></div>`;
 }
 function cmGo(d){const ord=CM_ORDER();let i=ord.indexOf(codexSel);i=(i+d+ord.length)%ord.length;codexSel=ord[i];openInfo('codex');lmSfx('sfx_character_select.ogg',.22);}
@@ -6504,7 +6504,7 @@ html.lmB .ibBody>.cmV{flex:1;min-height:0;height:auto!important;display:flex;fle
   html.lmB .cmName{order:-1;justify-content:flex-start}
   html.lmB .cmStage{order:0;flex:1 1 auto;min-height:140px!important;height:auto!important}
   html.lmB .cmInfo>.cmRow,html.lmB .cmInfo>.cmAw{order:1;flex:none}
-  html.lmB .cmAw{padding:7px 10px!important}html.lmB .cmAw>div{grid-template-columns:1fr 1fr!important;gap:6px}
+  html.lmB .cmAw{padding:7px 10px!important}html.lmB .cmAw>div{grid-template-columns:1fr 1fr!important;gap:6px}html.lmB .cmAw>div.cmAw1{grid-template-columns:1fr!important}
   html.lmB .cmAw em{font-size:11px!important}
 }
 /* 창이 떠 있을 땐 비교 버튼 숨김 (탭과 겹침) */
@@ -6931,6 +6931,19 @@ html.lmB body .card.dz .dzi[data-w] .dzel{right:2.8%!important;top:81.4%!importa
 .awOpt small{font-size:clamp(11px,1.7vh,13px);line-height:1.35;color:#e8d6aa;opacity:.9;word-break:keep-all}
 .awOpt.on{opacity:1;border-color:#ffe08a;transform:scale(1.04);box-shadow:0 0 14px #ffe08a55}
 @media (orientation:portrait){.awRow{width:100%}.awOpt{flex:1;width:auto}}
+/* (DHL 11-20 시안 B) 각성 창: 카드 뒤 빛살 + 양피지 띠 */
+.aw2 .mgBody{flex-direction:column!important;align-items:center;gap:14px}
+.aw2 h2{position:relative;z-index:2}
+.aw2 .awStage{position:relative;display:grid;place-items:center;padding:2px 60px}
+.aw2 .awStage:before{content:"";position:absolute;width:380px;height:380px;max-width:92vw;border-radius:50%;background:repeating-conic-gradient(from 0deg,#ffe08a2e 0 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%);animation:awSpin 40s linear infinite}
+.aw2 .awStage:after{content:"";position:absolute;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,#fff3c455,transparent 70%)}
+.aw2 .awStage .mgCard{position:relative;z-index:1}
+.aw2 .awBar{display:flex;align-items:center;gap:12px;padding:9px 22px 9px 12px;border-radius:12px;background:var(--parch,linear-gradient(#e0cfa3,#cbb682));box-shadow:var(--parch-in,inset 0 0 0 1px #7a5a1e),0 3px 8px #0008;color:#3a2a0c;max-width:min(520px,92vw);position:relative;z-index:1;text-align:left}
+.aw2 .awBar img{width:46px;height:46px;flex:none;object-fit:contain;filter:drop-shadow(0 1px 2px #0007)}
+.aw2 .awBar b{display:block;font-size:17px;color:#5a2d0a}
+.aw2 .awBar small{display:block;color:#3a2a0c!important;opacity:1!important;font-size:14px;line-height:1.35;word-break:keep-all}
+@keyframes awSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.aw2 .awStage:before{animation:none}}
 /* 🌟 캐릭터 뒤 세계 후광 B (DHL 10-29) — 러스트 따뜻한 주황 · 네온 연분홍(형광 X) · 스카이 크림 */
 html.lmB body .card.dz .dzi[data-w] .dza{--hc:255,190,110;isolation:isolate}
 html.lmB body .card.dz .dzi[data-w=neon] .dza{--hc:235,170,230}
@@ -7336,13 +7349,12 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
 /* ✨ ★3 각성 고르기 (DHL 10-29 "별3도 변경"): 각성할 카드 미리보기 + 능력 A · B 문양 카드 → 고르고 확인 */
 (function(){
   if(typeof askAwaken!=='function')return;
-  askAwaken=function(c,next){const n=TYPES[c.id].n,A=STAR3[n],B=STAR3B[n];if(S._awC!==c)S._awK='A';S._awNext=next;S._awC=c;
-    const draw=()=>{const k=S._awK,pc=Object.assign({},c,{aw:k});
-      const op=(key,x)=>`<button class="awOpt${k===key?' on':''}" onclick="S._awK='${key}';S._awDraw()"><img src="assets/ui/card/ab3_${n}${key==='B'?'_b':''}.webp" alt=""><b>${x.ko}</b><small>${x.d}</small></button>`;
-      showOv(`<div class="mgPk awPk"><h2>${TYPES[c.id].ko} <i class="mgStar"></i>3 각성</h2>
-        <div class="mgBody"><div class="mgCard card dz s3">${cardFace(pc)}</div><div class="awRow">${op('A',A)}${op('B',B)}</div></div>
-        <div class="mgFoot"><button class="mgGo" onclick="S._awDraw=null;pickAwaken(S._awK)"><img src="assets/ui/icon/check.webp" alt="">각성</button></div></div>`);};
-    S._awDraw=draw;draw();};
+  /* (DHL 11-20 시안 B) 각성은 동료마다 1개 — 카드를 가운데 주인공으로(빛살) · 아래 양피지 띠에 문양 + 이름 + 효과 한 줄 · '각성' 버튼 */
+  askAwaken=function(c,next){const n=TYPES[c.id].n,x=STAR3[n];S._awNext=next;S._awC=c;S._awDraw=null;
+    showOv(`<div class="mgPk awPk aw2"><h2>${TYPES[c.id].ko} <i class="mgStar"></i>3 각성</h2>
+      <div class="mgBody"><div class="awStage"><div class="mgCard card dz s3">${cardFace(c)}</div></div>
+        <div class="awBar"><img src="assets/ui/card/ab3_${ab3Ic(n)}.webp" alt=""><span><b>${x.ko}</b><small>${x.d}</small></span></div></div>
+      <div class="mgFoot"><button class="mgGo" onclick="pickAwaken('A')"><img src="assets/ui/icon/check.webp" alt="">각성</button></div></div>`);};
 })();
 </script>
 
@@ -9406,7 +9418,7 @@ const LX_PAGES=[
 <p class="tip">같은 정비를 두 번 해도 됩니다.</p></section>`,
 `<section class="pg"><h2><span class="no">10</span><img src="assets/ui/card/star_g.webp" alt="" class="lxSt"><img src="assets/ui/card/star_g.webp" alt="" class="lxSt"><img src="assets/ui/card/star_g.webp" alt="" class="lxSt">각성</h2>
 <div class="lxAw" id="lx_aw"></div>
-<p class="say">별 2개인 같은 동료 <b class="k">두 장</b>을 머지하면 별 3개가 됩니다.<br>그때 <b class="k">능력 하나</b>를 고릅니다.</p>
+<p class="say">별 2개인 같은 동료 <b class="k">두 장</b>을 머지하면 별 3개가 됩니다.<br>그때 <b class="k">능력 하나</b>가 열립니다.</p>
 <div class="lxAB" id="lx_ab"></div>
 <p class="tip">능력은 동료마다 다릅니다.<br>도감에서 미리 볼 수 있습니다.</p></section>`];
 function lxCard(o){const el=document.createElement('div');el.className='cd card dz s'+(o.star||1)+(o.big?' big':'');
@@ -9425,7 +9437,7 @@ function lxMount(i){
     aw.append(lxCard({id:'rust_alonso',star:2,n:6,e:'불'}));const p=document.createElement('span');p.className='op';p.textContent='+';aw.append(p);
     aw.append(lxCard({id:'sky_alonso',star:2,n:9,e:'바람'}));const q=document.createElement('span');q.className='op';q.textContent='→';aw.append(q);
     aw.append(lxCard({id:'rust_alonso',star:3,n:9,e:'불',big:1}));
-    const A=STAR3.alonso,B=STAR3B.alonso;ab.innerHTML=[['A',A],['B',B]].map(([k,x])=>`<div><i>${k}</i><b>${x.ic} ${x.ko}</b><small>${x.d}</small></div>`).join('');}
+    const A=STAR3.alonso;ab.style.gridTemplateColumns='minmax(0,1fr)';ab.innerHTML=`<div><b>${A.ic} ${A.ko}</b><small>${A.d}</small></div>`;}
 }
 (function(){const _o=openInfo;openInfo=function(){const r=_o.apply(this,arguments);try{if(infoTab==='learn'&&learnView==='page'&&learnIdx>=7)lxMount(learnIdx);}catch(e){console.warn('[배우기 새 쪽]',e);}return r;};})();
 </script>
