@@ -2074,7 +2074,7 @@ const FOE_AW={
 const FOE_TIER={weak:['e10','e11','e08','e01','e05'],strong:['e03','e02','e04','e12','e15','e14'],boss:['e06','e09','e13'],final:'e07'};   /* FOE_RIG와 같은 구분 (코어 · 봇에서도 쓰게 여기 둠) */
 const FOE_STAR=k=>FOE_TIER.final===k||FOE_TIER.boss.includes(k)?3:2;
 Object.keys(FOE_AW).forEach(k=>{TYPES['foe_'+k]={id:'foe_'+k,w:'rust',n:k,ko:k,els:[FOE_EL[k]],foe:1};});   /* TYPE_IDS에는 안 넣음 — 덱 · 동료 팩에 안 나옴 */
-const FOE_FIT={e07:[0,1.55,14]};   /* 카드 그림 맞춤 [가로 %, 배율, 세로 %] — 풍차 거인은 크게(전신이 아니어도 됨) */
+const FOE_FIT={e07:[0,1.55,14],e04:[-9,1.3,24]};   /* 카드 그림 맞춤 [가로 %, 배율, 세로 %] — 풍차 거인은 크게(전신이 아니어도 됨) */
 const FOE_AX_IC={'화력':'alonso','방패':'alonso_b','맞춤':'gris','손패':'lucia_b'};   /* 적 각성 문양: 전용 그림이 오기 전까지 축마다 있던 문양을 씀 */
 /* (DHL 11-21) 적 카드의 세계는 판마다 새로 정함 — 한 판(이어하기 포함) 안에서는 그대로. 15종을 세 세계에 5종씩 고르게 */
 function foeWorldRoll(){const ks=Object.keys(FOE_AW);for(let i=ks.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[ks[i],ks[j]]=[ks[j],ks[i]];}const o={};ks.forEach((k,i)=>o[k]=WORLDS[i%3]);return o;}
