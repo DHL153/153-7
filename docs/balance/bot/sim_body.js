@@ -33,7 +33,8 @@ const BF=+(process.env.BF||0.1), PIER=(process.env.PIER||'0,0.25,0.5,0.75').spli
 const SF=+(process.env.SF||2),EV=+(process.env.EV||0.6);
 const CAPB=+(process.env.CAPB||0.6);   // 방패가 남아 있는 동안 한 번에 몸체로 들어가는 최대 (목표 대비, 0 = 제한 없음)
 const EMODE=process.env.EMODE||'hold';   // first: 방패부터 깎고 남은 게 몸체 | over: 몸체는 한 번 CAPB까지, 넘친 만큼 방패가 막으며 깎임 (방패가 0이면 그다음부터 전부)
-function energyHit(raw,n,sh){if(sh<=0)return {d:raw,ab:0,sh:0};if(n>=3)return {d:raw,ab:0,sh:0,brk:true};
+function energyHit(raw,n,sh,sanF){const h=energyHit0(raw,n,sh);if(sanF&&h.sh>0&&!h.brk){const x=Math.min(h.sh,Math.floor(raw*sanF));h.sh-=x;h.ab+=x;}return h;}   /* (11-20) ★3 산초: 이 카드 몫의 피해는 방패에 2배 */
+function energyHit0(raw,n,sh){if(sh<=0)return {d:raw,ab:0,sh:0};if(n>=3)return {d:raw,ab:0,sh:0,brk:true};
   if(EMODE==='hold'){const cap=Math.max(10,Math.floor(S.tgt*CAPB/10)*10),d0=Math.min(raw,cap),ab=Math.min(sh,raw-d0);return {d:d0,ab,sh:sh-ab};}   // hold: 깨지는 그 공격까지는 막아 줌
   if(EMODE==='over'){const cap=Math.max(10,Math.floor(S.tgt*CAPB/10)*10),d0=Math.min(raw,cap),over=raw-d0,ab=Math.min(sh,over);return {d:d0+(over-ab),ab,sh:sh-ab};}
   if(EMODE==='ratio'){const RA=+(process.env.RA||0.5),ab=Math.min(sh,Math.floor(raw*RA));let d=raw-ab;if(CAPB>0)d=Math.min(d,Math.max(10,Math.floor(S.tgt*CAPB/10)*10));return {d,ab,sh:sh-ab};}   // ratio: 매 공격 RA만큼 방패가 먼저 받음(방패부터 줄어 보임) · 나머지는 몸체(방패 있는 동안 한 번 CAPB까지)
@@ -146,7 +147,7 @@ function bestPlay(){
     const sel=idx.map(i=>H[i]);if(sel.some(c=>c.seal))continue;if(forced!=null&&!sel.some(c=>c.uid===forced)&&H.some(c=>c.uid===forced&&!c.seal))continue;
     if(psy&&wsum(sel)<5)continue;
     const rest=H.filter(c=>!sel.includes(c));const pm=previewMerge(sel);
-    const r=score(pm.cards,ctxFor(rest,pm.m));r.raw2=r.total;const n=nKeys(r);if(GATE==='energy'){const h=energyHit(r.total,n,S.gs.sh);r.total=h.d;r.util=h.d+(BOT==='smart'?EV:1)*h.ab;}else if(GATE==='bar'){const h=barHit(r.total,n,S.gs.bar,null);r.total=Math.floor(h.ehp);r.util=h.ehp+(BOT==='smart'?BV:1)*h.ebar;}else{const e=effDmg(r.total,n,S.gs);r.total=e.d;r.util=e.d+(GATE==='tough'&&S.gs.grog<=0&&BOT==='smart'?Math.min(n,S.gs.tgh)*KV*S.tgt:0)+(GATE==='cap'&&BOT==='smart'?0:0);}
+    const r=score(pm.cards,ctxFor(rest,pm.m));r.raw2=r.total;const n=nKeys(r);if(GATE==='energy'){const h=energyHit(r.total,n,S.gs.sh,r.sanF);r.total=h.d;r.util=h.d+(BOT==='smart'?EV:1)*h.ab;}else if(GATE==='bar'){const h=barHit(r.total,n,S.gs.bar,null);r.total=Math.floor(h.ehp);r.util=h.ehp+(BOT==='smart'?BV:1)*h.ebar;}else{const e=effDmg(r.total,n,S.gs);r.total=e.d;r.util=e.d+(GATE==='tough'&&S.gs.grog<=0&&BOT==='smart'?Math.min(n,S.gs.tgh)*KV*S.tgt:0)+(GATE==='cap'&&BOT==='smart'?0:0);}
     const h=BOT==='smart'?harm(sel,rest):0;
     const v={sel,total:r.total,r,h,m:pm.m,dump:BOT==='smart'?H.filter(c=>c.seal).slice(0,Math.max(0,5-sel.length)):[]};
     if(!best||(v.r.util)>(best.r.util))best=v;
@@ -219,7 +220,7 @@ function discard(keepSel){
   if(BOT==='normal')pool=H.filter(c=>c.uid!==S.forced);
   pool.sort((a,b)=>val(a)-val(b));const out=pool.slice(0,Math.min(5,pool.length,Math.max(1,H.length-3)));
   if(!out.length)return false;
-  const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB)S.nextMult=(S.nextMult||0)+6*brB;
+  const br=0,brB=out.filter(c=>S3(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;S.hand.forEach(c=>delete c.seal);}
   if(S.orbs.includes('diary')){S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br)S.gold+=3*br;
   out.forEach(c=>{if(c.seal){delete c.seal;ST.sealDisc=(ST.sealDisc||0)+1;}});S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.dis--;fill();bossTick();return true;}
 function doRun(pick){
@@ -230,7 +231,7 @@ function doRun(pick){
   if(RK==='arm'){const h=handInfo(cards).ht;if((S.lv[h]||1)>1)S.lv[h]--;}
   const rest=S.hand.filter(c=>!cards.includes(c));
   const r=score(cards,ctxFor(rest,0));const raw=r.total,n=nKeys(r);S.lastN=n;if(S.firstRaw==null)S.firstRaw=raw;S.rawBest=Math.max(S.rawBest,raw);
-  const g=S.gs;let e;if(GATE==='energy'){const h=energyHit(raw,n,g.sh);if(g.sh>0&&h.sh<=0)g.brks++;g.sh=h.sh;e={d:h.d};if(h.brk||h.ab===0)S.brkDmg+=h.d;}else if(GATE==='bar'){const h=barHit(raw,n,g.bar,Math.random());e={d:h.hp};if(h.post)S.brkDmg+=h.hp;g.bar-=h.bar;if(h.brk&&g.bar<=0){g.brks++;}ST.barRuns=(ST.barRuns||0)+(h.post?0:1);ST.barBlockedRuns=(ST.barBlockedRuns||0)+(!h.post&&h.hp===0&&unbon(raw,n)>0?1:0);if(BMODE==='prob'&&!h.post&&PIER[n]>0){ST.rolls=(ST.rolls||0)+1;ST.rollFail=(ST.rollFail||0)+(h.ok?0:1);}}else e=effDmg(raw,n,g);r.total=e.d;S.allDmg+=e.d;
+  const g=S.gs;let e;if(GATE==='energy'){const h=energyHit(raw,n,g.sh,r.sanF);if(g.sh>0&&h.sh<=0)g.brks++;g.sh=h.sh;e={d:h.d};if(h.brk||h.ab===0)S.brkDmg+=h.d;}else if(GATE==='bar'){const h=barHit(raw,n,g.bar,Math.random());e={d:h.hp};if(h.post)S.brkDmg+=h.hp;g.bar-=h.bar;if(h.brk&&g.bar<=0){g.brks++;}ST.barRuns=(ST.barRuns||0)+(h.post?0:1);ST.barBlockedRuns=(ST.barBlockedRuns||0)+(!h.post&&h.hp===0&&unbon(raw,n)>0?1:0);if(BMODE==='prob'&&!h.post&&PIER[n]>0){ST.rolls=(ST.rolls||0)+1;ST.rollFail=(ST.rollFail||0)+(h.ok?0:1);}}else e=effDmg(raw,n,g);r.total=e.d;S.allDmg+=e.d;
   if(GATE==='tough'){if(g.grog>0){S.brkDmg+=e.d;g.grog--;if(g.grog<=0){g.tgh=TGH[S.rd]+REG*g.brks;}}
     else{g.tgh-=n;if(g.tgh<=0){g.brks++;g.grog=GN;g.skipRule=true;if(BRK==='now')S.brkDmg+=e.d;}}}
   if(GATE==='cap'&&n>=3)S.brkDmg+=e.d;

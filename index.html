@@ -2034,33 +2034,24 @@ const weight=c=>STAR_W[c.star];
 const cardW=c=>c.w||TYPES[c.id].w;      // 지금 카드의 세계 (고른 세계)
 const originW=c=>[cardW(c)];
 /* ★3 각성: 동료마다 고유 능력 (발라트로 강화 카드 · 봉인 자리) */
+/* (DHL 11-20) ★3 각성 재설계 — 동료마다 1개 · 모두 전투에 직접 걸리는 효과(화력 · 방패 · 맞춤 · 손패). 고르는 A/B는 없앰 (적 카드 각성과 같은 틀) */
 const STAR3={
-  alonso:{ic:'⚔',ko:'라만차의 기사',d:'족보에 있으면 배수 ×1.5'},
-  dulcine:{ic:'🌹',ko:'둘시네아의 축복',d:'함께 낸 다른 족보 카드 힘 +5씩'},
-  sancho:{ic:'🪙',ko:'충직한 종자',d:'족보에 넣어 낼 때마다 💰2'},
-  rosi:{ic:'🐎',ko:'로시난테의 질주',d:'한 번 더 발동'},
-  lucia:{ic:'✋',ko:'빛나는 손',d:'손에 남아 있으면 배수 +4'},
-  bruno:{ic:'🔨',ko:'망치질',d:'버릴 때 💰3'},
-  nicole:{ic:'🌈',ko:'원소의 아이',d:'모든 속성으로 셈'},
-  carden:{ic:'🧭',ko:'세계의 방랑자',d:'모든 세계로 셈'},
-  palome:{ic:'🕊',ko:'작은 영웅',d:'족보 밖이어도 점수에 들어감'},
-  gris:{ic:'🔭',ko:'별을 읽는 자',d:'족보에 넣어 내면 그 족보 레벨 +1'}
-};
-const STAR3B={
-  alonso:{ic:'🛡',ko:'늙은 방패',d:'손에 남아 있으면 족보 카드 힘 +10씩'},
-  dulcine:{ic:'💌',ko:'그리움',d:'족보에 있으면 배수 +8'},
-  sancho:{ic:'🍞',ko:'산초의 도시락',d:'족보에 넣어 내면 이번 라운드 버리기 +1'},
-  rosi:{ic:'💨',ko:'돌진',d:'맨 앞에 내면 힘 ×3'},
-  lucia:{ic:'🔆',ko:'등불',d:'손에 남아 있으면 배수 ×1.2'},
-  bruno:{ic:'⚒',ko:'담금질',d:'버릴 때 다음 런 배수 +6'},
-  nicole:{ic:'⚡',ko:'상성 증폭',d:'약점 공격이 ×2 → ×3'},
-  carden:{ic:'🏠',ko:'고향의 노래',d:'이 카드가 적과 같은 세계면 힘 ×1.5'}   /* (DHL 11-11) 기본 고향 보너스가 없어져 설명을 실제 동작으로 */,
-  palome:{ic:'🐣',ko:'작은 날개',d:'족보에 넣어 내면 덱의 ★1 카드 1장이 ★2로'},
-  gris:{ic:'🎲',ko:'운명술',d:'족보에 넣어 내면 25% 확률로 무작위 구슬 ◆+1'}
-};
-const S3=(c,n)=>c&&c.star===3&&TYPES[c.id].n===n&&(c.aw||'A')==='A';   // ★3 각성 A
-const S3B=(c,n)=>c&&c.star===3&&TYPES[c.id].n===n&&c.aw==='B';          // ★3 각성 B
-const ab3=c=>c&&c.star===3?((c.aw==='B'?STAR3B:STAR3)[TYPES[c.id].n]):null;
+  alonso:{ic:'⚔',ax:'화력',ko:'라만차의 기사',d:'족보에 있으면 배수 ×1.5'},
+  dulcine:{ic:'🌹',ax:'화력',ko:'둘시네아의 축복',d:'함께 낸 다른 카드 힘 +10씩'},
+  sancho:{ic:'🛡',ax:'방패',ko:'충직한 종자',d:'이 카드의 피해는 방패에 2배'},
+  rosi:{ic:'🐎',ax:'화력',ko:'로시난테의 질주',d:'한 번 더 발동'},
+  lucia:{ic:'🔆',ax:'손패',ko:'등불',d:'손에 남아 있으면 배수 ×1.2'},
+  bruno:{ic:'⚒',ax:'손패',ko:'담금질',d:'버릴 때 손패 봉인을 모두 풀고 다음 런 배수 +6'},
+  nicole:{ic:'🌈',ax:'맞춤',ko:'원소의 아이',d:'모든 속성으로 셈'},
+  carden:{ic:'🧭',ax:'맞춤',ko:'세계의 방랑자',d:'모든 세계로 셈'},
+  palome:{ic:'🕊',ax:'화력',ko:'작은 영웅',d:'함께 낸 카드 중 번호가 가장 낮으면 힘 ×4'},
+  gris:{ic:'🔭',ax:'맞춤',ko:'별을 읽는 자',d:'적의 번호와 맞은 것으로 셈'}};
+const AB3_IC={sancho:'alonso_b',lucia:'lucia_b',bruno:'bruno_b'}, ab3Ic=n=>AB3_IC[n]||n;   /* 문양 그림: 있던 20장 중 10장을 다시 씀 (산초 = 방패 · 루시아 = 등불 · 브루노 = 담금질) */
+const STAR3B=STAR3;   /* 예전 B표를 읽던 곳이 깨지지 않게 */
+const S3OFF=!!(typeof process!=='undefined'&&process.env&&process.env.S3OFF);   /* 봇 비교용: 각성 전부 끔 */
+const S3=(c,n)=>!S3OFF&&c&&c.star===3&&TYPES[c.id].n===n;   // ★3 각성 (c.aw는 더 안 봄 — 옛 저장의 A/B는 무시)
+const S3B=()=>false;
+const ab3=c=>c&&c.star===3?STAR3[TYPES[c.id].n]:null;
 const worldsOf=c=>S3(c,'carden')?WORLDS.slice():[cardW(c)];
 const elsOf=c=>S3(c,'nicole')?ELS.slice():[c.el];
 const topStar=c=>c.star;
@@ -2184,7 +2175,7 @@ const ORBS={
 
 function handType(cards){
   const nc={},nw={};
-  cards.forEach(c=>{const n=cardNo(c);nc[n]=(nc[n]||0)+weight(c);(nw[n]=nw[n]||new Set());nw[n].add(cardW(c));});
+  cards.forEach(c=>{const n=cardNo(c);nc[n]=(nc[n]||0)+weight(c);(nw[n]=nw[n]||new Set());worldsOf(c).forEach(w=>nw[n].add(w));});   /* (11-20) ★3 카르덴은 세 세계의 맹세에도 모든 세계로 셈 */
   const ns=Object.values(nc).sort((a,b)=>b-a);
   // 속성 · 세계: 융합 카드는 가진 것 중 유리한 하나로 (무게 전체)
   const best=(f,keys)=>Math.max(0,...keys.map(k=>cards.reduce((s,c)=>s+(f(c).includes(k)?weight(c):0),0)));
@@ -2262,8 +2253,8 @@ function score(cards,ctx){
   const isHT=k=>ht===k||bonds.includes(k);
   let prev=0; const names=new Set(), worlds=new Set();
   let SC=!live.length?[]:ctx.scoringOnly?[...new Set([ht].concat(bonds).flatMap(k=>scoringCards(live,k,ctx.foe)))]:live;   // 걸린 족보 모두의 카드
-  cards.forEach(c=>{if(S3(c,'palome')&&!SC.includes(c))SC.push(c);});   // ★3 팔로메: 족보 밖이어도 점수
-  const DUL=SC.filter(c=>S3(c,'dulcine')).length, SHIELD=(ctx.held||[]).filter(c=>S3B(c,'alonso')).length;
+  const PALMIN=cards.length?Math.min(...cards.map(c=>NUM(c))):0, PALX=+(typeof process!=='undefined'&&process.env&&process.env.PALX||4), DULV=+(typeof process!=='undefined'&&process.env&&process.env.DULV||10);let sanCh=0;   /* (11-20) ★3 팔로메: 함께 낸 카드 중 번호가 가장 낮으면 힘 × · 산초: 이 카드 몫의 힘(방패 2배 계산용) */
+  const DUL=SC.filter(c=>S3(c,'dulcine')).length, SHIELD=0;
   cards.forEach((c,i)=>{
     const t=TYPES[c.id], last=i===n-1, notes=[], ps=PARTS(c), st=topStar(c); names.add(t.n); worldsOf(c).forEach(w=>worlds.add(w));
     if(!SC.includes(c)){steps.push({i,add:0,chips,mult,txt:live.includes(c)?'족보 밖':'내성 — 족보 밖',orbs:[],out:true});return;}
@@ -2272,11 +2263,9 @@ function score(cards,ctx){
     if(!armorOn()&&ctx.foe&&ctx.foe.home&&cardW(c)===ctx.foe.home&&!paralyzed(c,ctx.foe))notes.push('고향 ×1.5');
     if(hurtOf(c))notes.push('상처 -'+hurtOf(c));
     if(has('w_'+cardW(c))){ch+=A('w_'+cardW(c),20);fired.push('w_'+cardW(c));}
-    if(DUL){const d=5*(DUL-(S3(c,'dulcine')?1:0));if(d){ch+=d;notes.push('🌹 +'+d);}}
+    if(DUL){const d=DULV*(DUL-(S3(c,'dulcine')?1:0));if(d){ch+=d;notes.push('🌹 +'+d);}}
     if(SHIELD){ch+=10*SHIELD;notes.push('🛡 +'+10*SHIELD);}
-    if(i===0&&S3B(c,'rosi')){ch*=3;notes.push('💨 ×3');}
-    if(S3B(c,'nicole')&&isWeakCard(c,ctx.foe)){ch=Math.round(ch*(armorOn()?2:1.5));notes.push(armorOn()?'⚡ 약점 ×2':'⚡ 약점 ×3');}
-    if(S3B(c,'carden')&&ctx.foe&&ctx.foe.home&&cardW(c)===ctx.foe.home){ch=Math.round(armorOn()?ch*1.5:ch/1.5*2.5);notes.push(armorOn()?'🏠 고향의 노래 ×1.5':'🏠 고향 ×2.5');}
+    if(S3(c,'palome')&&NUM(c)<=PALMIN){ch*=PALX;notes.push('🕊 작은 영웅 ×'+PALX);}
     if(i===0&&has('flag')){ch*=X('flag',3);notes.push('돌격 ×'+X('flag',3));fired.push('flag');}
     if(i===2&&has('bell')){ch*=X('bell',4);notes.push('축복 ×'+X('bell',4));fired.push('bell');}
     if(last&&has('echo')&&n>1){ch*=X('echo',2);notes.push('메아리');fired.push('echo');}
@@ -2290,9 +2279,9 @@ function score(cards,ctx){
     if(last&&has('guard')){mult+=A('guard',4*STAR_MUL[st]);notes.push('후위 +'+A('guard',4*STAR_MUL[st]));fired.push('guard');}
     // 재발동: 짝수의 북 · 홀수의 피리 — 이 카드의 힘과 더하기 배수를 한 번 더 (구슬 ◆ 단계만큼)
     const nRe=(has('even')&&NUM(c)%2===0?OS('even'):0)+(has('odd')&&NUM(c)%2===1?OS('odd'):0)+(S3(c,'rosi')?1:0)+(has('stage')&&LEADS.includes(t.n)?OS('stage'):0);
-    if(nRe){const dm=mult-m0;chips+=ch*nRe;mult+=dm*nRe;ch+=ch*nRe;notes.push('재발동 ×'+nRe);fired.push(NUM(c)%2===0?'even':'odd');}
+    if(nRe){const dm=mult-m0;chips+=ch*nRe;mult+=dm*nRe;ch+=ch*nRe;notes.push('재발동 ×'+nRe);if(has(NUM(c)%2===0?'even':'odd'))fired.push(NUM(c)%2===0?'even':'odd');}
+    if(S3(c,'sancho')){sanCh+=ch;notes.push('🛡 방패 ×2');}
     if(S3(c,'alonso')){mult*=1.5;notes.push('⚔ ×1.5');}
-    if(S3B(c,'dulcine')){mult+=8;notes.push('💌 +8');}
     if(last&&has('delu')&&n>1){const x=X('delu',[0,2,3,6][st]);mult*=x;notes.push('착각 ×'+x);fired.push('delu');}
     if(has('starmap')&&st===3){mult*=X('starmap',2);notes.push('별빛 ×'+X('starmap',2));fired.push('starmap');}
     prev=ch;
@@ -2341,11 +2330,11 @@ function score(cards,ctx){
     monk:()=>(ctx.ostate&&ctx.ostate.monk)?MX('monk',Math.round((1+ctx.ostate.monk)*100)/100):null,
     shadow:()=>ctx.deck&&ctx.deck<=50?MX('shadow',2):null
   };
-  {const LB=(ctx.held||[]).filter(c=>S3B(c,'lucia')).length;if(LB){const x=Math.round(Math.pow(1.2,LB)*100)/100;mult*=x;steps.push({i:-2,txt:'🔆 등불 ×'+x+' 배수',pop:'×'+x+' 배수',chips,mult});}}
+  {const LB=(ctx.held||[]).filter(c=>S3(c,'lucia')).length;if(LB){const x=Math.round(Math.pow(1.2,LB)*100)/100;mult*=x;steps.push({i:-2,txt:'🔆 등불 ×'+x+' 배수',pop:'×'+x+' 배수',chips,mult});}}
   if(ctx.bonusMult){mult+=ctx.bonusMult;steps.push({i:-2,txt:'⚒ 담금질 +'+ctx.bonusMult+' 배수',pop:'+'+ctx.bonusMult+' 배수',chips,mult});}
   // 머지 콤보: 이번 런에서 머지가 2번이면 ×1.5, 3번 이상이면 ×2
   if((ctx.mcombo||0)>=2){const x=ctx.mcombo>=3?2:1.5;mult*=x;steps.push({i:-2,txt:(ctx.mcombo>=3?'트리플 머지!':'더블 머지!')+' ×'+x+' 배수',pop:'×'+x+' 배수',chips,mult,combo:1});}
-  {const L3=(ctx.held||[]).filter(c=>S3(c,'lucia')).length;if(L3){mult+=4*L3;steps.push({i:-2,txt:'✋ 빛나는 손 +'+4*L3+' 배수',pop:'+'+4*L3+' 배수',chips,mult});}}
+  {const L3=0;if(L3){mult+=4*L3;steps.push({i:-2,txt:'✋ 빛나는 손 +'+4*L3+' 배수',pop:'+'+4*L3+' 배수',chips,mult});}}
   /* (DHL 11-09 '구슬은 머지 되어 있으면 다시 발동') ★2 · ★3 구슬은 ★ 수만큼 나눠서 다시 터짐 — 계산 결과는 그대로, 화면 단계만 나눔
      더하기 = 같은 값씩 ★ 번 (+6 → +6 → +6) · 곱하기 = 같은 비율씩 ★ 번, 숫자는 마지막에 한 번 (×6) */
   const perT=(t,n)=>t.replace(/[\d.]+/,x=>String(Math.round(x/n*10)/10));
@@ -2359,7 +2348,7 @@ function score(cards,ctx){
   /* (DHL 11-05) 족보를 하나로 묶는 거인 규칙(같은 수 금지 · 고집 · 짓누르는 팔) 삭제 — 겹 족보가 기본이라 안 맞음 */
   const R=ctx.foe&&ctx.foe.rule;let block=null;
   if(block){steps.push({i:-2,txt:block,chips:0,mult:0});return {ht,bonds,label,comboTag,chips:0,mult:0,total:0,steps,block};}
-  const gold3=2*SC.filter(c=>S3(c,'sancho')).length, lvUp=SC.some(c=>S3(c,'gris'))?ht:null, disUp=SC.filter(c=>S3B(c,'sancho')).length, promote=SC.filter(c=>S3B(c,'palome')).length, orbUp=SC.filter(c=>S3B(c,'gris')).length;
+  const gold3=0, lvUp=null, disUp=0, promote=0, orbUp=0;   /* (11-20) 골드 · 성장형 각성 삭제 — 값만 남겨 둠 */
   const osUp={};if(has('pulse')&&isHT('elf'))osUp.pulse=0.2;if(has('pilgrim')&&isHT('world'))osUp.pilgrim=4;if(has('marchsong')&&isHT('march'))osUp.marchsong=0.3;
   if(has('collector')&&ctx.foe){const w=SC.filter(c=>isWeakCard(c,ctx.foe)).length;if(w)osUp.collector=0.1*w;}
   if(has('parity')&&SC.length&&(SC.every(c=>NUM(c)%2===0)||SC.every(c=>NUM(c)%2===1)))osUp.parity=5;
@@ -2367,7 +2356,7 @@ function score(cards,ctx){
   if(armorOn()&&ctx.foe){keys=keysOf(SC,ctx.foe);const b=ARMOR_BON[keys.n];   /* (DHL 10-29) 맞춘 개수만큼 힘 +% (제한 없음) */
     if(b){chips=Math.round(chips*(1+b));total=Math.floor(chips*mult);}
     steps.push({i:-2,armor:1,txt:'⚔ 맞춤 '+keys.n+'/3 · 공격 '+KX(keys.n)+(keys.n>=3?' · '+TD()+'!':''),pop:keys.n>=3?'⚔⚔⚔':'⚔',chips,mult});}
-  return {disUp,promote,orbUp,osUp,gold3,lvUp,ht,bonds,label,comboTag,chips,mult,total,raw,keys,capped,lim,steps};
+  return {sanF:chips>0?Math.min(1,sanCh/chips):0,disUp,promote,orbUp,osUp,gold3,lvUp,ht,bonds,label,comboTag,chips,mult,total,raw,keys,capped,lim,steps};
 }
 
 /* 목표 점수: 장(1~8) × 라운드(망령·수문장·거인) · 난이도별 x(전체 배수) · xg(장마다 추가 성장) */
@@ -2401,7 +2390,7 @@ const hitMax=()=>Math.max(10,Math.floor((S&&S.tgt||0)*ARMOR_HIT/10)*10);   // �
 const shNow=()=>S.sh==null?shMax():S.sh;
 function hitCap(r){if(!r||!armorOn()||!S||S.practice||S.sandbox||!S.tgt||lmTutNoArmor())return null;const sh=shNow(),n=r.keys?r.keys.n:0;if(sh<=0)return null;
   if(n>=3)return {cap:r.total,raw:r.total,brk:true,absorb:0,before:sh,after:0};
-  const d=Math.min(r.total,hitMax()),ab=Math.min(sh,r.total-d);return {cap:d,raw:r.total,brk:false,absorb:r.total-d,before:sh,after:sh-ab};}   // 몸체는 한 번 최대 60% · 넘친 만큼 방패가 막으며 깎임 (방패가 깨지는 그 공격까지는 막음)
+  const d=Math.min(r.total,hitMax()),ab=Math.min(sh,r.total-d+Math.floor(r.total*(r.sanF||0)));return {cap:d,san:Math.floor(r.total*(r.sanF||0)),raw:r.total,brk:false,absorb:r.total-d,before:sh,after:sh-ab};}   // 몸체는 한 번 최대 60% · 넘친 만큼 방패가 막으며 깎임 (방패가 깨지는 그 공격까지는 막음)
 /* 이전 주석: */   /* (DHL 10-29) 최대 피해 제한 폐지 → 아래 ARMOR_BON으로 (목표 배율도 ×0.57 → ×1) */
 const ARMOR_BON=[0,0.25,0.5,0.75];
 /* (DHL 10-30) 세 가지 맞춤 = '고정 피해'(영문 True Damage) — 예전 표기 '관통' */
@@ -2415,7 +2404,7 @@ const heroFor=(j,r)=>NUM_NAME[Math.random()*NUM_NAME.length|0];   /* (DHL 10-30 
 const mixA=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 /* 판마다 8장의 세계 순서를 새로 섞음 — 세 장마다 세 세계가 한 번씩(같은 세계가 연달아 나오지 않게) */
 function worldSeq(n){const out=[];while(out.length<(n||8)){let b=mixA(WORLDS);if(out.length&&b[0]===out[out.length-1])b.push(b.shift());out.push(...b);}return out.slice(0,n||8);}
-const keyHit=(c,foe)=>foe?{w:worldsOf(c).includes(foe.home),e:elsOf(c).includes(weakTo(foe.el)),h:foe.no?cardNo(c)===foe.no:TYPES[c.id].n===foe.hero}:{w:false,e:false,h:false};
+const keyHit=(c,foe)=>foe?{w:worldsOf(c).includes(foe.home),e:elsOf(c).includes(weakTo(foe.el)),h:S3(c,'gris')||(foe.no?cardNo(c)===foe.no:TYPES[c.id].n===foe.hero)}:{w:false,e:false,h:false};
 function keysOf(cs,foe){const k={w:false,e:false,h:false};cs.forEach(c=>{const x=keyHit(c,foe);k.w=k.w||x.w;k.e=k.e||x.e;k.h=k.h||x.h;});k.n=(k.w?1:0)+(k.e?1:0)+(k.h?1:0);return k;}
 const KIC=k=>`<img class="kic" src="assets/ui/maple/icons/${{k:'sword',h:'crown',s:'shield_round'}[k]}.webp" alt="">`;
 const isWeakCard=(c,foe)=>!!foe&&(armorOn()?elsOf(c).includes(weakTo(foe.el)):matchX(c.el,foe)===2);
@@ -2846,7 +2835,7 @@ function cardFace(c){
   return `<span class="dzi${d?' mood-'+d:''}"${sealOn?' data-seal="1"':''} data-w="${w}" data-st="${c.star}" data-el="${ek}" data-pw="${d||'same'}"${now===nat&&!why.length?' data-plain="1"':''} style="--wc:${WORLD_C[w]};--ec:${EL_C[c.el]}">${c.star>1?Array(c.star-1).fill(0).map((_,i)=>`<span class="dzStk" style="--k:${c.star-1-i}"></span>`).join(''):''}<span class="dzb"></span>${img}<span class="dzpo ${d}"></span><span class="dzpw ${d}">${now}</span><span class="dzno">${nat}</span><span class="dzel" title="${c.el}">${ICO(ek)}</span>`+
     (why.length?`<span class="chips why">${why.map(chipH).join('')}</span>`:'')+
     (dbf.length?`<span class="chips dbf">${dbf.map(chipH).join('')}</span>`:'')+
-    `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${TYPES[c.id].n}${c.aw==='B'?'_b':''}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
+    `<span class="dzst${c.mixed?' mix':''}" title="★${c.star}">${stars}${c.star>1?`<b class="xw">×${STAR_W[c.star]}</b>`:''}${ab3(c)?`<b class="s3ic" data-ab="${ab3Ic(TYPES[c.id].n)}" title="${ab3(c).ko}: ${ab3(c).d}">${ab3(c).ic}</b>`:''}</span>`+
     `<span class="dzwm" title="${WORLD_KO[w]}">${ICO(w)}</span><!--mg--><span class="nmbox${pl?' pl':''}"${pl?` style="--pl:url(${pl})"`:''}><span class="nm${nmc}">${nm}</span></span>`+
     `<span class="spark"></span>${sealH}</span>`;
 }
@@ -3086,11 +3075,10 @@ function askFuse(a,b,mk){
   };
   S._redraw=draw;draw();
 }
-/* ★3 각성 갈림길: A · B 중 하나 */
-function askAwaken(c,next){const n=TYPES[c.id].n,A=STAR3[n],B=STAR3B[n];S._awNext=next;S._awC=c;
-  showOv(`<h2>✨ ${TYPES[c.id].ko} ★3 각성!</h2><p class="omNote">능력 하나를 고르세요. 이 카드에 판 내내 남아요.</p>`+
-    [['A',A],['B',B]].map(([k,x])=>`<button class="campBtn" onclick="pickAwaken('${k}')"><b>${x.ic} ${x.ko}</b><small>${x.d}</small></button>`).join(''));}
-function pickAwaken(k){const c=S._awC;c.aw=k;hideOv();popMsg('✨ '+(k==='B'?STAR3B:STAR3)[TYPES[c.id].n].ko);const f=S._awNext;S._awNext=null;f&&f();}
+/* ★3 각성 (11-20: 동료마다 1개 — 고르지 않고 보여 주기만) */
+function askAwaken(c,next){const x=STAR3[TYPES[c.id].n];S._awNext=next;S._awC=c;
+  showOv(`<h2>✨ ${TYPES[c.id].ko} ★3 각성!</h2><button class="campBtn mgGo" onclick="pickAwaken('A')"><b>${x.ic} ${x.ko}</b><small>${x.d}</small></button>`);}
+function pickAwaken(k){const c=S._awC;c.aw=k;hideOv();popMsg('✨ '+STAR3[TYPES[c.id].n].ko);const f=S._awNext;S._awNext=null;f&&f();}
 function finishMerge(a,b,keepEl,keepW,keepNo){
   const sick=c=>c.st&&(c.st.hit||c.st.psn), healed=sick(a)||sick(b);   // 머지 전 상태이상이 있었나
   const k=applyMerge(a,b,keepEl,keepW,keepNo);
@@ -3126,7 +3114,7 @@ function doDiscard(){
   try{lmBellSel();}catch(e){}
   if(S.busy||!S.sel.length||S.dis<=0)return;if(S._sealPend){lmSealLand(true);if(!S.sel.length)return;}if(fogReveal(()=>doDiscard(),false))return;S._fogRev=null;if(S.sandbox)S.dis=1000;
   if(!S.practice)(S.rs=S.rs||{play:0,dis:0,buy:0,rr:0}).dis+=S.sel.length;
-  const out=selCards();if(out.some(c=>c.seal))try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8,delay:120});}catch(e){}out.forEach(c=>delete c.seal);const br=out.filter(c=>S3(c,'bruno')).length,brB=out.filter(c=>S3B(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();if(lmEmptyLose())return;bossTick();$('tip').textContent='';render();
+  const out=selCards();if(out.some(c=>c.seal))try{window.LMS&&LMS.play('sfx_seal_break',{vol:.8,delay:120});}catch(e){}out.forEach(c=>delete c.seal);const br=0,brB=out.filter(c=>S3(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;S.hand.forEach(c=>delete c.seal);popMsg('⚒ 담금질 — 다음 런 배수 +'+6*brB);}if(S.orbs.includes('diary')){S.ostate=S.ostate||{};S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br){S.gold+=3*br;popMsg('🔨 망치질 💰'+3*br);}S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.sel=[];S.dis--;fill();if(lmEmptyLose())return;bossTick();$('tip').textContent='';render();
 }
 /* 머지 & 런 (기사 이상): 고른 카드 안의 같은 이름 · 같은 ★ 짝을 먼저 합치고 달린다 */
 function runPairs(cs){ // 미리보기용: 복사본으로 합쳐 본 짝 목록
@@ -3724,7 +3712,7 @@ const LEARN=[
   {t:'별로인 카드는 버리기',s:'새 카드로 바꾸기',at:1},
   {t:'이기면 원정 캠프',s:'구슬 · 동료 팩 · 족보서 · 증서',at:1},
   {t:'야영에서 정비하기',s:'모닥불 머지 · 떠나보내기 · 정찰 · 밤 산책',at:1},
-  {t:'별 3개 · 각성',s:'능력 둘 중 하나',at:1}
+  {t:'별 3개 · 각성',s:'동료마다 다른 능력',at:1}
 ];
 const LEARN_ORDER=[0,1,7,2,5,3,8,4,9,10,6];   /* 보이는 순서 = 첫 판에서 니콜이 알려주는 순서 */
 const lPos=k=>Math.max(0,LEARN_ORDER.indexOf(k)),lNext=()=>LEARN_ORDER.find(k=>!LEARN_SEEN.includes(k));
@@ -3773,7 +3761,7 @@ let cmTapCount=0,cmLastSfx=0,cmLastR=-1;
 function lmSfx(file,gain){const now=performance.now();if(now-cmLastSfx<140)return;cmLastSfx=now;
   try{const v=(typeof LM_SET!=='undefined'?(LM_SET.master/100)*(LM_SET.sfx/100):.45)*(gain||.27);if(v<=0)return;const a=new Audio('assets/audio/sfx/'+file);a.volume=Math.min(1,v);a.play().catch(()=>{});}catch(e){}}
 function cmDetailHTML(id){
-  const t=TYPES[id],w=t.w,A=STAR3[t.n],B=STAR3B[t.n],ord=CM_ORDER(),i=ord.indexOf(id);
+  const t=TYPES[id],w=t.w,A=STAR3[t.n],ord=CM_ORDER(),i=ord.indexOf(id);
   const img=HAS_ART&&MR_ART.idle[id],bg=typeof MR_BG!=='undefined'&&MR_BG[w]&&MR_BG[w][0];
   return `<div class="cmV" style="--wc:${WORLD_C[w]}">`+
    `<div class="cmTop"><button class="cmBackBtn lmIco lmIcoNav" onclick="codexSel=null;openInfo('codex')" aria-label="동료 목록으로" title="동료 목록으로"><img src="assets/ui/icon/btn_back.webp" alt=""></button><span class="cmCount">${i+1} / ${ord.length}</span><span class="cmNav"><button onclick="cmGo(-1)" aria-label="이전 동료">‹</button><button onclick="cmGo(1)" aria-label="다음 동료">›</button></span></div>`+
@@ -3783,7 +3771,7 @@ function cmDetailHTML(id){
    `<div class="cmInfo"><div class="cmName"><i class="cmNo">?</i><b>${t.ko}</b><span class="fel" style="background:${WORLD_C[w]}">${WORLD_KO[w]}</span></div>`+
      `<div class="cmRow"><small>속성</small><span class="cmEls">${t.els.map(e=>`<span class="fic" style="background:${EL_C[e]}">${EL_SYM[e]}</span>`).join('')}</span></div>`+
      `<div class="cmRow"><small>번호 · 힘</small><b class="cmPow">매판 1~10</b><small class="cmNote">같은 동료 둘이면 머지 → ★2 → ★3</small></div>`+
-     `<div class="cmAw"><small>★3 각성 · 둘 중 하나</small><div><span><b>${A.ic} ${A.ko}</b><em>${A.d}</em></span><span><b>${B.ic} ${B.ko}</b><em>${B.d}</em></span></div></div>`+
+     `<div class="cmAw"><small>★3 각성</small><div class="cmAw1"><span><b>${A.ic} ${A.ko}</b><em>${A.d}</em></span></div></div>`+
    `</div></div></div>`;
 }
 function cmGo(d){const ord=CM_ORDER();let i=ord.indexOf(codexSel);i=(i+d+ord.length)%ord.length;codexSel=ord[i];openInfo('codex');lmSfx('sfx_character_select.ogg',.22);}
@@ -6516,7 +6504,7 @@ html.lmB .ibBody>.cmV{flex:1;min-height:0;height:auto!important;display:flex;fle
   html.lmB .cmName{order:-1;justify-content:flex-start}
   html.lmB .cmStage{order:0;flex:1 1 auto;min-height:140px!important;height:auto!important}
   html.lmB .cmInfo>.cmRow,html.lmB .cmInfo>.cmAw{order:1;flex:none}
-  html.lmB .cmAw{padding:7px 10px!important}html.lmB .cmAw>div{grid-template-columns:1fr 1fr!important;gap:6px}
+  html.lmB .cmAw{padding:7px 10px!important}html.lmB .cmAw>div{grid-template-columns:1fr 1fr!important;gap:6px}html.lmB .cmAw>div.cmAw1{grid-template-columns:1fr!important}
   html.lmB .cmAw em{font-size:11px!important}
 }
 /* 창이 떠 있을 땐 비교 버튼 숨김 (탭과 겹침) */
@@ -6943,6 +6931,19 @@ html.lmB body .card.dz .dzi[data-w] .dzel{right:2.8%!important;top:81.4%!importa
 .awOpt small{font-size:clamp(11px,1.7vh,13px);line-height:1.35;color:#e8d6aa;opacity:.9;word-break:keep-all}
 .awOpt.on{opacity:1;border-color:#ffe08a;transform:scale(1.04);box-shadow:0 0 14px #ffe08a55}
 @media (orientation:portrait){.awRow{width:100%}.awOpt{flex:1;width:auto}}
+/* (DHL 11-20 시안 B) 각성 창: 카드 뒤 빛살 + 양피지 띠 */
+.aw2 .mgBody{flex-direction:column!important;align-items:center;gap:14px}
+.aw2 h2{position:relative;z-index:2}
+.aw2 .awStage{position:relative;display:grid;place-items:center;padding:2px 60px}
+.aw2 .awStage:before{content:"";position:absolute;width:380px;height:380px;max-width:92vw;border-radius:50%;background:repeating-conic-gradient(from 0deg,#ffe08a2e 0 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%);animation:awSpin 40s linear infinite}
+.aw2 .awStage:after{content:"";position:absolute;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,#fff3c455,transparent 70%)}
+.aw2 .awStage .mgCard{position:relative;z-index:1}
+.aw2 .awBar{display:flex;align-items:center;gap:12px;padding:9px 22px 9px 12px;border-radius:12px;background:var(--parch,linear-gradient(#e0cfa3,#cbb682));box-shadow:var(--parch-in,inset 0 0 0 1px #7a5a1e),0 3px 8px #0008;color:#3a2a0c;max-width:min(520px,92vw);position:relative;z-index:1;text-align:left}
+.aw2 .awBar img{width:46px;height:46px;flex:none;object-fit:contain;filter:drop-shadow(0 1px 2px #0007)}
+.aw2 .awBar b{display:block;font-size:17px;color:#5a2d0a}
+.aw2 .awBar small{display:block;color:#3a2a0c!important;opacity:1!important;font-size:14px;line-height:1.35;word-break:keep-all}
+@keyframes awSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.aw2 .awStage:before{animation:none}}
 /* 🌟 캐릭터 뒤 세계 후광 B (DHL 10-29) — 러스트 따뜻한 주황 · 네온 연분홍(형광 X) · 스카이 크림 */
 html.lmB body .card.dz .dzi[data-w] .dza{--hc:255,190,110;isolation:isolate}
 html.lmB body .card.dz .dzi[data-w=neon] .dza{--hc:235,170,230}
@@ -7348,13 +7349,12 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
 /* ✨ ★3 각성 고르기 (DHL 10-29 "별3도 변경"): 각성할 카드 미리보기 + 능력 A · B 문양 카드 → 고르고 확인 */
 (function(){
   if(typeof askAwaken!=='function')return;
-  askAwaken=function(c,next){const n=TYPES[c.id].n,A=STAR3[n],B=STAR3B[n];if(S._awC!==c)S._awK='A';S._awNext=next;S._awC=c;
-    const draw=()=>{const k=S._awK,pc=Object.assign({},c,{aw:k});
-      const op=(key,x)=>`<button class="awOpt${k===key?' on':''}" onclick="S._awK='${key}';S._awDraw()"><img src="assets/ui/card/ab3_${n}${key==='B'?'_b':''}.webp" alt=""><b>${x.ko}</b><small>${x.d}</small></button>`;
-      showOv(`<div class="mgPk awPk"><h2>${TYPES[c.id].ko} <i class="mgStar"></i>3 각성</h2>
-        <div class="mgBody"><div class="mgCard card dz s3">${cardFace(pc)}</div><div class="awRow">${op('A',A)}${op('B',B)}</div></div>
-        <div class="mgFoot"><button class="mgGo" onclick="S._awDraw=null;pickAwaken(S._awK)"><img src="assets/ui/icon/check.webp" alt="">각성</button></div></div>`);};
-    S._awDraw=draw;draw();};
+  /* (DHL 11-20 시안 B) 각성은 동료마다 1개 — 카드를 가운데 주인공으로(빛살) · 아래 양피지 띠에 문양 + 이름 + 효과 한 줄 · '각성' 버튼 */
+  askAwaken=function(c,next){const n=TYPES[c.id].n,x=STAR3[n];S._awNext=next;S._awC=c;S._awDraw=null;
+    showOv(`<div class="mgPk awPk aw2"><h2>${TYPES[c.id].ko} <i class="mgStar"></i>3 각성</h2>
+      <div class="mgBody"><div class="awStage"><div class="mgCard card dz s3">${cardFace(c)}</div></div>
+        <div class="awBar"><img src="assets/ui/card/ab3_${ab3Ic(n)}.webp" alt=""><span><b>${x.ko}</b><small>${x.d}</small></span></div></div>
+      <div class="mgFoot"><button class="mgGo" onclick="pickAwaken('A')"><img src="assets/ui/icon/check.webp" alt="">각성</button></div></div>`);};
 })();
 </script>
 
@@ -9418,7 +9418,7 @@ const LX_PAGES=[
 <p class="tip">같은 정비를 두 번 해도 됩니다.</p></section>`,
 `<section class="pg"><h2><span class="no">10</span><img src="assets/ui/card/star_g.webp" alt="" class="lxSt"><img src="assets/ui/card/star_g.webp" alt="" class="lxSt"><img src="assets/ui/card/star_g.webp" alt="" class="lxSt">각성</h2>
 <div class="lxAw" id="lx_aw"></div>
-<p class="say">별 2개인 같은 동료 <b class="k">두 장</b>을 머지하면 별 3개가 됩니다.<br>그때 <b class="k">능력 하나</b>를 고릅니다.</p>
+<p class="say">별 2개인 같은 동료 <b class="k">두 장</b>을 머지하면 별 3개가 됩니다.<br>그때 <b class="k">능력 하나</b>가 열립니다.</p>
 <div class="lxAB" id="lx_ab"></div>
 <p class="tip">능력은 동료마다 다릅니다.<br>도감에서 미리 볼 수 있습니다.</p></section>`];
 function lxCard(o){const el=document.createElement('div');el.className='cd card dz s'+(o.star||1)+(o.big?' big':'');
@@ -9437,7 +9437,7 @@ function lxMount(i){
     aw.append(lxCard({id:'rust_alonso',star:2,n:6,e:'불'}));const p=document.createElement('span');p.className='op';p.textContent='+';aw.append(p);
     aw.append(lxCard({id:'sky_alonso',star:2,n:9,e:'바람'}));const q=document.createElement('span');q.className='op';q.textContent='→';aw.append(q);
     aw.append(lxCard({id:'rust_alonso',star:3,n:9,e:'불',big:1}));
-    const A=STAR3.alonso,B=STAR3B.alonso;ab.innerHTML=[['A',A],['B',B]].map(([k,x])=>`<div><i>${k}</i><b>${x.ic} ${x.ko}</b><small>${x.d}</small></div>`).join('');}
+    const A=STAR3.alonso;ab.style.gridTemplateColumns='minmax(0,1fr)';ab.innerHTML=`<div><b>${A.ic} ${A.ko}</b><small>${A.d}</small></div>`;}
 }
 (function(){const _o=openInfo;openInfo=function(){const r=_o.apply(this,arguments);try{if(infoTab==='learn'&&learnView==='page'&&learnIdx>=7)lxMount(learnIdx);}catch(e){console.warn('[배우기 새 쪽]',e);}return r;};})();
 </script>
