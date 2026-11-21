@@ -5508,7 +5508,8 @@ html body #battle-stage .far-mill{left:5%}
 #enemy iframe.lm-foe-rig.lm-foe-float{animation:lmFoeFloat 5.2s ease-in-out infinite}   /* 떠 있는 적: 살짝 떠다님 */
 /* (DHL 11-21) 내 편 적(적 카드): 적 리그를 좌우 반전해 왼쪽에서 들어와 공격 — 푸른 빛 테두리로 '내 편' 표시 (같은 적을 만나도 구분) */
 #battle-stage iframe.lm-ally-rig{position:absolute;border:0;background:transparent;pointer-events:none;max-width:none!important;max-height:none!important;color-scheme:normal;z-index:6;scale:-1 1;visibility:hidden;
-  filter:drop-shadow(0 0 1.5px #c8ecff) drop-shadow(0 0 4px #38b6ff) drop-shadow(0 0 9px #1e7bff88)}
+  filter:drop-shadow(0 0 1.5px #c8ecff) drop-shadow(0 0 3.5px #38b6ffb0);   /* 테두리는 얇게 — 번지는 빛이 크면 불 · 빛 이펙트까지 파랗게 물듦 */
+  -webkit-mask-image:linear-gradient(to right,#0000,#000 7%,#000 93%,#0000),linear-gradient(to bottom,#0000,#000 6%,#000 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,#0000,#000 7%,#000 93%,#0000),linear-gradient(to bottom,#0000,#000 6%,#000 100%);mask-composite:intersect}   /* 적 리그와 같은 가장자리 흐림(리그 안 번쩍임이 네모로 보이지 않게) */
 #battle-stage iframe.lm-ally-rig.on{visibility:visible}
 @keyframes lmFoeFloat{0%,100%{translate:0 0}25%{translate:-3px -2px}50%{translate:0 -3px}75%{translate:3px -1px}}
 #battle-stage.lm-foe-intro #enemy iframe.lm-foe-rig.lm-foe-float{animation:none}
