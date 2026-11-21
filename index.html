@@ -3801,7 +3801,7 @@ let CODEX=lsGet('lm_codex',{orb:{},giant:{}});if(!CODEX.foe)CODEX.foe={};   // f
 /* (DHL 11-19) 적 처치 횟수 — 도감에 '3/10'으로 표시. 다 채우면 그 적의 카드가 열림(카드 규칙은 다음 단계): 일반 10 · 보스 5 · 풍차 거인 3 */
 const FOE_NEED=k=>FOE_RIG.final===k?3:FOE_RIG.boss.includes(k)?5:10;
 function foeKills(k){return (CODEX.foeK&&CODEX.foeK[k])||0;}
-function foeCardOpen(k){return foeKills(k)>=FOE_NEED(k);}
+function foeCardOpen(k){return !!window.LM_TEST||foeKills(k)>=FOE_NEED(k);}   /* (DHL 11-21) 테스터 ON이면 적 카드 모두 해금 — 적 팩에 15종이 다 나옴 (처치 횟수 기록은 그대로) */
 function lmFoeKill(f){if(!f||!f.rig||!FOE_KO[f.rig]||f._kc||!S||S.practice||S.sandbox)return;f._kc=1;CODEX.foeK=CODEX.foeK||{};const k=f.rig,was=foeKills(k);CODEX.foeK[k]=was+1;if(!CODEX.foe[k])CODEX.foe[k]=1;lsSet('lm_codex',CODEX);
   if(was+1===FOE_NEED(k))try{popMsg('📖 '+FOE_KO[k]+' — 처치 '+FOE_NEED(k)+'회 달성!');}catch(e){}}
 function codexMark(kind,key){if(!key||CODEX[kind][key])return;CODEX[kind][key]=1;lsSet('lm_codex',CODEX);try{lmDeckCheck();}catch(e){}}
@@ -4011,7 +4011,7 @@ function foeCodexHTML(pick){if(!(codexSel&&FOE_KO[codexSel]))window._foeBgFor=nu
     if(window._foeBgFor!==k||!window._foeBgN){window._foeBgFor=k;let n;do{n=1+(Math.random()*30|0);}while(n===window._foeBgN);window._foeBgN=window._foeBgForce||n;}
     const bn=window._foeBgN,bw=bn<=10?'rust':bn<=20?'neon':'sky';
     h=`<div class="cDet cFoeDet"><div class="cFoeStage w-${bw}" onclick="foeCodexTap()"><i class="cFoeBg" style="background-image:url(mrstage/assets/art/backgrounds/battle/bg_battle_${String(bn).padStart(4,'0')}.png)"></i><iframe src="mrstage/enemy/${k}/index.html" style="--fx:${FOE_CODEX_X[k]||0}%" title="${FOE_KO[k]}" tabindex="-1" scrolling="no" onload="foeCodexBoot()"></iframe><span class="cmHint">눌러 보세요</span></div>`+
-      `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small> <small class="cFoeN${foeCardOpen(k)?' done':''}">처치 ${Math.min(foeKills(k),FOE_NEED(k))} / ${FOE_NEED(k)}</small>${FOE_AW[k]?`<span class="awBand"><img src="assets/ui/card/abf_${k}.webp" alt=""><span><b>${FOE_AW[k].ko}</b><small>${FOE_AW[k].d}</small></span></span>`:''}</div></div>`+h;   /* (11-21) 적 카드 각성: 양피지 띠(각성 창 · 적 팩과 같은 모양) */   /* (DHL 11-13) 설명 글 · 버튼 줄 뺌 — 동료처럼 적을 누르면 반응(공격들 → 피격 차례로, 등장은 처음 한 번만) */
+      `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small> <small class="cFoeN${foeKills(k)>=FOE_NEED(k)?' done':''}">처치 ${Math.min(foeKills(k),FOE_NEED(k))} / ${FOE_NEED(k)}</small>${FOE_AW[k]?`<span class="awBand"><img src="assets/ui/card/abf_${k}.webp" alt=""><span><b>${FOE_AW[k].ko}</b><small>${FOE_AW[k].d}</small></span></span>`:''}</div></div>`+h;   /* (11-21) 적 카드 각성: 양피지 띠(각성 창 · 적 팩과 같은 모양) */   /* (DHL 11-13) 설명 글 · 버튼 줄 뺌 — 동료처럼 적을 누르면 반응(공격들 → 피격 차례로, 등장은 처음 한 번만) */
     setTimeout(foeCodexBoot,0);}
   /* (11-14) 안내는 도감 패널 제목 줄로 옮김 */
   return h;}
