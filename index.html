@@ -4862,7 +4862,8 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
 /* 창 스크롤바 정리(2026-10-28 DHL '양쪽으로 드레그'): 가로 스크롤은 어떤 창에서도 없음 · 내용이 조금 넘치면 글·그림을 살짝 줄여 한 화면에(fitPanel) · 진짜 긴 목록(도감·배우기)만 얇은 테마 스크롤 */
 #ov>.panel{overflow-x:hidden!important}
 #panel.lmFit>*{zoom:var(--lmz,1)}
-#panel .packRow+*{margin-top:14px}   /* 동료 팩: 카드 아래 '덱 2→3'이 건너뛰기 버튼과 겹치지 않게 */
+#panel .packRow+*{margin-top:14px}
+#panel .packRow:has(.cnt)+*{margin-top:clamp(36px,4.4vw,60px)}   /* (DHL 11-21 '덱 2→3이 건너뛰기에 가림') 카드가 큰 화면에서는 '덱 2→3'이 더 아래로 내려옴 → 버튼을 카드 크기에 맞춰 띄움 */   /* 동료 팩: 카드 아래 '덱 2→3'이 건너뛰기 버튼과 겹치지 않게 */
 @media (orientation:landscape) and (max-height:460px){   /* 야영 고르기: 낮은 가로 화면에선 정비 버튼을 두 줄로 */
   #panel:has(>.campBtn){display:grid;grid-template-columns:1fr 1fr;column-gap:8px;align-content:start}
   #panel:has(>.campBtn)>:not(.campBtn){grid-column:1/-1}
@@ -7327,7 +7328,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
 (function(){
   const MAP={'0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','+':'plus','−':'minus','-':'minus','×':'x','½':'half','.':'dot'};
   const O={"0":[0,72],"1":[74,58],"2":[134,73],"3":[209,70],"4":[281,77],"5":[360,71],"6":[433,75],"7":[510,72],"8":[584,75],"9":[661,73],"plus":[736,78],"minus":[816,73],"x":[891,73],"half":[966,74],"dot":[1042,38]};   // 숫자 그림 한 장(digits.webp 1082×96) 안의 [x, 폭]
-  const SEL='.card.dz .dzi[data-w] .dzno,.card.dz .dzi[data-w] .dzpw';
+  const SEL='.card.dz .dzi[data-w] .dzno,.card.dz .dzi[data-w] .dzpw,.mgOpt .mgNo';   /* (DHL 11-21) 머지 창의 번호 구슬도 카드와 같은 숫자 그림으로 */
   function paint(el){const t=el.textContent.trim();if(!t||el.dataset.dg===t)return;   /* 빈 칸(적 카드 ∞ 그림)은 건드리지 않음 */if(![...t].every(ch=>MAP[ch]))return;
     el.dataset.dg=t;el.setAttribute('aria-label',t);
     el.innerHTML='<span class="lmDg" aria-hidden="true">'+[...t].map(ch=>{const [x,w]=O[MAP[ch]];return '<i style="width:'+(w/96).toFixed(3)+'em;background-position:-'+(x/96).toFixed(3)+'em 0"></i>';}).join('')+'</span><span class="lmDgT">'+t+'</span>';}
@@ -8662,7 +8663,10 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 </style>
 <style id="lm-merge-no">
 /* (DHL 10-30) 머지 고르기: 번호 고르기(카드 왼쪽 위 번호 원 모양) · 머지 하지 않음 */
-.mgOpt .mgNo{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6d8,#e8c56a 55%,#9a6b16);color:#2a1a00;font:900 24px/1 Georgia,serif;font-style:italic;box-shadow:inset 0 0 0 2px #0003,0 2px 4px #0008}
+.mgOpt .mgNo{display:flex;align-items:center;justify-content:center;width:46px;height:46px;margin:0 auto;background:url(assets/ui/card/medal.webp) center/contain no-repeat;color:#2a1a00;font:900 22px/1 "Noto Sans KR",sans-serif;font-style:normal;filter:drop-shadow(0 2px 3px #0008)}   /* (DHL 11-21 '숫자가 이상') 기울어진 세리프 숫자 → 카드 번호와 같은 메달 + 숫자 그림 */
+.mgOpt .mgNo .lmDg{display:inline-flex;align-items:center;height:1em;line-height:1;font-size:23px;filter:drop-shadow(0 0 1px #1a0f05) drop-shadow(0 1px 0 #1a0f05)}
+.mgOpt .mgNo .lmDg i{display:block;height:1em;margin:0 -.04em;background:url(assets/ui/card/digits.webp) 0 0/11.271em 1em no-repeat}
+.mgOpt .mgNo .lmDgT{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .mgSkip{flex:0 1 auto;white-space:nowrap;min-height:48px;border-radius:12px;border:2px solid #94a3b8;background:#1e293b;color:#e2e8f0;font:800 14px/1.2 "Noto Sans KR",sans-serif;padding:6px 10px;cursor:pointer}
 .mgSkip:hover{background:#334155}
 </style>
