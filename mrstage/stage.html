@@ -5616,6 +5616,10 @@ function lmPortraitK(){try{const w=window.top||window;return w.matchMedia('(orie
     document.documentElement.style.setProperty('--mrstage-k',k);window.MRStageK=k;
   }
   fit();window.addEventListener('resize',fit);window.MRStageFit=fit;
+  /* (DHL 11-21 'PC에서 컷신 해상도가 낮아 보임') 캔버스 해상도 배율: 예전엔 2~4배에서 막혀 큰 화면 · 고해상도 모니터에서 캐릭터 · 이펙트 · 컷신이 1.7~3.4배 늘어나 흐렸음
+     → 화면 픽셀에 맞춰 올리되 한 판의 픽셀 수(budget)를 넘지 않게. '효과 줄이기'를 켜면 예전 상한 그대로(낮은 사양) */
+  window.lmDpr=function(w,h,oldCap,budget){var d=window.devicePixelRatio||1,lo=Math.min(d,oldCap);try{if(typeof gameSettings!=='undefined'&&gameSettings.reduceFx)return lo;}catch(e){}
+    return Math.max(lo,Math.min(d,Math.sqrt((budget||3400000)/Math.max(1,w*h))));};
   window.handleAssetImageLoad=window.handleAssetImageLoad||function(){};window.handleAssetImageError=window.handleAssetImageError||function(){};
 })();
 </script>
@@ -5861,7 +5865,7 @@ window.MRBattleFX=(()=>{
   if(!visible()||(typeof globalPause!=='undefined'&&globalPause)||(typeof isGameOver!=='undefined'&&isGameOver)){clear();return;}
   const delta=last?Math.max(0,now-last):0;last=now;
   width=stage.clientWidth;height=stage.clientHeight;
-  const dpr=Math.min(window.devicePixelRatio||1,3);/*손패: 확대 무대 해상도*/
+  const dpr=lmDpr(width||1,height||1,3,2600000);/*손패: 확대 무대 해상도*/
   const pw=Math.max(1,Math.round(width*dpr)),ph=Math.max(1,Math.round(height*dpr));
   if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
@@ -7547,7 +7551,7 @@ let isGameOver = false;
     const stage=info?.stage;if(!stage||!canvas)return;
     let dt=Math.min(.05,(now-last)/1000);last=now;
     const W=stage.clientWidth,H=stage.clientHeight;if(!W||!H)return;
-    const dpr=Math.min(4,devicePixelRatio||1);
+    const dpr=lmDpr(W,H,4);
     if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);}
     const paused=document.hidden||stage.classList.contains('simulation-paused')||document.getElementById('app')?.classList.contains('game-over');
     if(paused)dt=0;
@@ -7655,7 +7659,7 @@ let isGameOver = false;
     if(!e.anim)return false;               // 아직 로딩 중이면 그림 그대로
     el.classList.add('mr-rig-hidden');
     const W=host.clientWidth,H=host.clientHeight;if(!W||!H)return true;
-    const dpr=Math.min(2,devicePixelRatio||1),c=roomCanvas(host);
+    const dpr=lmDpr(W,H,2),c=roomCanvas(host);
     if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);}
     const g=c.getContext('2d');
     if(c._t!==t){c._t=t;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);} // 같은 칸의 첫 캐릭터가 지운다
@@ -7865,7 +7869,7 @@ let isGameOver = false;
     c.style.left=(L-hr.left-host.clientLeft+host.scrollLeft).toFixed(1)+'px';c.style.top=(T-hr.top-host.clientTop+host.scrollTop).toFixed(1)+'px';
     c.style.width=cw.toFixed(1)+'px';c.style.height=ch.toFixed(1)+'px';
     const cs=getComputedStyle(img),zi=cs.zIndex;c.style.zIndex=zi==='auto'?'1':zi;c.style.opacity=cs.opacity;c.style.filter=cs.filter==='none'?'':cs.filter;
-    const dpr=Math.min(2,devicePixelRatio||1);if(c.width!==Math.round(cw*dpr)||c.height!==Math.round(ch*dpr)){c.width=Math.round(cw*dpr);c.height=Math.round(ch*dpr);}
+    const dpr=lmDpr(cw,ch,2,4200000);if(c.width!==Math.round(cw*dpr)||c.height!==Math.round(ch*dpr)){c.width=Math.round(cw*dpr);c.height=Math.round(ch*dpr);}
     const dt=Math.min(.05,Math.max(0,(t-e.last)/1000));e.last=t;
     const a=e.anim,act=a.act;
     if(e.mode==='battle'){ // 대기 반복·공격 뒤 복귀
