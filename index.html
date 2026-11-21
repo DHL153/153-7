@@ -5399,7 +5399,7 @@ html #app #vC.bump,html #app #vM.bump{animation:lmNumFlash .3s ease-out!importan
     const row=document.createElement('div');row.id='lmSRow';nr.after(row);
     const info={};   // uid → 토큰 정보 (런 하는 동안 손에서 빠져도 그대로 보이게)
     const tokInfo=c=>{const t=TYPES[c.id]||{};const el=document.querySelector('#hand .card[data-uid="'+c.uid+'"] .dzno');
-      return info[c.uid]={n:el?el.textContent.trim():(t.n||''),ec:(typeof EL_C!=='undefined'&&EL_C[c.el])||'#777',img:(typeof MR_ART!=='undefined'&&MR_ART.idle&&MR_ART.idle[c.id])||'',star:c.star||1};};
+      return info[c.uid]={n:el?el.textContent.trim():(t.n||''),ec:(typeof EL_C!=='undefined'&&EL_C[c.el])||'#777',img:(t&&t.foe?'assets/ui/foe/'+t.n+'.webp':(typeof MR_ART!=='undefined'&&MR_ART.idle&&MR_ART.idle[c.id]))||'',star:c.star||1};};
     const tok=(c,out)=>{const f=info[c.uid]||tokInfo(c);return `<span class="lmTk${out?' out':''}${f.star>1?' s'+f.star:''}" data-uid="${c.uid}" style="--e:${f.ec}">${f.img?`<img src="${f.img}" alt="">`:''}<b>${f.n}</b></span>`;};
     const W=c=>(typeof STAR_W!=='undefined'&&STAR_W[c.star||1])||1;   // 족보에서 세는 장수
     let ghSeen=new Set();   // 그림자 카드 등장 연출은 처음 고를 때만
