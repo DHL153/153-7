@@ -10796,11 +10796,11 @@ html.lmB #hand .card.dz.noscore .dzi[data-seal]{filter:none!important}   /* 고�
   window.addEventListener('pagehide',()=>{try{save();}catch(e){}});
   window.lmRunSave={save,clear,load,restore,KEY};
 })();
-/* (11-17 QA) 창이 다른 창으로 바뀐 직후 0.26초 동안은 그 창을 누른 것으로 치지 않음 — 더블클릭의 두 번째 클릭이 새로 뜬 창의 같은 자리 버튼을 눌렀음
+/* (11-17 QA) 창이 다른 창으로 바뀐 직후 0.38초 동안은 그 창을 누른 것으로 치지 않음 — 더블클릭의 두 번째 클릭이 새로 뜬 창의 같은 자리 버튼을 눌렀음
    (동료 팩 첫 카드를 두 번 누르면 카드를 받자마자 그 자리의 '다음 라운드'가 눌려 남은 골드를 못 쓰고 캠프를 떠남). 같은 창을 다시 그릴 때(구매 확인 · 보상 받기 두 번)는 해당 없음 · 키보드는 해당 없음 */
 (()=>{let kind='',at=0;const _so=showOv;
   showOv=function(){const r=_so.apply(this,arguments);try{const p=document.querySelector('#panel>*');const k=p?p.tagName+'.'+(typeof p.className==='string'?p.className.split(/\s+/).slice(0,2).join('.'):'')+(p.tagName==='H2'?':'+p.textContent.slice(0,8):''):'';if(k!==kind){kind=k;at=performance.now();}}catch(e){}return r;};
-  document.addEventListener('click',e=>{try{if(e.detail>0&&performance.now()-at<260&&e.target&&e.target.closest&&e.target.closest('#ov')){e.stopImmediatePropagation();e.preventDefault();}}catch(_){}},true);
+  document.addEventListener('click',e=>{try{if(e.detail>0&&performance.now()-at<380&&e.target&&e.target.closest&&e.target.closest('#ov')){e.stopImmediatePropagation();e.preventDefault();}}catch(_){}},true);
 })();
 /* (11-17 QA) 메인 메뉴에 나가 있는 동안 판의 창은 미룸 — 모든 showOv 덧씌움의 맨 바깥 */
 (()=>{const _so=showOv;showOv=function(h){if(typeof h==='string'&&!/class="ib[ "]/.test(h)&&lmAway()){_ovLate={h,S};
