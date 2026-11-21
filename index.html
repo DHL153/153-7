@@ -2980,9 +2980,7 @@ function render(){try{if(S&&!S.busy&&!S.inShop&&S.sel)lmBellSel();}catch(e){}
       S.scoreU=[].concat(...[r.ht].concat(r.bonds||[]).flatMap(k=>scoringCards(pv,k,S.foe)).map(c=>c._u||[c.uid]));   // 점수에 들어가는 카드 (겹친 족보 모두)
       const G3=mergeRun()&&!S.mrOff&&canMergeAllowed()?mrGroups3(sc):[];if(G3.length)S.scoreU=S.scoreU.concat(...G3.map(g=>g.map(c=>c.uid)));   // (DHL 10-30) 같은 카드 3장 이상 = 어느 둘을 합칠지 아직 안 정함 → '족보 밖' 회색 표시 안 함
       $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(pv.length<sc.length?' · 머지 & 런':'')+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · '+TD():''}`:'');S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;if(sc.length&&sc.every(c=>c.seal))$('htName').textContent='🔒 봉인 — 같이 낼 카드를 고르세요';   /* (11-13 QA) 봉인 카드만 고르면 '홀로 런'으로 보이던 것 */
-      /* (DHL 11-21 시안) 머지하면 이번 런이 손해일 때(세 세계의 맹세 · 행진이 깨지는 경우 등): 정답을 알려 주지 않고 '손해일 수 있어요'만 — 머지 버튼이 주황 ⚠로 바뀜 */
-      let mrLose=false;if(mergeRun()&&pv.length<sc.length){try{mrLose=score(sc,ctx()).total>r.total;}catch(e){}}
-      const mrBtn=`<button class="mrTog on${mrLose?' warn':''}" onclick="event.stopPropagation();S.mrOff=true;render()">${mrLose?'⚠':'🔗'} 머지 켬</button> `,mrTail=mrLose&&!window.LM_MRWARN_B?' — <b class="mrWarnT">머지하면 손해일 수 있어요</b>':null;
+      const mrBtn=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `,mrTail=null;
       if(mergeRun()&&pv.length<sc.length){S.willM=[].concat(...pv.filter(c=>c._u&&c._u.length>1).map(c=>c._u));
         if(S.bOrb==null&&G3.length)$('tip').innerHTML=mrBtn+G3.map(g=>`<b>${TYPES[g[0].id].ko} ${g.length}장</b> → 두 장 골라 ★${g[0].star+1}`).join(' · ')+(mrTail||' — 런할 때 골라요');
         else if(S.bOrb==null)$('tip').innerHTML=mrBtn+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합':''}`).join(' · ')+(mrTail||' — 런하면 <b>합쳐져요</b>');}
@@ -3209,7 +3207,7 @@ function runChain(){
     const G=L.filter(x=>!x.fog&&(x===a||(mergeKind(a,x)&&!sk(a,x))));
     if(G.length>=3&&typeof askPair==='function')return askPair(G);   // (DHL 10-30) 같은 카드 3장 이상: 어느 두 장을 합칠지 플레이어가 고름
     S._ma=a;S._mb=b;
-    if(mrSame(a,b))return finishMerge(a,b,null);   // (DHL 10-30) 고를 게 없는 짝(딱 2장)은 창 없이 바로
+    if(mrSame(a,b)&&!(typeof window.lmMrLose==='function'&&window.lmMrLose()))return finishMerge(a,b,null);   // (DHL 10-30) 고를 게 없는 짝(딱 2장)은 창 없이 바로 — (11-21) 단, 머지하면 손해일 때(자리 · 장수 구슬 등)는 창을 띄워 고르게 함
     return askFuse(a,b,want);}}   // 머지 & 런: 짝마다 고르기 창 (세계 · 속성 · 번호 + 머지 하지 않음)
   S._chain=null;S._skip=null;S._snap=null;S.sel=L.map(c=>c.uid);render();doPlay('chain');     // 더 합칠 짝이 없으면 달린다 (합친 뒤의 카드로 동작 · 족보 밖 표시) (DHL 10-30)
 }
@@ -7427,11 +7425,11 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   const optNo=(on,n,click)=>`<button class="mgOpt mgNoOpt${on?' on':''}" onclick="${click}"><em class="mgNo">${n}</em><span>번호 ${n}</span></button>`;
   /* (DHL 10-30) 머지 & 런(기사 이상) 중이면 '머지 하지 않음' — 이 짝은 합치지 않고 그대로 달림 */
   const skip=()=>S._chain?`<button class="mgSkip" onclick="hideOv();(S._skip=S._skip||new Set()).add(S._ma.uid+'_'+S._mb.uid);(S._skip).add(S._mb.uid+'_'+S._ma.uid);runChain()">머지 하지 않음</button>`:'';
-  /* (DHL 11-21 시안) 머지하면 이번 런이 손해일 때(세 세계의 맹세 · 행진이 깨지는 등): 무엇이 깨지는지는 말하지 않고 '손해일 수 있어요'만 */
+  /* (DHL 11-21 A안 · 글 최소) 머지하면 이번 런 점수가 낮아질 때(세 세계의 맹세 · 행진이 깨짐, 자리 · 장수 구슬이 꺼짐 등): 무엇 때문인지는 말하지 않고 '⚠ 손해일 수 있어요'만 */
   const mrLose=()=>{try{const ch=S._chain;if(!ch||!ch.length)return false;return score(ch,ctx()).total>score(mergedPreview(ch),ctx(1)).total;}catch(e){return false;}};
-  const warn=()=>mrLose()?(window.LM_MRWARN_B?'<i class="mgWarnB" aria-hidden="true">⚠</i>':'<p class="mgWarn">⚠ 머지하면 손해일 수 있어요</p>'):'';
-  window.lmMrWarn=warn;
-  const foot=ok=>`${window.LM_MRWARN_B?'':warn()}<div class="mgFoot${window.LM_MRWARN_B&&mrLose()?' mgLose':''}"><button class="cpBack mgX lmIco" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
+  const warn=()=>mrLose()?'<p class="mgWarn">⚠ 손해일 수 있어요</p>':'';
+  window.lmMrLose=mrLose;
+  const foot=ok=>`${warn()}<div class="mgFoot"><button class="cpBack mgX lmIco" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
   /* (DHL 10-30) 같은 카드 3장 이상을 함께 런: 합칠 두 장을 고름 (기본 = 세계 · 속성 · 번호가 같은 두 장, 없으면 번호 높은 두 장) */
   window.askPair=function(G){
     S._pg=G;let def=null;for(const a of G)for(const b of G)if(!def&&a!==b&&mrSame(a,b))def=[a,b];
@@ -8671,10 +8669,7 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 /* (DHL 10-30) 머지 & 런: 머지 켬/끔 버튼 */
 .mrTog{display:inline-flex;align-items:center;gap:4px;margin-right:6px;padding:4px 12px;border-radius:999px;border:2px solid #94a3b8;background:#1e293b;color:#e2e8f0;font:800 13px/1.2 "Noto Sans KR",sans-serif;cursor:pointer;pointer-events:auto;vertical-align:middle}
 .mrTog.on{border-color:#4ade80;background:#14532d;color:#dcfce7;box-shadow:0 0 8px #4ade8066}
-.mrTog.on.warn{border-color:#fbbf24;background:#7c2d12;color:#ffedd5;box-shadow:0 0 10px #fb923c99;animation:mrWarnP 1.3s ease-in-out infinite}
-.mrWarnT{color:#fdba74}
 #panel .mgWarn{margin:10px 0 -2px;text-align:center;font:800 14.5px/1.3 "Noto Sans KR",sans-serif;color:#ffd08a;letter-spacing:.01em}
-#panel .mgFoot.mgLose .mgGo{filter:hue-rotate(-95deg) saturate(1.25);position:relative}#panel .mgFoot.mgLose .mgGo::after{content:'⚠';position:absolute;right:-9px;top:-11px;width:24px;height:24px;border-radius:50%;background:#7c2d12;border:2px solid #fbbf24;color:#ffe9b0;font:900 13px/20px sans-serif;text-align:center}
 @keyframes mrWarnP{50%{box-shadow:0 0 16px #fb923c,0 0 0 2px #fbbf2455}}
 @media (prefers-reduced-motion:reduce){.mrTog.on.warn{animation:none}}
 </style>
