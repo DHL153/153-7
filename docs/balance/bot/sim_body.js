@@ -25,6 +25,7 @@ const KEYS='live';
           BRK=now(깨는 런부터 전부)|next(다음 런부터) · GROG(그로기 배율) · GN(그로기 런 수) · REG(재브레이크마다 강인도 +) · KV(봇이 맞춤 1개에 주는 가치, 목표 대비) */
 const GATE=process.env.GATE||'cap', TGH=(process.env.TGH||'3,4,5').split(',').map(Number), PRE=process.env.PRE||'0.5', BRK=process.env.BRK||'next', GROG=+(process.env.GROG||1.5), GN=+(process.env.GN||1), REG=+(process.env.REG||1), KV=+(process.env.KV||0.08), HITF=+(process.env.HITF||0.55);
 const nKeys=r=>r&&r.keys?r.keys.n:0;
+const FOEPACK=process.env.FOEPACK||'off',FOECOST=+(process.env.FOECOST||8),FOEBOSS=+(process.env.FOEBOSS||0.1),FOEKEEP=+(process.env.FOEKEEP||4),FOEONLY=process.env.FOEONLY||'';
 /* ---- 2단 게이지(방패 바 + HP 바) 실험 (2026-10-29 '전투 시스템 밸런스 및 UI 개편 기획') ----
    GATE=bar · BF(방패 = 적 체력 × BF) · PIER(맞춤 0~3개 관통률) · BMODE=ratio(관통률만큼 HP로 바로) | prob(관통률 = 확률, 실패하면 방패만)
    방패가 깨지면: 피해 증가(1 + 관통률) · BV(봇이 방패 피해 1에 주는 가치) */
@@ -101,10 +102,10 @@ const NOMC=+(process.env.NOMC||0);
    SEAL=add(지금 공격에 더해) · only(지금 공격 대신) · SEALPICK=rand(무작위) · best(가장 센 카드) · SEALN=장 수 · SEALDIFF=이 난이도들에만 */
 const SEAL=process.env.SEAL||'only',SEALPICK=process.env.SEALPICK||'rand',SEALN=+(process.env.SEALN||1);   // (11-13 결정) 기본 = 게임과 같게: 기사 · 편력 무작위 1장 · 견습 없음. SEAL=off 로 끔
 const sealOn=()=>SEAL!=='off'&&S.diff!=='app';
-const ctxFor=(held,mcombo)=>({mcombo:NOMC?0:(S.runMerges||0)+(mcombo||0),bonusMult:S.nextMult||0,orbs:S.offOrb?S.orbs.filter(k=>k!==S.offOrb):S.orbs,merges:S.merges+(mcombo||0),discards:S.dis,lv:S.lv,runsLeft:S.runs,grow:S.grow,deck:S.deck.length,foe:S.foe,usedHT:S.usedHT,lockHT:S.lockHT,scoringOnly:true,ost:S.ost,runsMax:S.runsMax,discCount:S.discCount||0,held,ostate:S.ostate||{},gold:S.gold,rng:()=>S.rv==null?(S.rv=Math.random()):S.rv});
+const ctxFor=(held,mcombo)=>({shLeft:GATE==='energy'&&S.gs?S.gs.sh:0,mcombo:NOMC?0:(S.runMerges||0)+(mcombo||0),bonusMult:S.nextMult||0,orbs:S.offOrb?S.orbs.filter(k=>k!==S.offOrb):S.orbs,merges:S.merges+(mcombo||0),discards:S.dis,lv:S.lv,runsLeft:S.runs,grow:S.grow,deck:S.deck.length,foe:S.foe,usedHT:S.usedHT,lockHT:S.lockHT,scoringOnly:true,ost:S.ost,runsMax:S.runsMax,discCount:S.discCount||0,held,ostate:S.ostate||{},gold:S.gold,rng:()=>S.rv==null?(S.rv=Math.random()):S.rv});
 function woundC(cs){cs.forEach(c=>{c.out=true;});S.hand=S.hand.filter(c=>!c.out);}
 function scarC(c,p){c.st=c.st||{};c.st.hit=(c.st.hit||0)+Math.max(1,Math.round(power(c)*p));}
-function sealStrike(){if(!sealOn()||S.score>=S.tgt)return;for(let i=0;i<SEALN;i++){const pool=S.hand.filter(c=>!c.seal);if(pool.length<=1)return;const c=SEALPICK==='best'?pool.slice().sort((a,b)=>battlePower(b,S.foe)-battlePower(a,S.foe))[0]:pool[Math.random()*pool.length|0];c.seal=true;ST.seals=(ST.seals||0)+1;}}
+function sealStrike(){if(!sealOn()||S.score>=S.tgt)return;if(!FAOFF&&S.hand.some(c=>FA(c,'e06')&&!c.seal)){ST.sealBlocked=(ST.sealBlocked||0)+1;return;}for(let i=0;i<SEALN;i++){const pool=S.hand.filter(c=>!c.seal&&(FAOFF||!FA(c,'e12')));if(pool.length<=1)return;const c=SEALPICK==='best'?pool.slice().sort((a,b)=>battlePower(b,S.foe)-battlePower(a,S.foe))[0]:pool[Math.random()*pool.length|0];c.seal=true;ST.seals=(ST.seals||0)+1;}}
 function foeStrike(played){sealStrike();if(SEAL==='only'){S.marks=[];return;}
   const f=S.foe;if(!f||!f.atype)return;const k=f.atype,n=f.atk,bp=(a,b)=>battlePower(b,f)-battlePower(a,f)||b.uid-a.uid;let hit=[];
   if(k==='counter'){if(wsum(played)>=5){hit=played.filter(c=>S.deck.includes(c)).sort((a,b)=>power(b)-power(a)).slice(0,n);woundC(hit);ST.wounds+=hit.length;}}
@@ -220,7 +221,7 @@ function discard(keepSel){
   if(BOT==='normal')pool=H.filter(c=>c.uid!==S.forced);
   pool.sort((a,b)=>val(a)-val(b));const out=pool.slice(0,Math.min(5,pool.length,Math.max(1,H.length-3)));
   if(!out.length)return false;
-  const br=0,brB=out.filter(c=>S3(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;S.hand.forEach(c=>delete c.seal);}
+  const br=0,brB=out.filter(c=>S3(c,'bruno')).length;if(brB){S.nextMult=(S.nextMult||0)+6*brB;S.hand.forEach(c=>delete c.seal);}if(!FAOFF){const e8=out.filter(c=>FA(c,'e08')).length;if(e8)S.nextMult=(S.nextMult||0)+3*e8*FAX;}
   if(S.orbs.includes('diary')){S.ostate.diary=(S.ostate.diary||0)+3*out.length;}if(br)S.gold+=3*br;
   out.forEach(c=>{if(c.seal){delete c.seal;ST.sealDisc=(ST.sealDisc||0)+1;}});S.hand=S.hand.filter(c=>!out.includes(c));S.discCount=(S.discCount||0)+out.length;S.dis--;fill();bossTick();return true;}
 function doRun(pick){
@@ -280,7 +281,7 @@ function evalOrbs(orbs,ost){const save=[S.orbs,S.ost];S.orbs=orbs;S.ost=ost||S.o
   for(const cs of H){const r=score(cs.map(c=>({...c})),{...ctxFor([],0),foe:null,orbs,ost:S.ost,runsLeft:2});tot+=Math.log(1+r.total);} S.orbs=save[0];S.ost=save[1];return tot/H.length;}
 const ordered=o=>{const r={card:0,add:1,mul:2};return o.slice().sort((a,b)=>r[orbKind(a)]-r[orbKind(b)]);};
 function shop(){
-  S.rerollCost=S.rerollBase;rollTop();let packSold=false;
+  S.rerollCost=S.rerollBase;rollTop();let packSold=false;S._foeSold=false;
   const smart=(process.env.SHOPBOT||BOT)==='smart';
   for(let step=0;step<12;step++){
     let acted=false;
@@ -303,6 +304,12 @@ function shop(){
     const book=S.top.find(it=>it.kind==='book'&&!it.sold);
     if(book&&S.gold>=book.cost){const fav=Object.entries(S.htCount||{}).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);
       if(!smart?Math.random()<0.5:(fav.includes(book.k)&&book.k!=='solo')){S.gold-=book.cost;S.lv[book.k]=(S.lv[book.k]||1)+(S.vouch.includes('scope2')?2:1);book.sold=true;acted=true;}}
+    // 적 팩 (11-20): FOEPACK=buy면 캠프마다 1번, 3장 중 1장 — 보스는 드물게(FOEBOSS)
+    if(FOEPACK!=='off'&&!S._foeSold&&S.gold>=price(FOECOST)+(smart?FOEKEEP:0)){S._foeSold=true;S.gold-=price(FOECOST);
+      const norm=FOE_TIER.weak.concat(FOE_TIER.strong),boss=FOE_TIER.boss.concat([FOE_TIER.final]),pk=a=>a[Math.random()*a.length|0];
+      const view=[0,1,2].map(()=>pk(norm));if(Math.random()<FOEBOSS)view[0]=pk(boss);   /* 팩 하나에 보스는 많아야 1장 · 10% */
+      let ch=FOEONLY?FOEONLY:view[0];if(smart&&!FOEONLY)ch=view.slice().sort((a,b)=>FOE_STAR(b)-FOE_STAR(a))[0];
+      S.deck.push(foeCardNew(ch,S.uid++));ST.foeBought=(ST.foeBought||0)+1;ST.foeBy=ST.foeBy||{};ST.foeBy[ch]=(ST.foeBy[ch]||0)+1;acted=true;}
     // 동료 팩: 돈이 남으면 (똑똑: 덱에 같은 이름 ★1이 있는 카드)
     if(!packSold&&S.gold>=price(PACK_COST)+(smart?6:0)){packSold=true;S.gold-=price(PACK_COST);
       const view=shuffle(TYPE_IDS.slice()).slice(0,3).map(id=>({id,el:TYPES[id].els[Math.random()*TYPES[id].els.length|0],star:Math.random()<0.05*(S.hone||1)?2:1}));
@@ -360,7 +367,7 @@ const bs=T.map(t=>t.b),p25=pct(bs,0.25),p40=pct(bs,0.4),p60=pct(bs,0.6),p90=pct(
 const tierStat=f=>{const a=T.filter(f);const rs=a.map(t=>t.runs).sort((x,y)=>x-y);return {n:a.length,kill:+(a.filter(t=>t.won).length/Math.max(1,a.length)).toFixed(3),medRuns:rs[rs.length>>1],avgRuns:+(a.filter(t=>t.won).reduce((s,t)=>s+t.runs,0)/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),otk:+(a.filter(t=>t.won&&t.runs===1).length/Math.max(1,a.length)).toFixed(3),brkShare:+(a.reduce((s,t)=>s+t.bshare,0)/Math.max(1,a.length)).toFixed(2),zeroBrkWin:+(a.filter(t=>t.won&&t.brks===0).length/Math.max(1,a.filter(t=>t.won).length)).toFixed(2),brks:+(a.reduce((s,t)=>s+t.brks,0)/Math.max(1,a.length)).toFixed(2)};};
 const tiers={top10:tierStat(t=>t.b>=p90),mid:tierStat(t=>t.b>=p40&&t.b<=p60),bot25:tierStat(t=>t.b<=p25),all:tierStat(()=>true),cut:[p25,p40,p60,p90].map(x=>+x.toFixed(2))};
 tiers.byRd=[0,1,2].map(rd=>{const a=T.filter(t=>t.rd===rd),b=a.map(t=>t.b).sort((x,y)=>x-y),q=p=>b[Math.min(b.length-1,Math.floor(b.length*p))];const P90=q(0.9),P40=q(0.4),P60=q(0.6),P25=q(0.25);const ts=f=>tierStat(t=>t.rd===rd&&f(t));return {top10:ts(t=>t.b>=P90),mid:ts(t=>t.b>=P40&&t.b<=P60),bot25:ts(t=>t.b<=P25),all:ts(()=>true)};});
-const out={fin:{sky:(ST.sky||0)/ST.games,wm2:(ST.wm2||0)/ST.games},seal:{per:(ST.seals||0)/ST.games,dump:(ST.sealDump||0)/ST.games,disc:(ST.sealDisc||0)/ST.games},deathJ:ST.deathJ,bar:GATE==='bar'?{BF,PIER,BMODE,blockedRunShare:+((ST.barBlockedRuns||0)/Math.max(1,ST.barRuns||0)).toFixed(3),rollFail:ST.rolls?+(ST.rollFail/ST.rolls).toFixed(3):null}:null,gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
+const out={foe:{bought:(ST.foeBought||0)/ST.games,by:ST.foeBy||{},sealBlocked:(ST.sealBlocked||0)/ST.games},fin:{sky:(ST.sky||0)/ST.games,wm2:(ST.wm2||0)/ST.games},seal:{per:(ST.seals||0)/ST.games,dump:(ST.sealDump||0)/ST.games,disc:(ST.sealDisc||0)/ST.games},deathJ:ST.deathJ,bar:GATE==='bar'?{BF,PIER,BMODE,blockedRunShare:+((ST.barBlockedRuns||0)/Math.max(1,ST.barRuns||0)).toFixed(3),rollFail:ST.rolls?+(ST.rollFail/ST.rolls).toFixed(3):null}:null,gate:GATE,tiers,keys:KEYS,closeWinShare:ST.closeWin/Math.max(1,ST.wins),keyFinishShare:ST.keyFinish/Math.max(1,ST.wins),dec:ST.dec?Object.fromEntries(Object.entries(ST.dec).map(([j,D])=>[j,Object.fromEntries(Object.entries(D).map(([k,a])=>[k,+med(a).toFixed(2)]))])):null,aff:AFF,enemy:ENEMY,tmul:TMUL,intentChanged:ST.intentChanged/Math.max(1,ST.intentRuns),woundsPerGame:ST.wounds/ST.games,scarsPerGame:ST.scars/ST.games,sleepPerGame:ST.sleep/ST.games,diff:DK,bot:BOT,games:ST.games,clear:ST.clear/ST.games,deathJ:ST.deathJ,
   runsPerRound:ST.runsUsed/ST.rounds,disPerRound:ST.disUsed/ST.rounds,firstRunWinShare:ST.firstRunWin/ST.rounds,bigHitShare:ST.bigHit/ST.rounds,
   medOver:med(ST.overRatio),q90Over:q(ST.overRatio,0.9),runsLeftAtWin:med(ST.runsLeftAtWin),
   medLoss:med(ST.lossRatio),campPerGame:ST.camp/ST.games,mergesPerGame:ST.merges/ST.games,
