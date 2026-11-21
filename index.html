@@ -10803,4 +10803,42 @@ html.lmB #hand .card.dz.noscore .dzi[data-seal]{filter:none!important}   /* 고�
     try{if(!lmRunLive()){const p=document.querySelector('#lm-title .lt-play');if(p)p.innerHTML='플레이<span class="ltv-sub"></span>';}}catch(e){}   /* 나가 있는 동안 판이 끝났으면 타이틀 버튼도 '계속하기' → '플레이' */
     return;}return _so.apply(this,arguments);};})();
 </script>
+<style id="lm-awtip-css">
+/* (DHL 11-21 A안) 손패 각성 말풍선: 각성이 있는 카드(적 카드 · 동료 ★3)를 고르거나 마우스를 올리면 카드 바로 위에 양피지 띠 — 꼬리가 그 카드를 가리킴 */
+#lmAwTip{position:fixed;z-index:60;display:flex;align-items:center;gap:10px;padding:6px 14px 6px 8px;border-radius:10px;background:var(--parch,linear-gradient(#e0cfa3,#cbb682));border:1.5px solid #7a5a1e;box-shadow:inset 0 2px 0 #fff5,0 4px 10px #000a;color:#3a2a0c;font-family:"Noto Sans KR",sans-serif;white-space:nowrap;pointer-events:none;opacity:0;translate:0 6px;transition:opacity .14s ease,translate .14s ease;max-width:calc(100vw - 16px)}
+#lmAwTip.on{opacity:1;translate:0 0}
+#lmAwTip img{width:40px;height:40px;flex:none;object-fit:contain}
+#lmAwTip b{display:block;font-size:14.5px;color:#5a2d0a}
+#lmAwTip small{display:block;font-size:13px;line-height:1.3;color:#3a2a0c;opacity:1}
+/* 꼬리: 갈색 테 삼각형(뒤) + 양피지 삼각형(앞) — 띠의 아래 테두리와 이어져 보이게 */
+#lmAwTip::before,#lmAwTip::after{content:"";position:absolute;left:var(--ax,50%);top:100%;translate:-50% 0;width:0;height:0;border-style:solid;border-color:transparent}
+#lmAwTip::before{border-width:14px 12px 0 12px;border-top-color:#7a5a1e;filter:drop-shadow(0 3px 2px #0007)}
+#lmAwTip::after{border-width:12px 10px 0 10px;border-top-color:#cbb682;margin-top:-2px}
+@media (prefers-reduced-motion:reduce){#lmAwTip{transition:none}}
+</style>
+<script id="lm-awtip">
+(function(){
+  let el=null,tmr=0,cur=null;
+  const hide=()=>{clearTimeout(tmr);tmr=0;cur=null;if(el)el.classList.remove('on');};
+  function show(c,ms){try{
+    const A=typeof ab3==='function'&&ab3(c);if(!A||c.fog||(S&&S.busy))return hide();
+    const card=document.querySelector('#hand .card[data-uid="'+c.uid+'"]');if(!card)return hide();
+    if(!el){el=document.createElement('div');el.id='lmAwTip';el.setAttribute('role','tooltip');document.body.appendChild(el);}
+    const t=TYPES[c.id],img=t.foe?'abf_'+t.n:'ab3_'+ab3Ic(t.n);
+    el.innerHTML='<img src="assets/ui/card/'+img+'.webp" alt=""><span><b>'+A.ko+'</b><small>'+A.d+'</small></span>';
+    const r=card.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight,hb=document.getElementById('hand').getBoundingClientRect();
+    const L=Math.max(8,hb.left),R=Math.min(innerWidth-8,hb.right),cx=r.left+r.width/2,x=Math.max(L,Math.min(R-w,cx-w/2));
+    el.style.left=x+'px';const badge=card.querySelector('.ord,.selNo,.sn'),top=Math.min(r.top,badge?badge.getBoundingClientRect().top:r.top);el.style.top=Math.max(8,top-h-15)+'px';   /* 고른 순서 번호(카드 위 동그라미)가 있으면 그 위로 */el.style.setProperty('--ax',Math.max(16,Math.min(w-16,cx-x))+'px');
+    cur=c.uid;el.classList.add('on');clearTimeout(tmr);tmr=ms?setTimeout(hide,ms):0;
+  }catch(e){}}
+  /* 고를 때: 카드가 올라간 뒤 자리를 재서 2.6초 */
+  const _tc=tapCard;tapCard=function(c){const was=S&&S.sel.includes(c.uid),r=_tc.apply(this,arguments);try{if(S&&!was&&S.sel.includes(c.uid)&&ab3(c))setTimeout(()=>show(c,2600),150);else hide();}catch(e){}return r;};
+  /* PC: 마우스를 올리면 */
+  document.addEventListener('mouseover',e=>{try{const d=e.target.closest&&e.target.closest('#hand .card[data-uid]');if(!d||!S||S.busy)return;const c=S.hand.find(x=>String(x.uid)===d.dataset.uid);if(c&&ab3(c)&&cur!==c.uid)show(c,0);}catch(_){}} );
+  document.addEventListener('mouseout',e=>{try{const d=e.target.closest&&e.target.closest('#hand .card[data-uid]');if(d&&!(e.relatedTarget&&d.contains(e.relatedTarget))&&cur!=null&&String(cur)===d.dataset.uid&&!tmr)hide();}catch(_){}} );
+  /* 런 · 버리기 · 창이 뜨면 치움 */
+  ['doPlay','doDiscard','showOv'].forEach(n=>{try{const f=window[n];if(typeof f==='function')window[n]=function(){hide();return f.apply(this,arguments);};}catch(e){}});
+  addEventListener('resize',hide);
+})();
+</script>
 </body></html>
