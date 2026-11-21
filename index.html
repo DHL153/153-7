@@ -2618,7 +2618,7 @@ function newGame(diff){
 const giantKey=R=>R?(R.k==='ban'?({'부상':'inj','세계 봉쇄':'wban','속성 봉쇄':'elban'}[R.ko]||'inj'):R.k):null;
 /* 👹 (DHL 11-12) 새 적 15종 — 움직이는 리그(mrstage/enemy/<키>). 망령 = 약한 쪽(5장부터는 전부) · 수문장 = 센 쪽 · 거인 = 보스 3종을 장마다 돌려 씀 · 편력 결전 = 풍차 거인
    한 판 안에서는 같은 적이 다 나올 때까지 겹치지 않게 뽑음. 특별 보스(스카이아크 알론소)는 예전 그림 그대로(rig 0) */
-const FOE_KO={e01:'클로 망령',e02:'막대말 랜스 기사',e03:'유령 석궁 사수',e04:'불꽃 창 망령',e05:'산양 궁수',e06:'까마귀 주술사',e07:'녹슨 풍차 거인',e08:'졸음 북치기 새',e09:'타락 천사 사제',e10:'눈알 두꺼비',e11:'거북이 몽둥이 전사',e12:'좀비 의사',e13:'해골 복서 오우거',e14:'역병 의사 화염방사병',e15:'해적 게'};
+const FOE_KO={e01:'클로 망령',e02:'목마 기사',e03:'유령 사수',e04:'불꽃 창병',e05:'산양 궁수',e06:'주술 까마귀',e07:'풍차 거인',e08:'북치기 새',e09:'타락 사제',e10:'눈알 두꺼비',e11:'거북 전사',e12:'좀비 의사',e13:'해골 복서',e14:'역병 방화병',e15:'해적 게'};   /* (DHL 11-21) 이름은 띄어쓰기 포함 6자 이하 · 낱말 두 개까지 (번역: 두 낱말 · 영어 13자 안팎) */
 const FOE_RIG={weak:['e10','e11','e08','e01','e05'],strong:['e03','e02','e04','e12','e15','e14'],boss:['e06','e09','e13'],final:'e07'};
 Object.keys(FOE_KO).forEach(k=>{if(TYPES['foe_'+k])TYPES['foe_'+k].ko=FOE_KO[k];});   /* 적 카드 이름 (타입 등록은 코어 쪽 FOE_AW 옆) */
 function foeRigPick(f,jang,r){if(f.boss==='windmill')return FOE_RIG.final;if(f.boss)return 0;
@@ -4010,7 +4010,7 @@ function foeCodexHTML(pick){if(!(codexSel&&FOE_KO[codexSel]))window._foeBgFor=nu
     if(window._foeBgFor!==k||!window._foeBgN){window._foeBgFor=k;let n;do{n=1+(Math.random()*30|0);}while(n===window._foeBgN);window._foeBgN=window._foeBgForce||n;}
     const bn=window._foeBgN,bw=bn<=10?'rust':bn<=20?'neon':'sky';
     h=`<div class="cDet cFoeDet"><div class="cFoeStage w-${bw}" onclick="foeCodexTap()"><i class="cFoeBg" style="background-image:url(mrstage/assets/art/backgrounds/battle/bg_battle_${String(bn).padStart(4,'0')}.png)"></i><iframe src="mrstage/enemy/${k}/index.html" style="--fx:${FOE_CODEX_X[k]||0}%" title="${FOE_KO[k]}" tabindex="-1" scrolling="no" onload="foeCodexBoot()"></iframe><span class="cmHint">눌러 보세요</span></div>`+
-      `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small> <small class="cFoeN${foeCardOpen(k)?' done':''}">처치 ${Math.min(foeKills(k),FOE_NEED(k))} / ${FOE_NEED(k)}</small></div></div>`+h;   /* (DHL 11-13) 설명 글 · 버튼 줄 뺌 — 동료처럼 적을 누르면 반응(공격들 → 피격 차례로, 등장은 처음 한 번만) */
+      `<div class="cFoeTx"><b>${FOE_KO[k]}</b> <small class="cFoeK ${kc}">${kd}</small> <small class="cFoeN${foeCardOpen(k)?' done':''}">처치 ${Math.min(foeKills(k),FOE_NEED(k))} / ${FOE_NEED(k)}</small>${FOE_AW[k]?`<span class="cFoeAw"><img src="assets/ui/card/abf_${k}.webp" alt=""><span><b>${FOE_AW[k].ko}</b><small>${FOE_AW[k].d}</small></span></span>`:''}</div></div>`+h;   /* (11-21) 적 카드 각성: 양피지 띠(각성 창 · 적 팩과 같은 모양) */   /* (DHL 11-13) 설명 글 · 버튼 줄 뺌 — 동료처럼 적을 누르면 반응(공격들 → 피격 차례로, 등장은 처음 한 번만) */
     setTimeout(foeCodexBoot,0);}
   /* (11-14) 안내는 도감 패널 제목 줄로 옮김 */
   return h;}
@@ -5849,6 +5849,7 @@ html.lmB body[data-tbl=sky] #ov:has(.rsB){--rsT:url(assets/ui/lamancha/bg_table_
 .cFoeStage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(90% 80% at 50% 62%,#0000 40%,#0a0f1e66 100%)}
 .ib .cSub:has(button:nth-child(4)){flex-wrap:nowrap!important;gap:5px!important}.ib .cSub:has(button:nth-child(4)) button{flex:1 1 0;min-width:0;padding-left:2px!important;padding-right:2px!important;white-space:nowrap;font-size:clamp(9.5px,2.5vw,13px)!important;letter-spacing:-.03em;word-spacing:-1px}   /* 탭 4개가 한 줄에 */
 .cFoeStage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;pointer-events:none;opacity:0;transition:opacity .2s;transform:translateX(var(--fx,0))}.cFoeStage iframe.on{opacity:1}
+.cFoeTx .cFoeAw{display:flex;align-items:center;gap:10px;margin-top:8px;padding:6px 14px 6px 8px;border-radius:10px;background:var(--parch,linear-gradient(#e0cfa3,#cbb682));box-shadow:var(--parch-in,inset 0 0 0 1px #7a5a1e);color:#3a2a0c;text-align:left;width:fit-content;max-width:100%}.cFoeTx .cFoeAw img{width:40px;height:40px;flex:none;object-fit:contain}.cFoeTx .cFoeAw b{display:block;font-size:14.5px!important;color:#5a2d0a}.cFoeTx .cFoeAw small{display:block;font-size:13px;line-height:1.3;word-break:keep-all;color:#3a2a0c}
 .cFoeTx b{font-size:18px}.cFoeTx p{margin:6px 0;font-size:13px;line-height:1.45;word-break:keep-all}.cFoeTx p em{font-style:normal;display:inline-block;margin-right:6px;padding:0 7px;border-radius:99px;background:#0006;color:#ffd257;font-size:11px;font-weight:900}
 .cFoeK{display:inline-block;padding:0 8px;border-radius:99px;background:#3b4d58;color:#e8e2d2!important;font-size:11px;font-weight:900;vertical-align:2px}.cFoeK.boss{background:#a5553a}.cFoeK.fin{background:#d9a43a;color:#2a2118!important}
 .cFoeBtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.cFoeBtns button{min-height:36px;padding:4px 14px;border-radius:9px;border:0;background:#0f8fdc;color:#fff;font-weight:900;box-shadow:0 3px 0 #0a5f94;cursor:pointer}.cFoeBtns button:active{transform:translateY(2px);box-shadow:0 1px 0 #0a5f94}
