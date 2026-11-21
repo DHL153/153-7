@@ -7427,7 +7427,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   const skip=()=>S._chain?`<button class="mgSkip" onclick="hideOv();(S._skip=S._skip||new Set()).add(S._ma.uid+'_'+S._mb.uid);(S._skip).add(S._mb.uid+'_'+S._ma.uid);runChain()">머지 하지 않음</button>`:'';
   /* (DHL 11-21 A안 · 글 최소) 머지하면 이번 런 점수가 낮아질 때(세 세계의 맹세 · 행진이 깨짐, 자리 · 장수 구슬이 꺼짐 등): 무엇 때문인지는 말하지 않고 '⚠ 손해일 수 있어요'만 */
   const mrLose=()=>{try{const ch=S._chain;if(!ch||!ch.length)return false;return score(ch,ctx()).total>score(mergedPreview(ch),ctx(1)).total;}catch(e){return false;}};
-  const warn=()=>mrLose()?'<p class="mgWarn">⚠ 손해일 수 있어요</p>':'';
+  const warn=()=>mrLose()?'<p class="mgWarn"><i aria-hidden="true">!</i>손해일 수 있어요</p>':'';
   window.lmMrLose=mrLose;
   const foot=ok=>`${warn()}<div class="mgFoot"><button class="cpBack mgX lmIco" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
   /* (DHL 10-30) 같은 카드 3장 이상을 함께 런: 합칠 두 장을 고름 (기본 = 세계 · 속성 · 번호가 같은 두 장, 없으면 번호 높은 두 장) */
@@ -7450,7 +7450,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     S._fw=cardW(a);S._fe=a.el;S._fn=ns[0];
     const draw=()=>{const mixed=mergeKind(a,b)==='mix';   /* (DHL 11-10 '★3 머지 때 힘 숫자가 다르게 나옴') 세계가 같아도 재료 중 하나가 혼합 ★2면 결과는 혼합 — 예전엔 세계만 보고 순수(×6)로 미리 보여 줌 */
       showOv(`<div class="mgPk"><h2>${t.ko} <i class="mgStar"></i>${a.star+1}</h2>
-        <div class="mgBody">${prev(a,b,S._fw,S._fe,mixed,S._fn)}<div class="mgSide">
+        <div class="mgBody${ns.length>1||ws.length>1||es.length>1?'':' solo'}">${prev(a,b,S._fw,S._fe,mixed,S._fn)}<div class="mgSide">
           ${ns.length>1?`<div class="mgRow">${ns.map(n=>optNo(S._fn===n,n,`S._fn=${n};S._redraw()`)).join('')}</div>`:''}
           ${ws.length>1?`<div class="mgRow">${ws.map(w=>opt(S._fw===w,WIC[w],WORLD_KO[w],`S._fw='${w}';S._redraw()`)).join('')}</div>`:''}
           ${es.length>1?`<div class="mgRow">${es.map(e=>opt(S._fe===e,'el_'+EL_KEY[e],e,`S._fe='${e}';S._redraw()`)).join('')}</div>`:''}
@@ -8669,7 +8669,10 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 /* (DHL 10-30) 머지 & 런: 머지 켬/끔 버튼 */
 .mrTog{display:inline-flex;align-items:center;gap:4px;margin-right:6px;padding:4px 12px;border-radius:999px;border:2px solid #94a3b8;background:#1e293b;color:#e2e8f0;font:800 13px/1.2 "Noto Sans KR",sans-serif;cursor:pointer;pointer-events:auto;vertical-align:middle}
 .mrTog.on{border-color:#4ade80;background:#14532d;color:#dcfce7;box-shadow:0 0 8px #4ade8066}
-#panel .mgWarn{margin:10px 0 -2px;text-align:center;font:800 14.5px/1.3 "Noto Sans KR",sans-serif;color:#ffd08a;letter-spacing:.01em}
+/* (DHL 11-21) 머지 손해 안내: 주황 느낌표 딱지 + 밝은 글자(서로 다른 색) · 고를 것이 없는 머지 창은 카드를 한가운데에(배율 글자는 카드 아래) */
+#panel .mgWarn{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0 -2px;font:800 15px/1.3 "Noto Sans KR",sans-serif;color:#fff3d0;letter-spacing:.01em}
+#panel .mgWarn i{flex:none;display:inline-block;width:22px;height:22px;border-radius:50%;background:#f59e0b;color:#3a1d00;font:900 15px/22px "Noto Sans KR",sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #7c2d12,0 0 10px #f59e0b99}
+.mgBody.solo{flex-direction:column!important;gap:6px!important}.mgBody.solo .mgSide{align-items:center}
 @keyframes mrWarnP{50%{box-shadow:0 0 16px #fb923c,0 0 0 2px #fbbf2455}}
 @media (prefers-reduced-motion:reduce){.mrTog.on.warn{animation:none}}
 </style>
