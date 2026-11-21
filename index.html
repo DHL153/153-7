@@ -2308,7 +2308,7 @@ function score0(cards,ctx){
     if(ctx.foe){const mx=matchX(c.el,ctx.foe);if(paralyzed(c,ctx.foe))notes.push('마비');else if(mx===2)notes.push('약점 ×2');else if(mx===0.5)notes.push('내성 ×½');}
     if(!armorOn()&&ctx.foe&&ctx.foe.home&&cardW(c)===ctx.foe.home&&!paralyzed(c,ctx.foe))notes.push('고향 ×1.5');
     if(hurtOf(c))notes.push('상처 -'+hurtOf(c));
-    if(has('w_'+cardW(c))){ch+=A('w_'+cardW(c),20);fired.push('w_'+cardW(c));}
+    if(has('w_'+cardW(c))){ch+=A('w_'+cardW(c),20)*weight(c);fired.push('w_'+cardW(c));}   /* (DHL 11-21 '별 수 = 장수') 카드마다 세는 구슬은 ★2 = 2장 · ★3 = 3장으로 */
     if(DUL){const d=DULV*(DUL-(S3(c,'dulcine')?1:0));if(d){ch+=d;notes.push('🌹 +'+d);}}
     if(SHIELD){ch+=10*SHIELD;notes.push('🛡 +'+10*SHIELD);}
     if(t.foe&&!FAOFF){const k=t.n;
@@ -2321,12 +2321,12 @@ function score0(cards,ctx){
     if(S3(c,'palome')&&NUM(c)<=PALMIN){ch*=PALX;notes.push('🕊 작은 영웅 ×'+PALX);}
     if(i===0&&has('flag')){ch*=X('flag',3);notes.push('돌격 ×'+X('flag',3));fired.push('flag');}
     if(i===2&&has('bell')){ch*=X('bell',4);notes.push('축복 ×'+X('bell',4));fired.push('bell');}
-    if(last&&has('echo')&&n>1){ch*=X('echo',2);notes.push('메아리');fired.push('echo');}
+    if(last&&has('echo')&&NW>1){ch*=X('echo',2);notes.push('메아리');fired.push('echo');}
     if(i>0&&has('chain')&&elsOf(cards[i-1]).some(e=>elsOf(c).includes(e))){ch+=A('chain',prev);notes.push('연쇄 +'+A('chain',prev));fired.push('chain');}
     if(last&&has('delu')&&n>1){ch=0;}
     chips+=ch;
     const m0=mult;
-    if(has('el_'+c.el)){mult+=A('el_'+c.el,3);fired.push('el_'+c.el);}
+    if(has('el_'+c.el)){mult+=A('el_'+c.el,3)*weight(c);fired.push('el_'+c.el);}
     if(has('stars')&&st>=2){ch+=A('stars',20);chips+=A('stars',20);fired.push('stars');}
     if(has('twin')&&st>=2){mult+=A('twin',4);fired.push('twin');}
     if(last&&has('guard')){mult+=A('guard',4*STAR_MUL[st]);notes.push('후위 +'+A('guard',4*STAR_MUL[st]));fired.push('guard');}
@@ -2352,7 +2352,7 @@ function score0(cards,ctx){
     hammer:()=>ctx.merges?(mult+=A('hammer',ctx.merges),'+'+A('hammer',ctx.merges)+' 배수'):null,
     ring:()=>['pair','two','house'].includes(ht)?(mult+=A('ring',6),'+'+A('ring',6)+' 배수'):null,
     spare:()=>ctx.discards?(mult+=A('spare',2*ctx.discards),'+'+A('spare',2*ctx.discards)+' 배수'):null,
-    small:()=>n<=3?(mult+=A('small',12),'+'+A('small',12)+' 배수'):null,
+    small:()=>NW<=3?(mult+=A('small',12),'+'+A('small',12)+' 배수'):null,
     trio:()=>['three','house','oath','four','all'].includes(ht)?(mult*=X('trio',2),'×'+X('trio',2)+' 배수'):null,
     crown:()=>isHT('elf')?(mult*=X('crown',2),'×'+X('crown',2)+' 배수'):null,
     rainbow:()=>isHT('march')?(mult*=X('rainbow',3),'×'+X('rainbow',3)+' 배수'):null,
@@ -2362,10 +2362,10 @@ function score0(cards,ctx){
     quix:()=>(mult*=X('quix',2.5),'×'+X('quix',2.5)+' 배수'),
     dawn:()=>ctx.runsMax&&ctx.runsLeft===ctx.runsMax?(mult+=A('dawn',10),'+'+A('dawn',10)+' 배수'):null,
     wisdom:()=>ctx.discCount?(chips+=A('wisdom',8*ctx.discCount),'+'+A('wisdom',8*ctx.discCount)+' 힘'):null,
-    bignum:()=>{const v=2*SC.reduce((s,c)=>s+NUM(c),0);return v?(chips+=A('bignum',v),'+'+A('bignum',v)+' 힘'):null;},
+    bignum:()=>{const v=2*SC.reduce((s,c)=>s+NUM(c)*weight(c),0);return v?(chips+=A('bignum',v),'+'+A('bignum',v)+' 힘'):null;},
     anvil:()=>ctx.merges?MX('anvil',Math.round((1+0.05*ctx.merges)*100)/100):null,
-    pureel:()=>n>=2&&new Set(cards.map(c=>c.el)).size===1?MX('pureel',1.5):null,
-    homeflag:()=>n>=2&&new Set(cards.map(cardW)).size===1?MX('homeflag',1.5):null,
+    pureel:()=>NW>=2&&new Set(cards.map(c=>c.el)).size===1?MX('pureel',1.5):null,
+    homeflag:()=>NW>=2&&new Set(cards.map(cardW)).size===1?MX('homeflag',1.5):null,
     duel:()=>['pair','two'].includes(ht)?MX('duel',2):null,
     crest:()=>ht==='house'?MX('crest',3):null,
     four4:()=>['four','all'].includes(ht)?MX('four4',3):null,
@@ -2980,9 +2980,12 @@ function render(){try{if(S&&!S.busy&&!S.inShop&&S.sel)lmBellSel();}catch(e){}
       S.scoreU=[].concat(...[r.ht].concat(r.bonds||[]).flatMap(k=>scoringCards(pv,k,S.foe)).map(c=>c._u||[c.uid]));   // 점수에 들어가는 카드 (겹친 족보 모두)
       const G3=mergeRun()&&!S.mrOff&&canMergeAllowed()?mrGroups3(sc):[];if(G3.length)S.scoreU=S.scoreU.concat(...G3.map(g=>g.map(c=>c.uid)));   // (DHL 10-30) 같은 카드 3장 이상 = 어느 둘을 합칠지 아직 안 정함 → '족보 밖' 회색 표시 안 함
       $('htName').textContent=(r.block?'⛔ '+r.block:(r.comboTag?r.comboTag+' ':'')+r.label)+(pv.length<sc.length?' · 머지 & 런':'')+(r.keys&&r.keys.n?` · ⚔ 맞춤 ${r.keys.n}/3${r.keys.n>=3?' · '+TD():''}`:'');S.keyNow=r.keys||null;S.keyAll=r.keys?keysOf(pv,S.foe):null;if(sc.length&&sc.every(c=>c.seal))$('htName').textContent='🔒 봉인 — 같이 낼 카드를 고르세요';   /* (11-13 QA) 봉인 카드만 고르면 '홀로 런'으로 보이던 것 */
+      /* (DHL 11-21 시안) 머지하면 이번 런이 손해일 때(세 세계의 맹세 · 행진이 깨지는 경우 등): 정답을 알려 주지 않고 '손해일 수 있어요'만 — 머지 버튼이 주황 ⚠로 바뀜 */
+      let mrLose=false;if(mergeRun()&&pv.length<sc.length){try{mrLose=score(sc,ctx()).total>r.total;}catch(e){}}
+      const mrBtn=`<button class="mrTog on${mrLose?' warn':''}" onclick="event.stopPropagation();S.mrOff=true;render()">${mrLose?'⚠':'🔗'} 머지 켬</button> `,mrTail=mrLose&&!window.LM_MRWARN_B?' — <b class="mrWarnT">머지하면 손해일 수 있어요</b>':null;
       if(mergeRun()&&pv.length<sc.length){S.willM=[].concat(...pv.filter(c=>c._u&&c._u.length>1).map(c=>c._u));
-        if(S.bOrb==null&&G3.length)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+G3.map(g=>`<b>${TYPES[g[0].id].ko} ${g.length}장</b> → 두 장 골라 ★${g[0].star+1}`).join(' · ')+' — 런할 때 골라요';
-        else if(S.bOrb==null)$('tip').innerHTML=`<button class="mrTog on" onclick="event.stopPropagation();S.mrOff=true;render()">🔗 머지 켬</button> `+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합':''}`).join(' · ')+' — 런하면 <b>합쳐져요</b>';}
+        if(S.bOrb==null&&G3.length)$('tip').innerHTML=mrBtn+G3.map(g=>`<b>${TYPES[g[0].id].ko} ${g.length}장</b> → 두 장 골라 ★${g[0].star+1}`).join(' · ')+(mrTail||' — 런할 때 골라요');
+        else if(S.bOrb==null)$('tip').innerHTML=mrBtn+pv.filter(c=>c._u&&c._u.length>1).map(c=>`<b>${TYPES[c.id].ko} ${c._u.length}장</b> → ★${c.star}${c.mixed?' 혼합':''}`).join(' · ')+(mrTail||' — 런하면 <b>합쳐져요</b>');}
       else if(mergeRun()&&S.mrOff&&runPairs(sc).length&&S.bOrb==null)$('tip').innerHTML=`<button class="mrTog" onclick="event.stopPropagation();S.mrOff=false;render()">⛔ 머지 끔</button> 같은 카드도 <b>따로</b> 달려요`;   /* (DHL 10-30) 머지 할지 말지 버튼 */
       lmCapSync(r,!!(DIFF[S.diff].preview||S.sandbox));
       if(DIFF[S.diff].preview||S.sandbox){$('vC').textContent=r.chips;$('vM').textContent=r.mult;const hc=hitCap(r);$('tot').innerHTML=hc&&!hc.brk&&hc.absorb>0?`${hc.cap.toLocaleString()}<small class="capTag" title="방패가 먼저 막아요">🛡${hc.absorb.toLocaleString()}</small>`:hc&&hc.brk?`${r.total.toLocaleString()}<small class="capTag brk">${TD()}!</small>`:r.total.toLocaleString();}
@@ -7424,7 +7427,11 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
   const optNo=(on,n,click)=>`<button class="mgOpt mgNoOpt${on?' on':''}" onclick="${click}"><em class="mgNo">${n}</em><span>번호 ${n}</span></button>`;
   /* (DHL 10-30) 머지 & 런(기사 이상) 중이면 '머지 하지 않음' — 이 짝은 합치지 않고 그대로 달림 */
   const skip=()=>S._chain?`<button class="mgSkip" onclick="hideOv();(S._skip=S._skip||new Set()).add(S._ma.uid+'_'+S._mb.uid);(S._skip).add(S._mb.uid+'_'+S._ma.uid);runChain()">머지 하지 않음</button>`:'';
-  const foot=ok=>`<div class="mgFoot"><button class="cpBack mgX lmIco" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
+  /* (DHL 11-21 시안) 머지하면 이번 런이 손해일 때(세 세계의 맹세 · 행진이 깨지는 등): 무엇이 깨지는지는 말하지 않고 '손해일 수 있어요'만 */
+  const mrLose=()=>{try{const ch=S._chain;if(!ch||!ch.length)return false;return score(ch,ctx()).total>score(mergedPreview(ch),ctx(1)).total;}catch(e){return false;}};
+  const warn=()=>mrLose()?(window.LM_MRWARN_B?'<i class="mgWarnB" aria-hidden="true">⚠</i>':'<p class="mgWarn">⚠ 머지하면 손해일 수 있어요</p>'):'';
+  window.lmMrWarn=warn;
+  const foot=ok=>`${window.LM_MRWARN_B?'':warn()}<div class="mgFoot${window.LM_MRWARN_B&&mrLose()?' mgLose':''}"><button class="cpBack mgX lmIco" onclick="hideOv();if(S._chain)mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>${skip()}<button class="mgGo" onclick="${ok}"><img src="assets/ui/icon/check.webp" alt="">머지</button></div>`;
   /* (DHL 10-30) 같은 카드 3장 이상을 함께 런: 합칠 두 장을 고름 (기본 = 세계 · 속성 · 번호가 같은 두 장, 없으면 번호 높은 두 장) */
   window.askPair=function(G){
     S._pg=G;let def=null;for(const a of G)for(const b of G)if(!def&&a!==b&&mrSame(a,b))def=[a,b];
@@ -7432,7 +7439,7 @@ html.lmB #lm-title .lt-card .lt-mb.back{flex:none!important}
     const draw=()=>{const P=S._pp,t=TYPES[G[0].id];
       showOv(`<div class="mgPk"><h2>${t.ko} <i class="mgStar"></i>${G[0].star+1}</h2><p class="mgQ">합칠 두 장을 고르세요 <b>${P.length} / 2</b></p>
         <div class="mgPair">${G.map((c,i)=>`<button class="mgPc${P.includes(c)?' on':''}" onclick="S._ppT(${i})"><div class="mgCard card dz s${c.star}">${cardFace(c)}</div></button>`).join('')}</div>
-        <div class="mgFoot"><button class="cpBack mgX lmIco" onclick="hideOv();mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>
+        ${warn()}<div class="mgFoot"><button class="cpBack mgX lmIco" onclick="hideOv();mrRollback();render()" aria-label="취소"><img src="assets/ui/icon/btn_back.webp" alt=""></button>
         <button class="mgSkip" onclick="hideOv();S._skip=S._skip||new Set();S._pg.forEach(a=>S._pg.forEach(b=>{if(a!==b)S._skip.add(a.uid+'_'+b.uid);}));runChain()">머지 하지 않음</button>
         <button class="mgGo"${P.length===2?'':' disabled'} onclick="S._ppGo()"><img src="assets/ui/icon/check.webp" alt="">다음</button></div></div>`);};
     S._ppT=i=>{const c=G[i],P=S._pp;S._pp=P.includes(c)?P.filter(x=>x!==c):P.length<2?P.concat(c):[P[1],c];draw();};
@@ -8664,6 +8671,12 @@ body.handWide #htName .hnP{font-size:11px;padding:3px 7px}
 /* (DHL 10-30) 머지 & 런: 머지 켬/끔 버튼 */
 .mrTog{display:inline-flex;align-items:center;gap:4px;margin-right:6px;padding:4px 12px;border-radius:999px;border:2px solid #94a3b8;background:#1e293b;color:#e2e8f0;font:800 13px/1.2 "Noto Sans KR",sans-serif;cursor:pointer;pointer-events:auto;vertical-align:middle}
 .mrTog.on{border-color:#4ade80;background:#14532d;color:#dcfce7;box-shadow:0 0 8px #4ade8066}
+.mrTog.on.warn{border-color:#fbbf24;background:#7c2d12;color:#ffedd5;box-shadow:0 0 10px #fb923c99;animation:mrWarnP 1.3s ease-in-out infinite}
+.mrWarnT{color:#fdba74}
+#panel .mgWarn{margin:10px 0 -2px;text-align:center;font:800 14.5px/1.3 "Noto Sans KR",sans-serif;color:#ffd08a;letter-spacing:.01em}
+#panel .mgFoot.mgLose .mgGo{filter:hue-rotate(-95deg) saturate(1.25);position:relative}#panel .mgFoot.mgLose .mgGo::after{content:'⚠';position:absolute;right:-9px;top:-11px;width:24px;height:24px;border-radius:50%;background:#7c2d12;border:2px solid #fbbf24;color:#ffe9b0;font:900 13px/20px sans-serif;text-align:center}
+@keyframes mrWarnP{50%{box-shadow:0 0 16px #fb923c,0 0 0 2px #fbbf2455}}
+@media (prefers-reduced-motion:reduce){.mrTog.on.warn{animation:none}}
 </style>
 
 <style id="lm-merge-fx-css">
