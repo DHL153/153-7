@@ -8966,9 +8966,11 @@ let isGameOver = false;
     const t0=performance.now();while(!EN()&&performance.now()-t0<7000)await sleep(60);
     const E=EN();if(!E||gsDead){landNow();return;}
     const W=stage.clientWidth||400,H=stage.clientHeight||145,P=enemyPt(),HP=heroPt(0),hh=(HP&&HP.h>0)?HP.h:H*.3,footY=(HP&&HP.h>0)?HP.y+hh*.55:H*.86;
-    const core=R.coreH||R.bodyH,body=Math.min(hh*Math.min(R.size||1.15,1.3)*.82,H*.7),k=body/core,bw=(R.bodyW||R.bodyH)*k,fr=(R.frontW||core*.34)*k;   /* 내 편 적은 주인공과 비슷한 키(적일 때보다 조금 작게) */
+    const core=R.coreH||R.bodyH,GIANT=(R.size||1.15)>=2,Sz=parseFloat(stage.style.getPropertyValue('--lm-enemy-size'))||H*.4,
+      body=GIANT?Math.min(Sz/(kind==='boss'?1.15:1)*.62*R.size,H*(1-BATTLE_GROUND_LINE)*.98):Math.min(hh*Math.min(R.size||1.15,1.3)*.82,H*.7),k=body/core,   /* (DHL 11-21) 풍차 거인은 적으로 나올 때와 똑같은 크기(foeSize와 같은 식) */
+      bw=(R.bodyW||R.bodyH)*k,fr=(R.frontW||core*.34)*k;   /* 내 편 적은 주인공과 비슷한 키(적일 때보다 조금 작게) */
     let B=null;try{B=foeRigBox();}catch(e){}
-    const cx=Math.max(bw*.5+6,Math.min(P.front-fr-hh*.45,(B?B.x:P.front)-bw*.36));   // 몸 가운데가 설 자리: 내 앞면이 적 앞면에서 몸 키의 반쯤 떨어지게
+    const cx=Math.max(bw*.5+6,Math.min(P.front-fr-hh*.45,(B?B.x:P.front)-bw*(GIANT?.62:.36)));   /* 풍차 거인은 몸이 넓어 더 뒤에 섬(상대 적을 가리지 않게) */   // 몸 가운데가 설 자리: 내 앞면이 적 앞면에서 몸 키의 반쯤 떨어지게
     f.style.width=(1600*k).toFixed(1)+'px';f.style.height=(900*k).toFixed(1)+'px';f.style.left=(cx-(1600-(R.mx||R.cx))*k).toFixed(1)+'px';f.style.top=(footY-R.gy*k).toFixed(1)+'px';
     hideCharge();
     const DBG=window.LM_ALLY_DBG||null;if(DBG)DBG.log={key,cx,front:P.front,Px:P.x,Ph:P.h,hh,footY,k,bw,fr,W,H,left:f.style.left,enL:$('enemy').offsetLeft,enW:$('enemy').offsetWidth};   /* 시안 사진용: {speed, hold} — 평소엔 없음 */
